@@ -24,6 +24,19 @@ class myOGL
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Obtain current desktop resolution
+    public static void getDesktopResolution(ref int width, ref int height)
+    {
+        var mode = Glfw.GetVideoMode(Glfw.PrimaryMonitor);
+
+        width = mode.Width;
+        height = mode.Height;
+
+        return;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     /// <summary>
     /// Creates and returns a handle to a GLFW window with a current OpenGL context.
     /// </summary>

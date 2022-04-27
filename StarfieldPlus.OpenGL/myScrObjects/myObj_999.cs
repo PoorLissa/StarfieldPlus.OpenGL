@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Star Field
+    - Test
 */
 
 
@@ -20,8 +20,9 @@ namespace my
 
         public myObj_999()
         {
-            if (list == null)
+            if (colorPicker == null)
             {
+                colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.SNAPSHOT);
                 list = new List<myObject>();
             }
 
@@ -32,22 +33,20 @@ namespace my
 
         protected override void generateNew()
         {
-            _a = (float)rand.NextDouble() + 0.02f;
-            _r = (float)rand.NextDouble();
-            _g = (float)rand.NextDouble();
-            _b = (float)rand.NextDouble();
-
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
+            _a = (float)rand.NextDouble() + 0.02f;
+            colorPicker.getColor(x, y, ref _r, ref _g, ref _b);
+
             y1 = rand.Next(66) + 5;
-            x2 = y1;
-            y2 = y1;
-            x3 = y1;
-            y3 = y1;
+            x2 = 5 * y1 / 6;
+            y2 = y1/2;
+            x3 = 5 * y1 / 6;
+            y3 = y1/2;
 
             time = 0.0f;
-            dt = 0.001f * (rand.Next(33)+1);
+            dt = 0.002f * (rand.Next(33)+1);
         }
 
         // -------------------------------------------------------------------------
@@ -61,9 +60,21 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._T.SetAngle(time);
-            myPrimitive._T.SetColor(_r, _g, _b, _a);
-            myPrimitive._T.Draw(x, y-y1, x-x2, y+y2, x+x3, y+y3, false);
+            int mode = 0;
+
+            switch (mode)
+            {
+                case 0:
+                    myPrimitive._T.SetAngle(time);
+                    myPrimitive._T.SetColor(_r, _g, _b, _a);
+                    myPrimitive._T.Draw(x, y - y1, x - x2, y + y2, x + x3, y + y3, false);
+                    break;
+
+                case 1:
+                    myPrimitive._R.SetColor(_r, _g, _b, _a);
+                    myPrimitive._R.Draw((int)x, (int)y, 50, 50, true);
+                    break;
+            }
         }
 
         // -------------------------------------------------------------------------
@@ -71,11 +82,12 @@ namespace my
         protected override void Process(Window window)
         {
             if (myPrimitive._T == null)
-            {
                 myPrimitive._T = new Triangle();
-            }
 
-            while (list.Count < 333)
+            if (myPrimitive._R == null)
+                myPrimitive._R = new myRectangle();
+
+            while (list.Count < 3333)
             {
                 list.Add(new myObj_999());
             }
@@ -100,6 +112,8 @@ namespace my
                         obj.Move();
                     }
                 }
+
+                System.Threading.Thread.Sleep(20);
             }
 
             return;

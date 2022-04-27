@@ -7,7 +7,8 @@ public class myPrimitive
 {
     // ---------------------------------------------------------------------------------------
 
-    public static Triangle _T = null;
+    public static Triangle      _T = null;
+    public static myRectangle   _R = null;
 
     // ---------------------------------------------------------------------------------------
 

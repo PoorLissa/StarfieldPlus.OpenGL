@@ -16,6 +16,7 @@ namespace my
 
         protected static Random rand = new Random((int)DateTime.Now.Ticks);
         protected static List<myObject> list = null;
+        protected static myColorPicker colorPicker = null;
 
         // -------------------------------------------------------------------------
 
@@ -25,7 +26,6 @@ namespace my
 #if false
         protected static Pen p = null;
         protected static SolidBrush br = null;
-        protected static myColorPicker colorPicker = null;
         protected static Graphics g = null;
         protected static Form form = null;
         protected static Font f = null;
@@ -90,7 +90,7 @@ namespace my
                     gl_Width  = 0;
                     gl_Height = 0;
 #else
-                    if (true)
+                    if (false)
                     {
                         gl_Width  = 1920;
                         gl_Height = 1200;

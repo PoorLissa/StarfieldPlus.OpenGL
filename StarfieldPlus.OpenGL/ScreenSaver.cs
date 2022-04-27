@@ -9,8 +9,10 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public ScreenSaver()
+    public ScreenSaver(int Width, int Height)
     {
+        my.myObject.gl_Width  = Width;
+        my.myObject.gl_Height = Height;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

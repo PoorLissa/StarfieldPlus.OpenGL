@@ -38,7 +38,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>IDE1006;</NoWarn>
+    <NoWarn>IDE1006;IDE0055;</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -66,8 +66,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="myObj.cs" />
-    <Compile Include="myObj_999.cs" />
+    <Compile Include="myScrObjects\myObj.cs" />
+    <Compile Include="myScrObjects\myObj_999.cs" />
+    <Compile Include="myUtils\__distributionTester.cs" />
+    <Compile Include="myUtils\__myColorPicker.cs" />
+    <Compile Include="myUtils\__myUtils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScreenSaver.cs" />
