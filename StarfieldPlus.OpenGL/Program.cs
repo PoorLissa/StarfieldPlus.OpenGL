@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 
 
-// - concentric circles moving inwards. The lesss the circle is, the less is its decreasing speed. Should look like a funnel of sorts
-
 
 namespace StarfieldPlus.OpenGL
 {

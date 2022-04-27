@@ -15,13 +15,6 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void selectObject()
-    {
-        _obj = new my.myObj_999();
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
     public void Show()
     {
         if (_obj != null)
@@ -30,6 +23,15 @@ public class ScreenSaver
         }
 
         return;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // - concentric circles moving inwards. The lesss the circle is, the less is its decreasing speed. Should look like a funnel of sorts
+
+    public void selectObject()
+    {
+        _obj = new my.myObj_999();
     }
 
     // -------------------------------------------------------------------------------------------------------------------
