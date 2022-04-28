@@ -3,13 +3,13 @@ using static OpenGL.GL;
 using System;
 
 
-class Line : myPrimitive
+public class myLine : myPrimitive
 {
     private static uint vao = 0, vbo = 0, program = 0;
     private static float[] vertices = null;
     private static int locationColor = 0;
 
-    public Line()
+    public myLine()
     {
         if (vertices == null)
         {

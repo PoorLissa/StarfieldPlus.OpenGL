@@ -11,6 +11,8 @@ public class myTex : myPrimitive
     private static uint vao = 0, vbo = 0, ebo = 0, program = 0;
     private static uint[] indices = null;
     private static float[] vertices = null;
+    private static float dx = 0, dy = 0;
+    private static int locationPart = 0, locationScrSize = 0;
 
     private uint  _tex = 0;
     private float _angle = 0.0f;
@@ -48,6 +50,9 @@ public class myTex : myPrimitive
             vao = glGenVertexArray();   // Generate VAO name
             vbo = glGenBuffer();        // Generate VBO name
             __glGenBuffers_EBO();       // Generate EBO name
+
+            dx = 1.0f / Width;
+            dy = 1.0f / Height;
         }
 
         if (indices == null)
@@ -65,6 +70,9 @@ public class myTex : myPrimitive
     private void initTheRest()
     {
         CreateProgram();
+
+        locationPart = glGetUniformLocation(program, "myPart");
+        locationScrSize = glGetUniformLocation(program, "myScrDxDy");
 
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);             // vertices
@@ -90,7 +98,12 @@ public class myTex : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Draw(int x, int y, int w, int h)
+    // Render the texture on the screen.
+    //  x, y, w, h          -- rectangle on the screen to fill with texture
+    //  ptx, pty, ptw, pth  -- optional rectangle to sample pixels from
+    // In case ptw is '0', the whole texture is rendered
+    // In case ptw is not '0', only part of the texture is rendered
+    public void Draw(int x, int y, int w, int h, int ptx = 0, int pty = 0, int ptw = 0, int pth = 0)
     {
         float fx = 0, fy = 0;
 
@@ -138,6 +151,9 @@ public class myTex : myPrimitive
 
         glUseProgram(program);
 
+        glUniform4f(locationPart, ptx, pty, ptw, pth);
+        glUniform2f(locationScrSize, dx, dy);
+
         __draw();
     }
 
@@ -147,25 +163,20 @@ public class myTex : myPrimitive
     {
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos; layout (location = 1) in vec3 color; layout (location = 2) in vec2 txCoord;
-              out vec3 fragColor; out vec2 fragTxCoord;",
-                main: @"gl_Position = vec4(pos, 1.0); fragColor = color; fragTxCoord = txCoord;"
-        );
-
-        // This way, we are able to render just a part of a texture
-#if false
-        var vertex2 = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-            @"layout (location = 0) in vec3 pos; layout (location = 1) in vec3 color; layout (location = 2) in vec2 txCoord;
-              out vec3 fragColor; out vec2 fragTxCoord;",
+              out vec3 fragColor; out vec2 fragTxCoord;
+              uniform vec4 myPart; uniform vec2 myScrDxDy;",
                 main: @"gl_Position = vec4(pos, 1.0); fragColor = color;
 
-                float dx = 1.0 / 3840;
-                float dy = 1.0 / 2160;
-
-                fragTxCoord = vec2(dx * 500 + txCoord.x * dx * 500, dy * 0 + txCoord.y * dy * 500);"
-//                                 ^          ^                     ^        ^
-//                                 offsetx    width of a piece      offsety  height of a piece
+                        if (myPart.z == 0)
+                        {
+                            fragTxCoord = txCoord;
+                        }
+                        else
+                        {
+                            // This way, we are able to render just a part of a texture
+                            fragTxCoord = vec2(myScrDxDy.x * (myPart.x + txCoord.x * myPart.z), myScrDxDy.y * (myPart.y + txCoord.y * myPart.w));
+                        }"
         );
-#endif
 
         // fragColor is not used now, but we could use it like that, for example:
         // result = texture(ourTexture, texCoord) * vec4(fragColor, 1.0) -- for some color effect

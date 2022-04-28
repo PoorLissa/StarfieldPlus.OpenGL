@@ -3,14 +3,14 @@ using static OpenGL.GL;
 using System;
 
 
-public class Triangle : myPrimitive
+public class myTriangle : myPrimitive
 {
     private static uint vao = 0, vbo = 0, program = 0;
     private static float[] vertices = null;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
     private static float _angle = 0;
 
-    public Triangle()
+    public myTriangle()
     {
         if (vertices == null)
         {

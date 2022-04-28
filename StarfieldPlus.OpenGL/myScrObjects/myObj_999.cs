@@ -67,14 +67,14 @@ namespace my
             switch (mode)
             {
                 case 0:
-                    myPrimitive._T.SetAngle(time);
-                    myPrimitive._T.SetColor(_r, _g, _b, _a);
-                    myPrimitive._T.Draw(x, y - y1, x - x2, y + y2, x + x3, y + y3, false);
+                    myPrimitive._Triangle.SetAngle(time);
+                    myPrimitive._Triangle.SetColor(_r, _g, _b, _a);
+                    myPrimitive._Triangle.Draw(x, y - y1, x - x2, y + y2, x + x3, y + y3, false);
                     break;
 
                 case 1:
-                    myPrimitive._R.SetColor(_r, _g, _b, _a);
-                    myPrimitive._R.Draw((int)x, (int)y, 50, 50, true);
+                    myPrimitive._Rectangle.SetColor(_r, _g, _b, _a);
+                    myPrimitive._Rectangle.Draw((int)x, (int)y, 50, 50, true);
                     break;
             }
         }
@@ -83,11 +83,8 @@ namespace my
 
         protected override void Process(Window window)
         {
-            if (myPrimitive._T == null)
-                myPrimitive._T = new Triangle();
-
-            if (myPrimitive._R == null)
-                myPrimitive._R = new myRectangle();
+            myPrimitive.init_Triangle();
+            myPrimitive.init_Rectangle();
 
             while (list.Count < 3333)
             {
@@ -165,8 +162,8 @@ namespace my
         protected override void Show()
         {
             colorPicker.getColor(x, y, ref _r, ref _g, ref _b);
-            myPrimitive._R.SetColor(_r, _g, _b, 1);
-            myPrimitive._R.Draw((int)x, (int)y, 25, 25, true);
+            myPrimitive._Rectangle.SetColor(_r, _g, _b, 1);
+            myPrimitive._Rectangle.Draw((int)x, (int)y, 25, 25, true);
         }
 
         // -------------------------------------------------------------------------
@@ -176,11 +173,8 @@ namespace my
 
         protected override void Process(Window window)
         {
-            if (myPrimitive._T == null)
-                myPrimitive._T = new Triangle();
-
-            if (myPrimitive._R == null)
-                myPrimitive._R = new myRectangle();
+            myPrimitive.init_Triangle();
+            myPrimitive.init_Rectangle();
 
             while (list.Count < 33)
             {
@@ -194,6 +188,11 @@ namespace my
             int x1 = 666;
             int y1 = 666;
             int z1 = 200;
+
+            int x0 = 500;
+            int y0 = 500;
+            int w0 = 500;
+            int h0 = 500;
 
             uint cnt = 0;
 
@@ -221,15 +220,27 @@ namespace my
                     }
                 }
 
-                tex1.Draw(0, 0, colorPicker.getImg().Width, colorPicker.getImg().Height);
+                //tex1.Draw(0, 0, colorPicker.getImg().Width, colorPicker.getImg().Height);
+
+                myPrimitive._Rectangle.SetColor(0.5f, 0.5f, 0.5f, 0.66f);
+                myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+
+                tex1.Draw(x0, y0, w0, h0, x0, y0, w0, h0);
                 tex2.Draw(x1, y1, z1, z1);
 
-                if (cnt == 33)
+                if (cnt % 33 == 0)
                 {
                     x1 = rand.Next(gl_Width);
                     y1 = rand.Next(gl_Height);
                     z1 = rand.Next(300) + 100;
-                    cnt = 0;
+                }
+
+                if (cnt % 50 == 0)
+                {
+                    x0 = rand.Next(gl_Width);
+                    y0 = rand.Next(gl_Height);
+                    w0 = rand.Next(500) + 50;
+                    h0 = rand.Next(500) + 50;
                 }
 
                 System.Threading.Thread.Sleep(50);

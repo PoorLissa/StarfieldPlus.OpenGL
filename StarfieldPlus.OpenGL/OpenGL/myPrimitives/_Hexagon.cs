@@ -172,31 +172,31 @@ public class myHexagon : myPrimitive
 
     private static void CreateProgram()
     {
-#if false
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER, "layout (location = 0) in vec3 pos;", main: "gl_Position = vec4(pos, 1.0);");
-#else
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER, "layout (location = 0) in vec3 pos; uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
-            main: @"if (myAngle == 0)
-                    {
-                        gl_Position = vec4(pos, 1.0);
-                    }
-                    else
-                    {
-                        float X = pos.x - myCenter.x;
-                        float Y = pos.y - myCenter.y;
+        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+            "layout (location = 0) in vec3 pos; uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+                main: @"if (myAngle == 0)
+                        {
+                            gl_Position = vec4(pos, 1.0);
+                        }
+                        else
+                        {
+                            float X = pos.x - myCenter.x;
+                            float Y = pos.y - myCenter.y;
 
-                        gl_Position = vec4(X * cos(myAngle) - Y * sin(myAngle), Y * cos(myAngle) + X * sin(myAngle), pos.z, 1.0);
+                            gl_Position = vec4(X * cos(myAngle) - Y * sin(myAngle), Y * cos(myAngle) + X * sin(myAngle), pos.z, 1.0);
 
-                        gl_Position.x += myCenter.x;
-                        gl_Position.y += myCenter.y;
+                            gl_Position.x += myCenter.x;
+                            gl_Position.y += myCenter.y;
 
-                        gl_Position.x = 2.0f * gl_Position.x / (myScrSize.x + 1) - 1.0f;
-                        gl_Position.y = 1.0f - 2.0f * gl_Position.y / myScrSize.y;
-                    }"
+                            gl_Position.x = 2.0f * gl_Position.x / (myScrSize.x + 1) - 1.0f;
+                            gl_Position.y = 1.0f - 2.0f * gl_Position.y / myScrSize.y;
+                        }"
         );
-#endif
 
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER, "out vec4 result; uniform vec4 myColor;", main: "result = myColor;");
+        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
+            "out vec4 result; uniform vec4 myColor;",
+                main: "result = myColor;"
+        );
 
         program = glCreateProgram();
         glAttachShader(program, vertex);

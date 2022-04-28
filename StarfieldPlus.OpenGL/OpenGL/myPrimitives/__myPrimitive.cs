@@ -3,12 +3,28 @@ using static OpenGL.GL;
 using System;
 
 
+/*
+    Base class for all my drawing OpenGL primitives
+*/
+
+
 public class myPrimitive
 {
     // ---------------------------------------------------------------------------------------
 
-    public static Triangle      _T = null;
-    public static myRectangle   _R = null;
+    // Predefined Static Primitives
+    public static myLine        _Line      = null;
+    public static myTriangle    _Triangle  = null;
+    public static myRectangle   _Rectangle = null;
+    public static myHexagon     _Hexagon   = null;
+    public static myEllipse     _Ellipse   = null;
+
+    // Quick Initialization of the Predefined Static Primitives
+    public static void init_Line()      { if (_Line      == null) _Line      = new myLine();        }
+    public static void init_Triangle()  { if (_Triangle  == null) _Triangle  = new myTriangle();    }
+    public static void init_Rectangle() { if (_Rectangle == null) _Rectangle = new myRectangle();   }
+    public static void init_Hexagon()   { if (_Hexagon   == null) _Hexagon   = new myHexagon();     }
+    public static void init_Ellipse()   { if (_Ellipse   == null) _Ellipse   = new myEllipse();     }
 
     // ---------------------------------------------------------------------------------------
 
