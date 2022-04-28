@@ -148,11 +148,29 @@ public class myTex : myPrimitive
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos; layout (location = 1) in vec3 color; layout (location = 2) in vec2 txCoord;
               out vec3 fragColor; out vec2 fragTxCoord;",
-                main: "gl_Position = vec4(pos, 1.0); fragColor = color; fragTxCoord = txCoord;"
+                main: @"gl_Position = vec4(pos, 1.0); fragColor = color; fragTxCoord = txCoord;"
         );
 
-        // fragColoris not used, but we could use it like that, for example:
-        // result = texture(ourTexture, texCoord) * vec4(fragColor, 1.0);
+        // This way, we are able to render just a part of a texture
+#if false
+        var vertex2 = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+            @"layout (location = 0) in vec3 pos; layout (location = 1) in vec3 color; layout (location = 2) in vec2 txCoord;
+              out vec3 fragColor; out vec2 fragTxCoord;",
+                main: @"gl_Position = vec4(pos, 1.0); fragColor = color;
+
+                float dx = 1.0 / 3840;
+                float dy = 1.0 / 2160;
+
+                fragTxCoord = vec2(dx * 500 + txCoord.x * dx * 500, dy * 0 + txCoord.y * dy * 500);"
+//                                 ^          ^                     ^        ^
+//                                 offsetx    width of a piece      offsety  height of a piece
+        );
+#endif
+
+        // fragColor is not used now, but we could use it like that, for example:
+        // result = texture(ourTexture, texCoord) * vec4(fragColor, 1.0) -- for some color effect
+        // OR
+        // result = texture(myTexture, fragTxCoord) * vec4(1, 1, 1, 0.9) -- for a transparency effect;
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
             "out vec4 result; in vec3 fragColor; in vec2 fragTxCoord; uniform sampler2D myTexture;",
                 main: "result = texture(myTexture, fragTxCoord);"
@@ -185,7 +203,7 @@ public class myTex : myPrimitive
         }
 
         // In this case, Fragment Shader has 3 layout locations;
-        // We need to provide all three:
+        // We need to provide all the three:
 
         // layout (location = 0) -- position attribute
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * sizeof(float), IntPtr.Zero);

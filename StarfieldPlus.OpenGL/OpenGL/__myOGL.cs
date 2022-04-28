@@ -125,12 +125,13 @@ class myOGL
         var shader = glCreateShader(type);
         glShaderSource(shader, src);
         glCompileShader(shader);
+
         return shader;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Load texture from image file
+    // Load texture from an image file
     public static void loadTexture(uint tex, string path)
     {
         loadTexture(tex, new Bitmap(path));
@@ -140,12 +141,13 @@ class myOGL
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Create texture from supplied bmp image
+    // Create texture from the supplied bmp image
     public static void loadTexture(uint tex, Bitmap bmp)
     {
         // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
         glBindTexture(GL_TEXTURE_2D, tex);
 
+        // Turn off MipMaps
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
@@ -160,6 +162,9 @@ class myOGL
         //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, data.Width, data.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.Scan0);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, data.Width, data.Height, 0, GL_BGRA, GL_UNSIGNED_BYTE, data.Scan0);
+
+        // todo: Do we need mipmaps anyway?
+        //glGenerateMipmap(GL_TEXTURE_2D);
 
         bmp.UnlockBits(data);
 

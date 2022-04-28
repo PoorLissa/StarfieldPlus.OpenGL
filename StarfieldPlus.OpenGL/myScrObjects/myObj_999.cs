@@ -171,12 +171,8 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        // If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels.For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
-
-        // https://learnopengl.com/code_viewer_gh.php?code=src/1.getting_started/4.1.textures/textures.cpp
-        // https://github.com/TheBoneJarmer/Arqan/issues/4
-        // https://stackoverflow.com/questions/11645368/opengl-c-sharp-opentk-load-and-draw-image-functions-not-working
-        // https://gamedev.stackexchange.com/questions/142602/read-from-opengl-texture-to-bitmap-in-c
+        // If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels
+        // For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
 
         protected override void Process(Window window)
         {
@@ -193,10 +189,18 @@ namespace my
 
             // it's static and not loading the second time
             myTex tex1 = new myTex(colorPicker.getImg());
-            myTex tex2 = new myTex("c:\\_maxx\\tex.png");
+            myTex tex2 = new myTex(@"C:\_maxx\tex_star.png");
+
+            int x1 = 666;
+            int y1 = 666;
+            int z1 = 200;
+
+            uint cnt = 0;
 
             while (!Glfw.WindowShouldClose(window))
             {
+                cnt++;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -208,7 +212,7 @@ namespace my
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 // Render frame:
-                if (false)
+                if (true)
                 {
                     foreach (myObj_999a obj in list)
                     {
@@ -218,7 +222,15 @@ namespace my
                 }
 
                 tex1.Draw(0, 0, colorPicker.getImg().Width, colorPicker.getImg().Height);
-                tex2.Draw(222, 222, 200, 200);
+                tex2.Draw(x1, y1, z1, z1);
+
+                if (cnt == 33)
+                {
+                    x1 = rand.Next(gl_Width);
+                    y1 = rand.Next(gl_Height);
+                    z1 = rand.Next(300) + 100;
+                    cnt = 0;
+                }
 
                 System.Threading.Thread.Sleep(50);
             }
