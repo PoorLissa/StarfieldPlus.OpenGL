@@ -173,6 +173,11 @@ namespace my
 
         // If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels.For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
 
+        // https://learnopengl.com/code_viewer_gh.php?code=src/1.getting_started/4.1.textures/textures.cpp
+        // https://github.com/TheBoneJarmer/Arqan/issues/4
+        // https://stackoverflow.com/questions/11645368/opengl-c-sharp-opentk-load-and-draw-image-functions-not-working
+        // https://gamedev.stackexchange.com/questions/142602/read-from-opengl-texture-to-bitmap-in-c
+
         protected override void Process(Window window)
         {
             if (myPrimitive._T == null)
