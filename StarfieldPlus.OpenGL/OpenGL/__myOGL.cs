@@ -1,5 +1,7 @@
 ﻿using GLFW;
 using static OpenGL.GL;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 
 
@@ -124,6 +126,42 @@ class myOGL
         glShaderSource(shader, src);
         glCompileShader(shader);
         return shader;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Generate texture id and load texture from file
+    public static uint loadTexture(string path)
+    {
+        System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(path);
+
+        return loadTexture(bmp);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public static uint loadTexture(System.Drawing.Bitmap bmp)
+    {
+        uint tex = glGenTexture();
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.Width, data.Height, 0, GL_BGRA, GL_UNSIGNED_BYTE, data.Scan0);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, data.Width, data.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.Scan0);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, data.Width, data.Height, 0, GL_BGRA, GL_UNSIGNED_BYTE, data.Scan0);
+
+        bmp.UnlockBits(data);
+
+        return tex;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

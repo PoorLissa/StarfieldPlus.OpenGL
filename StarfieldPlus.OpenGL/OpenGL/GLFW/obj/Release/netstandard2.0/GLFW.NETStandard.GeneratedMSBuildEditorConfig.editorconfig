@@ -1,0 +1,3 @@
+is_global = true
+build_property.RootNamespace = GLFW.NETStandard
+build_property.ProjectDir = E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\_OpenGL\GLFW\

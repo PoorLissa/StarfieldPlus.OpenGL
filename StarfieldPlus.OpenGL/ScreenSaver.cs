@@ -33,7 +33,7 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        _obj = new my.myObj_999();
+        _obj = new my.myObj_999a();
     }
 
     // -------------------------------------------------------------------------------------------------------------------
