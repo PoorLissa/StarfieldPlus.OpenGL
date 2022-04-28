@@ -17,7 +17,7 @@ namespace my
         private static bool isRlocked = false, isGlocked = false, isBlocked = false;
 
         private enum scaleParams { scaleToWidth, scaleToHeight };
-        public enum  colorMode { SNAPSHOT, IMAGE, SINGLE_RANDOM, RANDOM, TEXTURE, GRAY };
+        public enum  colorMode { SNAPSHOT, IMAGE, SINGLE_RANDOM, RANDOM, TEXTURE, GRAY, SNAPSHOT_OR_IMAGE };
 
         // -------------------------------------------------------------------------
 
@@ -32,9 +32,16 @@ namespace my
             _rndMode = _rand.Next(6);                       // random color mode
             _rndVariator = 25 + _rand.Next(75);             // random color variator
 
+            // Select random mode
             if (_mode < 0)
             {
                 _mode = _rand.Next(6);
+            }
+
+            // Select random mode out of [0, 1]
+            if (_mode == (int)colorMode.SNAPSHOT_OR_IMAGE)
+            {
+                _mode = _rand.Next(2);
             }
 
             switch (_mode)
@@ -299,12 +306,12 @@ namespace my
         {
             try
             {
-                //string currentWallpaper = getRandomFile(StarfieldPlus.Program._imgPath);
-                string currentWallpaper = "";
+                //string image = getRandomFile(StarfieldPlus.Program._imgPath);
+                string image = getRandomFile(@"C:\_maxx\pix");
 
-                if (currentWallpaper != null && currentWallpaper != string.Empty)
+                if (image != null && image != string.Empty)
                 {
-                    _img = new Bitmap(currentWallpaper);
+                    _img = new Bitmap(image);
 
                     //if (_img.Width <= Width || _img.Height <= Height)
                     {

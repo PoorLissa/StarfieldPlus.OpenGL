@@ -135,7 +135,7 @@ namespace my
         {
             if (colorPicker == null)
             {
-                colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.SNAPSHOT);
+                colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
                 list = new List<myObject>();
             }
 
@@ -175,8 +175,9 @@ namespace my
         {
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
+            myPrimitive.init_Hexagon();
 
-            while (list.Count < 33)
+            while (list.Count < 333)
             {
                 list.Add(new myObj_999a());
             }
@@ -196,6 +197,15 @@ namespace my
 
             uint cnt = 0;
 
+            bool doClearBuffer = false;
+
+            if (doClearBuffer == false)
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK);
+            }
+
+            float t = 0, dt = 0.1f;
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -207,43 +217,100 @@ namespace my
                 Glfw.PollEvents();
 
                 // Clear the framebuffer to defined background color
-                glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                if (doClearBuffer)
+                {
+                    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                }
 
                 // Render frame:
-                if (true)
+                if (false)
                 {
                     foreach (myObj_999a obj in list)
                     {
                         obj.Show();
                         obj.Move();
                     }
+
+/*
+                    tex1.Draw(0, 0, gl_Width, gl_Height);
+                    myPrimitive._Rectangle.SetColor(0.5f, 0.5f, 0.5f, 0.66f);
+                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+*/
+
+                    tex1.Draw(x0, y0, w0, h0, x0, y0, w0, h0);
+                    tex2.Draw(x1, y1, z1, z1);
+
+                    if (cnt % 33 == 0)
+                    {
+                        x1 = rand.Next(gl_Width);
+                        y1 = rand.Next(gl_Height);
+                        z1 = rand.Next(300) + 100;
+                    }
+
+                    if (cnt % 50 == 0)
+                    {
+                        x0 = rand.Next(gl_Width);
+                        y0 = rand.Next(gl_Height);
+                        w0 = rand.Next(500) + 50;
+                        h0 = rand.Next(500) + 50;
+                    }
                 }
 
-                //tex1.Draw(0, 0, colorPicker.getImg().Width, colorPicker.getImg().Height);
-
-                myPrimitive._Rectangle.SetColor(0.5f, 0.5f, 0.5f, 0.66f);
-                myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
-
-                tex1.Draw(x0, y0, w0, h0, x0, y0, w0, h0);
-                tex2.Draw(x1, y1, z1, z1);
-
-                if (cnt % 33 == 0)
+                if (false)
                 {
-                    x1 = rand.Next(gl_Width);
-                    y1 = rand.Next(gl_Height);
-                    z1 = rand.Next(300) + 100;
+                    for (int i = 0; i < 100; i++)
+                    {
+                        //myPrimitive._Rectangle.SetColor((float)rand.NextDouble(), (float)rand.NextDouble(), (float)rand.NextDouble(), (float)rand.NextDouble());
+                        myPrimitive._Hexagon.SetColor((float)rand.NextDouble(), (float)rand.NextDouble(), (float)rand.NextDouble(), (float)rand.NextDouble());
+
+                        int x = rand.Next(gl_Width);
+                        int y = rand.Next(gl_Height);
+                        int r = rand.Next(33) + 1;
+
+                        //myPrimitive._Rectangle.Draw(x, y, r, r, true);
+                        myPrimitive._Hexagon.SetAngle((float)rand.NextDouble() * 11);
+                        myPrimitive._Hexagon.Draw(x, y, r, false);
+                    }
                 }
 
-                if (cnt % 50 == 0)
+                if (true)
                 {
-                    x0 = rand.Next(gl_Width);
-                    y0 = rand.Next(gl_Height);
-                    w0 = rand.Next(500) + 50;
-                    h0 = rand.Next(500) + 50;
+                    myPrimitive._Hexagon.SetColor(1, 0, 0, 1);
+
+                    int x = gl_Width/2;
+                    int y = gl_Height /2;
+                    int r = 333;
+
+                    myPrimitive._Hexagon.SetAngle(t);
+                    myPrimitive._Hexagon.Draw(x, y, r, false);
+
+                    //myPrimitive._Hexagon.SetColor(1, 0.3f, 0, 0.25f);
+                    myPrimitive._Hexagon.SetColor(1, 0.3f, 0, 0.9f);
+                    myPrimitive._Hexagon.Draw(x, y, (int)(3 * r * Math.Sin(t/100)), false);
+
+                    myPrimitive._Hexagon.SetColor(1, 0.3f, 0, 0.25f);
+                    myPrimitive._Hexagon.Draw(x, y, 2 * r, false);
+
+                    myPrimitive._Hexagon.SetColor(1, 0.3f, 0.5f, 0.99f);
+                    myPrimitive._Hexagon.Draw(x, y, (int)(5 * r * Math.Sin(t / 333)), false);
+
+
+                    if (cnt % 50 == 0)
+                    {
+                        dt -= 0.01f;
+                    }
                 }
 
                 System.Threading.Thread.Sleep(50);
+                t += dt;
+
+                if (doClearBuffer == false)
+                {
+                    //myPrimitive._Rectangle.SetColor(1, 1, 1, 0.005f);
+                    myPrimitive._Rectangle.SetColor(0, 0, 0, 0.025f);
+                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                }
             }
 
             return;

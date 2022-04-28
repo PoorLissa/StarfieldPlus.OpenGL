@@ -116,7 +116,6 @@ namespace my
             catch (System.Exception ex)
             {
 
-                //this.Bounds = new Rectangle(100, 100, 666, 333);
                 MessageBox.Show($"{this.ToString()} says:\n{ex.Message}", "Process Exception}", MessageBoxButtons.OK);
             }
 
