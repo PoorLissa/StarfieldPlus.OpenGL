@@ -8,14 +8,16 @@ using System.Drawing.Imaging;
 
 public class myTex : myPrimitive
 {
-    private uint vao = 0, vbo = 0, ebo = 0, program = 0, tex = 0;
-    private uint[] indices = null;
-    private float[] vertices = null;
+    private static uint vao = 0, vbo = 0, ebo = 0, program = 0;
+    private static uint[] indices = null;
+    private static float[] vertices = null;
+
+    private uint  _tex = 0;
     private float _angle = 0.0f;
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    unsafe void __glGenBuffers()
+    unsafe void __glGenBuffers_EBO()
     {
         fixed (uint* e = &ebo)
         {
@@ -31,55 +33,10 @@ public class myTex : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myTex(string path)
+    private void initArrays()
     {
         if (vertices == null)
         {
-            vertices = new float[] {
-                // positions          // colors           // texture coords
-                +0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-                +0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-                -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-                -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
-            };
-
-            indices = new uint[]
-            {
-                0, 1, 3,   // first triangle
-                1, 2, 3    // second triangle
-            };
-
-            vao = glGenVertexArray();
-            vbo = glGenBuffer();
-            tex = myOGL.loadTexture(path);
-
-            CreateProgram();
-
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);             // vertices
-
-            __glGenBuffers();
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);     // indices
-
-            // ??? wtf ???
-            //glBindTexture(GL_TEXTURE_2D, tex);              // texture
-        }
-    }
-
-    public myTex(System.Drawing.Bitmap bmp)
-    {
-        if (vertices == null)
-        {
-/*
-            vertices = new float[] {
-                // positions          // colors           // texture coords
-                +0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-                +0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-                -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-                -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
-            };
-*/
-
             vertices = new float[] {
                 // positions          // colors           // texture coords
                 +0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,   // top right
@@ -88,27 +45,47 @@ public class myTex : myPrimitive
                 -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f    // top left 
             };
 
+            vao = glGenVertexArray();   // Generate VAO name
+            vbo = glGenBuffer();        // Generate VBO name
+            __glGenBuffers_EBO();       // Generate EBO name
+        }
+
+        if (indices == null)
+        {
             indices = new uint[]
             {
                 0, 1, 3,   // first triangle
                 1, 2, 3    // second triangle
             };
-
-            vao = glGenVertexArray();
-            vbo = glGenBuffer();
-            tex = myOGL.loadTexture(bmp);
-
-            CreateProgram();
-
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);             // vertices
-
-            __glGenBuffers();
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);     // indices
-
-            // ??? wtf ???
-            //glBindTexture(GL_TEXTURE_2D, tex);              // texture
         }
+
+        _tex = glGenTexture();
+    }
+
+    private void initTheRest()
+    {
+        CreateProgram();
+
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);             // vertices
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);     // indices
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public myTex(string path)
+    {
+        initArrays();
+        myOGL.loadTexture(_tex, path);
+        initTheRest();
+    }
+
+    public myTex(System.Drawing.Bitmap bmp)
+    {
+        initArrays();
+        myOGL.loadTexture(_tex, bmp);
+        initTheRest();
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -156,6 +133,9 @@ public class myTex : myPrimitive
 
         CreateVertices();
 
+        // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
+        glBindTexture(GL_TEXTURE_2D, _tex);
+
         glUseProgram(program);
 
         __draw();
@@ -165,36 +145,17 @@ public class myTex : myPrimitive
 
     private void CreateProgram()
     {
-        var vertex = myOGL.CreateShader(GL_VERTEX_SHADER,
-            @"#version 330 core
-                layout (location = 0) in vec3 aPos;
-                layout (location = 1) in vec3 aColor;
-                layout (location = 2) in vec2 aTexCoord;
-
-                out vec3 ourColor;
-                out vec2 TexCoord;
-
-                void main()
-                {
-                    gl_Position = vec4(aPos, 1.0);
-                    ourColor = aColor;
-                    TexCoord = aTexCoord;
-                }"
+        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+            @"layout (location = 0) in vec3 pos; layout (location = 1) in vec3 color; layout (location = 2) in vec2 txCoord;
+              out vec3 fragColor; out vec2 fragTxCoord;",
+                main: "gl_Position = vec4(pos, 1.0); fragColor = color; fragTxCoord = txCoord;"
         );
 
-        var fragment = myOGL.CreateShader(GL_FRAGMENT_SHADER,
-            @"#version 330 core
-                    out vec4 FragColor;
-  
-                    in vec3 ourColor;
-                    in vec2 TexCoord;
-
-                    uniform sampler2D ourTexture;
-
-                    void main()
-                    {
-                        FragColor = texture(ourTexture, TexCoord);
-                    }"
+        // fragColoris not used, but we could use it like that, for example:
+        // result = texture(ourTexture, texCoord) * vec4(fragColor, 1.0);
+        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
+            "out vec4 result; in vec3 fragColor; in vec2 fragTxCoord; uniform sampler2D myTexture;",
+                main: "result = texture(myTexture, fragTxCoord);"
         );
 
         program = glCreateProgram();
@@ -211,7 +172,7 @@ public class myTex : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private unsafe void CreateVertices()
+    private static unsafe void CreateVertices()
     {
         fixed (float* v = &vertices[0])
         {
@@ -226,15 +187,15 @@ public class myTex : myPrimitive
         // In this case, Fragment Shader has 3 layout locations;
         // We need to provide all three:
 
-        // position attribute
+        // layout (location = 0) -- position attribute
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * sizeof(float), IntPtr.Zero);
-        glEnableVertexAttribArray(0);                                                       // < --------- this is LAYOUT LOCATION #0 in our shader program!
+        glEnableVertexAttribArray(0);
 
-        // color attribute
+        // layout(location = 1) -- color attribute
         glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
-        // texture coord attribute
+        // layout (location = 2) -- texture coordinate attribute
         glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(6 * sizeof(float)));
         glEnableVertexAttribArray(2);
     }

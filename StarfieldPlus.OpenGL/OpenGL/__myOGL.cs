@@ -130,19 +130,21 @@ class myOGL
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Generate texture id and load texture from file
-    public static uint loadTexture(string path)
+    // Load texture from image file
+    public static void loadTexture(uint tex, string path)
     {
-        System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(path);
+        loadTexture(tex, new Bitmap(path));
 
-        return loadTexture(bmp);
+        return;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public static uint loadTexture(System.Drawing.Bitmap bmp)
+    // Create texture from supplied bmp image
+    public static void loadTexture(uint tex, Bitmap bmp)
     {
-        uint tex = glGenTexture();
+        // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
+        glBindTexture(GL_TEXTURE_2D, tex);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -161,7 +163,7 @@ class myOGL
 
         bmp.UnlockBits(data);
 
-        return tex;
+        return;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

@@ -193,7 +193,7 @@ namespace my
 
             // it's static and not loading the second time
             myTex tex1 = new myTex(colorPicker.getImg());
-            //myTex tex2 = new myTex("d:\\tex.png");
+            myTex tex2 = new myTex("c:\\_maxx\\tex.png");
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -208,17 +208,17 @@ namespace my
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 // Render frame:
-                if (true)
+                if (false)
                 {
-                    tex1.Draw(0, 0, colorPicker.getImg().Width, colorPicker.getImg().Height);
-                    //tex2.Draw(222, 222, 111, 111);
-
                     foreach (myObj_999a obj in list)
                     {
                         obj.Show();
                         obj.Move();
                     }
                 }
+
+                tex1.Draw(0, 0, colorPicker.getImg().Width, colorPicker.getImg().Height);
+                tex2.Draw(222, 222, 200, 200);
 
                 System.Threading.Thread.Sleep(50);
             }
