@@ -8,14 +8,14 @@ using System.Drawing.Imaging;
 
 public class myTex : myPrimitive
 {
-    private static uint vao = 0, vbo = 0, ebo = 0, program = 0, tex = 0;
-    private static uint[] indices = null;
-    private static float[] vertices = null;
-    private static float _angle = 0.0f;
+    private uint vao = 0, vbo = 0, ebo = 0, program = 0, tex = 0;
+    private uint[] indices = null;
+    private float[] vertices = null;
+    private float _angle = 0.0f;
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    static unsafe void __glGenBuffers()
+    unsafe void __glGenBuffers()
     {
         fixed (uint* e = &ebo)
         {
@@ -62,7 +62,7 @@ public class myTex : myPrimitive
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);     // indices
 
             // ??? wtf ???
-            //          glBindTexture(GL_TEXTURE_2D, tex);              // texture
+            //glBindTexture(GL_TEXTURE_2D, tex);              // texture
         }
     }
 
@@ -107,7 +107,7 @@ public class myTex : myPrimitive
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);     // indices
 
             // ??? wtf ???
-//          glBindTexture(GL_TEXTURE_2D, tex);              // texture
+            //glBindTexture(GL_TEXTURE_2D, tex);              // texture
         }
     }
 
@@ -163,7 +163,7 @@ public class myTex : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static void CreateProgram()
+    private void CreateProgram()
     {
         var vertex = myOGL.CreateShader(GL_VERTEX_SHADER,
             @"#version 330 core
@@ -211,7 +211,7 @@ public class myTex : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static unsafe void CreateVertices()
+    private unsafe void CreateVertices()
     {
         fixed (float* v = &vertices[0])
         {

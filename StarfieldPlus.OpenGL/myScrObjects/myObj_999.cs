@@ -186,9 +186,9 @@ namespace my
                 list.Add(new myObj_999a());
             }
 
-            //myTex tex = new myTex("d:\\tex.png");
-
-            myTex tex = new myTex(colorPicker.getImg());
+            // it's static and not loading the second time
+            myTex tex1 = new myTex(colorPicker.getImg());
+            //myTex tex2 = new myTex("d:\\tex.png");
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -205,7 +205,8 @@ namespace my
                 // Render frame:
                 if (true)
                 {
-                    tex.Draw(0, 0, colorPicker.getImg().Width, colorPicker.getImg().Height);
+                    tex1.Draw(0, 0, colorPicker.getImg().Width, colorPicker.getImg().Height);
+                    //tex2.Draw(222, 222, 111, 111);
 
                     foreach (myObj_999a obj in list)
                     {
