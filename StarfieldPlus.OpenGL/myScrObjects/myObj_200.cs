@@ -203,6 +203,7 @@ namespace my
 
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
+            myPrimitive.init_Pentagon();
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
@@ -233,6 +234,10 @@ namespace my
                     obj.Show();
                     obj.Move();
                 }
+
+                myPrimitive._Pentagon.SetColor(1, 0, 0, 1);
+                myPrimitive._Pentagon.SetAngle((float)cnt/100);
+                myPrimitive._Pentagon.Draw(333, 333, 300, false);
 
                 System.Threading.Thread.Sleep(t);
 
