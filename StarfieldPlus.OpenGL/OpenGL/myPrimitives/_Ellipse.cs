@@ -85,6 +85,13 @@ public class myEllipse : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    public void Draw(float x, float y, float w, float h, bool doFill = false)
+    {
+        Draw((int)x, (int)y, (int)w, (int)h, doFill);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     public void Draw(int x, int y, int w, int h, bool doFill = false)
     {
         // Draw a rectangle but use shader to hide everything except for the ellipse

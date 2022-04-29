@@ -59,6 +59,11 @@ public class myRectangle : myPrimitive
         }
     }
 
+    public void Draw(float x, float y, float w, float h, bool doFill = false)
+    {
+        Draw((int)x, (int)y, (int)w, (int)h, doFill);
+    }
+
     public void Draw(int x, int y, int w, int h, bool doFill = false)
     {
         unsafe void __draw(bool fill)

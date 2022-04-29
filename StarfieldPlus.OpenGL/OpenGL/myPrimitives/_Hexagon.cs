@@ -74,6 +74,11 @@ public class myHexagon : myPrimitive
         }
     }
 
+    public void Draw(float x, float y, float r, bool doFill = false)
+    {
+        Draw((int)x, (int)y, (int)r, doFill);
+    }
+
     public void Draw(int x, int y, int r, bool doFill = false)
     {
         unsafe void __draw(bool fill)

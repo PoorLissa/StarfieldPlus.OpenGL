@@ -176,6 +176,8 @@ namespace my
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
             myPrimitive.init_Hexagon();
+            myPrimitive.init_Ellipse();
+            myPrimitive.init_Rectangle();
 
             while (list.Count < 333)
             {
@@ -184,7 +186,7 @@ namespace my
 
             // it's static and not loading the second time
             myTex tex1 = new myTex(colorPicker.getImg());
-            myTex tex2 = new myTex(@"C:\_maxx\tex_star.png");
+            //myTex tex2 = new myTex(@"C:\_maxx\tex_star.png");
 
             int x1 = 666;
             int y1 = 666;
@@ -239,7 +241,7 @@ namespace my
 */
 
                     tex1.Draw(x0, y0, w0, h0, x0, y0, w0, h0);
-                    tex2.Draw(x1, y1, z1, z1);
+                    //tex2.Draw(x1, y1, z1, z1);
 
                     if (cnt % 33 == 0)
                     {
@@ -274,7 +276,7 @@ namespace my
                     }
                 }
 
-                if (true)
+                if (false)
                 {
                     myPrimitive._Hexagon.SetColor(1, 0, 0, 1);
 
@@ -302,7 +304,62 @@ namespace my
                     }
                 }
 
-                System.Threading.Thread.Sleep(50);
+                if (false)
+                {
+                    int x = gl_Width / 2;
+                    int y = gl_Height / 2;
+
+                    myPrimitive._Ellipse.SetColor(1, 0, 0, 1);
+                    myPrimitive._Ellipse.Draw(x-x1+50, y - x1+50, 2*x1-100, 2*x1-100, false);
+
+                    myPrimitive._Hexagon.SetColor(1, 0, 0, 1);
+                    myPrimitive._Hexagon.SetAngle(t);
+                    myPrimitive._Hexagon.Draw(x, y, x1, false);
+                    x1 -= 2;
+
+                    myPrimitive._Hexagon.SetColor(1, 0, 1, 1);
+                    myPrimitive._Hexagon.SetAngle(t);
+                    myPrimitive._Hexagon.Draw(x, y, y1, false);
+                    y1 -= 1;
+
+                    if (x1 < 0)
+                    {
+                        x1 = gl_Height;
+                    }
+
+                    if (y1 < 0)
+                    {
+                        y1 = gl_Height;
+                    }
+
+                    if (cnt % 50 == 0)
+                    {
+                        dt -= 0.01f;
+                    }
+                }
+
+                if (true)
+                {
+                    int x = gl_Width  / 2;
+                    int y = gl_Height / 2;
+
+                    myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
+                    myPrimitive._Rectangle.SetAngle(t/10);
+                    myPrimitive._Rectangle.Draw(x - x1, y - x1, 2 * x1, 2 * x1, false);
+                    x1 -= 2;
+
+                    if (x1 < 0)
+                    {
+                        x1 = gl_Height;
+                    }
+
+                    if (cnt % 50 == 0)
+                    {
+                        //dt -= 0.01f;
+                    }
+                }
+
+                System.Threading.Thread.Sleep(25);
                 t += dt;
 
                 if (doClearBuffer == false)

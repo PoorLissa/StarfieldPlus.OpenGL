@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="myScrObjects\myObj.cs" />
+    <Compile Include="myScrObjects\myObj_200.cs" />
     <Compile Include="myScrObjects\myObj_999.cs" />
     <Compile Include="myUtils\__distributionTester.cs" />
     <Compile Include="myUtils\__myColorPicker.cs" />

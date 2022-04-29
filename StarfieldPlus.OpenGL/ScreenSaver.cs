@@ -33,7 +33,19 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        _obj = new my.myObj_999a();
+        int id = 0;
+
+        switch (id)
+        {
+            case 0:
+                _obj = new my.myObj_200();          // Spiraling out shapes
+                break;
+
+            default:
+                _obj = new my.myObj_999a();
+                break;
+
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------

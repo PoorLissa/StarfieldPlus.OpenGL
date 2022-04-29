@@ -13,7 +13,7 @@ namespace my
         private Random   _rand = null;
         private Graphics _g = null;
 
-        private static int gl_R = -1, gl_G = -1, gl_B = -1, gl_r = -1, gl_g = -1, gl_b = -1;
+        private static int _W = -1, _H = -1, gl_R = -1, gl_G = -1, gl_B = -1, gl_r = -1, gl_g = -1, gl_b = -1;
         private static bool isRlocked = false, isGlocked = false, isBlocked = false;
 
         private enum scaleParams { scaleToWidth, scaleToHeight };
@@ -27,6 +27,9 @@ namespace my
 
         public myColorPicker(int Width, int Height, int mode = -1)
         {
+            _W = Width;
+            _H = Height;
+
             _rand = new Random((int)DateTime.Now.Ticks);
             _mode = mode;                                   // color mode
             _rndMode = _rand.Next(6);                       // random color mode
@@ -136,6 +139,18 @@ namespace my
         {
             getColor(x, y, ref gl_r, ref gl_g, ref gl_b);
             p.Color = Color.FromArgb(A, gl_r, gl_g, gl_b);
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Get color at a random point, as float R-G-B ([0..1]-[0..1]-[0..1])
+        public void getColorRand(ref float R, ref float G, ref float B)
+        {
+            getColor(_rand.Next(_W), _rand.Next(_W), ref gl_r, ref gl_g, ref gl_b);
+
+            R = gl_r / 255.0f;
+            G = gl_g / 255.0f;
+            B = gl_b / 255.0f;
         }
 
         // -------------------------------------------------------------------------

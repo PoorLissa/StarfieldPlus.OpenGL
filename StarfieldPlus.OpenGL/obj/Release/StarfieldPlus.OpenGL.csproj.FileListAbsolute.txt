@@ -1,8 +1,0 @@
-E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\bin\Release\StarfieldPlus.OpenGL.exe.config
-E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\bin\Release\StarfieldPlus.OpenGL.exe
-E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\bin\Release\StarfieldPlus.OpenGL.pdb
-E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\obj\Release\StarfieldPlus.OpenGL.OpenGL.GLFW.Strings.resources
-E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\obj\Release\StarfieldPlus.OpenGL.csproj.GenerateResource.cache
-E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\obj\Release\StarfieldPlus.OpenGL.csproj.CoreCompileInputs.cache
-E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\obj\Release\StarfieldPlus.OpenGL.exe
-E:\_work\_projects\Visual Studio\2022\StarfieldPlus.OpenGL\StarfieldPlus.OpenGL\obj\Release\StarfieldPlus.OpenGL.pdb

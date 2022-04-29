@@ -64,7 +64,7 @@ public class myPrimitive
     // ---------------------------------------------------------------------------------------
 
     // Update shader program with a color (the program must be activated via 'glUseProgram' prior to that)
-    public void setColor(int location, float r, float g, float b, float a)
+    protected void setColor(int location, float r, float g, float b, float a)
     {
         glUniform4f(location, r, g, b, a);
     }
