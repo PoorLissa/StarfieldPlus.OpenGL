@@ -15,9 +15,9 @@ namespace my
 {
     public class myObj_200 : myObject
     {
-        private static bool doClearBuffer = false, randomDrad = false;
-        private static int x0, y0, shape = 0, moveType = 0, rotationType = 0, t = 25, N = 1;
-        private static float baseDt = 1.0f;
+        private static bool doClearBuffer = false, doChangeBgrColor = false, randomDrad = false;
+        private static int x0, y0, shape = 0, moveType = 0, rotationType = 0, dimMode = 0, t = 25, N = 1;
+        private static float baseDt = 1.0f, dimAlpha = 0.025f;
 
         private float x, y, Rad, rad, drad, time = 0, dt = 0, R, G, B, A, lineTh;
 
@@ -33,9 +33,11 @@ namespace my
                 colorPicker = new myColorPicker(gl_Width, gl_Height);
                 list = new List<myObject>();
 
-                randomDrad = rand.Next(2) == 0;
-                shape = rand.Next(3);
+                doChangeBgrColor = myUtils.randomBool(rand);
+                randomDrad = myUtils.randomBool(rand);
+                shape = rand.Next(4);
                 moveType = rand.Next(2);
+                dimMode = rand.Next(3);                         // 0 = const base value, 1 = const random value, 2 = oscillating value
                 baseDt = 0.001f + 0.001f * rand.Next(1000);
 
                 // Set number of objects N:
@@ -49,14 +51,24 @@ namespace my
                 // Set rotation type for all the shapes: [no rotation, -1, 0, +1]
                 if (rand.Next(5) == 0)
                 {
-                    rotationType = -100 - (rand.Next(2) == 0 ? 0 : 1);
+                    rotationType = -100 - (myUtils.randomBool(rand) ? 0 : 1);
                 }
                 else
                 {
-                    rotationType = rand.Next(3) - 1;
+                    rotationType = myUtils.randomSign(rand);
                 }
 
                 t = 1;
+
+                if (baseDt > 0.5f)
+                {
+                    t += rand.Next(33);
+                }
+
+                if (dimMode == 1)
+                {
+                    dimAlpha = 0.001f + 0.001f * rand.Next(100);
+                }
             }
 
             Rad = rand.Next(gl_Height-333) + 333;
@@ -71,7 +83,7 @@ namespace my
             else
             {
                 // -1, +1 or random[-1 / +1]
-                dt *= (rotationType != 0) ? rotationType : (rand.Next(2) == 0 ? 1 : -1);
+                dt *= (rotationType != 0) ? rotationType : myUtils.randomSign(rand);
             }
 
             generateNew();
@@ -194,6 +206,8 @@ namespace my
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
+            float dimR = 0, dimG = 0, dimB = 0;
+
             if (doClearBuffer == false)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK);
@@ -222,10 +236,33 @@ namespace my
 
                 System.Threading.Thread.Sleep(t);
 
+                // Dim the screen constantly
                 if (doClearBuffer == false)
                 {
-                    myPrimitive._Rectangle.SetColor(0, 0, 0, 0.025f);
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(dimR, dimG, dimB, dimAlpha);
                     myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+
+                    if (doChangeBgrColor && cnt % 100 == 0)
+                    {
+                        dimR += (rand.Next(2) == 0) ? 0.01f : -0.01f;
+                        dimG += (rand.Next(2) == 0) ? 0.01f : -0.01f;
+                        dimB += (rand.Next(2) == 0) ? 0.01f : -0.01f;
+
+                        if (dimR < 0) dimR = 0;
+                        if (dimG < 0) dimG = 0;
+                        if (dimB < 0) dimB = 0;
+
+                        if (dimR > 0.25f) dimR = 0.25f;
+                        if (dimG > 0.25f) dimG = 0.25f;
+                        if (dimB > 0.25f) dimB = 0.25f;
+                    }
+                }
+
+                // Oscillate dim speed
+                if (dimMode == 2)
+                {
+                    dimAlpha += (float)(Math.Sin(cnt/100)) / 1000;
                 }
             }
 
