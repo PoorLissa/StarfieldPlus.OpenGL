@@ -7,84 +7,69 @@ using System.Collections.Generic;
 
 
 /*
-    - Spiraling in shapes
+    - 
 */
 
 
 namespace my
 {
-    public class myObj_200 : myObject
+    public class Obj
     {
-        private static bool doClearBuffer = false, doChangeBgrColor = false, randomDrad = false;
-        private static int x0, y0, shapeType = 0, moveType = 0, rotationType = 0, dimMode = 0, t = 25, N = 1;
+        public float x, y, r, dx, dy;
+    };
+
+    public class myObj_300 : myObject
+    {
+        private static bool doClearBuffer = false, doChangeBgrColor = false, randomDrad = false, isCenter = true;
+        private static int x0, y0, shapeType = 0, moveType = 0, dimMode = 0, t = 25, N = 1, daBase = 0;
         private static float baseDt = 1.0f, dimAlpha = 0.025f;
 
-        private float x, y, Rad, rad, drad, time = 0, dt = 0, R, G, B, A, lineTh, shape = 0;
+        private float x, y, Rad, rad, drad, time1 = 0, dt1 = 0, time2 = 0, dt2 = 0, R, G, B, A, dA, lineTh, shape = 0;
+
+        private int lifeCounter = 0, lifeMax = 0;
+        private int dt1Counter = 0, dt1CounterMax = 0;
+        private float ddt1 = 0;
+
+        private List<Obj> lst = null;
 
         // -------------------------------------------------------------------------
 
-        public myObj_200()
+        public myObj_300()
         {
             if (colorPicker == null)
             {
                 x0 = gl_Width  / 2;
                 y0 = gl_Height / 2;
 
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
+                colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.RANDOM);
                 list = new List<myObject>();
 
                 doChangeBgrColor = myUtils.randomBool(rand);
                 randomDrad = myUtils.randomBool(rand);
-                shapeType = rand.Next(6);
-
+                shapeType = rand.Next(4);
                 moveType = rand.Next(2);
                 dimMode = rand.Next(3);                         // 0 = const base value, 1 = const random value, 2 = oscillating value
-                baseDt = 0.001f + 0.001f * rand.Next(1000);
 
                 // Set number of objects N:
-                switch (rand.Next(3))
-                {
-                    case 0: N = rand.Next(03) + 1; break;
-                    case 1: N = rand.Next(11) + 1; break;
-                    case 2: N = rand.Next(66) + 1; break;
-                }
+                N = rand.Next(11) + 3;
 
-                // Set rotation type for all the shapes: [no rotation, -1, 0, +1]
-                if (rand.Next(5) == 0)
-                {
-                    rotationType = -100 - (myUtils.randomBool(rand) ? 0 : 1);
-                }
-                else
-                {
-                    rotationType = myUtils.randomSign(rand);
-                }
-
-                t = 1;
-
-                if (baseDt > 0.5f)
-                {
-                    t += rand.Next(33);
-                }
+shapeType = 4;
+moveType = 0;
+N = 100;
 
                 if (dimMode == 1)
                 {
                     dimAlpha = 0.001f + 0.001f * rand.Next(100);
                 }
+
+                t = 1;
             }
 
-            Rad = rand.Next(gl_Height-333) + 333;
-            dt = baseDt * (rand.Next(100) + 1);
-            drad = 0.5f * (rand.Next(5) + 1);
+            lst = new List<Obj>();
 
-            // Set rotation type for the shape
-            if (rotationType <= -100)
+            for (int i = 0; i < 25; i++)
             {
-                dt = 0;
-            }
-            else
-            {
-                // -1, +1 or random[-1 / +1]
-                dt *= (rotationType != 0) ? rotationType : myUtils.randomSign(rand);
+                lst.Add(new Obj());
             }
 
             generateNew();
@@ -94,27 +79,26 @@ namespace my
 
         protected override void generateNew()
         {
-            x = x0;
-            y = y0;
-            rad = Rad;
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
 
-            lineTh = rand.Next(5) + 1;
             A = (float)rand.NextDouble() + 0.1f;
 
             colorPicker.getColorRand(ref R, ref G, ref B);
 
-            if (randomDrad)
-            {
-                drad = 0.5f * (rand.Next(33) + 1);
-            }
+            shape = shapeType;
 
-            if (rotationType == -101)
-            {
-                // No rotation, but the angle is different for every newly generated shape
-                time = (float)rand.NextDouble() * 1234;
-            }
+            lifeCounter = 0;
+            lifeMax = rand.Next(333) + 333;
 
-            shape = shapeType != 5 ? shapeType : rand.Next(5);
+            foreach (var obj in lst)
+            {
+                obj.x = x;
+                obj.y = y;
+                obj.r = 5;
+                obj.dx = 0.001f * (rand.Next(1000) - 500);
+                obj.dy = 0.001f * (rand.Next(1000) - 500);
+            }
 
             return;
         }
@@ -123,48 +107,26 @@ namespace my
 
         protected override void Move()
         {
-            int zzz = 66;
-
-            // Switfly decrease too large radiuses
-            rad -= rad > 666 ? (rad - 666) / 50 : 0;
+            lifeCounter++;
 
             switch (moveType)
             {
-                // Spiraling to the center
                 case 0:
-                    rad -= drad;
-                    time += dt;
-                    break;
 
-                // Spiraling to the center, but the center coordinates are randomized a bit
-                case 1:
+                    foreach (var obj in lst)
+                    {
+                        obj.x += obj.dx;
+                        obj.y += obj.dy;
+                    }
 
-                    if (shape == 1 || shape == 2)
-                        zzz = 33;
-
-                    zzz = rad > zzz ? zzz : (int)rad;
-
-                    x = x0 + (zzz - rand.Next(2*zzz));
-                    y = y0 + (zzz - rand.Next(2*zzz));
-
-                    rad -= drad;
-                    time += dt;
-                    break;
-
-                // Spiraling to the center, but the center coordinates are moving ellptically
-                case 2:
-                    x = x0 + (float)Math.Sin(time) * 111;
-                    y = y0 + (float)Math.Cos(time) * 111;
-
-                    rad -= drad;
-                    time += dt;
+                    if (lifeCounter > lifeMax)
+                    {
+                        generateNew();
+                    }
                     break;
             }
 
-            if (rad <= 0)
-            {
-                generateNew();
-            }
+            return;
         }
 
         // -------------------------------------------------------------------------
@@ -174,39 +136,42 @@ namespace my
             switch (shape)
             {
                 case 0:
-                    myPrimitive._Rectangle.SetAngle(time / 10);
+                    myPrimitive._Hexagon.SetAngle(time1);
+                    myPrimitive._Hexagon.SetColor(R, G, B, A);
+                    myPrimitive._Hexagon.Draw(x, y, rad, false);
+                    break;
 
-                    glLineWidth(3);
-                    myPrimitive._Rectangle.SetColor(R, G, B, 0.15f);
-                    myPrimitive._Rectangle.Draw(x - rad - 1, y - rad - 1, 2 * rad + 2, 2 * rad + 2, false);
-
-                    glLineWidth(1);
+                case 1:
+                    glLineWidth(lineTh);
+                    myPrimitive._Rectangle.SetAngle(time1);
                     myPrimitive._Rectangle.SetColor(R, G, B, A);
                     myPrimitive._Rectangle.Draw(x - rad, y - rad, 2 * rad, 2 * rad, false);
                     break;
 
-                case 1:
-                    myPrimitive._Ellipse.SetColor(R, G, B, A);
-                    myPrimitive._Ellipse.setLineThickness(lineTh);
-                    myPrimitive._Ellipse.Draw(x - rad, y - rad, 2 * rad, 2 * rad, false);
-                    break;
-
                 case 2:
+                    glLineWidth(lineTh);
+                    myPrimitive._Ellipse.SetColor(R, G, B, A/2);
+                    myPrimitive._Ellipse.Draw(x-rad, y-rad, 2*rad, 2*rad, false);
+
+                    myPrimitive._Triangle.SetAngle(time1);
                     myPrimitive._Triangle.SetColor(R, G, B, A);
-                    myPrimitive._Triangle.SetAngle(time / 10);
                     myPrimitive._Triangle.Draw(x, y - rad, x - 5 * rad / 6, y + rad / 2, x + 5 * rad / 6, y + rad / 2, false);
                     break;
 
                 case 3:
-                    myPrimitive._Hexagon.SetColor(R, G, B, A);
-                    myPrimitive._Hexagon.SetAngle(time / 10);
-                    myPrimitive._Hexagon.Draw(x, y, rad, false);
+                    myPrimitive._Pentagon.SetAngle(time1);
+                    myPrimitive._Pentagon.SetColor(R, G, B, A);
+                    myPrimitive._Pentagon.Draw(x, y, rad, false);
                     break;
 
                 case 4:
-                    myPrimitive._Pentagon.SetColor(R, G, B, A);
-                    myPrimitive._Pentagon.SetAngle(time / 10);
-                    myPrimitive._Pentagon.Draw(x, y, rad, false);
+                    glLineWidth(1);
+                    myPrimitive._Ellipse.SetColor(R, G, B, A);
+
+                    foreach (var obj in lst)
+                    {
+                        myPrimitive._Ellipse.Draw(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, 2 * obj.r, false);
+                    }
                     break;
             }
 
@@ -234,7 +199,7 @@ namespace my
     
             while (list.Count < N)
             {
-                list.Add(new myObj_200());
+                list.Add(new myObj_300());
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -247,7 +212,7 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                foreach (myObj_200 obj in list)
+                foreach (myObj_300 obj in list)
                 {
                     obj.Show();
                     obj.Move();

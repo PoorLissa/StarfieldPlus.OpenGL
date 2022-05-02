@@ -34,7 +34,7 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        int id = 1;
+        int id = 2;
 
         switch (id)
         {
@@ -44,6 +44,10 @@ public class ScreenSaver
 
             case 1:
                 _obj = new my.myObj_210();          //
+                break;
+
+            case 2:
+                _obj = new my.myObj_300();          //
                 break;
 
             default:
