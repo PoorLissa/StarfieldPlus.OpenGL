@@ -16,10 +16,10 @@ namespace my
     public class myObj_200 : myObject
     {
         private static bool doClearBuffer = false, doChangeBgrColor = false, randomDrad = false;
-        private static int x0, y0, shape = 0, moveType = 0, rotationType = 0, dimMode = 0, t = 25, N = 1;
+        private static int x0, y0, shapeType = 0, moveType = 0, rotationType = 0, dimMode = 0, t = 25, N = 1;
         private static float baseDt = 1.0f, dimAlpha = 0.025f;
 
-        private float x, y, Rad, rad, drad, time = 0, dt = 0, R, G, B, A, lineTh;
+        private float x, y, Rad, rad, drad, time = 0, dt = 0, R, G, B, A, lineTh, shape = 0;
 
         // -------------------------------------------------------------------------
 
@@ -35,7 +35,10 @@ namespace my
 
                 doChangeBgrColor = myUtils.randomBool(rand);
                 randomDrad = myUtils.randomBool(rand);
-                shape = rand.Next(4);
+                shapeType = rand.Next(6);
+
+                shapeType = 5;
+
                 moveType = rand.Next(2);
                 dimMode = rand.Next(3);                         // 0 = const base value, 1 = const random value, 2 = oscillating value
                 baseDt = 0.001f + 0.001f * rand.Next(1000);
@@ -113,6 +116,8 @@ namespace my
                 time = (float)rand.NextDouble() * 1234;
             }
 
+            shape = shapeType != 5 ? shapeType : rand.Next(5);
+
             return;
         }
 
@@ -168,8 +173,14 @@ namespace my
             switch (shape)
             {
                 case 0:
-                    myPrimitive._Rectangle.SetColor(R, G, B, A);
                     myPrimitive._Rectangle.SetAngle(time / 10);
+
+                    glLineWidth(3);
+                    myPrimitive._Rectangle.SetColor(R, G, B, 0.15f);
+                    myPrimitive._Rectangle.Draw(x - rad - 1, y - rad - 1, 2 * rad + 2, 2 * rad + 2, false);
+
+                    glLineWidth(1);
+                    myPrimitive._Rectangle.SetColor(R, G, B, A);
                     myPrimitive._Rectangle.Draw(x - rad, y - rad, 2 * rad, 2 * rad, false);
                     break;
 
@@ -182,13 +193,19 @@ namespace my
                 case 2:
                     myPrimitive._Triangle.SetColor(R, G, B, A);
                     myPrimitive._Triangle.SetAngle(time / 10);
-                    myPrimitive._Triangle.Draw(x, y - rad, x - 5*rad/6, y + rad/2, x + 5*rad/6, y + rad/2, false);
+                    myPrimitive._Triangle.Draw(x, y - rad, x - 5 * rad / 6, y + rad / 2, x + 5 * rad / 6, y + rad / 2, false);
                     break;
 
                 case 3:
                     myPrimitive._Hexagon.SetColor(R, G, B, A);
                     myPrimitive._Hexagon.SetAngle(time / 10);
                     myPrimitive._Hexagon.Draw(x, y, rad, false);
+                    break;
+
+                case 4:
+                    myPrimitive._Pentagon.SetColor(R, G, B, A);
+                    myPrimitive._Pentagon.SetAngle(time / 10);
+                    myPrimitive._Pentagon.Draw(x, y, rad, false);
                     break;
             }
 
@@ -234,10 +251,6 @@ namespace my
                     obj.Show();
                     obj.Move();
                 }
-
-                myPrimitive._Pentagon.SetColor(1, 0, 0, 1);
-                myPrimitive._Pentagon.SetAngle((float)cnt/100);
-                myPrimitive._Pentagon.Draw(333, 333, 300, false);
 
                 System.Threading.Thread.Sleep(t);
 
