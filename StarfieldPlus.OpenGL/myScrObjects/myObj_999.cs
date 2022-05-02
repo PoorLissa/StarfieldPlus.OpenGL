@@ -173,6 +173,7 @@ namespace my
 
         protected override void Process(Window window)
         {
+            myPrimitive.init_Line();
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
             myPrimitive.init_Hexagon();
@@ -196,6 +197,9 @@ namespace my
             int y0 = 500;
             int w0 = 500;
             int h0 = 500;
+
+            int xx1 = 0;
+            int yy1 = 0;
 
             uint cnt = 0;
 
@@ -276,7 +280,7 @@ namespace my
                     }
                 }
 
-                if (false)
+                if (true)
                 {
                     myPrimitive._Hexagon.SetColor(1, 0, 0, 1);
 
@@ -338,7 +342,7 @@ namespace my
                     }
                 }
 
-                if (true)
+                if (false)
                 {
                     int x = gl_Width  / 2;
                     int y = gl_Height / 2;
@@ -357,6 +361,21 @@ namespace my
                     {
                         //dt -= 0.01f;
                     }
+                }
+
+                if (true)
+                {
+                    myPrimitive._Line.SetColor(1, 1, 0, 1);
+
+                    myPrimitive._Line.SetAngle(0);
+                    myPrimitive._Line.Draw(0, 0, gl_Width, gl_Height);
+
+                    myPrimitive._Line.SetAngle(t/2);
+                    myPrimitive._Line.SetColor(1, 1, 0, 0.1f);
+                    myPrimitive._Line.Draw(xx1 + 100, yy1 + 100, xx1 + 100, yy1 + 200, 3);
+
+                    myPrimitive._Line.SetColor(1, 1, 0, 1);
+                    myPrimitive._Line.Draw(xx1 + 100, yy1 + 100, xx1 + 100, yy1 + 200, 1);
                 }
 
                 System.Threading.Thread.Sleep(25);

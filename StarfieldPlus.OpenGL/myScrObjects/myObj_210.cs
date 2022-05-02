@@ -7,13 +7,13 @@ using System.Collections.Generic;
 
 
 /*
-    - Spiraling in shapes
+    - 
 */
 
 
 namespace my
 {
-    public class myObj_200 : myObject
+    public class myObj_210 : myObject
     {
         private static bool doClearBuffer = false, doChangeBgrColor = false, randomDrad = false;
         private static int x0, y0, shapeType = 0, moveType = 0, rotationType = 0, dimMode = 0, t = 25, N = 1;
@@ -23,7 +23,7 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        public myObj_200()
+        public myObj_210()
         {
             if (colorPicker == null)
             {
@@ -37,10 +37,13 @@ namespace my
                 randomDrad = myUtils.randomBool(rand);
                 shapeType = rand.Next(6);
 
+                shapeType = 0;
+
+/*
                 moveType = rand.Next(2);
                 dimMode = rand.Next(3);                         // 0 = const base value, 1 = const random value, 2 = oscillating value
                 baseDt = 0.001f + 0.001f * rand.Next(1000);
-
+*/
                 // Set number of objects N:
                 switch (rand.Next(3))
                 {
@@ -48,6 +51,8 @@ namespace my
                     case 1: N = rand.Next(11) + 1; break;
                     case 2: N = rand.Next(66) + 1; break;
                 }
+
+                N = 1;
 
                 // Set rotation type for all the shapes: [no rotation, -1, 0, +1]
                 if (rand.Next(5) == 0)
@@ -123,44 +128,11 @@ namespace my
 
         protected override void Move()
         {
-            int zzz = 66;
-
             switch (moveType)
             {
-                // Spiraling to the center
                 case 0:
-                    rad -= drad;
                     time += dt;
                     break;
-
-                // Spiraling to the center, but the center coordinates are randomized a bit
-                case 1:
-
-                    if (shape == 1 || shape == 2)
-                        zzz = 33;
-
-                    zzz = rad > zzz ? zzz : (int)rad;
-
-                    x = x0 + (zzz - rand.Next(2*zzz));
-                    y = y0 + (zzz - rand.Next(2*zzz));
-
-                    rad -= drad;
-                    time += dt;
-                    break;
-
-                // Spiraling to the center, but the center coordinates are moving ellptically
-                case 2:
-                    x = x0 + (float)Math.Sin(time) * 111;
-                    y = y0 + (float)Math.Cos(time) * 111;
-
-                    rad -= drad;
-                    time += dt;
-                    break;
-            }
-
-            if (rad <= 0)
-            {
-                generateNew();
             }
         }
 
@@ -171,6 +143,14 @@ namespace my
             switch (shape)
             {
                 case 0:
+                    myPrimitive._Hexagon.SetAngle(time);
+                    //myPrimitive._Hexagon.SetColor(R, G, B, 0.15f);
+                    //myPrimitive._Hexagon.SetColor(R, G, B, 1);
+                    myPrimitive._Hexagon.SetColor(1, 0, 0, 1);
+                    myPrimitive._Hexagon.Draw(x, y, (int)(rad * Math.Sin(time/100)), false);
+                    break;
+
+                case 111110:
                     myPrimitive._Rectangle.SetAngle(time / 10);
 
                     glLineWidth(3);
@@ -231,7 +211,7 @@ namespace my
     
             while (list.Count < N)
             {
-                list.Add(new myObj_200());
+                list.Add(new myObj_210());
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -244,7 +224,7 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                foreach (myObj_200 obj in list)
+                foreach (myObj_210 obj in list)
                 {
                     obj.Show();
                     obj.Move();

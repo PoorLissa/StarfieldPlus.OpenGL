@@ -29,16 +29,21 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // todo:
     // - concentric circles moving inwards. The lesss the circle is, the less is its decreasing speed. Should look like a funnel of sorts
 
     public void selectObject()
     {
-        int id = 0;
+        int id = 1;
 
         switch (id)
         {
             case 0:
                 _obj = new my.myObj_200();          // Spiraling out shapes
+                break;
+
+            case 1:
+                _obj = new my.myObj_210();          //
                 break;
 
             default:
