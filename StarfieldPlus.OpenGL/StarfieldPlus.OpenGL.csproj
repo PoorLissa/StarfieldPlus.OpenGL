@@ -7,7 +7,7 @@
     <ProjectGuid>{CAD2F59A-338B-4012-ACDB-BD748DB52089}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>StarfieldPlus.OpenGL</RootNamespace>
-    <AssemblyName>StarfieldPlus.OpenGL</AssemblyName>
+    <AssemblyName>StarfieldPlus.OpenGL.src</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

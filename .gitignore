@@ -15,3 +15,6 @@
 /StarfieldPlus.OpenGL1/bin/Release/StarfieldPlus.OpenGL.pdb
 /StarfieldPlus.OpenGL1/bin/Release/StarfieldPlus.OpenGL.exe.config
 /StarfieldPlus.OpenGL1/obj
+/StarfieldPlus.OpenGL/obj/Release
+/StarfieldPlus.OpenGL/bin/Debug/StarfieldPlus.OpenGL.src
+/StarfieldPlus.OpenGL/bin/Release/StarfieldPlus.OpenGL.src
