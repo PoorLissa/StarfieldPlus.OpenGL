@@ -55,10 +55,10 @@ namespace my
 
 doChangeBgrColor = false;
 dimMode = 0;
-dimAlpha = 0.5f;
+dimAlpha = 0.0125f;
 shapeType = 4;
 moveType = 0;
-N = 100;
+N = 10;
 
                 if (dimMode == 1)
                 {
@@ -207,6 +207,26 @@ N = 100;
                 list.Add(new myObj_300());
             }
 
+            int i = 0;
+
+            float xx = x0;
+            float yy = y0;
+            float dxx = 33.5f;
+            float dyy = 33.5f;
+
+            float xx2 = x0 + 333;
+            float yy2 = y0;
+            float dxx2 = -33.5f;
+            float dyy2 = +33.5f;
+
+            glBlendEquation(GL_FUNC_ADD);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
+            myPrimitive._Rectangle.Draw(x0, y0, 222, 222, true);
+
+            // https://stackoverflow.com/questions/25548179/opengl-alpha-blending-suddenly-stops
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -217,45 +237,87 @@ N = 100;
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
+                //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+                //glClear(GL_COLOR_BUFFER_BIT);
+
+                {
+                    xx += dxx;
+                    yy += dyy;
+
+                    if (xx < 0 || xx > gl_Width)
+                        dxx *= -1;
+
+                    if (yy < 0 || yy > gl_Height)
+                        dyy *= -1;
+
+                    xx2 += dxx2;
+                    yy2 += dyy2;
+
+                    if (xx2 < 0 || xx2 > gl_Width)
+                        dxx2 *= -1;
+
+                    if (yy2 < 0 || yy2 > gl_Height)
+                        dyy2 *= -1;
+
+                    //myPrimitive._Pentagon.SetColor(1, 0, 0, 0.025f);
+/*
+                    myPrimitive._Pentagon.SetColor(1, 0, 0, 0.5f);
+                    myPrimitive._Pentagon.Draw(xx, yy, 33, true);
+                    myPrimitive._Pentagon.Draw(xx2, yy2, 33, true);
+*/
+                }
+
                 foreach (myObj_300 obj in list)
                 {
-                    obj.Show();
-                    obj.Move();
+                    //obj.Show();
+                    //obj.Move();
+                }
+
+                glBlendFuncSeparate(GL_ONE, GL_SRC_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+                glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+                glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+                glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+
+                //if (cnt % 5 == 0)
+                {
+                    myPrimitive._Rectangle.SetAngle(0);
+
+                    float a = 0.01f + (float)(rand.NextDouble()/100);
+                    a = 0.01f;
+
+                    myPrimitive._Rectangle.SetColor(dimR, dimG, dimB, a);
+                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                }
+
+                if (cnt % 10 == 0)
+                {
+                    myPrimitive._Rectangle.SetAngle(0);
+
+                    float a = 0.02f;
+
+                    myPrimitive._Rectangle.SetColor(dimR, dimG, dimB, a);
+                    //myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
                 }
 
                 System.Threading.Thread.Sleep(t);
-
-                // Dim the screen constantly
-                if (doClearBuffer == false)
-                {
-                    myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.SetColor(dimR, dimG, dimB, dimAlpha);
-                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
-
-                    if (doChangeBgrColor && cnt % 100 == 0)
-                    {
-                        dimR += (rand.Next(2) == 0) ? 0.01f : -0.01f;
-                        dimG += (rand.Next(2) == 0) ? 0.01f : -0.01f;
-                        dimB += (rand.Next(2) == 0) ? 0.01f : -0.01f;
-
-                        if (dimR < 0) dimR = 0;
-                        if (dimG < 0) dimG = 0;
-                        if (dimB < 0) dimB = 0;
-
-                        if (dimR > 0.25f) dimR = 0.25f;
-                        if (dimG > 0.25f) dimG = 0.25f;
-                        if (dimB > 0.25f) dimB = 0.25f;
-                    }
-                }
-
-                // Oscillate dim speed
-                if (dimMode == 2)
-                {
-                    dimAlpha += (float)(Math.Sin(cnt/100)) / 1000;
-                }
             }
 
             return;
+        }
+
+        unsafe void readPixel(int x, int y)
+        {
+            float[] pixel = new float[4];
+
+            fixed (float * ppp = &pixel[0])
+            {
+                glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, ppp);
+            }
+
+            ;
         }
     }
 };
