@@ -101,6 +101,7 @@ namespace my
                 }
 
                 // Set Blend mode
+                if (true)
                 {
                     glEnable(GL_BLEND);                                 // Enable blending
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Set blending function

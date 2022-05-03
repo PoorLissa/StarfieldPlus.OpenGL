@@ -15,7 +15,7 @@ namespace my
 {
     public class Obj
     {
-        public float x, y, r, dx, dy;
+        public float x, y, r, dx, dy, a;
     };
 
     public class myObj_300 : myObject
@@ -53,6 +53,9 @@ namespace my
                 // Set number of objects N:
                 N = rand.Next(11) + 3;
 
+doChangeBgrColor = false;
+dimMode = 0;
+dimAlpha = 0.5f;
 shapeType = 4;
 moveType = 0;
 N = 100;
@@ -98,6 +101,7 @@ N = 100;
                 obj.r = 5;
                 obj.dx = 0.001f * (rand.Next(1000) - 500);
                 obj.dy = 0.001f * (rand.Next(1000) - 500);
+                obj.a = (float)rand.NextDouble() + 0.33f;
             }
 
             return;
@@ -117,6 +121,7 @@ N = 100;
                     {
                         obj.x += obj.dx;
                         obj.y += obj.dy;
+                        obj.a -= 0.005f;
                     }
 
                     if (lifeCounter > lifeMax)
@@ -166,10 +171,10 @@ N = 100;
 
                 case 4:
                     glLineWidth(1);
-                    myPrimitive._Ellipse.SetColor(R, G, B, A);
 
                     foreach (var obj in lst)
                     {
+                        myPrimitive._Ellipse.SetColor(R, G, B, obj.a);
                         myPrimitive._Ellipse.Draw(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, 2 * obj.r, false);
                     }
                     break;
