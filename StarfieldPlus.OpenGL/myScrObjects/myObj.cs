@@ -105,26 +105,7 @@ namespace my
                 {
                     glEnable(GL_BLEND);                                 // Enable blending
                     glBlendEquation(GL_FUNC_ADD);
-
-                    //glBlendColor(0, 0.5f, 0, 0.5f);
-
-                    // glBlendFunc(NEW, OLD);
-
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Set blending function                    
-
-                    //glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_ONE_MINUS_CONSTANT_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-                    //glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-
-                    //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-                    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-                    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
-
-                    //glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 }
 
                 // One time call to let all the primitives know the screen dimensions

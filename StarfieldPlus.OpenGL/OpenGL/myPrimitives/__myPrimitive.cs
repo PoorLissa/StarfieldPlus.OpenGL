@@ -65,6 +65,14 @@ public class myPrimitive
 
     // ---------------------------------------------------------------------------------------
 
+    // Just remember the color value: no color will be set after this call
+    public void SetColorA(float a)
+    {
+        _a = a;
+    }
+
+    // ---------------------------------------------------------------------------------------
+
     // Update shader program with a color (the program must be activated via 'glUseProgram' prior to that)
     protected void setColor(int location, float r, float g, float b, float a)
     {

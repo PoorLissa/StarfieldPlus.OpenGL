@@ -34,7 +34,7 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        int id = 2;
+        int id = 3;
 
         switch (id)
         {
@@ -47,13 +47,16 @@ public class ScreenSaver
                 break;
 
             case 2:
-                _obj = new my.myObj_300();          //
+                _obj = new my.myObj_300();          // Small Explosions of Particles + Variations
+                break;
+
+            case 3:
+                _obj = new my.myObj_300_test();
                 break;
 
             default:
                 _obj = new my.myObj_999a();
                 break;
-
         }
     }
 

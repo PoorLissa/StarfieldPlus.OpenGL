@@ -14,6 +14,8 @@ public class myHexagon : myPrimitive
     private static float h_div_w = 0;
     private static float _angle;
 
+    private static bool bbb = false;
+
     public myHexagon()
     {
         unsafe void __glGenBuffers()
@@ -101,7 +103,7 @@ public class myHexagon : myPrimitive
         if (_angle == 0)
         {
             // Recalc screen coordinates into Normalized Device Coordinates (NDC)
-            fx = 2.0f * x / (Width) - 1.0f;
+            fx = 2.0f * x / Width - 1.0f;
             fy = 1.0f - 2.0f * y / Height;
 
             float fr = 2.0f * r / Height;           // Radius
