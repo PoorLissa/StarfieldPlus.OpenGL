@@ -381,6 +381,8 @@ namespace my
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
+            var rInst = new myRectangleInst();
+
             while (list.Count < N)
             {
                 list.Add(new myObj_300());
@@ -416,6 +418,13 @@ namespace my
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
 
+                rInst.SetColor(1, 0, 0, 1);
+                rInst.Draw(x0, y0, 250, 250, false);
+
+                System.Threading.Thread.Sleep(33);
+
+                continue;
+
 #if true
                 myPrimitive._Rectangle.SetAngle(0);
                 myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
@@ -429,6 +438,8 @@ namespace my
 
                     myPrimitive._Rectangle.Draw(x, y, 50, 50, true);
                 }
+
+                //System.Threading.Thread.Sleep(111);
 #else
                 myPrimitive._Rect.SetAngle(0);
                 myPrimitive._Rect.SetColor(1, 0, 0, 0.25f);

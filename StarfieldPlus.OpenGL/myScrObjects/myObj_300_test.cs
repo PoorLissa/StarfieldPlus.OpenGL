@@ -53,8 +53,6 @@ namespace my
             fixed (float * t = &trans[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6, t, GL_STATIC_DRAW);
 
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-
             glBindVertexArray(quadVAO);
             glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 
@@ -63,6 +61,7 @@ namespace my
 
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
+
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(1, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)(2 * sizeof(float)));
 
@@ -80,8 +79,6 @@ namespace my
 
             fixed (float* t = &trans[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6, t, GL_STATIC_DRAW);
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 
         private static void CreateProgram_Instanced(ref uint program)
@@ -146,12 +143,11 @@ namespace my
 
                 glUseProgram(program);
 
-                trans[1] += (float)(System.Math.Sin(cnt/100))/500;
+                trans[1] += (float)(System.Math.Cos(cnt/10))/500;
                 aaa2(ref instanceVBO);
 
-                glBindVertexArray(quadVAO);
+                //glBindVertexArray(quadVAO);
                 glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 3);
-                //glBindVertexArray(0);
 
 
 #if false
