@@ -178,7 +178,6 @@ namespace my
 
                     myPrimitive._Ellipse.SetColor(1, 1, 0, 0.9f);
                     myPrimitive._Ellipse.Draw(x0 + 333, y0, 222, 222, false);
-
                 }
 
                 if (mySpeedTest)

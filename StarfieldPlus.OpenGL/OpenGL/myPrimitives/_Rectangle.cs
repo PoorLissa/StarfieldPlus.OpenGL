@@ -39,13 +39,6 @@ public class myRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Draw(float x, float y, float w, float h, bool doFill = false)
-    {
-        Draw((int)x, (int)y, (int)w, (int)h, doFill);
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
     public void Draw(int x, int y, int w, int h, bool doFill = false)
     {
         unsafe void __draw(bool fill)
@@ -237,6 +230,13 @@ public class myRectangle : myPrimitive
     private static void setAngle(int location, float angle)
     {
         glUniform1f(location, angle);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void Draw(float x, float y, float w, float h, bool doFill = false)
+    {
+        Draw((int)x, (int)y, (int)w, (int)h, doFill);
     }
 
     // -------------------------------------------------------------------------------------------------------------------

@@ -8,12 +8,12 @@ using System;
 
 public class myRectangleInst : myPrimitive
 {
-    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
+    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instanceVBO = 0, quadVAO = 0;
     private static float[] vertices = null;
-    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
     private static float _angle;
+    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
 
-    private static uint instanceVBO = 0, quadVAO = 0;
+    // -------------------------------------------------------------------------------------------------------------------
 
     public myRectangleInst()
     {
@@ -22,26 +22,22 @@ public class myRectangleInst : myPrimitive
             vertices = new float[12];
 
             CreateProgram();
-
-            locationColor = glGetUniformLocation(shaderProgram, "myColor");
-            locationAngle = glGetUniformLocation(shaderProgram, "myAngle");
-            locationCenter = glGetUniformLocation(shaderProgram, "myCenter");
+            glUseProgram(shaderProgram);
+            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
             instanceVBO = glGenBuffer();
-            quadVAO = glGenVertexArray();
-
-            ebo_fill = glGenBuffer();
+            quadVAO     = glGenVertexArray();
+            ebo_fill    = glGenBuffer();
             ebo_outline = glGenBuffer();
 
             updateIndices();
         }
     }
 
-    public void Draw(float x, float y, float w, float h, bool doFill = false)
-    {
-        Draw((int)x, (int)y, (int)w, (int)h, doFill);
-    }
+    // -------------------------------------------------------------------------------------------------------------------
 
     public void Draw(int x, int y, int w, int h, bool doFill = false)
     {
@@ -119,15 +115,7 @@ public class myRectangleInst : myPrimitive
         __draw(doFill);
     }
 
-    public void SetAngle(float angle)
-    {
-        _angle = angle;
-    }
-
-    private static void setAngle(int location, float angle)
-    {
-        glUniform1f(location, angle);
-    }
+    // -------------------------------------------------------------------------------------------------------------------
 
     private static void CreateProgram()
     {
@@ -168,8 +156,10 @@ public class myRectangleInst : myPrimitive
         glDeleteShader(vertex);
         glDeleteShader(fragment);
 
-        glUseProgram(shaderProgram);
+        return;
     }
+
+    // -------------------------------------------------------------------------------------------------------------------
 
     // INSTANCED!
     // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
@@ -195,6 +185,8 @@ public class myRectangleInst : myPrimitive
         }
     }
 
+    // -------------------------------------------------------------------------------------------------------------------
+
     // Move indices data from CPU to GPU -- needs to be called only once, as we have 2 different EBOs, and they are not going to change;
     // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo1 : ebo2);
     private static unsafe void updateIndices()
@@ -211,6 +203,8 @@ public class myRectangleInst : myPrimitive
 
             fixed (uint* i = &indicesFill[0])
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, usage);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
@@ -225,6 +219,8 @@ public class myRectangleInst : myPrimitive
 
             fixed (uint* i = &indicesOutline[0])
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesOutline.Length, i, usage);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
@@ -233,6 +229,31 @@ public class myRectangleInst : myPrimitive
 
             fixed (float* tt = &trans[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * trans.Length, tt, GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
     }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void SetAngle(float angle)
+    {
+        _angle = angle;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    private static void setAngle(int location, float angle)
+    {
+        glUniform1f(location, angle);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void Draw(float x, float y, float w, float h, bool doFill = false)
+    {
+        Draw((int)x, (int)y, (int)w, (int)h, doFill);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
 };
