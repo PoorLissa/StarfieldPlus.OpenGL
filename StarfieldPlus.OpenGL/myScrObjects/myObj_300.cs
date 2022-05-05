@@ -381,8 +381,6 @@ namespace my
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
-            var rInst = new myRectangleInst();
-
             while (list.Count < N)
             {
                 list.Add(new myObj_300());
@@ -418,65 +416,12 @@ namespace my
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
 
-                rInst.SetColor(1, 0, 0, 1);
-                rInst.Draw(x0, y0, 250, 250, false);
-
-                System.Threading.Thread.Sleep(33);
-
-                continue;
-
-#if true
-                myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
-
-                // old0: 10k = ~35fps
-                // new1: 10k = ~48fps
-                for (int i = 0; i < 10000; i++)
-                {
-                    int x = rand.Next(gl_Width);
-                    int y = rand.Next(gl_Height);
-
-                    myPrimitive._Rectangle.Draw(x, y, 50, 50, true);
-                }
-
-                //System.Threading.Thread.Sleep(111);
-#else
-                myPrimitive._Rect.SetAngle(0);
-                myPrimitive._Rect.SetColor(1, 0, 0, 0.25f);
-
-                for (int i = 0; i < 10000; i++)
-                {
-                    int x = rand.Next(gl_Width);
-                    int y = rand.Next(gl_Height);
-
-                    myPrimitive._Rect.Draw(x, y, 50, 50, true);
-                }
-#endif
-
-                continue;
-
-#if false
                 for(int i = 0; i < list.Count; i++)
                 {
                     var obj = list[i] as myObj_300;
                     obj.Show();
                     obj.Move();
                 }
-#else
-
-                //myPrimitive._Rectangle.SetAngle(cnt/25);
-                myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
-                myPrimitive._Rectangle.Draw(666, 666, 222, 222, false);
-
-                myPrimitive._Ellipse.SetColor(1, 1, 0, 1);
-                myPrimitive._Ellipse.Draw(x0, y0, 222, 222, false);
-
-                myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
-                myPrimitive._Rectangle.Draw(1200, 666, 222, 222, true);
-
-#endif
 
                 System.Threading.Thread.Sleep(t);
             }

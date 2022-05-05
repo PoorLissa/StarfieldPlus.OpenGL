@@ -212,23 +212,26 @@ public class myPentagon : myPrimitive
 
     private static unsafe void CreateVertices(bool doFill)
     {
-        fixed (float* v = &vertices[0])
+        glBindVertexArray(vao);
         {
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+            fixed (float* v = &vertices[0])
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
         }
 
         if (doFill)
         {
-            fixed (uint* i = &indicesFill[0])
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
             {
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, GL_DYNAMIC_DRAW);
+                fixed (uint* i = &indicesFill[0])
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, GL_DYNAMIC_DRAW);
             }
         }
         else
         {
-            fixed (uint* i = &indicesOutline[0])
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
             {
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesOutline.Length, i, GL_DYNAMIC_DRAW);
+                fixed (uint* i = &indicesOutline[0])
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesOutline.Length, i, GL_DYNAMIC_DRAW);
             }
         }
 

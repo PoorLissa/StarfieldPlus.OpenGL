@@ -119,13 +119,21 @@ namespace my
         {
             uint cnt = 0;
 
+            myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
+            myPrimitive.init_Pentagon();
+            myPrimitive.init_Hexagon();
+            myPrimitive.init_Ellipse();
+
+            var rInst = new myRectangleInst();
 
             uint instanceVBO = 0, quadVAO = 0, quadVBO = 0;
-
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
-
             uint program = 0;
+
+            bool mySpeedTest = false;
+            bool myTestShapes = true;
+            bool myInstanceTest = false;
 
             CreateProgram_Instanced(ref program);
 
@@ -141,14 +149,87 @@ namespace my
                 glClearColor(0, 0, 0, 1);
                 glClear(GL_COLOR_BUFFER_BIT);
 
-                glUseProgram(program);
+                if (myTestShapes)
+                {
+                    myPrimitive._Rectangle.SetAngle(cnt / 25);
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
+                    myPrimitive._Rectangle.Draw(666, 666, 222, 222, false);
 
-                trans[1] += (float)(System.Math.Cos(cnt/10))/500;
-                aaa2(ref instanceVBO);
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(1, 0, 0, 0.3f);
+                    myPrimitive._Rectangle.Draw(1200, 666, 233, 233, true);
+/*
+                    myPrimitive._Pentagon.SetColor(1, 0, 1, 0.15f);
+                    myPrimitive._Pentagon.Draw(x0, y0, 333, true);
 
-                //glBindVertexArray(quadVAO);
-                glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 3);
+                    myPrimitive._Pentagon.SetColor(1, 0, 1, 1);
+                    myPrimitive._Pentagon.Draw(x0, y0, 366, false);
 
+                    myPrimitive._Ellipse.SetColor(1, 1, 0, 1);
+                    myPrimitive._Ellipse.Draw(x0, y0, 222, 222, false);
+
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(1, 0, 0, 0.9f);
+                    myPrimitive._Rectangle.Draw(1200, 666, 233, 233, false);
+
+                    myPrimitive._Ellipse.SetColor(1, 1, 0, 0.25f);
+                    myPrimitive._Ellipse.Draw(x0 + 333, y0, 222, 222, true);
+
+                    myPrimitive._Ellipse.SetColor(1, 1, 0, 0.9f);
+                    myPrimitive._Ellipse.Draw(x0 + 333, y0, 222, 222, false);
+*/
+                }
+
+                if (mySpeedTest)
+                {
+#if true
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
+
+                    // old0: 10k = ~35fps
+                    // new1: 10k = ~48fps
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        int x = rand.Next(gl_Width);
+                        int y = rand.Next(gl_Height);
+
+                        myPrimitive._Rectangle.Draw(x, y, 50, 50, true);
+                    }
+
+#else
+                    myPrimitive._Rect.SetAngle(0);
+                    myPrimitive._Rect.SetColor(1, 0, 0, 0.25f);
+
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        int x = rand.Next(gl_Width);
+                        int y = rand.Next(gl_Height);
+
+                        myPrimitive._Rect.Draw(x, y, 50, 50, true);
+                    }
+#endif
+                }
+                
+                if (myInstanceTest)
+                {
+#if false
+                    glUseProgram(program);
+
+                    trans[1] += (float)(System.Math.Cos(cnt/10))/500;
+                    aaa2(ref instanceVBO);
+
+                    //glBindVertexArray(quadVAO);
+                    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 3);
+
+#else
+                    // --- my instancing ----------------------
+
+                    rInst.SetColor(1, 0, 0, 1);
+                    rInst.Draw(x0, y0, 250, 250, false);
+
+#endif
+                }
 
 #if false
                 //myPrimitive._Rectangle.SetAngle(cnt/25);

@@ -4,7 +4,7 @@ using System;
 
 /*
     - Draws an ellipse
-    - For now, actually, only circle. TO be able to draw an ellipse, needs some adjustments
+    - For now, actually, only circle. To be able to draw an ellipse, needs some adjustments
 */
 
 public class myEllipse : myPrimitive
@@ -97,7 +97,10 @@ public class myEllipse : myPrimitive
         // Draw a rectangle but use shader to hide everything except for the ellipse
         unsafe void __draw()
         {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            //glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
         }
 
@@ -195,14 +198,16 @@ public class myEllipse : myPrimitive
 
     private static unsafe void CreateVertices()
     {
-        fixed (float* v = &vertices[0])
+        glBindVertexArray(vao);
         {
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+            fixed (float* v = &vertices[0])
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
         }
 
-        fixed (uint* i = &indicesFill[0])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         {
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, GL_DYNAMIC_DRAW);
+            fixed (uint* i = &indicesFill[0])
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, GL_DYNAMIC_DRAW);
         }
 
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
