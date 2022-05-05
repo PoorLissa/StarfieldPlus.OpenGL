@@ -19,13 +19,6 @@ public class myEllipse : myPrimitive
 
     public myEllipse()
     {
-        unsafe void __glGenBuffers()
-        {
-            fixed (uint* e = &ebo) { glGenBuffers(1, e); }
-        }
-
-        // ---------------------------------------------------------------------------------------
-
         if (vertices == null)
         {
             vertices = new float[12];
@@ -51,7 +44,7 @@ public class myEllipse : myPrimitive
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-            __glGenBuffers();
+            ebo = glGenBuffer();
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         }
 
@@ -198,7 +191,8 @@ public class myEllipse : myPrimitive
 
     private static unsafe void CreateVertices()
     {
-        glBindVertexArray(vao);
+        //glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
         {
             fixed (float* v = &vertices[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);

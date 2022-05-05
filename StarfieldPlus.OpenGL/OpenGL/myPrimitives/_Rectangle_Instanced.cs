@@ -8,10 +8,10 @@ using System;
 
 public class myRectangleInst : myPrimitive
 {
-    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instanceVBO = 0, quadVAO = 0;
+    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
     private static float[] vertices = null;
     private static float _angle;
-    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
+    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0, N = 4;
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -28,8 +28,8 @@ public class myRectangleInst : myPrimitive
             locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
-            instanceVBO = glGenBuffer();
-            quadVAO     = glGenVertexArray();
+            instVbo     = glGenBuffer();
+            quadVbo     = glGenBuffer();
             ebo_fill    = glGenBuffer();
             ebo_outline = glGenBuffer();
 
@@ -43,19 +43,22 @@ public class myRectangleInst : myPrimitive
     {
         unsafe void __draw(bool fill)
         {
-            // diff:
-            glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+            // do we need this?..
+            //glBindBuffer(GL_ARRAY_BUFFER, instVbo);
+            //glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+
+            //glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
 
             if (fill)
             {
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, 3); // <<<----------------- replace 3 with my number
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
+                glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, N);
             }
             else
             {
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
-                glDrawElementsInstanced(GL_LINES, 8, GL_UNSIGNED_INT, NULL, 3);
+                glDrawElementsInstanced(GL_LINES, 8, GL_UNSIGNED_INT, NULL, N);
             }
         }
 
@@ -98,6 +101,7 @@ public class myRectangleInst : myPrimitive
             vertices[7] = fy;
         }
 
+
         updateVertices();
 
         glUseProgram(shaderProgram);
@@ -120,10 +124,12 @@ public class myRectangleInst : myPrimitive
     private static void CreateProgram()
     {
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-            "layout (location = 0) in vec3 pos; layout (location = 1) in vec2 aOffset; uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+            @"layout (location = 0) in vec3 pos;
+              layout (location = 1) in vec2 aOffset;
+                uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+
                 main: @"if (myAngle == 0)
                         {
-                            //gl_Position = vec4(pos, 1.0);
                             gl_Position = vec4(pos.x + aOffset.x, pos.y + aOffset.y, pos.z, 1.0);
                         }
                         else
@@ -161,27 +167,16 @@ public class myRectangleInst : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // INSTANCED!
     // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
     private static unsafe void updateVertices()
     {
-        glBindBuffer(GL_ARRAY_BUFFER, quadVAO);
-        //glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
         {
             fixed (float* v = &vertices[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
 
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
             glEnableVertexAttribArray(0);
-        }
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-        {
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
-            glVertexAttribDivisor(1, 1);                                                // tell OpenGL this is an instanced vertex attribute
         }
     }
 
@@ -223,18 +218,50 @@ public class myRectangleInst : myPrimitive
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, instVbo);
         {
-            float[] trans = new float[] { 0.1f, 0, 0.3f, 0.1f, 0.5f, 0.2f };
+            float[] trans = new float[] { 0.1f, 0, 0.3f, 0.1f, 0.5f, 0.2f, 0.5f, -0.2f };
 
             fixed (float* tt = &trans[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * trans.Length, tt, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
+
+            // Tell OpenGL this is an instanced vertex attribute
+            glVertexAttribDivisor(1, 1);
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
+
+    public unsafe void upd(System.Collections.Generic.List<float> list)
+    {
+        float[] arr = new float[list.Count];
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            arr[i] = list[i];
+        }
+
+        N = list.Count / 2;
+
+        glBindBuffer(GL_ARRAY_BUFFER, instVbo);
+        {
+            fixed (float* a = &arr[0])
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * arr.Length, a, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
+
+            // Tell OpenGL this is an instanced vertex attribute
+            glVertexAttribDivisor(1, 1);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+    }
 
     public void SetAngle(float angle)
     {

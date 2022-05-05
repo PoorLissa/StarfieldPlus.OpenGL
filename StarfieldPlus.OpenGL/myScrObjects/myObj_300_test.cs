@@ -115,6 +115,8 @@ namespace my
             glUseProgram(program);
         }
 
+        List<float> listInst = new List<float>();
+
         protected override void Process(Window window)
         {
             uint cnt = 0;
@@ -131,9 +133,10 @@ namespace my
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
             uint program = 0;
 
-            bool mySpeedTest = false;
-            bool myTestShapes = true;
-            bool myInstanceTest = true;
+            bool mySpeedTest1 = false;
+            bool mySpeedTest2 = true;
+            bool myTestShapes = false;
+            bool myInstanceTest = false;
 
             CreateProgram_Instanced(ref program);
 
@@ -180,7 +183,7 @@ namespace my
                     myPrimitive._Ellipse.Draw(x0 + 333, y0, 222, 222, false);
                 }
 
-                if (mySpeedTest)
+                if (mySpeedTest1)
                 {
 #if true
                     myPrimitive._Rectangle.SetAngle(0);
@@ -224,8 +227,25 @@ namespace my
 #else
                     // --- my instancing ----------------------
 
-                    rInst.SetColor(1, 0, 0, 1);
-                    rInst.Draw(x0, y0, 250, 250, false);
+                    //myPrimitive._Ellipse.SetColor(1, 1, 0, 1);
+                    //myPrimitive._Ellipse.Draw(x0, y0, 222, 222, false);
+
+                    if (cnt == 100)
+                    {
+                        for (int i = 0; i < 300; i++)
+                        {
+                            listInst.Add((float)rand.NextDouble());
+                            listInst.Add((float)rand.NextDouble());
+                        }
+
+                        rInst.upd(listInst);
+                    }
+
+                    rInst.SetColor(1, 0.5f, 0.5f, 0.33f);
+                    rInst.Draw(x0, y0, 50, 50, true);
+
+                    rInst.SetColor(1, 0, 0, 0.99f);
+                    rInst.Draw(x0, y0, 50, 50, false);
 
 #endif
                 }
@@ -240,6 +260,44 @@ namespace my
                 myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
                 myPrimitive._Rectangle.Draw(1200, 666, 222, 222, true);
 #endif
+
+                if (mySpeedTest2)
+                {
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
+#if false
+                    for (int i = 0; i < 50000; i++)
+                    {
+                        int x = gl_Width/2 + rand.Next(gl_Width/2);
+                        int y = rand.Next(gl_Height/2);
+
+                        myPrimitive._Rectangle.Draw(x, y, 5, 5, true);
+                    }
+#else
+
+                    if (cnt % 50 == 0)
+                    {
+                        listInst.Clear();
+
+                        for (int i = 0; i < 5; i++)
+                        {
+                            listInst.Add((float)rand.NextDouble());
+                            listInst.Add((float)rand.NextDouble());
+                        }
+
+                        rInst.upd(listInst);
+                    }
+
+                    rInst.SetColor(1, 0, 0, 0.25f);
+                    rInst.Draw(x0, y0, 50, 50, true);
+
+                    rInst.SetColor(1, 0, 0, 0.99f);
+                    rInst.Draw(x0, y0, 50, 50, false);
+
+#endif
+                    myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
+                    myPrimitive._Rectangle.Draw(100, gl_Height / 2 + (float)System.Math.Cos(cnt) * 333, 50, 50, true);
+                }
 
                 System.Threading.Thread.Sleep(t);
             }
