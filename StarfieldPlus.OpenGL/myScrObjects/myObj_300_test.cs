@@ -133,7 +133,7 @@ namespace my
 
             bool mySpeedTest = false;
             bool myTestShapes = true;
-            bool myInstanceTest = false;
+            bool myInstanceTest = true;
 
             CreateProgram_Instanced(ref program);
 
@@ -152,14 +152,14 @@ namespace my
                 if (myTestShapes)
                 {
                     myPrimitive._Rectangle.SetAngle(cnt / 25);
-                    myPrimitive._Rectangle.SetAngle(0);
+                    //myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
                     myPrimitive._Rectangle.Draw(666, 666, 222, 222, false);
 
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 0, 0, 0.3f);
                     myPrimitive._Rectangle.Draw(1200, 666, 233, 233, true);
-/*
+
                     myPrimitive._Pentagon.SetColor(1, 0, 1, 0.15f);
                     myPrimitive._Pentagon.Draw(x0, y0, 333, true);
 
@@ -178,7 +178,7 @@ namespace my
 
                     myPrimitive._Ellipse.SetColor(1, 1, 0, 0.9f);
                     myPrimitive._Ellipse.Draw(x0 + 333, y0, 222, 222, false);
-*/
+
                 }
 
                 if (mySpeedTest)

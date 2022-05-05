@@ -3,63 +3,63 @@ using static OpenGL.GL;
 using System;
 
 
+// https://learnopengl.com/code_viewer_gh.php?code=src/4.advanced_opengl/10.1.instancing_quads/instancing_quads.cpp
 
-public class myRectangle : myPrimitive
+
+public class myRectangleInst : myPrimitive
 {
-    // Vbo (Vertex Buffer Object) -- Manages memory buffer on the GPU
-    // Ebo (Element Buffer Object) is a buffer that stores indices that are used to decide what vertices to draw (and in what order)
-
-    private static uint Vbo = 0, ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
+    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
     private static float[] vertices = null;
-    private static float _angle;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
+    private static float _angle;
 
-    // -------------------------------------------------------------------------------------------------------------------
+    private static uint instanceVBO = 0, quadVAO = 0;
 
-    public myRectangle()
+    public myRectangleInst()
     {
         if (vertices == null)
         {
             vertices = new float[12];
 
             CreateProgram();
-            glUseProgram(shaderProgram);
-            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
-            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
+
+            locationColor = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter = glGetUniformLocation(shaderProgram, "myCenter");
             locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
-            Vbo         = glGenBuffer();
-            ebo_fill    = glGenBuffer();
+            instanceVBO = glGenBuffer();
+            quadVAO = glGenVertexArray();
+
+            ebo_fill = glGenBuffer();
             ebo_outline = glGenBuffer();
 
             updateIndices();
         }
     }
 
-    // -------------------------------------------------------------------------------------------------------------------
-
     public void Draw(float x, float y, float w, float h, bool doFill = false)
     {
         Draw((int)x, (int)y, (int)w, (int)h, doFill);
     }
 
-    // -------------------------------------------------------------------------------------------------------------------
-
     public void Draw(int x, int y, int w, int h, bool doFill = false)
     {
         unsafe void __draw(bool fill)
         {
+            // diff:
+            glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+
             if (fill)
             {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);     // Renders the triangles using an index buffer EBO
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, 3); // <<<----------------- replace 3 with my number
             }
             else
             {
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
-                glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, NULL);
+                glDrawElementsInstanced(GL_LINES, 8, GL_UNSIGNED_INT, NULL, 3);
             }
         }
 
@@ -102,7 +102,6 @@ public class myRectangle : myPrimitive
             vertices[7] = fy;
         }
 
-
         updateVertices();
 
         glUseProgram(shaderProgram);
@@ -120,18 +119,24 @@ public class myRectangle : myPrimitive
         __draw(doFill);
     }
 
-    // -------------------------------------------------------------------------------------------------------------------
+    public void SetAngle(float angle)
+    {
+        _angle = angle;
+    }
 
-    // Create a shader program
+    private static void setAngle(int location, float angle)
+    {
+        glUniform1f(location, angle);
+    }
+
     private static void CreateProgram()
     {
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-            @"layout (location = 0) in vec3 pos;
-                uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
-
+            "layout (location = 0) in vec3 pos; layout (location = 1) in vec2 aOffset; uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
                 main: @"if (myAngle == 0)
                         {
-                            gl_Position = vec4(pos, 1.0);
+                            //gl_Position = vec4(pos, 1.0);
+                            gl_Position = vec4(pos.x + aOffset.x, pos.y + aOffset.y, pos.z, 1.0);
                         }
                         else
                         {
@@ -163,28 +168,32 @@ public class myRectangle : myPrimitive
         glDeleteShader(vertex);
         glDeleteShader(fragment);
 
-        return;
+        glUseProgram(shaderProgram);
     }
 
-    // -------------------------------------------------------------------------------------------------------------------
-
+    // INSTANCED!
     // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
     private static unsafe void updateVertices()
     {
-        // Bind a buffer;
-        // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
-        glBindBuffer(GL_ARRAY_BUFFER, Vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVAO);
+        //glBindVertexArray(quadVAO);
         {
-            // Copy user-defined data into the currently bound buffer:
             fixed (float* v = &vertices[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
+            glEnableVertexAttribArray(0);
         }
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
-        glEnableVertexAttribArray(0);
-    }
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // -------------------------------------------------------------------------------------------------------------------
+        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+        {
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
+            glVertexAttribDivisor(1, 1);                                                // tell OpenGL this is an instanced vertex attribute
+        }
+    }
 
     // Move indices data from CPU to GPU -- needs to be called only once, as we have 2 different EBOs, and they are not going to change;
     // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo1 : ebo2);
@@ -202,9 +211,6 @@ public class myRectangle : myPrimitive
 
             fixed (uint* i = &indicesFill[0])
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, usage);
-
-            // Unbind current buffer
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
@@ -219,25 +225,14 @@ public class myRectangle : myPrimitive
 
             fixed (uint* i = &indicesOutline[0])
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesOutline.Length, i, usage);
+        }
 
-            // Unbind current buffer
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+        {
+            float[] trans = new float[] { 0.1f, 0, 0.3f, 0.1f, 0.5f, 0.2f };
+
+            fixed (float* tt = &trans[0])
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * trans.Length, tt, GL_STATIC_DRAW);
         }
     }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    public void SetAngle(float angle)
-    {
-        _angle = angle;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    private static void setAngle(int location, float angle)
-    {
-        glUniform1f(location, angle);
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
 };
