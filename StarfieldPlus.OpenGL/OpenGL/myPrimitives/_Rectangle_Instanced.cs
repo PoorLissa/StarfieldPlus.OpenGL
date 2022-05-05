@@ -13,13 +13,18 @@ public class myRectangleInst : myPrimitive
     private static float _angle;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0, N = 4;
 
+    private static float[] instanceArray = null;
+
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myRectangleInst()
+    public myRectangleInst(int maxInstCount)
     {
         if (vertices == null)
         {
+            N = 0;
+
             vertices = new float[12];
+            instanceArray = new float[maxInstCount * 3];
 
             CreateProgram();
             glUseProgram(shaderProgram);
@@ -69,16 +74,20 @@ public class myRectangleInst : myPrimitive
             // Recalc screen coordinates into Normalized Device Coordinates (NDC)
             float fx = 2.0f * x / (Width + 1) - 1.0f;       // Shifting Width a bit to get rid of incomplete left bottom angle
             float fy = 1.0f - 2.0f * y / Height;
+
+            fx = -1.0f;
+            fy = +1.0f;
+
             vertices[06] = fx;
             vertices[09] = fx;
             vertices[01] = fy;
             vertices[10] = fy;
 
-            fx = 2.0f * (x + w) / Width - 1.0f;
+            fx = 2.0f * w / Width - 1.0f;
             vertices[0] = fx;
             vertices[3] = fx;
 
-            fy = 1.0f - 2.0f * (y + h) / Height;
+            fy = 1.0f - 2.0f * h / Height;
             vertices[4] = fy;
             vertices[7] = fy;
         }
@@ -125,11 +134,15 @@ public class myRectangleInst : myPrimitive
     {
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
-              layout (location = 1) in vec2 aOffset;
+              layout (location = 1) in vec3 aOffset;
                 uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
 
                 main: @"if (myAngle == 0)
                         {
+                            float size = aOffset.z;
+
+                            //gl_Position = vec4(pos.x * size + aOffset.x, pos.y * size + aOffset.y, pos.z, 1.0);
+
                             gl_Position = vec4(pos.x + aOffset.x, pos.y + aOffset.y, pos.z, 1.0);
                         }
                         else
@@ -217,51 +230,46 @@ public class myRectangleInst : myPrimitive
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
-
-        glBindBuffer(GL_ARRAY_BUFFER, instVbo);
-        {
-            float[] trans = new float[] { 0.1f, 0, 0.3f, 0.1f, 0.5f, 0.2f, 0.5f, -0.2f };
-
-            fixed (float* tt = &trans[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * trans.Length, tt, GL_STATIC_DRAW);
-
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
-
-            // Tell OpenGL this is an instanced vertex attribute
-            glVertexAttribDivisor(1, 1);
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public unsafe void upd(System.Collections.Generic.List<float> list)
+    // Get the list of instances and create GPU buffer out of them
+    public unsafe void updateInstances(System.Collections.Generic.List<float> list)
     {
-        float[] arr = new float[list.Count];
-
-        for (int i = 0; i < list.Count; i++)
+        if (list.Count > 1)
         {
-            arr[i] = list[i];
+            int Count = list.Count > instanceArray.Length ? instanceArray.Length : list.Count;
+            N = Count / 3;
+
+            // Copy data to our array
+            for (int i = 0; i < Count; i += 3)
+            {
+                instanceArray[i+0] = +2.0f * list[i+0] / Width;     // offset.x
+                instanceArray[i+1] = -2.0f * list[i+1] / Height;    // offset.y
+                instanceArray[i+2] = +2.0f * list[i+2] / Width;     // offset.z
+            }
+
+            // Copy data to GPU:
+            glBindBuffer(GL_ARRAY_BUFFER, instVbo);
+            {
+                fixed (float* a = &instanceArray[0])
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);
+
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
+
+                // Tell OpenGL this is an instanced vertex attribute
+                glVertexAttribDivisor(1, 1);
+
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+            }
         }
 
-        N = list.Count / 2;
-
-        glBindBuffer(GL_ARRAY_BUFFER, instVbo);
-        {
-            fixed (float* a = &arr[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * arr.Length, a, GL_STATIC_DRAW);
-
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
-
-            // Tell OpenGL this is an instanced vertex attribute
-            glVertexAttribDivisor(1, 1);
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        }
+        return;
     }
+
+    // -------------------------------------------------------------------------------------------------------------------
 
     public void SetAngle(float angle)
     {

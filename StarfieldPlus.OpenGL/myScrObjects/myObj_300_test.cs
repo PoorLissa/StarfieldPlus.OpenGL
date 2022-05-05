@@ -115,11 +115,11 @@ namespace my
             glUseProgram(program);
         }
 
-        List<float> listInst = new List<float>();
-
         protected override void Process(Window window)
         {
             uint cnt = 0;
+
+            List<float> listInst = new List<float>();
 
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
@@ -127,23 +127,21 @@ namespace my
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
-            var rInst = new myRectangleInst();
+            var rInst = new myRectangleInst(10);
 
             uint instanceVBO = 0, quadVAO = 0, quadVBO = 0;
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
             uint program = 0;
 
             bool mySpeedTest1 = false;
-            bool mySpeedTest2 = true;
+            bool mySpeedTest2 = false;
             bool myTestShapes = false;
-            bool myInstanceTest = false;
+            bool myInstanceTest = true;
 
             CreateProgram_Instanced(ref program);
 
             while (!Glfw.WindowShouldClose(window))
             {
-                cnt++;
-
                 processInput(window);
 
                 Glfw.SwapBuffers(window);
@@ -230,15 +228,30 @@ namespace my
                     //myPrimitive._Ellipse.SetColor(1, 1, 0, 1);
                     //myPrimitive._Ellipse.Draw(x0, y0, 222, 222, false);
 
-                    if (cnt == 100)
+                    if (cnt % 100 == 0)
                     {
-                        for (int i = 0; i < 300; i++)
+                        listInst.Clear();
+
+                        listInst.Add(100);
+                        listInst.Add(100);
+                        listInst.Add(50);
+
+                        listInst.Add(200);
+                        listInst.Add(200);
+                        listInst.Add(60);
+
+                        listInst.Add(300);
+                        listInst.Add(300);
+                        listInst.Add(70);
+  
+/*
+                        for (int i = 0; i < 3; i++)
                         {
                             listInst.Add((float)rand.NextDouble());
                             listInst.Add((float)rand.NextDouble());
                         }
-
-                        rInst.upd(listInst);
+*/
+                        rInst.updateInstances(listInst);
                     }
 
                     rInst.SetColor(1, 0.5f, 0.5f, 0.33f);
@@ -274,32 +287,28 @@ namespace my
                         myPrimitive._Rectangle.Draw(x, y, 5, 5, true);
                     }
 #else
+                    listInst.Clear();
 
-                    if (cnt % 50 == 0)
+                    for (int i = 0; i < 50000; i++)
                     {
-                        listInst.Clear();
-
-                        for (int i = 0; i < 5; i++)
-                        {
-                            listInst.Add((float)rand.NextDouble());
-                            listInst.Add((float)rand.NextDouble());
-                        }
-
-                        rInst.upd(listInst);
+                        listInst.Add((float)rand.NextDouble());
+                        listInst.Add((float)rand.NextDouble());
                     }
+
+                    rInst.updateInstances(listInst);
 
                     rInst.SetColor(1, 0, 0, 0.25f);
                     rInst.Draw(x0, y0, 50, 50, true);
 
                     rInst.SetColor(1, 0, 0, 0.99f);
                     rInst.Draw(x0, y0, 50, 50, false);
-
 #endif
                     myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
                     myPrimitive._Rectangle.Draw(100, gl_Height / 2 + (float)System.Math.Cos(cnt) * 333, 50, 50, true);
                 }
 
                 System.Threading.Thread.Sleep(t);
+                cnt++;
             }
 
             return;
