@@ -416,6 +416,34 @@ namespace my
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
 
+#if true
+                myPrimitive._Rectangle.SetAngle(0);
+                myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
+
+                // old0: 10k = ~35fps
+                // new1: 10k = ~48fps
+                for (int i = 0; i < 10000; i++)
+                {
+                    int x = rand.Next(gl_Width);
+                    int y = rand.Next(gl_Height);
+
+                    myPrimitive._Rectangle.Draw(x, y, 50, 50, true);
+                }
+#else
+                myPrimitive._Rect.SetAngle(0);
+                myPrimitive._Rect.SetColor(1, 0, 0, 0.25f);
+
+                for (int i = 0; i < 10000; i++)
+                {
+                    int x = rand.Next(gl_Width);
+                    int y = rand.Next(gl_Height);
+
+                    myPrimitive._Rect.Draw(x, y, 50, 50, true);
+                }
+#endif
+
+                continue;
+
 #if false
                 for(int i = 0; i < list.Count; i++)
                 {

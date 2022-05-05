@@ -3,59 +3,31 @@ using static OpenGL.GL;
 using System;
 
 
+
 public class myRectangle : myPrimitive
 {
-    private static uint vao = 0, vbo = 0, ebo = 0, program = 0;
-    private static uint[] indicesOutline = null;
-    private static uint[] indicesFill = null;
+    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
     private static float _angle;
 
     public myRectangle()
     {
-        unsafe void __glGenBuffers()
-        {
-            fixed (uint* e = &ebo)
-            {
-                glGenBuffers(1, e);
-            }
-        }
-
-        // ---------------------------------------------------------------------------------------
-
         if (vertices == null)
         {
             vertices = new float[12];
 
-            indicesOutline = new uint[]
-            {
-                0, 1,
-                1, 2,
-                2, 3,
-                3, 0
-            };
-
-            indicesFill = new uint[]
-            {
-                0, 1, 3,   // first triangle
-                1, 2, 3    // second triangle
-            };
-
-            vao = glGenVertexArray();
-            vbo = glGenBuffer();
-
             CreateProgram();
-            locationColor   = glGetUniformLocation(program, "myColor");
-            locationAngle   = glGetUniformLocation(program, "myAngle");
-            locationCenter  = glGetUniformLocation(program, "myCenter");
-            locationScrSize = glGetUniformLocation(program, "myScrSize");
 
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
+            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
-            __glGenBuffers();
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+            ebo_fill = glGenBuffer();
+            ebo_outline = glGenBuffer();
+
+            updateIndices();
         }
     }
 
@@ -68,6 +40,8 @@ public class myRectangle : myPrimitive
     {
         unsafe void __draw(bool fill)
         {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo_fill : ebo_outline);
+
             if (fill)
             {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -120,16 +94,17 @@ public class myRectangle : myPrimitive
             vertices[7] = fy;
         }
 
-        CreateVertices1(doFill);
+        updateVertices();
 
-        glUseProgram(program);
+        glUseProgram(shaderProgram);
+
         setColor(locationColor, _r, _g, _b, _a);
         setAngle(locationAngle, _angle);
 
         // Set the center of rotation
         if (_angle != 0.0f)
         {
-            glUniform2f(locationCenter, x + w/2, y + h/2);
+            glUniform2f(locationCenter, x + w / 2, y + h / 2);
             updUniformScreenSize(locationScrSize, Width, Height);
         }
 
@@ -174,42 +149,62 @@ public class myRectangle : myPrimitive
                 main: "result = myColor;"
         );
 
-        program = glCreateProgram();
-        glAttachShader(program, vertex);
-        glAttachShader(program, fragment);
+        shaderProgram = glCreateProgram();
 
-        glLinkProgram(program);
+        glAttachShader(shaderProgram, vertex);
+        glAttachShader(shaderProgram, fragment);
+
+        glLinkProgram(shaderProgram);
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
 
-        glUseProgram(program);
+        glUseProgram(shaderProgram);
     }
 
-    private static unsafe void CreateVertices1(bool doFill)
+    // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
+    private static unsafe void updateVertices()
     {
         fixed (float* v = &vertices[0])
         {
             glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
         }
 
-        if (doFill)
-        {
-            fixed (uint* i = &indicesFill[0])
-            {
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, GL_DYNAMIC_DRAW);
-            }
-        }
-        else
-        {
-            fixed (uint* i = &indicesOutline[0])
-            {
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesOutline.Length, i, GL_DYNAMIC_DRAW);
-            }
-        }
-
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
         glEnableVertexAttribArray(0);
+    }
+
+    // Move indices data from CPU to GPU -- needs to be called only once, as we have 2 different EBOs, and they are not going to change;
+    // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo1 : ebo2);
+    private static unsafe void updateIndices()
+    {
+        int usage = GL_STATIC_READ;
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
+        {
+            var indicesFill = new uint[]
+            {
+                0, 1, 3,   // first triangle
+                1, 2, 3    // second triangle
+            };
+
+            fixed (uint* i = &indicesFill[0])
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, usage);
+        }
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
+        {
+            var indicesOutline = new uint[]
+            {
+                0, 1,
+                1, 2,
+                2, 3,
+                3, 0
+            };
+
+            fixed (uint* i = &indicesOutline[0])
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesOutline.Length, i, usage);
+        }
     }
 };
 
