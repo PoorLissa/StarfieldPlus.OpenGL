@@ -64,7 +64,7 @@ namespace my
 
                 t = 1;
 
-#if true
+#if false
                 shapeType = 0;
                 moveType = 0;
                 doFillShapes = true;
