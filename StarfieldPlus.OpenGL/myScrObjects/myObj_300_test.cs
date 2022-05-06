@@ -232,34 +232,34 @@ namespace my
                     {
                         listInst.Clear();
 
-                        listInst.Add(100);
+                        listInst.Add(300);
+                        listInst.Add(300);
                         listInst.Add(100);
                         listInst.Add(50);
 
-                        listInst.Add(200);
-                        listInst.Add(200);
+                        listInst.Add(400);
+                        listInst.Add(400);
+                        listInst.Add(60);
                         listInst.Add(60);
 
-                        listInst.Add(300);
-                        listInst.Add(300);
+                        listInst.Add(500);
+                        listInst.Add(500);
                         listInst.Add(70);
-  
-/*
-                        for (int i = 0; i < 3; i++)
-                        {
-                            listInst.Add((float)rand.NextDouble());
-                            listInst.Add((float)rand.NextDouble());
-                        }
-*/
+                        listInst.Add(70);
+
+                        listInst.Add(gl_Width  - 111);
+                        listInst.Add(gl_Height - 112);
+                        listInst.Add(111);
+                        listInst.Add(111);
+
                         rInst.updateInstances(listInst);
                     }
 
                     rInst.SetColor(1, 0.5f, 0.5f, 0.33f);
-                    rInst.Draw(x0, y0, 50, 50, true);
+                    rInst.Draw(0, 0, 0, 0, true);
 
                     rInst.SetColor(1, 0, 0, 0.99f);
-                    rInst.Draw(x0, y0, 50, 50, false);
-
+                    rInst.Draw(0, 0, 0, 0, false);
 #endif
                 }
 

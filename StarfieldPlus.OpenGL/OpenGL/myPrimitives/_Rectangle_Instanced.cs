@@ -11,7 +11,7 @@ public class myRectangleInst : myPrimitive
     private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
     private static float[] vertices = null;
     private static float _angle;
-    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0, N = 4;
+    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0, N = 0;
 
     private static float[] instanceArray = null;
 
@@ -24,7 +24,7 @@ public class myRectangleInst : myPrimitive
             N = 0;
 
             vertices = new float[12];
-            instanceArray = new float[maxInstCount * 3];
+            instanceArray = new float[maxInstCount * 4];
 
             CreateProgram();
             glUseProgram(shaderProgram);
@@ -71,23 +71,21 @@ public class myRectangleInst : myPrimitive
 
         if (_angle == 0)
         {
-            // Recalc screen coordinates into Normalized Device Coordinates (NDC)
-            float fx = 2.0f * x / (Width + 1) - 1.0f;       // Shifting Width a bit to get rid of incomplete left bottom angle
-            float fy = 1.0f - 2.0f * y / Height;
-
-            fx = -1.0f;
-            fy = +1.0f;
+            // Our initial rectangle is [x = -1, y = 1, w = 1, h = 1]
+            // It will be scaled and moved into position in the shader
+            float fx = -1.0f;
+            float fy = +1.0f;
 
             vertices[06] = fx;
             vertices[09] = fx;
             vertices[01] = fy;
             vertices[10] = fy;
 
-            fx = 2.0f * w / Width - 1.0f;
+            fx = 2.0f / Width - 1.0f;
             vertices[0] = fx;
             vertices[3] = fx;
 
-            fy = 1.0f - 2.0f * h / Height;
+            fy = 1.0f - 2.0f / Height;
             vertices[4] = fy;
             vertices[7] = fy;
         }
@@ -134,16 +132,16 @@ public class myRectangleInst : myPrimitive
     {
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
-              layout (location = 1) in vec3 aOffset;
+              layout (location = 1) in vec4 offset;
+              layout (location = 2) in mat2x4 m1;
                 uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
 
                 main: @"if (myAngle == 0)
                         {
-                            float size = aOffset.z;
+                            gl_Position = vec4(pos.x * offset.z + offset.x, pos.y * offset.w + offset.y, pos.z, 1.0);
 
-                            //gl_Position = vec4(pos.x * size + aOffset.x, pos.y * size + aOffset.y, pos.z, 1.0);
-
-                            gl_Position = vec4(pos.x + aOffset.x, pos.y + aOffset.y, pos.z, 1.0);
+                            gl_Position.x -= (1 - offset.z);
+                            gl_Position.y += (1 - offset.w);
                         }
                         else
                         {
@@ -239,25 +237,28 @@ public class myRectangleInst : myPrimitive
     {
         if (list.Count > 1)
         {
+            int n = 4;
+
             int Count = list.Count > instanceArray.Length ? instanceArray.Length : list.Count;
-            N = Count / 3;
+            N = Count / n;
 
             // Copy data to our array
-            for (int i = 0; i < Count; i += 3)
+            for (int i = 0; i < Count; i += n)
             {
                 instanceArray[i+0] = +2.0f * list[i+0] / Width;     // offset.x
                 instanceArray[i+1] = -2.0f * list[i+1] / Height;    // offset.y
-                instanceArray[i+2] = +2.0f * list[i+2] / Width;     // offset.z
+                instanceArray[i+2] = list[i+2];                     // offset.z
+                instanceArray[i+3] = list[i+3];                     // offset.w
             }
 
             // Copy data to GPU:
             glBindBuffer(GL_ARRAY_BUFFER, instVbo);
             {
                 fixed (float* a = &instanceArray[0])
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic here
 
                 glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
+                glVertexAttribPointer(1, n, GL_FLOAT, false, n * sizeof(float), NULL);
 
                 // Tell OpenGL this is an instanced vertex attribute
                 glVertexAttribDivisor(1, 1);
