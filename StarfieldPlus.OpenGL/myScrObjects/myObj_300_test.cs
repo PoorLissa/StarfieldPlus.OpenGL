@@ -225,41 +225,24 @@ namespace my
 #else
                     // --- my instancing ----------------------
 
-                    //myPrimitive._Ellipse.SetColor(1, 1, 0, 1);
-                    //myPrimitive._Ellipse.Draw(x0, y0, 222, 222, false);
-
                     if (cnt % 100 == 0)
                     {
-                        listInst.Clear();
+                        rInst.Clear();
 
-                        listInst.Add(300);
-                        listInst.Add(300);
-                        listInst.Add(100);
-                        listInst.Add(50);
+                        rInst.setCoords(300, 300, 50, 50);
+                        rInst.setColor(1, 0, 0, 0.25f);
 
-                        listInst.Add(400);
-                        listInst.Add(400);
-                        listInst.Add(60);
-                        listInst.Add(60);
+                        rInst.setCoords(400, 400, 60, 60);
+                        rInst.setColor(0, 1, 0, 0.25f);
 
-                        listInst.Add(500);
-                        listInst.Add(500);
-                        listInst.Add(70);
-                        listInst.Add(70);
+                        rInst.setCoords(500, 500, 70, 70);
+                        rInst.setColor(0, 0, 1, 0.25f);
 
-                        listInst.Add(gl_Width  - 111);
-                        listInst.Add(gl_Height - 112);
-                        listInst.Add(111);
-                        listInst.Add(111);
-
-                        rInst.updateInstances(listInst);
+                        rInst.updateInstances3();
                     }
 
-                    rInst.SetColor(1, 0.5f, 0.5f, 0.33f);
-                    rInst.Draw(0, 0, 0, 0, true);
-
-                    rInst.SetColor(1, 0, 0, 0.99f);
                     rInst.Draw(0, 0, 0, 0, false);
+                    rInst.Draw(0, 0, 0, 0, true);
 #endif
                 }
 
@@ -295,7 +278,7 @@ namespace my
                         listInst.Add((float)rand.NextDouble());
                     }
 
-                    rInst.updateInstances(listInst);
+                    rInst.updateInstances1(listInst);
 
                     rInst.SetColor(1, 0, 0, 0.25f);
                     rInst.Draw(x0, y0, 50, 50, true);

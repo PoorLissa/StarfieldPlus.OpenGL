@@ -24,7 +24,7 @@ public class myRectangleInst : myPrimitive
             N = 0;
 
             vertices = new float[12];
-            instanceArray = new float[maxInstCount * 4];
+            instanceArray = new float[maxInstCount * 8];
 
             CreateProgram();
             glUseProgram(shaderProgram);
@@ -130,6 +130,27 @@ public class myRectangleInst : myPrimitive
 
     private static void CreateProgram()
     {
+        // mat2x4 mData is a [2 x 4] matrix of floats, where:
+        // - first  4 floats are [x, y, w, h];
+        // - second 4 floats are [r, g, b, a]
+        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+            @"layout (location = 0) in vec3 pos;
+              layout (location = 1) in mat2x4 mData;
+                uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;
+                out vec4 rgbaColor;",
+
+                main: @"if (myAngle == 0)
+                        {
+                            gl_Position = vec4(pos.x * mData[0].z + mData[0].x, pos.y * mData[0].w + mData[0].y, pos.z, 1.0);
+
+                            gl_Position.x -= (1 - mData[0].z);
+                            gl_Position.y += (1 - mData[0].w);
+
+                            rgbaColor = mData[1];
+                        }"
+        );
+
+/*
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in vec4 offset;
@@ -157,10 +178,10 @@ public class myRectangleInst : myPrimitive
                             gl_Position.y = 1.0f - 2.0f * gl_Position.y / myScrSize.y;
                         }"
         );
-
+*/
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-            "out vec4 result; uniform vec4 myColor;",
-                main: "result = myColor;"
+            "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;",
+                main: "result = rgbaColor;"
         );
 
         shaderProgram = glCreateProgram();
@@ -233,7 +254,7 @@ public class myRectangleInst : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Get the list of instances and create GPU buffer out of them
-    public unsafe void updateInstances(System.Collections.Generic.List<float> list)
+    public unsafe void updateInstances1(System.Collections.Generic.List<float> list)
     {
         if (list.Count > 1)
         {
@@ -270,7 +291,119 @@ public class myRectangleInst : myPrimitive
         return;
     }
 
+    public unsafe void updateInstances2(System.Collections.Generic.List<float> list)
+    {
+        if (list.Count > 1)
+        {
+            int n = 8;
+
+            int Count = list.Count > instanceArray.Length ? instanceArray.Length : list.Count;
+            N = Count / n;
+
+            // Copy data to our array
+            for (int i = 0; i < Count; i += n)
+            {
+                instanceArray[i + 0] = +2.0f * list[i + 0] / Width;     // offset.x
+                instanceArray[i + 1] = -2.0f * list[i + 1] / Height;    // offset.y
+                instanceArray[i + 2] = list[i + 2];                     // offset.z
+                instanceArray[i + 3] = list[i + 3];                     // offset.w
+
+                instanceArray[i + 4] = list[i + 4];                     // r
+                instanceArray[i + 5] = list[i + 5];                     // b
+                instanceArray[i + 6] = list[i + 6];                     // b
+                instanceArray[i + 7] = list[i + 7];                     // a
+            }
+
+            // Copy data to GPU:
+            glBindBuffer(GL_ARRAY_BUFFER, instVbo);
+            {
+                fixed (float* a = &instanceArray[0])
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic here
+
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 4, GL_FLOAT, false, 8 * sizeof(float), NULL);
+
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, 4, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
+
+                // Tell OpenGL this is an instanced vertex attribute
+                glVertexAttribDivisor(1, 1);
+                glVertexAttribDivisor(2, 1);
+
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+            }
+        }
+
+        return;
+    }
+
     // -------------------------------------------------------------------------------------------------------------------
+
+    static int Count = 0;
+
+    public void Clear()
+    {
+        Count = 0;
+    }
+
+    public void setCoords(int x, int y, int w, int h)
+    {
+        int i = Count;
+
+        instanceArray[i + 0] = +2.0f * x / Width;     // offset.x
+        instanceArray[i + 1] = -2.0f * y / Height;    // offset.y
+        instanceArray[i + 2] = w;                     // offset.z
+        instanceArray[i + 3] = h;                     // offset.w
+
+        Count += 4;
+    }
+
+    public void setColor(float r, float g, float b, float a)
+    {
+        int i = Count;
+
+        instanceArray[i + 0] = r;
+        instanceArray[i + 1] = g;
+        instanceArray[i + 2] = b;
+        instanceArray[i + 3] = a;
+
+        Count += 4;
+    }
+
+    public unsafe void updateInstances3()
+    {
+        if (Count > 1)
+        {
+            int n = 8;
+
+            N = Count / n;
+
+            // Copy data to GPU:
+            glBindBuffer(GL_ARRAY_BUFFER, instVbo);
+            {
+                fixed (float* a = &instanceArray[0])
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic here
+
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 4, GL_FLOAT, false, 8 * sizeof(float), NULL);
+
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, 4, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
+
+                // Tell OpenGL this is an instanced vertex attribute
+                glVertexAttribDivisor(1, 1);
+                glVertexAttribDivisor(2, 1);
+
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+            }
+        }
+
+        return;
+    }
+
+
+
+
 
     public void SetAngle(float angle)
     {
