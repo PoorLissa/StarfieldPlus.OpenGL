@@ -5,13 +5,16 @@ using System;
 
 // https://learnopengl.com/code_viewer_gh.php?code=src/4.advanced_opengl/10.1.instancing_quads/instancing_quads.cpp
 
+// todo:
+//  - hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
+//  - need rotation
 
 public class myRectangleInst : myPrimitive
 {
     private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
     private static float[] vertices = null;
     private static float _angle;
-    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0, N = 0;
+    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0, N = 0, Count = 0;
 
     private static float[] instanceArray = null;
 
@@ -44,7 +47,7 @@ public class myRectangleInst : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Draw(int x, int y, int w, int h, bool doFill = false)
+    public void Draw(bool doFill = false)
     {
         unsafe void __draw(bool fill)
         {
@@ -91,21 +94,6 @@ public class myRectangleInst : myPrimitive
         }
         else
         {
-            // Leave coordinates as they are, and recalc them in the shader
-            float fx = x;
-            float fy = y;
-            vertices[06] = fx;
-            vertices[09] = fx;
-            vertices[01] = fy;
-            vertices[10] = fy;
-
-            fx = x + w;
-            vertices[0] = fx;
-            vertices[3] = fx;
-
-            fy = y + h;
-            vertices[4] = fy;
-            vertices[7] = fy;
         }
 
 
@@ -114,12 +102,12 @@ public class myRectangleInst : myPrimitive
         glUseProgram(shaderProgram);
 
         setColor(locationColor, _r, _g, _b, _a);
-        setAngle(locationAngle, _angle);
+        //setAngle(locationAngle, _angle);
 
         // Set the center of rotation
         if (_angle != 0.0f)
         {
-            glUniform2f(locationCenter, x + w / 2, y + h / 2);
+            //glUniform2f(locationCenter, x + w / 2, y + h / 2);
             updUniformScreenSize(locationScrSize, Width, Height);
         }
 
@@ -150,38 +138,18 @@ public class myRectangleInst : myPrimitive
                         }"
         );
 
-/*
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-            @"layout (location = 0) in vec3 pos;
-              layout (location = 1) in vec4 offset;
-              layout (location = 2) in mat2x4 m1;
-                uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
-
-                main: @"if (myAngle == 0)
-                        {
-                            gl_Position = vec4(pos.x * offset.z + offset.x, pos.y * offset.w + offset.y, pos.z, 1.0);
-
-                            gl_Position.x -= (1 - offset.z);
-                            gl_Position.y += (1 - offset.w);
-                        }
-                        else
-                        {
-                            float X = pos.x - myCenter.x;
-                            float Y = pos.y - myCenter.y;
-
-                            gl_Position = vec4(X * cos(myAngle) - Y * sin(myAngle), Y * cos(myAngle) + X * sin(myAngle), pos.z, 1.0);
-                    
-                            gl_Position.x += myCenter.x;
-                            gl_Position.y += myCenter.y;
-
-                            gl_Position.x = 2.0f * gl_Position.x / (myScrSize.x+1) - 1.0f;
-                            gl_Position.y = 1.0f - 2.0f * gl_Position.y / myScrSize.y;
-                        }"
-        );
-*/
+        // In case opacity in myColor vec is negative, we know that we should just multiply our instance's opacity by this value (with neg.sign)
+        // This is done to be able to draw all the instances the second time with changed opacity
+        // For example: we want to draw set of filled-in rectangles with lower opacity, and then we want to give them borders with higher opacity
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
             "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;",
-                main: "result = rgbaColor;"
+
+                main: @"result = rgbaColor;
+
+                        if (myColor.w < 0)
+                        {
+                            result.w *= -myColor.w;
+                        }"
         );
 
         shaderProgram = glCreateProgram();
@@ -200,6 +168,7 @@ public class myRectangleInst : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
+    // -- not anymore. need to call this once now, i think
     private static unsafe void updateVertices()
     {
         glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
@@ -253,124 +222,53 @@ public class myRectangleInst : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Get the list of instances and create GPU buffer out of them
-    public unsafe void updateInstances1(System.Collections.Generic.List<float> list)
-    {
-        if (list.Count > 1)
-        {
-            int n = 4;
-
-            int Count = list.Count > instanceArray.Length ? instanceArray.Length : list.Count;
-            N = Count / n;
-
-            // Copy data to our array
-            for (int i = 0; i < Count; i += n)
-            {
-                instanceArray[i+0] = +2.0f * list[i+0] / Width;     // offset.x
-                instanceArray[i+1] = -2.0f * list[i+1] / Height;    // offset.y
-                instanceArray[i+2] = list[i+2];                     // offset.z
-                instanceArray[i+3] = list[i+3];                     // offset.w
-            }
-
-            // Copy data to GPU:
-            glBindBuffer(GL_ARRAY_BUFFER, instVbo);
-            {
-                fixed (float* a = &instanceArray[0])
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic here
-
-                glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, n, GL_FLOAT, false, n * sizeof(float), NULL);
-
-                // Tell OpenGL this is an instanced vertex attribute
-                glVertexAttribDivisor(1, 1);
-
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
-            }
-        }
-
-        return;
-    }
-
-    public unsafe void updateInstances2(System.Collections.Generic.List<float> list)
-    {
-        if (list.Count > 1)
-        {
-            int n = 8;
-
-            int Count = list.Count > instanceArray.Length ? instanceArray.Length : list.Count;
-            N = Count / n;
-
-            // Copy data to our array
-            for (int i = 0; i < Count; i += n)
-            {
-                instanceArray[i + 0] = +2.0f * list[i + 0] / Width;     // offset.x
-                instanceArray[i + 1] = -2.0f * list[i + 1] / Height;    // offset.y
-                instanceArray[i + 2] = list[i + 2];                     // offset.z
-                instanceArray[i + 3] = list[i + 3];                     // offset.w
-
-                instanceArray[i + 4] = list[i + 4];                     // r
-                instanceArray[i + 5] = list[i + 5];                     // b
-                instanceArray[i + 6] = list[i + 6];                     // b
-                instanceArray[i + 7] = list[i + 7];                     // a
-            }
-
-            // Copy data to GPU:
-            glBindBuffer(GL_ARRAY_BUFFER, instVbo);
-            {
-                fixed (float* a = &instanceArray[0])
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic here
-
-                glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 4, GL_FLOAT, false, 8 * sizeof(float), NULL);
-
-                glEnableVertexAttribArray(2);
-                glVertexAttribPointer(2, 4, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
-
-                // Tell OpenGL this is an instanced vertex attribute
-                glVertexAttribDivisor(1, 1);
-                glVertexAttribDivisor(2, 1);
-
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
-            }
-        }
-
-        return;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    static int Count = 0;
-
     public void Clear()
     {
         Count = 0;
     }
 
-    public void setCoords(int x, int y, int w, int h)
-    {
-        int i = Count;
+    // -------------------------------------------------------------------------------------------------------------------
 
-        instanceArray[i + 0] = +2.0f * x / Width;     // offset.x
-        instanceArray[i + 1] = -2.0f * y / Height;    // offset.y
-        instanceArray[i + 2] = w;                     // offset.z
-        instanceArray[i + 3] = h;                     // offset.w
+    public void setCoords(float x, float y, float w, float h)
+    {
+        instanceArray[Count + 0] = +2.0f * x / Width;
+        instanceArray[Count + 1] = -2.0f * y / Height;
+        instanceArray[Count + 2] = w;
+        instanceArray[Count + 3] = h;
 
         Count += 4;
     }
+
+    // -------------------------------------------------------------------------------------------------------------------
 
     public void setColor(float r, float g, float b, float a)
     {
-        int i = Count;
-
-        instanceArray[i + 0] = r;
-        instanceArray[i + 1] = g;
-        instanceArray[i + 2] = b;
-        instanceArray[i + 3] = a;
+        instanceArray[Count + 0] = r;
+        instanceArray[Count + 1] = g;
+        instanceArray[Count + 2] = b;
+        instanceArray[Count + 3] = a;
 
         Count += 4;
     }
 
-    public unsafe void updateInstances3()
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void setColor(double r, double g, double b, double a)
+    {
+        int i = Count;
+
+        instanceArray[i + 0] = (float)r;
+        instanceArray[i + 1] = (float)g;
+        instanceArray[i + 2] = (float)b;
+        instanceArray[i + 3] = (float)a;
+
+        Count += 4;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Create GPU buffer out of out instances from the array
+    public unsafe void updateInstances()
     {
         if (Count > 1)
         {
@@ -382,7 +280,7 @@ public class myRectangleInst : myPrimitive
             glBindBuffer(GL_ARRAY_BUFFER, instVbo);
             {
                 fixed (float* a = &instanceArray[0])
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic here
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic FPS here
 
                 glEnableVertexAttribArray(1);
                 glVertexAttribPointer(1, 4, GL_FLOAT, false, 8 * sizeof(float), NULL);
@@ -401,27 +299,15 @@ public class myRectangleInst : myPrimitive
         return;
     }
 
-
-
-
-
-    public void SetAngle(float angle)
-    {
-        _angle = angle;
-    }
-
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static void setAngle(int location, float angle)
+    // Reallocate inner instances array, if its size is less than the new size
+    public void Resize(int Size)
     {
-        glUniform1f(location, angle);
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    public void Draw(float x, float y, float w, float h, bool doFill = false)
-    {
-        Draw((int)x, (int)y, (int)w, (int)h, doFill);
+        if (instanceArray.Length < Size * 8)
+        {
+            instanceArray = new float[Size * 8];
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------

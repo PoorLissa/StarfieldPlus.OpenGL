@@ -227,22 +227,26 @@ namespace my
 
                     if (cnt % 100 == 0)
                     {
+                        int n = 10000;
+
                         rInst.Clear();
+                        rInst.Resize(n);
 
-                        rInst.setCoords(300, 300, 50, 50);
-                        rInst.setColor(1, 0, 0, 0.25f);
+                        for (int i = 0; i < n; i++)
+                        {
+                            int x = rand.Next(gl_Width);
+                            int y = rand.Next(gl_Height);
+                            int w = rand.Next(10) + 10;
 
-                        rInst.setCoords(400, 400, 60, 60);
-                        rInst.setColor(0, 1, 0, 0.25f);
+                            rInst.setCoords(x, y, w, w);
+                            rInst.setColor(rand.NextDouble(), rand.NextDouble(), rand.NextDouble(), rand.NextDouble());
+                        }
 
-                        rInst.setCoords(500, 500, 70, 70);
-                        rInst.setColor(0, 0, 1, 0.25f);
-
-                        rInst.updateInstances3();
+                        rInst.updateInstances();
                     }
 
-                    rInst.Draw(0, 0, 0, 0, false);
-                    rInst.Draw(0, 0, 0, 0, true);
+                    //rInst.Draw(0, 0, 0, 0, false);
+                    rInst.Draw(true);
 #endif
                 }
 
@@ -270,6 +274,7 @@ namespace my
                         myPrimitive._Rectangle.Draw(x, y, 5, 5, true);
                     }
 #else
+/*
                     listInst.Clear();
 
                     for (int i = 0; i < 50000; i++)
@@ -278,13 +283,14 @@ namespace my
                         listInst.Add((float)rand.NextDouble());
                     }
 
-                    rInst.updateInstances1(listInst);
+                    rInst.updateInstances(listInst);
 
                     rInst.SetColor(1, 0, 0, 0.25f);
                     rInst.Draw(x0, y0, 50, 50, true);
 
                     rInst.SetColor(1, 0, 0, 0.99f);
                     rInst.Draw(x0, y0, 50, 50, false);
+*/
 #endif
                     myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
                     myPrimitive._Rectangle.Draw(100, gl_Height / 2 + (float)System.Math.Cos(cnt) * 333, 50, 50, true);

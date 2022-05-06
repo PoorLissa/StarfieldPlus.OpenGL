@@ -19,8 +19,8 @@ namespace my
 
     public class myObj_300 : myObject
     {
-        private static bool doClearBuffer = false, doUseRotation = false, doFillShapes = false;
-        private static int x0, y0, shapeType = 0, moveType = 0, t = 25, N = 1, gravityRate = 0;
+        private static bool doClearBuffer = false, doUseRotation = false, doFillShapes = false, doUseInstancing = false;
+        private static int x0, y0, shapeType = 0, moveType = 0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
         private static float dimAlpha = 0.1f;
 
         private float x, y, R, G, B, A, dA, lineTh;
@@ -29,10 +29,7 @@ namespace my
 
         private List<myObj_300_Struct> structsList = null;
 
-        // todo: hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
-
-        //List<float> listInst = new List<float>();
-        //static myRectangleInst rInst = null;
+        static myRectangleInst rInst = null;
 
         // -------------------------------------------------------------------------
 
@@ -52,7 +49,7 @@ namespace my
 
                 gravityRate = rand.Next(101) + 1;
                 shapeType = rand.Next(5);
-                moveType = rand.Next(21);
+                moveType = rand.Next(22);
 
                 // Set number of objects N:
                 N = rand.Next(666) + 100;
@@ -64,19 +61,20 @@ namespace my
 
                 t = 1;
 
-#if false
+#if true
                 shapeType = 0;
-                moveType = 0;
-                doFillShapes = true;
-                doFillShapes = false;
-                doClearBuffer = true;
-                N = 33;
+                shapeType = 5;
+                //moveType = 21;
+                //doClearBuffer = true;
+                //doClearBuffer = false;
+                doUseInstancing = shapeType == 5;
+                N = 333;
 #endif
             }
 
             structsList = new List<myObj_300_Struct>();
 
-            for (int i = 0; i < 25; i++)
+            for (int i = 0; i < maxParticles; i++)
             {
                 structsList.Add(new myObj_300_Struct());
             }
@@ -101,7 +99,7 @@ namespace my
             lifeCounter = 0;
             lifeMax = rand.Next(333) + 33;
 
-            objN = rand.Next(21) + 5;
+            objN = rand.Next(maxParticles - 4) + 5;
 
             int max = rand.Next(5000) + 1000;
 
@@ -236,6 +234,14 @@ namespace my
                         case 20:
                             obj.dx *= 0.75f;
                             obj.dy += (0.05f - obj.r / 100);
+                            break;
+
+                        // Move in a cross fashion
+                        case 21:
+                            if (System.Math.Abs(obj.dx) >= System.Math.Abs(obj.dy))
+                                obj.dy = 0;
+                            else
+                                obj.dx = 0;
                             break;
                     }
                 }
@@ -376,8 +382,6 @@ namespace my
                         break;
 
                     case 5:
-/*
-                        listInst.Clear();
 
                         for (int i = 0; i < objN; i++)
                         {
@@ -385,26 +389,10 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                if (doFillShapes)
-                                {
-                                    //myPrimitive._Ellipse.SetColorA(obj.a / 2);
-                                    //myPrimitive._Ellipse.Draw(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, 2 * obj.r, true);
-                                }
-
-                                listInst.Add(obj.x);
-                                listInst.Add(obj.y);
-                                listInst.Add(obj.r);
+                                rInst.setCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
+                                rInst.setColor(R, G, B, obj.a);
                             }
                         }
-
-                        rInst.SetColor(R, G, B, 0.25f);
-                        rInst.updateInstances(listInst);
-                        rInst.Draw(x0, y0, 10, 10, true);
-
-                        rInst.SetColor(R, G, B, 1.0f);
-                        rInst.updateInstances(listInst);
-                        rInst.Draw(x0, y0, 10, 10, false);
-*/
                         break;
                 }
             }
@@ -424,7 +412,7 @@ namespace my
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
-            //rInst = new myRectangleInst(1000000);
+            rInst = new myRectangleInst(N * maxParticles);
 
             while (list.Count < N)
             {
@@ -461,11 +449,36 @@ namespace my
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
 
-                for(int i = 0; i < list.Count; i++)
+                if (doUseInstancing)
                 {
-                    var obj = list[i] as myObj_300;
-                    obj.Show();
-                    obj.Move();
+                    rInst.Clear();
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_300;
+                        obj.Show();
+                        obj.Move();
+                    }
+
+                    rInst.updateInstances();
+
+                    if (doFillShapes)
+                    {
+                        rInst.SetColorA(-0.5f);
+                        rInst.Draw(true);
+                    }
+
+                    rInst.SetColorA(0);
+                    rInst.Draw(false);
+                }
+                else
+                {
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_300;
+                        obj.Show();
+                        obj.Move();
+                    }
                 }
 
                 System.Threading.Thread.Sleep(t);
