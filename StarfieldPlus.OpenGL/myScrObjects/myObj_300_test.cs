@@ -227,7 +227,7 @@ namespace my
 
                     if (cnt % 100 == 0)
                     {
-                        int n = 10000;
+                        int n = 0;
 
                         rInst.Clear();
                         rInst.Resize(n);
@@ -241,12 +241,20 @@ namespace my
                             rInst.setCoords(x, y, w, w);
                             rInst.setColor(rand.NextDouble(), rand.NextDouble(), rand.NextDouble(), rand.NextDouble());
                         }
-
-                        rInst.updateInstances();
                     }
 
-                    //rInst.Draw(0, 0, 0, 0, false);
-                    rInst.Draw(true);
+                    rInst.Clear();
+                    rInst.Resize(11);
+                    rInst.setCoords(333, 333, 111, 111);
+                    rInst.setColor(1, 0.1f, 0.1f, 1);
+                    rInst.updateInstances();
+
+                    rInst.Draw(false);
+
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
+                    myPrimitive._Rectangle.Draw(320, 320, 137, 137, false);
+
 #endif
                 }
 

@@ -79,23 +79,32 @@ public class myRectangleInst : myPrimitive
             float fx = -1.0f;
             float fy = +1.0f;
 
+            //fx = -0.5f;
+            //fy = +1.0f;
+
             vertices[06] = fx;
             vertices[09] = fx;
             vertices[01] = fy;
             vertices[10] = fy;
 
-            fx = 2.0f / Width - 1.0f;
+            fx = 2.0f / Width - 1.0f;                           // ok value
+
+            //fx = 2.0f * (x + w) / Width - 1.0f;               <-- like in simple rect
+
+            fx = -0.9f;                                         // <--- experimantal value
+
             vertices[0] = fx;
             vertices[3] = fx;
 
-            fy = 1.0f - 2.0f / Height;
+            fy = 1.0f - 2.0f / Height;                          // ok value
+
+            fy = +0.9f;                                         // <--- experimantal value
+
+            //fy = 1.0f - 2.0f * (y + h) / Height;              <-- like in simple rect
+
             vertices[4] = fy;
             vertices[7] = fy;
         }
-        else
-        {
-        }
-
 
         updateVertices();
 
@@ -126,7 +135,8 @@ public class myRectangleInst : myPrimitive
               layout (location = 1) in mat2x4 mData;
                 uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;
                 out vec4 rgbaColor;",
-
+/*
+                // working fine, no rotation
                 main: @"if (myAngle == 0)
                         {
                             gl_Position = vec4(pos.x * mData[0].z + mData[0].x, pos.y * mData[0].w + mData[0].y, pos.z, 1.0);
@@ -136,6 +146,65 @@ public class myRectangleInst : myPrimitive
 
                             rgbaColor = mData[1];
                         }"
+*/
+
+                main: @"if (myAngle == 1)
+                        {
+/*
+                            float angle = 0.23;
+
+                            float zzz = 0.5;
+
+                            float X = pos.x - zzz;
+                            float Y = pos.y + zzz;
+
+                            vec2 p = vec2(X * cos(angle) - Y * sin(angle), Y * cos(angle) + X * sin(angle));
+
+                            p.x += zzz;
+                            p.y -= zzz;
+*/
+                            gl_Position = vec4(pos.x * mData[0].z + mData[0].x, pos.y * mData[0].w + mData[0].y, pos.z, 1.0);
+
+                            gl_Position.x -= (1 - mData[0].z);
+                            gl_Position.y += (1 - mData[0].w);
+
+// ------------------------------------------------------------------------------------
+/*
+                            float zzz = 0.5;
+
+                            X = gl_Position.x - zzz;
+                            Y = gl_Position.y - zzz;
+
+                            gl_Position = vec4(X * cos(angle) - Y * sin(angle), Y * cos(angle) + X * sin(angle), 1, 1);
+
+                            gl_Position.x += zzz;
+                            gl_Position.y += zzz;
+*/
+                            rgbaColor = mData[1];
+                        }
+                        else
+                        {
+                            // something like rotation, but need to figure this out yet
+                            float angle = 0.53;
+                            float zzz = 0.75;
+
+                            float X = pos.x + zzz;
+                            float Y = pos.y - zzz;
+
+                            vec2 p = vec2(X * cos(angle) - Y * sin(angle), Y * cos(angle) + X * sin(angle));
+
+                            //gl_Position = vec4(pos.x + zzz, pos.y - zzz, pos.z, 1.0);
+
+                            gl_Position = vec4(p.x, p.y * 3840/2160, pos.z, 1.0);
+
+                            gl_Position.x -= zzz;
+                            gl_Position.y += zzz;
+
+                            rgbaColor = mData[1];
+                        }
+
+
+"
         );
 
         // In case opacity in myColor vec is negative, we know that we should just multiply our instance's opacity by this value (with neg.sign)
