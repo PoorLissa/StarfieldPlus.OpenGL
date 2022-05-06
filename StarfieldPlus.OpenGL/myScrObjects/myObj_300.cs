@@ -29,6 +29,11 @@ namespace my
 
         private List<myObj_300_Struct> structsList = null;
 
+        // todo: hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
+
+        //List<float> listInst = new List<float>();
+        //static myRectangleInst rInst = null;
+
         // -------------------------------------------------------------------------
 
         public myObj_300()
@@ -52,14 +57,20 @@ namespace my
                 // Set number of objects N:
                 N = rand.Next(666) + 100;
 
+                if (rand.Next(3) == 0)
+                {
+                    N = rand.Next(11) + 1;
+                }
+
                 t = 1;
 
 #if true
                 shapeType = 0;
                 moveType = 0;
                 doFillShapes = true;
+                doFillShapes = false;
                 doClearBuffer = true;
-                N = 3333;
+                N = 33;
 #endif
             }
 
@@ -363,6 +374,38 @@ namespace my
                             }
                         }
                         break;
+
+                    case 5:
+/*
+                        listInst.Clear();
+
+                        for (int i = 0; i < objN; i++)
+                        {
+                            var obj = structsList[i];
+
+                            if (obj.a > 0)
+                            {
+                                if (doFillShapes)
+                                {
+                                    //myPrimitive._Ellipse.SetColorA(obj.a / 2);
+                                    //myPrimitive._Ellipse.Draw(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, 2 * obj.r, true);
+                                }
+
+                                listInst.Add(obj.x);
+                                listInst.Add(obj.y);
+                                listInst.Add(obj.r);
+                            }
+                        }
+
+                        rInst.SetColor(R, G, B, 0.25f);
+                        rInst.updateInstances(listInst);
+                        rInst.Draw(x0, y0, 10, 10, true);
+
+                        rInst.SetColor(R, G, B, 1.0f);
+                        rInst.updateInstances(listInst);
+                        rInst.Draw(x0, y0, 10, 10, false);
+*/
+                        break;
                 }
             }
 
@@ -380,6 +423,8 @@ namespace my
             myPrimitive.init_Pentagon();
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
+
+            //rInst = new myRectangleInst(1000000);
 
             while (list.Count < N)
             {
