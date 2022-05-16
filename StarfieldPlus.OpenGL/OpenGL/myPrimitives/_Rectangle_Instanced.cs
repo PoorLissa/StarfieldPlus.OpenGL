@@ -6,6 +6,7 @@ using System;
 // https://learnopengl.com/code_viewer_gh.php?code=src/4.advanced_opengl/10.1.instancing_quads/instancing_quads.cpp
 
 // todo:
+//  - need to create vertices only once
 //  - hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
 
 public class myRectangleInst : myPrimitive
@@ -13,7 +14,7 @@ public class myRectangleInst : myPrimitive
     private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
     private static float[] vertices = null;
     private static float _angle;
-    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0, N = 0, Count = 0;
+    private static int locationColor = 0, locationScrSize = 0, N = 0, Count = 0;
 
     private static float[] instanceArray = null;
 
@@ -34,7 +35,6 @@ public class myRectangleInst : myPrimitive
             CreateProgram();
             glUseProgram(shaderProgram);
             locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
             instVbo     = glGenBuffer();
@@ -100,7 +100,6 @@ public class myRectangleInst : myPrimitive
         glUseProgram(shaderProgram);
 
         setColor(locationColor, _r, _g, _b, _a);
-        glUniform1f(locationAngle, _angle);
         updUniformScreenSize(locationScrSize, Width, Height);
 
         __draw(doFill);
@@ -117,7 +116,7 @@ public class myRectangleInst : myPrimitive
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
               layout (location = 3) in float angle;
-                uniform vec2 myCenter; uniform ivec2 myScrSize;
+                uniform ivec2 myScrSize;
                 out vec4 rgbaColor;",
 #if false
                 // working fine, no rotation
