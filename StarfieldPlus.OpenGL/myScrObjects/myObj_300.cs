@@ -64,10 +64,10 @@ namespace my
 #if true
                 shapeType = 0;
                 shapeType = 5;
-                //doClearBuffer = true;
+                doClearBuffer = true;
                 //doClearBuffer = false;
                 doUseInstancing = shapeType == 5;
-                N = 333;
+                N = 33;
 #endif
             }
 
@@ -388,8 +388,9 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                rInst.setCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
-                                rInst.setColor(R, G, B, obj.a);
+                                rInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
+                                rInst.setInstanceColor(R, G, B, obj.a);
+                                rInst.setInstanceAngle(obj.time);
                             }
                         }
                         break;

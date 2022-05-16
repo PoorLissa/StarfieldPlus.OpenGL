@@ -227,6 +227,7 @@ namespace my
 
                     if (cnt % 100 == 0)
                     {
+/*
                         int n = 0;
 
                         rInst.Clear();
@@ -238,24 +239,39 @@ namespace my
                             int y = rand.Next(gl_Height);
                             int w = rand.Next(10) + 10;
 
-                            rInst.setCoords(x, y, w, w);
-                            rInst.setColor(rand.NextDouble(), rand.NextDouble(), rand.NextDouble(), rand.NextDouble());
+                            rInst.setInstanceCoords(x, y, w, w);
+                            rInst.setInstanceColor(rand.NextDouble(), rand.NextDouble(), rand.NextDouble(), rand.NextDouble());
                         }
+*/
                     }
 
                     rInst.Clear();
                     rInst.Resize(11);
-                    rInst.setCoords(333, 333, 111, 111);
-                    //rInst.setCoords(3840/2 - 50, 1600/2 - 50, 100, 100);
-                    rInst.setColor(1, 0.1f, 0.1f, 1);
-                    rInst.updateInstances();
 
+                    // set instance 1
+                    rInst.setInstanceCoords(333, 333, 130, 130);
+                    rInst.setInstanceColor(1, 0.1f, 0.1f, 1);
+                    rInst.setInstanceAngle(cnt * 0.01f);
+
+                    // set instance 2
+                    rInst.setInstanceCoords(gl_Width/2 - 50, gl_Height/2 - 50, 100, 100);
+                    rInst.setInstanceColor(1, 0.5f, 0.5f, 1);
+                    rInst.setInstanceAngle(cnt * 0.023f);
+
+                    // set instance 3
+                    rInst.setInstanceCoords(666, 666, 111, 111);
+                    rInst.setInstanceColor(1, 0.5f, 0.5f, 1);
+                    rInst.setInstanceAngle(cnt * 0.23f);
+
+                    // update and draw all the instances
+                    rInst.updateInstances();
                     rInst.Draw(false);
 
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
-                    //myPrimitive._Rectangle.Draw(3840 / 2 - 75, 1600 / 2 - 75, 150, 150, false);
-                    myPrimitive._Rectangle.Draw(330, 330, 150, 150, false);
+                    //myPrimitive._Rectangle.Draw(gl_Width/2 - 75, gl_Height/2 - 75, 150, 150, false);
+                    //myPrimitive._Rectangle.Draw(325, 325, 127, 127, false);
+                    myPrimitive._Rectangle.Draw(323, 323, 150, 150, false);
 
 #endif
                 }

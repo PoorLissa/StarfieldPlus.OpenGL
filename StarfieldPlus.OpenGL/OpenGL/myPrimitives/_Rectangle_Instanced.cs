@@ -7,7 +7,6 @@ using System;
 
 // todo:
 //  - hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
-//  - need rotation
 
 public class myRectangleInst : myPrimitive
 {
@@ -18,6 +17,9 @@ public class myRectangleInst : myPrimitive
 
     private static float[] instanceArray = null;
 
+    // Number of elements in [instanceArray] that define one single instance
+    private static readonly int n = 9;
+
     // -------------------------------------------------------------------------------------------------------------------
 
     public myRectangleInst(int maxInstCount)
@@ -27,12 +29,11 @@ public class myRectangleInst : myPrimitive
             N = 0;
 
             vertices = new float[12];
-            instanceArray = new float[maxInstCount * 8];
+            instanceArray = new float[maxInstCount * n];
 
             CreateProgram();
             glUseProgram(shaderProgram);
             locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
             locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
@@ -72,11 +73,8 @@ public class myRectangleInst : myPrimitive
 
         // ---------------------------------------------------------------------------------------
 
-        _angle = 0.5f;
-        //_angle = 0;
-
         // Ok, no rotation
-        if (_angle == 0)
+        if (false && _angle == 0)
         {
             // Our initial rectangle is [x = -1, y = 1, w = 1, h = 1]
             // It will be scaled and moved into position in the shader
@@ -100,52 +98,25 @@ public class myRectangleInst : myPrimitive
         }
         else
         {
-            float fx = -0.5f;
-            float fy = +0.5f;
+            // Our initial square is located at the center of coordinates: [x = -pixel/2, y = pixel/2, w = 1*pixel, h = 1*pixel];
+            // It will be scaled and moved into position by the shader
+
+            float pixelX = 1.0f / Width;
+            float pixelY = 1.0f / Height;
+
+            float fx = -pixelX;
+            float fy = +pixelY;
 
             vertices[06] = fx;
             vertices[09] = fx;
             vertices[01] = fy;
             vertices[10] = fy;
 
-            fx = 2.0f / Width - 0.5f;
+            fx = +pixelX;
             vertices[0] = fx;
             vertices[3] = fx;
 
-            fy = 0.5f - 2.0f / Height;
-            vertices[4] = fy;
-            vertices[7] = fy;
-        }
-
-        // Test
-        if (_angle == 10)
-        {
-            float fx = -1.0f;
-            float fy = +1.0f;
-
-            fx = -0.5f;
-            fy = +1.0f;
-
-            vertices[06] = fx;
-            vertices[09] = fx;
-            vertices[01] = fy;
-            vertices[10] = fy;
-
-            fx = 2.0f / Width - 1.0f;                           // ok value
-
-            //fx = 2.0f * (x + w) / Width - 1.0f;               <-- like in simple rect
-
-            fx = -0.9f;                                         // <--- experimantal value
-
-            vertices[0] = fx;
-            vertices[3] = fx;
-
-            fy = 1.0f - 2.0f / Height;                          // ok value
-
-            fy = +0.9f;                                         // <--- experimantal value
-
-            //fy = 1.0f - 2.0f * (y + h) / Height;              <-- like in simple rect
-
+            fy = -pixelY;
             vertices[4] = fy;
             vertices[7] = fy;
         }
@@ -155,14 +126,8 @@ public class myRectangleInst : myPrimitive
         glUseProgram(shaderProgram);
 
         setColor(locationColor, _r, _g, _b, _a);
-        //setAngle(locationAngle, _angle);
-
-        // Set the center of rotation
-        if (_angle != 0.0f)
-        {
-            //glUniform2f(locationCenter, x + w / 2, y + h / 2);
-            updUniformScreenSize(locationScrSize, Width, Height);
-        }
+        glUniform1f(locationAngle, _angle);
+        updUniformScreenSize(locationScrSize, Width, Height);
 
         __draw(doFill);
     }
@@ -177,7 +142,8 @@ public class myRectangleInst : myPrimitive
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
-                uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;
+              layout (location = 3) in float angle;
+                uniform vec2 myCenter; uniform ivec2 myScrSize;
                 out vec4 rgbaColor;",
 #if false
                 // working fine, no rotation
@@ -195,76 +161,50 @@ public class myRectangleInst : myPrimitive
                         }"
 
 #else
-                // Test
-                main: @"
-                        if (myAngle == 0)
+
+                // todo: try optimizing the shader
+                main: @"rgbaColor = mData[1];
+
+                        if (angle == 0)
                         {
-                            float angle = 0.0;
+                            // no rotation, initialliy centered, works ok
+                            float densityX = 2.0 / myScrSize.x;
+                            float densityY = 2.0 / myScrSize.y;
 
-                            rgbaColor = mData[1];
+                            float x = pos.x * mData[0].z;
+                            float y = pos.y * mData[0].w;
 
-                            //gl_Position = vec4(pos.x * 1600 / 3840, pos.y, 1.0, 1.0);
-                            gl_Position = vec4(pos.x, pos.y, 1.0, 1.0);
-/*
-                            gl_Position = vec4(pos.x * mData[0].z + mData[0].x, pos.y * mData[0].w + mData[0].y, 1.0, 1.0);
-                            gl_Position.x -= (1.5 - mData[0].z);
-                            gl_Position.y += (1.5 - mData[0].w);
+                            // moving into position
+                            x += +densityX * (mData[0].x + mData[0].z/2) - 1.0;
+                            y += -densityY * (mData[0].y + mData[0].w/2) + 1.0;
 
-                            gl_Position.x = 0;
-                            gl_Position.y = 0;
-*/
-                            gl_Position = vec4(pos.x * mData[0].z + mData[0].x, pos.y * mData[0].w + mData[0].y, 1.0, 1.0);
-
-                            gl_Position.x = pos.x;
-                            gl_Position.y = pos.y;
-
+                            gl_Position = vec4(x, y, 1.0, 1.0);
                         }
-
-                        if (myAngle == 1)
+                        else
                         {
-                            // backup
-                            float angle = 0.25;
-                            float zzz = 0.75;
+                            float a = angle;
 
-                            float X = pos.x + zzz;
-                            float Y = pos.y - zzz;
+                            float w_to_h = 1.0 * myScrSize.x / myScrSize.y;
 
-                            vec2 p = vec2(X * cos(angle) - Y * sin(angle), Y * cos(angle) + X * sin(angle));
+                            float densityX = +2.0 / myScrSize.x;
+                            float densityY = -2.0 / myScrSize.y;
 
-                            //gl_Position = vec4(pos.x + zzz, pos.y - zzz, pos.z, 1.0);
+                            float x1 = pos.x;
+                            float y1 = pos.y / w_to_h;
 
-                            gl_Position = vec4(p.x, p.y * 3840/1600, pos.z, 1.0);
+                            // Rotate
+                            float x2 = x1 * cos(a) - y1 * sin(a);
+                            float y2 = y1 * cos(a) + x1 * sin(a);
 
-                            gl_Position.x -= zzz;
-                            gl_Position.y += zzz;
+                            // Set width and height
+                            float x4 = x2 * mData[0].z;
+                            float y4 = y2 * mData[0].w * w_to_h;
 
-                            rgbaColor = mData[1];
-                        }
+                            // moving into position
+                            x4 += densityX * (mData[0].x + mData[0].z/2) - 1.0;
+                            y4 += densityY * (mData[0].y + mData[0].w/2) + 1.0;
 
-                        if (myAngle == 2)
-                        {
-                            // something like rotation, but need to figure this out yet
-                            float angle = 0.5;
-                            float zzz = 0.75;
-zzz = 0.0;
-                            float X = pos.x + zzz;
-                            float Y = pos.y - zzz;
-
-                            vec2 p = vec2(X * cos(angle) - Y * sin(angle), Y * cos(angle) + X * sin(angle));
-
-                            //gl_Position = vec4(pos.x + zzz, pos.y - zzz, pos.z, 1.0);
-
-                            //gl_Position = vec4(p.x, p.y * 3840/1600, pos.z, 1.0);
-
-                            //gl_Position = vec4(pos.x, pos.y, pos.z, 1.0);
-                            gl_Position = vec4(pos.x * mData[0].z + mData[0].x, pos.y * mData[0].w + mData[0].y, 1.0, 1.0);
-                            //gl_Position.x -= zzz;
-                            //gl_Position.y += zzz;
-
-                            gl_Position.x -= (1 - mData[0].z);
-                            gl_Position.y += (1 - mData[0].w);
-
-                            rgbaColor = mData[1];
+                            gl_Position = vec4(x4, y4, 1.0, 1.0);
                         }"
 #endif
         );
@@ -360,10 +300,10 @@ zzz = 0.0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void setCoords(float x, float y, float w, float h)
+    public void setInstanceCoords(float x, float y, float w, float h)
     {
-        instanceArray[Count + 0] = +2.0f * x / Width;
-        instanceArray[Count + 1] = -2.0f * y / Height;
+        instanceArray[Count + 0] = x;
+        instanceArray[Count + 1] = y;
         instanceArray[Count + 2] = w;
         instanceArray[Count + 3] = h;
 
@@ -372,7 +312,16 @@ zzz = 0.0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void setColor(float r, float g, float b, float a)
+    public void setInstanceAngle(float a)
+    {
+        instanceArray[Count] = a;
+
+        Count++;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void setInstanceColor(float r, float g, float b, float a)
     {
         instanceArray[Count + 0] = r;
         instanceArray[Count + 1] = g;
@@ -384,7 +333,7 @@ zzz = 0.0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void setColor(double r, double g, double b, double a)
+    public void setInstanceColor(double r, double g, double b, double a)
     {
         int i = Count;
 
@@ -403,8 +352,6 @@ zzz = 0.0;
     {
         if (Count > 1)
         {
-            int n = 8;
-
             N = Count / n;
 
             // Copy data to GPU:
@@ -414,14 +361,18 @@ zzz = 0.0;
                     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic FPS here
 
                 glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 4, GL_FLOAT, false, 8 * sizeof(float), NULL);
+                glVertexAttribPointer(1, 4, GL_FLOAT, false, n * sizeof(float), NULL);
 
                 glEnableVertexAttribArray(2);
-                glVertexAttribPointer(2, 4, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
+                glVertexAttribPointer(2, 4, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
+
+                glEnableVertexAttribArray(3);
+                glVertexAttribPointer(3, 1, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 8 * sizeof(float)));
 
                 // Tell OpenGL this is an instanced vertex attribute
                 glVertexAttribDivisor(1, 1);
                 glVertexAttribDivisor(2, 1);
+                glVertexAttribDivisor(3, 1);
 
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
             }
@@ -435,9 +386,9 @@ zzz = 0.0;
     // Reallocate inner instances array, if its size is less than the new size
     public void Resize(int Size)
     {
-        if (instanceArray.Length < Size * 8)
+        if (instanceArray.Length < Size * n)
         {
-            instanceArray = new float[Size * 8];
+            instanceArray = new float[Size * n];
         }
     }
 
