@@ -246,6 +246,7 @@ namespace my
                     rInst.Clear();
                     rInst.Resize(11);
                     rInst.setCoords(333, 333, 111, 111);
+                    //rInst.setCoords(3840/2 - 50, 1600/2 - 50, 100, 100);
                     rInst.setColor(1, 0.1f, 0.1f, 1);
                     rInst.updateInstances();
 
@@ -253,7 +254,8 @@ namespace my
 
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
-                    myPrimitive._Rectangle.Draw(320, 320, 137, 137, false);
+                    //myPrimitive._Rectangle.Draw(3840 / 2 - 75, 1600 / 2 - 75, 150, 150, false);
+                    myPrimitive._Rectangle.Draw(330, 330, 150, 150, false);
 
 #endif
                 }

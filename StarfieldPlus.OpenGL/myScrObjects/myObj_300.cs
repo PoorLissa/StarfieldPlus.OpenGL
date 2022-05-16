@@ -64,7 +64,6 @@ namespace my
 #if true
                 shapeType = 0;
                 shapeType = 5;
-                //moveType = 21;
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 doUseInstancing = shapeType == 5;
