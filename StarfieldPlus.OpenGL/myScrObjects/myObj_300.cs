@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 /*
     - Small Explosions of Particles + Variations
+
+    todo:
+        - add gradual radius increasing/decreasing
 */
 
 
