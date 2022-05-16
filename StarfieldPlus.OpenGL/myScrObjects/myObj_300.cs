@@ -64,10 +64,11 @@ namespace my
 #if true
                 shapeType = 0;
                 shapeType = 5;
-                doClearBuffer = true;
+                moveType = 0;
+                //doClearBuffer = true;
                 //doClearBuffer = false;
                 doUseInstancing = shapeType == 5;
-                N = 33;
+                N = 333;
 #endif
             }
 
@@ -87,6 +88,12 @@ namespace my
         {
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
+
+            // Let gravity-based particles sometimes be generated higher than the top of the screen
+            if (moveType == 6)
+            {
+                y = rand.Next(gl_Height + 333) - 333;
+            }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -464,10 +471,12 @@ namespace my
 
                     if (doFillShapes)
                     {
+                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
                         rInst.SetColorA(-0.5f);
                         rInst.Draw(true);
                     }
 
+                    // Tell the fragment shader to do nothing with the existing instance opacity:
                     rInst.SetColorA(0);
                     rInst.Draw(false);
                 }

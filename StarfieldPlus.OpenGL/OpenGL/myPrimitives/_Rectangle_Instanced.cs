@@ -73,53 +73,27 @@ public class myRectangleInst : myPrimitive
 
         // ---------------------------------------------------------------------------------------
 
-        // Ok, no rotation
-        if (false && _angle == 0)
-        {
-            // Our initial rectangle is [x = -1, y = 1, w = 1, h = 1]
-            // It will be scaled and moved into position in the shader
-            float fx = -1.0f;
-            float fy = +1.0f;
+        // Our initial square is located at the center of coordinates: [x = -pixel/2, y = pixel/2, w = 1*pixel, h = 1*pixel];
+        // It will be scaled and moved into position by the shader
 
-            vertices[06] = fx;
-            vertices[09] = fx;
-            vertices[01] = fy;
-            vertices[10] = fy;
+        float pixelX = 1.0f / Width;
+        float pixelY = 1.0f / Height;
 
-            // Width of a pixel
-            fx = 2.0f / Width - 1.0f;
-            vertices[0] = fx;
-            vertices[3] = fx;
+        float fx = -pixelX;
+        float fy = +pixelY;
 
-            // Height of a pixel
-            fy = 1.0f - 2.0f / Height;
-            vertices[4] = fy;
-            vertices[7] = fy;
-        }
-        else
-        {
-            // Our initial square is located at the center of coordinates: [x = -pixel/2, y = pixel/2, w = 1*pixel, h = 1*pixel];
-            // It will be scaled and moved into position by the shader
+        vertices[06] = fx;
+        vertices[09] = fx;
+        vertices[01] = fy;
+        vertices[10] = fy;
 
-            float pixelX = 1.0f / Width;
-            float pixelY = 1.0f / Height;
+        fx = +pixelX;
+        vertices[0] = fx;
+        vertices[3] = fx;
 
-            float fx = -pixelX;
-            float fy = +pixelY;
-
-            vertices[06] = fx;
-            vertices[09] = fx;
-            vertices[01] = fy;
-            vertices[10] = fy;
-
-            fx = +pixelX;
-            vertices[0] = fx;
-            vertices[3] = fx;
-
-            fy = -pixelY;
-            vertices[4] = fy;
-            vertices[7] = fy;
-        }
+        fy = -pixelY;
+        vertices[4] = fy;
+        vertices[7] = fy;
 
         updateVertices();
 
@@ -167,45 +141,29 @@ public class myRectangleInst : myPrimitive
 
                         if (angle == 0)
                         {
-                            // no rotation, initialliy centered, works ok
-                            float densityX = 2.0 / myScrSize.x;
-                            float densityY = 2.0 / myScrSize.y;
-
-                            float x = pos.x * mData[0].z;
-                            float y = pos.y * mData[0].w;
-
-                            // moving into position
-                            x += +densityX * (mData[0].x + mData[0].z/2) - 1.0;
-                            y += -densityY * (mData[0].y + mData[0].w/2) + 1.0;
-
-                            gl_Position = vec4(x, y, 1.0, 1.0);
+                            gl_Position = vec4(pos.x * mData[0].z, pos.y * mData[0].w, 1.0, 1.0);
                         }
                         else
                         {
-                            float a = angle;
-
                             float w_to_h = 1.0 * myScrSize.x / myScrSize.y;
 
-                            float densityX = +2.0 / myScrSize.x;
-                            float densityY = -2.0 / myScrSize.y;
-
-                            float x1 = pos.x;
-                            float y1 = pos.y / w_to_h;
+                            float x = pos.x;
+                            float y = pos.y / w_to_h;
 
                             // Rotate
-                            float x2 = x1 * cos(a) - y1 * sin(a);
-                            float y2 = y1 * cos(a) + x1 * sin(a);
+                            float x1 = x * cos(angle) - y * sin(angle);
+                            float y1 = y * cos(angle) + x * sin(angle);
 
                             // Set width and height
-                            float x4 = x2 * mData[0].z;
-                            float y4 = y2 * mData[0].w * w_to_h;
+                            float x2 = x1 * mData[0].z;
+                            float y2 = y1 * mData[0].w * w_to_h;
 
-                            // moving into position
-                            x4 += densityX * (mData[0].x + mData[0].z/2) - 1.0;
-                            y4 += densityY * (mData[0].y + mData[0].w/2) + 1.0;
+                            gl_Position = vec4(x2, y2, 1.0, 1.0);
+                        }
 
-                            gl_Position = vec4(x4, y4, 1.0, 1.0);
-                        }"
+                        // Adjust for pixel density and move into final position
+                        gl_Position.x += +2.0 / myScrSize.x * (mData[0].x + mData[0].z/2) - 1.0;
+                        gl_Position.y += -2.0 / myScrSize.y * (mData[0].y + mData[0].w/2) + 1.0;"
 #endif
         );
 
