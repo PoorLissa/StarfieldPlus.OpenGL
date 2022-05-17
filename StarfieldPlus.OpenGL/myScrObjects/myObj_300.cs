@@ -5,9 +5,6 @@ using System.Collections.Generic;
 
 /*
     - Small Explosions of Particles + Variations
-
-    todo:
-        - add gradual radius increasing/decreasing
 */
 
 
@@ -15,7 +12,7 @@ namespace my
 {
     internal class myObj_300_Struct
     {
-        public float x, y, r, dx, dy, a, time, dt;
+        public float x, y, r, dx, dy, dr, a, time, dt;
     };
 
     // ===================================================================================================================
@@ -23,7 +20,7 @@ namespace my
     public class myObj_300 : myObject
     {
         private static bool doClearBuffer = false, doUseRotation = false, doFillShapes = false, doUseInstancing = false;
-        private static int x0, y0, shapeType = 0, moveType = 0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
+        private static int x0, y0, shapeType = 0, moveType = 0, radiusMode = 0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
         private static float dimAlpha = 0.1f;
 
         private float x, y, R, G, B, A, dA, lineTh;
@@ -53,6 +50,7 @@ namespace my
                 gravityRate = rand.Next(101) + 1;
                 shapeType = rand.Next(5);
                 moveType = rand.Next(22);
+                radiusMode = rand.Next(5);
 
                 // Set number of objects N:
                 N = rand.Next(666) + 100;
@@ -67,11 +65,11 @@ namespace my
 #if true
                 shapeType = 0;
                 shapeType = 5;
-                //moveType = 0;
+                //moveType = 13;
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 doUseInstancing = shapeType == 5;
-                N = 333;
+                N = 3333;
 #endif
             }
 
@@ -128,6 +126,8 @@ namespace my
 
                 obj.time = 0;
                 obj.dt = doUseRotation ? 0.001f * rand.Next(111) : 0;
+
+                obj.dr = (radiusMode == 0) ? 0.0005f * (rand.Next(100)+1) : 0;
             }
 
             return;
@@ -152,6 +152,7 @@ namespace my
                     obj.a -= 0.005f;
 
                     obj.time += obj.dt;
+                    obj.r += obj.dr;
 
                     if (obj.y > gl_Height)
                         obj.a = 0;
