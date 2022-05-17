@@ -34,7 +34,7 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        int id = 2;
+        int id = 3;
 
         switch (id)
         {

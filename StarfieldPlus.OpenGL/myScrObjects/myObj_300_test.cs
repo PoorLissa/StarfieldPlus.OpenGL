@@ -120,6 +120,7 @@ namespace my
             myPrimitive.init_Ellipse();
 
             var rInst = new myRectangleInst(10);
+            var tInst = new myTriangleInst(10);
 
             uint instanceVBO = 0, quadVAO = 0, quadVBO = 0;
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
@@ -229,26 +230,31 @@ namespace my
 
                     if (cnt % 100 == 0)
                     {
-/*
-                        int n = 0;
-
-                        rInst.Clear();
-                        rInst.Resize(n);
-
-                        for (int i = 0; i < n; i++)
-                        {
-                            int x = rand.Next(gl_Width);
-                            int y = rand.Next(gl_Height);
-                            int w = rand.Next(10) + 10;
-
-                            rInst.setInstanceCoords(x, y, w, w);
-                            rInst.setInstanceColor(rand.NextDouble(), rand.NextDouble(), rand.NextDouble(), rand.NextDouble());
-                        }
-*/
                     }
+
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
+                    myPrimitive._Rectangle.Draw(1000 - 100, 500 - 100, 200, 200, false);
+
+                    tInst.Clear();
+                    tInst.Resize(11);
 
                     rInst.Clear();
                     rInst.Resize(11);
+
+                    tInst.setInstanceCoords(1000, 500, 111, 0.5f);
+                    tInst.setInstanceColor(1, 0, 0, 1);
+                    tInst.setInstanceAngle(0);
+
+                    tInst.setInstanceCoords(0.0f, 0.0f, 0.025f, 0.33f);
+                    tInst.setInstanceColor(0, 1, 0, 1);
+                    tInst.setInstanceAngle(0);
+
+                    tInst.updateInstances();
+                    tInst.Draw(false);
+
+
+
 
                     // set instance 1
                     rInst.setInstanceCoords(333, 333, 130, 130);
