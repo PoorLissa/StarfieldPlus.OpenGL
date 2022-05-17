@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 /*
     - Small Explosions of Particles + Variations
+
+    todo:
+        - make another mode, where each square will display underlying image with its own opacity and size
 */
 
 
