@@ -6,7 +6,7 @@ using System;
 // https://learnopengl.com/code_viewer_gh.php?code=src/4.advanced_opengl/10.1.instancing_quads/instancing_quads.cpp
 
 // todo:
-//  - need to create vertices only once
+//  - need to create vertices only once -- do I?
 //  - hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
 
 public class myRectangleInst : myPrimitive
@@ -135,7 +135,6 @@ public class myRectangleInst : myPrimitive
 
 #else
 
-                // todo: try optimizing the shader
                 main: @"rgbaColor = mData[1];
 
                         if (angle == 0)
@@ -149,15 +148,18 @@ public class myRectangleInst : myPrimitive
                             float x = pos.x;
                             float y = pos.y / w_to_h;
 
+                            float sin_a = sin(angle);
+                            float cos_a = cos(angle);
+
                             // Rotate
-                            float x1 = x * cos(angle) - y * sin(angle);
-                            float y1 = y * cos(angle) + x * sin(angle);
+                            float x1 = x * cos_a - y * sin_a;
+                            float y1 = y * cos_a + x * sin_a;
 
                             // Set width and height
-                            float x2 = x1 * mData[0].z;
-                            float y2 = y1 * mData[0].w * w_to_h;
+                            x1 *= mData[0].z;
+                            y1 *= mData[0].w * w_to_h;
 
-                            gl_Position = vec4(x2, y2, 1.0, 1.0);
+                            gl_Position = vec4(x1, y1, 1.0, 1.0);
                         }
 
                         // Adjust for pixel density and move into final position
@@ -315,7 +317,7 @@ public class myRectangleInst : myPrimitive
             glBindBuffer(GL_ARRAY_BUFFER, instVbo);
             {
                 fixed (float* a = &instanceArray[0])
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_STATIC_DRAW);    // todo: test static vs dynamic FPS here
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_DYNAMIC_COPY);
 
                 glEnableVertexAttribArray(1);
                 glVertexAttribPointer(1, 4, GL_FLOAT, false, n * sizeof(float), NULL);

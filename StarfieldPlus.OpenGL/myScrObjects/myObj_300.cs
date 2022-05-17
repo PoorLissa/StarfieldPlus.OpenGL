@@ -68,9 +68,11 @@ namespace my
 #if true
                 shapeType = 0;
                 shapeType = 5;
-                //moveType = 13;
+                //moveType = 0;
                 //doClearBuffer = true;
+                //doFillShapes = true;
                 //doClearBuffer = false;
+                //radiusMode = 2;
                 doUseInstancing = shapeType == 5;
                 N = 3333;
 #endif

@@ -183,13 +183,14 @@ namespace my
 
                 if (mySpeedTest1)
                 {
-#if true
+#if false
+                    t = 0;
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
 
                     // old0: 10k = ~35fps
                     // new1: 10k = ~48fps
-                    for (int i = 0; i < 10000; i++)
+                    for (int i = 0; i < 30000; i++)
                     {
                         int x = rand.Next(gl_Width);
                         int y = rand.Next(gl_Height);
@@ -198,19 +199,28 @@ namespace my
                     }
 
 #else
-                    myPrimitive._Rect.SetAngle(0);
-                    myPrimitive._Rect.SetColor(1, 0, 0, 0.25f);
+                    // 450k = ~75fps
+                    t = 0;
+                    int n = 450000;
+                    rInst.Clear();
+                    rInst.Resize(n);
 
-                    for (int i = 0; i < 10000; i++)
+                    for (int i = 0; i < n; i++)
                     {
                         int x = rand.Next(gl_Width);
                         int y = rand.Next(gl_Height);
 
-                        myPrimitive._Rect.Draw(x, y, 50, 50, true);
+                        rInst.setInstanceCoords(x, y, 50, 50);
+                        rInst.setInstanceColor(1, 0, 0, 0.25f);
+                        rInst.setInstanceAngle(0);
                     }
+
+                    rInst.updateInstances();
+                    rInst.Draw(true);
+
 #endif
                 }
-                
+
                 if (myInstanceTest)
                 {
 #if false
