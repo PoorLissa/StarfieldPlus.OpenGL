@@ -13,7 +13,6 @@ public class myRectangleInst : myPrimitive
 {
     private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
     private static float[] vertices = null;
-    private static float _angle;
     private static int locationColor = 0, locationScrSize = 0, N = 0, Count = 0;
 
     private static float[] instanceArray = null;

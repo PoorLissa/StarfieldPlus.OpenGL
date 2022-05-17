@@ -34,7 +34,7 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        int id = 3;
+        int id = 2;
 
         switch (id)
         {
@@ -43,7 +43,7 @@ public class ScreenSaver
                 break;
 
             case 1:
-                _obj = new my.myObj_210();          //
+                _obj = new my.myObj_210();          // Another spiraling shapes -- see what's the difference
                 break;
 
             case 2:

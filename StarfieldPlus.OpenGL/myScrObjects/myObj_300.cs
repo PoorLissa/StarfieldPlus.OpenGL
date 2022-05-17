@@ -13,24 +13,28 @@ using System.Collections.Generic;
 
 namespace my
 {
-    internal class myObj_300_Struct
-    {
-        public float x, y, r, dx, dy, dr, a, time, dt;
-    };
-
-    // ===================================================================================================================
-
     public class myObj_300 : myObject
     {
+        private class myObj_300_Particle
+        {
+            public bool isFirstIteration = false;
+            public float x, y, r, dx, dy, dr, a, time, dt;
+        };
+
+        // -------------------------------------------------------------------------
+
         private static bool doClearBuffer = false, doUseRotation = false, doFillShapes = false, doUseInstancing = false;
         private static int x0, y0, shapeType = 0, moveType = 0, radiusMode = 0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
         private static float dimAlpha = 0.1f;
 
-        private float x, y, R, G, B, A, dA, lineTh;
+        private static float const_f1 = 0;
+        private static int   const_i1 = 0;
+
+        private float x, y, R, G, B, A, lineTh;
 
         private int shape = 0, lifeCounter = 0, lifeMax = 0, objN = 0;
 
-        private List<myObj_300_Struct> structsList = null;
+        private List<myObj_300_Particle> structsList = null;
 
         static myRectangleInst rInst = null;
 
@@ -52,8 +56,11 @@ namespace my
 
                 gravityRate = rand.Next(101) + 1;
                 shapeType = rand.Next(5);
-                moveType = rand.Next(22);
+                moveType = rand.Next(34);
                 radiusMode = rand.Next(5);
+
+                const_f1 = (float)rand.NextDouble() * myUtils.randomSign(rand);
+                const_i1 = rand.Next(300) + 100;
 
                 // Set number of objects N:
                 N = rand.Next(666) + 100;
@@ -68,9 +75,8 @@ namespace my
 #if true
                 shapeType = 0;
                 shapeType = 5;
-                //moveType = 0;
+                //moveType = 33;
                 //doClearBuffer = true;
-                //doFillShapes = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
                 doUseInstancing = shapeType == 5;
@@ -78,11 +84,11 @@ namespace my
 #endif
             }
 
-            structsList = new List<myObj_300_Struct>();
+            structsList = new List<myObj_300_Particle>();
 
             for (int i = 0; i < maxParticles; i++)
             {
-                structsList.Add(new myObj_300_Struct());
+                structsList.Add(new myObj_300_Particle());
             }
 
             generateNew();
@@ -95,10 +101,25 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            // Let gravity-based particles sometimes be generated higher than the top of the screen
-            if (moveType == 6)
+            // Set up starting point for some specific moving modes
             {
-                y = rand.Next(gl_Height + 333) - 333;
+                // Let gravity-based particles sometimes be generated higher than the top of the screen
+                if (moveType == 6)
+                {
+                    y = rand.Next(gl_Height + 333) - 333;
+                }
+
+                // For sideways moving, generate particles offscreen as well
+                if (moveType == 24)
+                {
+                    x = rand.Next(gl_Width + 666) - 333;
+                }
+
+                // For vertical moving, generate particles offscreen as well
+                if (moveType == 25)
+                {
+                    y = rand.Next(gl_Height + 666) - 333;
+                }
             }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -118,6 +139,8 @@ namespace my
             for (int i = 0; i < objN; i++)
             {
                 var obj = structsList[i];
+
+                obj.isFirstIteration = true;
 
                 obj.x = x;
                 obj.y = y;
@@ -257,6 +280,74 @@ namespace my
                                 obj.dy = 0;
                             else
                                 obj.dx = 0;
+                            break;
+
+                        // dx = const * dy: the const is common between all the particles
+                        case 22:
+                            if (obj.isFirstIteration)
+                            {
+                                obj.isFirstIteration = false;
+                                obj.dx = const_f1 * obj.dy;
+                            }
+                            break;
+
+                        // dx = const * dy: each particle has its own const
+                        case 23:
+                            if (obj.isFirstIteration)
+                            {
+                                obj.isFirstIteration = false;
+                                obj.dx = (float)rand.NextDouble() * obj.dy * myUtils.randomSign(rand);
+                            }
+                            break;
+
+                        // Add sideways moving component
+                        case 24:
+                            obj.x += const_f1 * 10;
+                            break;
+
+                        // Add vertical moving component
+                        case 25:
+                            obj.y += const_f1 * 10;
+                            break;
+
+                        // Add harmonic motion - y-axis-1
+                        case 26:
+                            obj.dy = (float)System.Math.Sin(obj.x / const_i1);
+                            break;
+
+                        // Add harmonic motion - y-axis-2
+                        case 27:
+                            obj.dy = (float)System.Math.Sin(obj.y / const_i1);
+                            break;
+
+                        // Add harmonic motion - y-axis-3
+                        case 28:
+                            obj.dy = (float)System.Math.Sin(obj.x / const_i1) * (float)rand.NextDouble();
+                            break;
+
+                        // Add harmonic motion - y-axis-4
+                        case 29:
+                            obj.dy = (float)System.Math.Sin(obj.y / const_i1) * (float)rand.NextDouble();
+                            break;
+
+                        // Add harmonic motion - x-axis-1
+                        case 30:
+                            obj.dx = (float)System.Math.Sin(obj.y / const_i1);
+                            break;
+
+                        // Add harmonic motion - x-axis-2
+                        case 31:
+                            obj.dx = (float)System.Math.Sin(obj.x / const_i1);
+                            break;
+
+                        // Add harmonic motion - x-axis-3
+                        case 32:
+                            obj.dx = (float)System.Math.Sin(obj.y / const_i1) * (float)rand.NextDouble();
+                            break;
+
+                        // Add harmonic motion - x-axis-4
+                        case 33:
+                            obj.dx = (float)System.Math.Sin(obj.x / const_i1) * (float)rand.NextDouble();
                             break;
                     }
                 }

@@ -8,15 +8,7 @@ namespace my
 {
     public class myObj_300_test : myObject
     {
-        private static bool doClearBuffer = false, doUseRotation = false, doFillShapes = false;
-        private static int x0, y0, shapeType = 0, moveType = 0, t = 25, N = 1, gravityRate = 0;
-        private static float dimAlpha = 0.1f;
-
-        private float x, y, R, G, B, A, dA, lineTh;
-
-        private int shape = 0, lifeCounter = 0, lifeMax = 0, objN = 0;
-
-        private List<myObj_300_Struct> structsList = null;
+        private static int x0, y0, t = 25;
 
         // -------------------------------------------------------------------------
 

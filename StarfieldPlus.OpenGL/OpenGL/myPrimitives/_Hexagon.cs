@@ -14,7 +14,7 @@ public class myHexagon : myPrimitive
     private static float h_div_w = 0;
     private static float _angle;
 
-    private static bool bbb = false;
+
 
     public myHexagon()
     {

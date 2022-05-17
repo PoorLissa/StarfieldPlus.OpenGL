@@ -11,6 +11,12 @@ using System.Collections.Generic;
 */
 
 
+#pragma warning disable IDE0051
+#pragma warning disable CS0414
+#pragma warning disable CS0169
+#pragma warning disable CS0162
+
+
 namespace my
 {
     public class myObj_999 : myObject
@@ -393,3 +399,8 @@ namespace my
         }
     }
 };
+
+#pragma warning restore IDE0051
+#pragma warning restore CS0414
+#pragma warning restore CS0169
+#pragma warning restore CS0162
