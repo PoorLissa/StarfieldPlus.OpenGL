@@ -13,7 +13,9 @@ public class myRectangleInst : myInstancedPrimitive
     private static float[] vertices = null;
 
     private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
-    private static int locationColor = 0, locationScrSize = 0;
+    private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0;
+
+    private int rotationMode;
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -34,8 +36,9 @@ public class myRectangleInst : myInstancedPrimitive
 
             CreateProgram();
             glUseProgram(shaderProgram);
-            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
+            locationColor      = glGetUniformLocation(shaderProgram, "myColor");
+            locationScrSize    = glGetUniformLocation(shaderProgram, "myScrSize");
+            locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
 
             instVbo     = glGenBuffer();
             quadVbo     = glGenBuffer();
@@ -44,6 +47,8 @@ public class myRectangleInst : myInstancedPrimitive
 
             updateIndices();
         }
+
+        rotationMode = 0;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -92,6 +97,8 @@ public class myRectangleInst : myInstancedPrimitive
         setColor(locationColor, _r, _g, _b, _a);
         updUniformScreenSize(locationScrSize, Width, Height);
 
+        glUniform1i(locationRotateMode, rotationMode);
+
         __draw(doFill);
     }
 
@@ -107,23 +114,8 @@ public class myRectangleInst : myInstancedPrimitive
               layout (location = 1) in mat2x4 mData;
               layout (location = 3) in float angle;
                 uniform ivec2 myScrSize;
+                uniform int myRttMode;
                 out vec4 rgbaColor;",
-#if false
-                // working fine, no rotation
-                main: @"if (myAngle == 0)
-                        {
-                            gl_Position = vec4(pos.x * mData[0].z + mData[0].x, pos.y * mData[0].w + mData[0].y, pos.z, 1.0);
-
-                            gl_Position.x -= (1 - mData[0].z);
-                            gl_Position.y += (1 - mData[0].w);
-
-                            // this one is the same as the one above
-                            //gl_Position = vec4(mData[0].z * (pos.x + 1) + mData[0].x - 1, mData[0].w * (pos.y - 1) + mData[0].y + 1, pos.z, 1.0);
-
-                            rgbaColor = mData[1];
-                        }"
-
-#else
 
                 main: @"rgbaColor = mData[1];
 
@@ -145,6 +137,14 @@ public class myRectangleInst : myInstancedPrimitive
                             float x1 = x * cos_a - y * sin_a;
                             float y1 = y * cos_a + x * sin_a;
 
+                            // Additional pseudo-3d rotation:
+                            switch (myRttMode)
+                            {
+                                case 1: x1 *= sin_a; break;
+                                case 2: y1 *= cos_a; break;
+                                case 3: x1 *= sin_a; y1 *= cos_a; break;
+                            }
+
                             // Set width and height
                             x1 *= mData[0].z;
                             y1 *= mData[0].w * w_to_h;
@@ -155,7 +155,6 @@ public class myRectangleInst : myInstancedPrimitive
                         // Adjust for pixel density and move into final position
                         gl_Position.x += +2.0 / myScrSize.x * (mData[0].x + mData[0].z/2) - 1.0;
                         gl_Position.y += -2.0 / myScrSize.y * (mData[0].y + mData[0].w/2) + 1.0;"
-#endif
         );
 
         // In case opacity in myColor vec is negative, we know that we should just multiply our instance's opacity by this value (with neg.sign)
@@ -283,6 +282,13 @@ public class myRectangleInst : myInstancedPrimitive
         instanceArray[instArrayPosition + 3] = (float)a;
 
         instArrayPosition += 4;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void setRotationMode(int mode)
+    {
+        rotationMode = mode;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

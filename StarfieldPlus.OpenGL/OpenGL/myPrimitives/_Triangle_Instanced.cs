@@ -9,7 +9,9 @@ public class myTriangleInst : myInstancedPrimitive
     private static float[] vertices = null;
 
     private static uint shaderProgram = 0, instVbo = 0, triVbo = 0;
-    private static int locationColor = 0, locationScrSize = 0;
+    private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0;
+
+    private int rotationMode;
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -31,28 +33,31 @@ public class myTriangleInst : myInstancedPrimitive
             for (int i = 0; i < 9; i++)
                 vertices[i] = 0.0f;
 
+            // Coordinates of an equilateral triangle, inscribed in a circle of raduis 1.0
+            vertices[0] = +0.0f;
+            vertices[1] = +1.0f;
+            vertices[3] = +(float)Math.Cos(Math.PI/6);
+            vertices[4] = -0.5f;
+            vertices[6] = -(float)Math.Cos(Math.PI/6);
+            vertices[7] = -0.5f;
+
             CreateProgram();
             glUseProgram(shaderProgram);
-            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
+            locationColor      = glGetUniformLocation(shaderProgram, "myColor");
+            locationScrSize    = glGetUniformLocation(shaderProgram, "myScrSize");
+            locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
 
             instVbo = glGenBuffer();
             triVbo  = glGenBuffer();
         }
+
+        rotationMode = 0;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public override void Draw(bool doFill = false)
     {
-        // Coordinates of an equilateral triangle, escribed by a circle with a raduis of 1.0
-        vertices[0] = +0.0f;
-        vertices[1] = +1.0f;
-        vertices[3] = +0.86602540378f;
-        vertices[4] = -0.5f;
-        vertices[6] = -0.86602540378f;
-        vertices[7] = -0.5f;
-
         updateVertices();
 
         glUseProgram(shaderProgram);
@@ -72,6 +77,7 @@ public class myTriangleInst : myInstancedPrimitive
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
                 uniform ivec2 myScrSize;
+                uniform int myRttMode;
                 out vec4 rgbaColor;",
 
             main: @"rgbaColor = mData[1];
@@ -91,6 +97,14 @@ public class myTriangleInst : myInstancedPrimitive
                         // Rotate
                         float x = pos.x * cos_a - pos.y * sin_a;
                         float y = pos.y * cos_a + pos.x * sin_a;
+
+                        // Additional pseudo-3d rotation:
+                        switch (myRttMode)
+                        {
+                            case 1: x *= sin_a; break;
+                            case 2: y *= cos_a; break;
+                            case 3: x *= sin_a; y *= cos_a; break;
+                        }
 
                         gl_Position = vec4(x * realSizeX, y * realSizeY, 1.0, 1.0);
                     }
@@ -126,6 +140,7 @@ public class myTriangleInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // todo: check later, if it is possible to do this only once
     private unsafe void updateVertices()
     {
         glBindBuffer(GL_ARRAY_BUFFER, triVbo);
@@ -172,6 +187,13 @@ public class myTriangleInst : myInstancedPrimitive
         instanceArray[instArrayPosition + 3] = (float)a;
 
         instArrayPosition += 4;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void setRotationMode(int mode)
+    {
+        rotationMode = mode;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

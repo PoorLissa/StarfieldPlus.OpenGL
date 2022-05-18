@@ -25,7 +25,7 @@ namespace my
 
         private static bool doClearBuffer = false, doUseRotation = false, doFillShapes = false, doUseInstancing = false;
         private static int x0, y0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
-        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0;
+        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0;
         private static float dimAlpha = 0.1f;
 
         private static float const_f1 = 0;
@@ -57,9 +57,16 @@ namespace my
 
                 gravityRate = rand.Next(101) + 1;
                 shapeType = rand.Next(7);
-                moveType = rand.Next(34);
+                moveType = rand.Next(36);
                 radiusMode = rand.Next(5);
                 fastExplosion = rand.Next(11);
+
+                // In case the rotation is enabled, we also may enable additional rotation option:
+                if (doUseRotation)
+                {
+                    rotationMode = rand.Next(7);
+                    rotationMode = rotationMode > 2 ? 0 : rotationMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
+                }
 
                 const_f1 = (float)rand.NextDouble() * myUtils.randomSign(rand);
                 const_i1 = rand.Next(300) + 100;
@@ -353,6 +360,16 @@ namespace my
                         case 33:
                             obj.dx = (float)System.Math.Sin(obj.x / const_i1) * (float)rand.NextDouble();
                             break;
+
+                        // Sideways movement in 2 streams
+                        case 34:
+                            obj.x += (obj.y > gl_Height/2) ? const_f1 * 10 : -const_f1 * 10;
+                            break;
+
+                        // Ever increasing rotation speed
+                        case 35:
+                            obj.dt += 0.005f;
+                            break;
                     }
 
                     // Fast explosion, then abrupt stop and slow motion;
@@ -576,11 +593,13 @@ namespace my
             {
                 case 5:
                     myPrimitive.init_RectangleInst(N * maxParticles);
+                    myPrimitive._RectangleInst.setRotationMode(rotationMode);
                     inst = myPrimitive._RectangleInst;
                     break;
 
                 case 6:
                     myPrimitive.init_TriangleInst(N * maxParticles);
+                    myPrimitive._TriangleInst.setRotationMode(rotationMode);
                     inst = myPrimitive._TriangleInst;
                     break;
             }
