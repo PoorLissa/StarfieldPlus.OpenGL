@@ -101,7 +101,7 @@ public class myRectangle : myPrimitive
         glUseProgram(shaderProgram);
 
         setColor(locationColor, _r, _g, _b, _a);
-        setAngle(locationAngle, _angle);
+        glUniform1f(locationAngle, _angle);
 
         // Set the center of rotation
         if (_angle != 0.0f)
@@ -223,13 +223,6 @@ public class myRectangle : myPrimitive
     public void SetAngle(float angle)
     {
         _angle = angle;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    private static void setAngle(int location, float angle)
-    {
-        glUniform1f(location, angle);
     }
 
     // -------------------------------------------------------------------------------------------------------------------

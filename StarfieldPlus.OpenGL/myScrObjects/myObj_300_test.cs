@@ -107,6 +107,8 @@ namespace my
             glUseProgram(program);
         }
 
+        // ---------------------------------------------------------------------------------------------------------------------
+
         protected override void Process(Window window)
         {
             uint cnt = 0;
@@ -119,6 +121,8 @@ namespace my
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
+            myEllipse_2 el = new myEllipse_2();
+
             var rInst = new myRectangleInst(10);
             var tInst = new myTriangleInst(10);
 
@@ -127,9 +131,9 @@ namespace my
             uint program = 0;
 
             bool mySpeedTest1 = false;
-            bool mySpeedTest2 = false;
+            bool mySpeedTest2 = true;
             bool myTestShapes = false;
-            bool myInstanceTest = true;
+            bool myInstanceTest = false;
 
             CreateProgram_Instanced(ref program);
 
@@ -232,6 +236,14 @@ namespace my
                     {
                     }
 
+                    {
+                        el.SetColor(1, 1, 0, 0.15f);
+                        el.Draw(1800, 666, 222, 222, true);
+
+                        el.SetColor(1, 1, 0, 1);
+                        el.Draw(1800, 666, 222, 222, false);
+                    }
+
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
                     myPrimitive._Rectangle.Draw(1000 - 100, 500 - 100, 200, 200, false);
@@ -291,39 +303,40 @@ namespace my
                 myPrimitive._Rectangle.Draw(1200, 666, 222, 222, true);
 #endif
 
+                zzz
+                // todo: test which is faster
                 if (mySpeedTest2)
                 {
-                    myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
-#if false
-                    for (int i = 0; i < 50000; i++)
-                    {
-                        int x = gl_Width/2 + rand.Next(gl_Width/2);
-                        int y = rand.Next(gl_Height/2);
+                    t = 0;
+                    int n = 5000;
 
-                        myPrimitive._Rectangle.Draw(x, y, 5, 5, true);
+#if false
+                    // old ellipse
+                    for (int i = 0; i < n; i++)
+                    {
+                        int x = rand.Next(gl_Width);
+                        int y = rand.Next(gl_Height);
+
+                        myPrimitive._Ellipse.SetColor(1, 0, 0, 0.2f);
+                        myPrimitive._Ellipse.Draw(x, y, 50, 50, true);
+
+                        myPrimitive._Ellipse.SetColor(1, 0, 0, 1);
+                        myPrimitive._Ellipse.Draw(x, y, 50, 50, false);
                     }
 #else
-/*
-                    listInst.Clear();
-
-                    for (int i = 0; i < 50000; i++)
+                    // new ellipse
+                    for (int i = 0; i < n; i++)
                     {
-                        listInst.Add((float)rand.NextDouble());
-                        listInst.Add((float)rand.NextDouble());
+                        int x = rand.Next(gl_Width);
+                        int y = rand.Next(gl_Height);
+
+                        el.SetColor(1, 1, 0, 0.15f);
+                        el.Draw(x, y, 50, 50, true);
+
+                        el.SetColor(1, 1, 0, 1);
+                        el.Draw(x, y, 50, 50, false);
                     }
-
-                    rInst.updateInstances(listInst);
-
-                    rInst.SetColor(1, 0, 0, 0.25f);
-                    rInst.Draw(x0, y0, 50, 50, true);
-
-                    rInst.SetColor(1, 0, 0, 0.99f);
-                    rInst.Draw(x0, y0, 50, 50, false);
-*/
 #endif
-                    myPrimitive._Rectangle.SetColor(1, 0, 0, 0.25f);
-                    myPrimitive._Rectangle.Draw(100, gl_Height / 2 + (float)System.Math.Cos(cnt) * 333, 50, 50, true);
                 }
 
                 System.Threading.Thread.Sleep(t);
