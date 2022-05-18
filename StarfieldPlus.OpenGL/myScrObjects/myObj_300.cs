@@ -24,7 +24,8 @@ namespace my
         // -------------------------------------------------------------------------
 
         private static bool doClearBuffer = false, doUseRotation = false, doFillShapes = false, doUseInstancing = false;
-        private static int x0, y0, shapeType = 0, moveType = 0, radiusMode = 0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
+        private static int x0, y0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
+        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0;
         private static float dimAlpha = 0.1f;
 
         private static float const_f1 = 0;
@@ -58,6 +59,7 @@ namespace my
                 shapeType = rand.Next(7);
                 moveType = rand.Next(34);
                 radiusMode = rand.Next(5);
+                fastExplosion = rand.Next(11);
 
                 const_f1 = (float)rand.NextDouble() * myUtils.randomSign(rand);
                 const_i1 = rand.Next(300) + 100;
@@ -76,12 +78,13 @@ namespace my
                 shapeType = 0;
                 shapeType = 5;  // instanced square
                 shapeType = 6;  // instanced triangle
-                //moveType = 33;
+                shapeType = 5 + rand.Next(2);
+                //moveType = 333;
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
                 doUseInstancing = shapeType >= 5;
-                N = 3333;
+                N = 333;
 #endif
             }
 
@@ -351,6 +354,37 @@ namespace my
                             obj.dx = (float)System.Math.Sin(obj.x / const_i1) * (float)rand.NextDouble();
                             break;
                     }
+
+                    // Fast explosion, then abrupt stop and slow motion;
+                    // Rendomly applies to any moveType
+                    if (fastExplosion == 0)
+                    {
+                        if (lifeCounter < lifeMax + 66)
+                        {
+                            obj.dx *= 1.025f;
+                            obj.dy *= 1.025f;
+                        }
+
+                        if (lifeCounter == lifeMax + 66)
+                        {
+                            obj.dx /= 3;
+                            obj.dy /= 3;
+                        }
+
+                        if (lifeCounter == lifeMax + 67)
+                        {
+                            obj.dx /= 3;
+                            obj.dy /= 3;
+                        }
+
+                        if (lifeCounter > lifeMax + 67)
+                        {
+                            obj.dx *= 1.005f;
+                            obj.dy *= 1.005f;
+                            obj.r -= 0.01f;
+                        }
+                    }
+
                 }
 
                 if (liveCnt == 0)
