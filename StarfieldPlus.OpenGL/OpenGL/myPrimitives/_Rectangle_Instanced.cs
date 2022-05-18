@@ -3,43 +3,34 @@ using static OpenGL.GL;
 using System;
 
 
-
-// https://learnopengl.com/code_viewer_gh.php?code=src/4.advanced_opengl/10.1.instancing_quads/instancing_quads.cpp
-
 // todo:
 //  - need to create vertices only once -- do I?
 //  - hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
 
 
-
-public class myRectangleInst : myPrimitive
+public class myRectangleInst : myInstancedPrimitive
 {
     private static float[] vertices = null;
-    private static float[] instanceArray = null;
 
     private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
-    private static float pixelX = 0, pixelY = 0;
-    private static int locationColor = 0, locationScrSize = 0, N = 0, Count = 0;
-
-    // Number of elements in [instanceArray] that define one single instance:
-    // - 4 floats for Coordinates
-    // - 4 floats for RGBA
-    // - 1 float for Angle
-    private static readonly int n = 9;
+    private static int locationColor = 0, locationScrSize = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public myRectangleInst(int maxInstCount)
     {
+        // Number of elements in [instanceArray] that define one single instance:
+        // - 4 floats for Coordinates
+        // - 4 floats for RGBA
+        // - 1 float for Angle
+        n = 9;
+
         if (vertices == null)
         {
             N = 0;
 
             vertices = new float[12];
             instanceArray = new float[maxInstCount * n];
-
-            pixelX = 1.0f / Width;
-            pixelY = 1.0f / Height;
 
             CreateProgram();
             glUseProgram(shaderProgram);
@@ -57,7 +48,7 @@ public class myRectangleInst : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Draw(bool doFill = false)
+    public override void Draw(bool doFill = false)
     {
         // todo: make parent method unsafe and remove this call: see if this is faster
         unsafe void __draw(bool fill)
@@ -198,7 +189,7 @@ public class myRectangleInst : myPrimitive
 
     // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
     // -- not anymore. need to call this once now, i think
-    private static unsafe void updateVertices()
+    private unsafe void updateVertices()
     {
         glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
         {
@@ -251,72 +242,63 @@ public class myRectangleInst : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Clear()
-    {
-        Count = 0;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
     public void setInstanceCoords(float x, float y, float w, float h)
     {
-        instanceArray[Count + 0] = x;
-        instanceArray[Count + 1] = y;
-        instanceArray[Count + 2] = w;
-        instanceArray[Count + 3] = h;
+        instanceArray[instArrayPosition + 0] = x;
+        instanceArray[instArrayPosition + 1] = y;
+        instanceArray[instArrayPosition + 2] = w;
+        instanceArray[instArrayPosition + 3] = h;
 
-        Count += 4;
+        instArrayPosition += 4;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public void setInstanceAngle(float a)
     {
-        instanceArray[Count] = a;
+        instanceArray[instArrayPosition] = a;
 
-        Count++;
+        instArrayPosition++;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public void setInstanceColor(float r, float g, float b, float a)
     {
-        instanceArray[Count + 0] = r;
-        instanceArray[Count + 1] = g;
-        instanceArray[Count + 2] = b;
-        instanceArray[Count + 3] = a;
+        instanceArray[instArrayPosition + 0] = r;
+        instanceArray[instArrayPosition + 1] = g;
+        instanceArray[instArrayPosition + 2] = b;
+        instanceArray[instArrayPosition + 3] = a;
 
-        Count += 4;
+        instArrayPosition += 4;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public void setInstanceColor(double r, double g, double b, double a)
     {
-        int i = Count;
+        instanceArray[instArrayPosition + 0] = (float)r;
+        instanceArray[instArrayPosition + 1] = (float)g;
+        instanceArray[instArrayPosition + 2] = (float)b;
+        instanceArray[instArrayPosition + 3] = (float)a;
 
-        instanceArray[i + 0] = (float)r;
-        instanceArray[i + 1] = (float)g;
-        instanceArray[i + 2] = (float)b;
-        instanceArray[i + 3] = (float)a;
-
-        Count += 4;
+        instArrayPosition += 4;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create GPU buffer out of out instances from the array
-    public unsafe void updateInstances()
+    public override unsafe void updateInstances()
     {
-        if (Count > 1)
+        if (instArrayPosition > 1)
         {
-            N = Count / n;
+            N = instArrayPosition / n;
 
             // Copy data to GPU:
             glBindBuffer(GL_ARRAY_BUFFER, instVbo);
             {
                 fixed (float* a = &instanceArray[0])
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_DYNAMIC_COPY);
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, a, GL_DYNAMIC_COPY);
 
                 glEnableVertexAttribArray(1);
                 glVertexAttribPointer(1, 4, GL_FLOAT, false, n * sizeof(float), NULL);
@@ -337,17 +319,6 @@ public class myRectangleInst : myPrimitive
         }
 
         return;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    // Reallocate inner instances array, if its size is less than the new size
-    public void Resize(int Size)
-    {
-        if (instanceArray.Length < Size * n)
-        {
-            instanceArray = new float[Size * n];
-        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------

@@ -4,29 +4,23 @@ using System;
 
 
 
-// https://learnopengl.com/code_viewer_gh.php?code=src/4.advanced_opengl/10.1.instancing_quads/instancing_quads.cpp
-
-
-
-public class myTriangleInst : myPrimitive
+public class myTriangleInst : myInstancedPrimitive
 {
     private static float[] vertices = null;
-    private static float[] instanceArray = null;
 
-    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
-    private static float pixelX = 0, pixelY = 0;
-    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0, N = 0, Count = 0;
-
-    // Number of elements in [instanceArray] that define one single instance:
-    // - 4 floats for Coordinates
-    // - 4 floats for RGBA
-    // - 1 float for Angle
-    private static readonly int n = 9;
+    private static uint shaderProgram = 0, instVbo = 0, triVbo = 0;
+    private static int locationColor = 0, locationScrSize = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public myTriangleInst(int maxInstCount)
     {
+        // Number of elements in [instanceArray] that define one single instance:
+        // - 3 floats for Coordinates (x, y, radius of an escribed circle)
+        // - 1 float for angle
+        // - 4 floats for RGBA
+        n = 8;
+
         if (vertices == null)
         {
             N = 0;
@@ -37,38 +31,32 @@ public class myTriangleInst : myPrimitive
             for (int i = 0; i < 9; i++)
                 vertices[i] = 0.0f;
 
-            pixelX = 1.0f / Width;
-            pixelY = 1.0f / Height;
-
             CreateProgram();
             glUseProgram(shaderProgram);
             locationColor   = glGetUniformLocation(shaderProgram, "myColor");
             locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
-            instVbo     = glGenBuffer();
-            quadVbo     = glGenBuffer();
-            ebo_fill    = glGenBuffer();
-            ebo_outline = glGenBuffer();
+            instVbo = glGenBuffer();
+            triVbo  = glGenBuffer();
         }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Draw(bool doFill = false)
+    public override void Draw(bool doFill = false)
     {
+        // Coordinates of an equilateral triangle, escribed by a circle with a raduis of 1.0
         vertices[0] = +0.0f;
-        vertices[1] = +0.5f;
-        vertices[3] = +0.35f;
-        vertices[4] = -0.35f;
-        vertices[6] = -0.35f;
-        vertices[7] = -0.35f;
+        vertices[1] = +1.0f;
+        vertices[3] = +0.86602540378f;
+        vertices[4] = -0.5f;
+        vertices[6] = -0.86602540378f;
+        vertices[7] = -0.5f;
 
         updateVertices();
 
         glUseProgram(shaderProgram);
         setColor(locationColor, _r, _g, _b, _a);
-
-        glUniform2f(locationCenter, 0, 0);
         updUniformScreenSize(locationScrSize, Width, Height);
 
         // Draw only outline or fill the whole polygon with color
@@ -83,29 +71,33 @@ public class myTriangleInst : myPrimitive
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
-              layout (location = 3) in float angle;
-                uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;
+                uniform ivec2 myScrSize;
                 out vec4 rgbaColor;",
 
             main: @"rgbaColor = mData[1];
+
+                    float realSizeY = 2.0 / myScrSize.y * mData[0].z;
+                    float realSizeX = 2.0 / myScrSize.x * mData[0].z;
             
-                    if (angle == 0)
+                    if (mData[0].w == 0)
                     {
-                        float realSize = 2.0 / myScrSize.y * mData[0].z;
-
-                        //gl_Position = vec4(pos.x * mData[0].z + mData[0].x, pos.y * mData[0].z + mData[0].y, 1.0, 1.0);
-
-                        gl_Position = vec4(pos.x * realSize, pos.y * realSize, 1.0, 1.0);
-
-                        // Adjust for pixel density and move into final position
-
-                        gl_Position.x += +2.0 / myScrSize.x * (mData[0].x) - 1.0;
-
-                        gl_Position.y += -2.0 / myScrSize.y * (mData[0].y) + 1.0;
+                        gl_Position = vec4(pos.x * realSizeX, pos.y * realSizeY, 1.0, 1.0);
                     }
                     else
                     {
-                    }"
+                        float sin_a = sin(mData[0].w);
+                        float cos_a = cos(mData[0].w);
+
+                        // Rotate
+                        float x = pos.x * cos_a - pos.y * sin_a;
+                        float y = pos.y * cos_a + pos.x * sin_a;
+
+                        gl_Position = vec4(x * realSizeX, y * realSizeY, 1.0, 1.0);
+                    }
+
+                    // Adjust for pixel density and move into final position
+                    gl_Position.x += +2.0 / myScrSize.x * (mData[0].x) - 1.0;
+                    gl_Position.y += -2.0 / myScrSize.y * (mData[0].y) + 1.0;"
         );
 
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
@@ -134,9 +126,9 @@ public class myTriangleInst : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static unsafe void updateVertices()
+    private unsafe void updateVertices()
     {
-        glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, triVbo);
         {
             fixed (float* v = &vertices[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
@@ -148,72 +140,54 @@ public class myTriangleInst : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Clear()
+    public void setInstanceCoords(float x, float y, float rad, float angle)
     {
-        Count = 0;
-    }
+        instanceArray[instArrayPosition + 0] = x;
+        instanceArray[instArrayPosition + 1] = y;
+        instanceArray[instArrayPosition + 2] = rad;
+        instanceArray[instArrayPosition + 3] = angle;
 
-    // -------------------------------------------------------------------------------------------------------------------
-
-    public void setInstanceCoords(float x, float y, float w, float h)
-    {
-        instanceArray[Count + 0] = x;
-        instanceArray[Count + 1] = y;
-        instanceArray[Count + 2] = w;
-        instanceArray[Count + 3] = h;
-
-        Count += 4;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    public void setInstanceAngle(float a)
-    {
-        instanceArray[Count] = a;
-
-        Count++;
+        instArrayPosition += 4;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public void setInstanceColor(float r, float g, float b, float a)
     {
-        instanceArray[Count + 0] = r;
-        instanceArray[Count + 1] = g;
-        instanceArray[Count + 2] = b;
-        instanceArray[Count + 3] = a;
+        instanceArray[instArrayPosition + 0] = r;
+        instanceArray[instArrayPosition + 1] = g;
+        instanceArray[instArrayPosition + 2] = b;
+        instanceArray[instArrayPosition + 3] = a;
 
-        Count += 4;
+        instArrayPosition += 4;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public void setInstanceColor(double r, double g, double b, double a)
     {
-        int i = Count;
+        instanceArray[instArrayPosition + 0] = (float)r;
+        instanceArray[instArrayPosition + 1] = (float)g;
+        instanceArray[instArrayPosition + 2] = (float)b;
+        instanceArray[instArrayPosition + 3] = (float)a;
 
-        instanceArray[i + 0] = (float)r;
-        instanceArray[i + 1] = (float)g;
-        instanceArray[i + 2] = (float)b;
-        instanceArray[i + 3] = (float)a;
-
-        Count += 4;
+        instArrayPosition += 4;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create GPU buffer out of out instances from the array
-    public unsafe void updateInstances()
+    public override unsafe void updateInstances()
     {
-        if (Count > 1)
+        if (instArrayPosition > 1)
         {
-            N = Count / n;
+            N = instArrayPosition / n;
 
             // Copy data to GPU:
             glBindBuffer(GL_ARRAY_BUFFER, instVbo);
             {
                 fixed (float* a = &instanceArray[0])
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * Count, a, GL_DYNAMIC_COPY);
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, a, GL_DYNAMIC_COPY);
 
                 glEnableVertexAttribArray(1);
                 glVertexAttribPointer(1, 4, GL_FLOAT, false, n * sizeof(float), NULL);
@@ -221,30 +195,15 @@ public class myTriangleInst : myPrimitive
                 glEnableVertexAttribArray(2);
                 glVertexAttribPointer(2, 4, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
 
-                glEnableVertexAttribArray(3);
-                glVertexAttribPointer(3, 1, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 8 * sizeof(float)));
-
                 // Tell OpenGL this is an instanced vertex attribute
                 glVertexAttribDivisor(1, 1);
                 glVertexAttribDivisor(2, 1);
-                glVertexAttribDivisor(3, 1);
 
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
             }
         }
 
         return;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    // Reallocate inner instances array, if its size is less than the new size
-    public void Resize(int Size)
-    {
-        if (instanceArray.Length < Size * n)
-        {
-            instanceArray = new float[Size * n];
-        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------

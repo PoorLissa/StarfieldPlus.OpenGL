@@ -36,7 +36,7 @@ namespace my
 
         private List<myObj_300_Particle> structsList = null;
 
-        static myRectangleInst rInst = null;
+        private static myInstancedPrimitive inst = null;
 
         // -------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ namespace my
                 doFillShapes  = myUtils.randomBool(rand);
 
                 gravityRate = rand.Next(101) + 1;
-                shapeType = rand.Next(5);
+                shapeType = rand.Next(7);
                 moveType = rand.Next(34);
                 radiusMode = rand.Next(5);
 
@@ -74,12 +74,13 @@ namespace my
 
 #if true
                 shapeType = 0;
-                shapeType = 5;
+                shapeType = 5;  // instanced square
+                shapeType = 6;  // instanced triangle
                 //moveType = 33;
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
-                doUseInstancing = shapeType == 5;
+                doUseInstancing = shapeType >= 5;
                 N = 3333;
 #endif
             }
@@ -153,7 +154,7 @@ namespace my
                 obj.a = (float)rand.NextDouble() + 0.33f;
 
                 obj.time = 0;
-                obj.dt = doUseRotation ? 0.001f * rand.Next(111) : 0;
+                obj.dt = doUseRotation ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
 
                 obj.dr = (radiusMode == 0) ? 0.0005f * (rand.Next(100)+1) : 0;
             }
@@ -487,7 +488,9 @@ namespace my
                         }
                         break;
 
+                    // Instanced squares
                     case 5:
+                        var rectInst = inst as myRectangleInst;
 
                         for (int i = 0; i < objN; i++)
                         {
@@ -495,9 +498,25 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                rInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
-                                rInst.setInstanceColor(R, G, B, obj.a);
-                                rInst.setInstanceAngle(obj.time);
+                                rectInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
+                                rectInst.setInstanceColor(R, G, B, obj.a);
+                                rectInst.setInstanceAngle(obj.time);
+                            }
+                        }
+                        break;
+
+                    // Instanced triangles
+                    case 6:
+                        var triangleInst = inst as myTriangleInst;
+
+                        for (int i = 0; i < objN; i++)
+                        {
+                            var obj = structsList[i];
+
+                            if (obj.a > 0)
+                            {
+                                triangleInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, obj.time);
+                                triangleInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
                         break;
@@ -519,7 +538,18 @@ namespace my
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
-            rInst = new myRectangleInst(N * maxParticles);
+            switch (shapeType)
+            {
+                case 5:
+                    myPrimitive.init_RectangleInst(N * maxParticles);
+                    inst = myPrimitive._RectangleInst;
+                    break;
+
+                case 6:
+                    myPrimitive.init_TriangleInst(N * maxParticles);
+                    inst = myPrimitive._TriangleInst;
+                    break;
+            }
 
             while (list.Count < N)
             {
@@ -558,7 +588,7 @@ namespace my
 
                 if (doUseInstancing)
                 {
-                    rInst.Clear();
+                    inst.ResetBuffer();
 
                     for (int i = 0; i < list.Count; i++)
                     {
@@ -567,18 +597,18 @@ namespace my
                         obj.Move();
                     }
 
-                    rInst.updateInstances();
+                    inst.updateInstances();
 
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        rInst.SetColorA(-0.5f);
-                        rInst.Draw(true);
+                        inst.SetColorA(-0.5f);
+                        inst.Draw(true);
                     }
 
                     // Tell the fragment shader to do nothing with the existing instance opacity:
-                    rInst.SetColorA(0);
-                    rInst.Draw(false);
+                    inst.SetColorA(0);
+                    inst.Draw(false);
                 }
                 else
                 {
@@ -595,6 +625,8 @@ namespace my
 
             return;
         }
+
+        // -------------------------------------------------------------------------
 
         unsafe void readPixel(int x, int y)
         {

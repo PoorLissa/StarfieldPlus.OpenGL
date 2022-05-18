@@ -195,7 +195,7 @@ namespace my
                     // 450k = ~75fps
                     t = 0;
                     int n = 450000;
-                    rInst.Clear();
+                    rInst.ResetBuffer();
                     rInst.Resize(n);
 
                     for (int i = 0; i < n; i++)
@@ -236,25 +236,22 @@ namespace my
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
                     myPrimitive._Rectangle.Draw(1000 - 100, 500 - 100, 200, 200, false);
 
-                    tInst.Clear();
+                    tInst.ResetBuffer();
                     tInst.Resize(11);
 
-                    rInst.Clear();
-                    rInst.Resize(11);
-
-                    tInst.setInstanceCoords(1000, 500, 111, 0.5f);
+                    tInst.setInstanceCoords(1000, 500, 100, cnt * 0.01f);
                     tInst.setInstanceColor(1, 0, 0, 1);
-                    tInst.setInstanceAngle(0);
 
-                    tInst.setInstanceCoords(0.0f, 0.0f, 0.025f, 0.33f);
+                    tInst.setInstanceCoords(1000, 500, 3, 0);
                     tInst.setInstanceColor(0, 1, 0, 1);
-                    tInst.setInstanceAngle(0);
 
                     tInst.updateInstances();
                     tInst.Draw(false);
 
 
 
+                    rInst.ResetBuffer();
+                    rInst.Resize(11);
 
                     // set instance 1
                     rInst.setInstanceCoords(333, 333, 130, 130);
@@ -280,7 +277,6 @@ namespace my
                     //myPrimitive._Rectangle.Draw(gl_Width/2 - 75, gl_Height/2 - 75, 150, 150, false);
                     //myPrimitive._Rectangle.Draw(325, 325, 127, 127, false);
                     myPrimitive._Rectangle.Draw(323, 323, 150, 150, false);
-
 #endif
                 }
 

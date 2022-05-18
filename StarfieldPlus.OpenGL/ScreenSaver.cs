@@ -34,7 +34,7 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        int id = 3;
+        int id = 2;
 
         switch (id)
         {
@@ -47,7 +47,7 @@ public class ScreenSaver
                 break;
 
             case 2:
-                _obj = new my.myObj_300();          // Small Explosions of Particles + Variations
+                _obj = new my.myObj_300();          // Small Explosions of Particles + Movement type Variations
                 break;
 
             case 3:
