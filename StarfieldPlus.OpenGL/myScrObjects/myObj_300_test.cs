@@ -110,6 +110,43 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------------
 
         protected override void Process(Window window)
+        //protected void Process123(Window window)
+        {
+            uint cnt = 0;
+
+            myPrimitive.init_Triangle();
+            myPrimitive.init_Rectangle();
+
+            var rInst = new myRectangleInst(10);
+            var tInst = new myTriangleInst(10);
+            var eInst = new myEllipseInst(10);
+
+            while (!Glfw.WindowShouldClose(window))
+            {
+                processInput(window);
+
+                Glfw.SwapBuffers(window);
+                Glfw.PollEvents();
+
+                glClearColor(0, 0, 0, 1);
+                glClear(GL_COLOR_BUFFER_BIT);
+
+
+                eInst.ResetBuffer();
+
+                eInst.setInstanceCoords(111, 111, 666, 0);
+                eInst.setInstanceColor(0.5f, 0.25f, 0.75f, 0.75f);
+
+                eInst.updateInstances();
+                eInst.Draw(false);
+
+                System.Threading.Thread.Sleep(11);
+                cnt++;
+            }
+        }
+
+        //protected override void Process(Window window)
+        protected void Process1(Window window)
         {
             uint cnt = 0;
 
@@ -123,15 +160,16 @@ namespace my
 
             var rInst = new myRectangleInst(10);
             var tInst = new myTriangleInst(10);
+            var eInst = new myEllipseInst(10);
 
             uint instanceVBO = 0, quadVAO = 0, quadVBO = 0;
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
             uint program = 0;
 
             bool mySpeedTest1 = false;
-            bool mySpeedTest2 = true;
+            bool mySpeedTest2 = false;
             bool myTestShapes = false;
-            bool myInstanceTest = false;
+            bool myInstanceTest = true;
 
             CreateProgram_Instanced(ref program);
 
@@ -237,6 +275,18 @@ namespace my
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
                     myPrimitive._Rectangle.Draw(1000 - 100, 500 - 100, 200, 200, false);
+
+                    eInst.ResetBuffer();
+                    eInst.Resize(11);
+
+                    eInst.setInstanceCoords(gl_Width / 2 - 150, gl_Height / 2 - 150, 300, 300);
+                    eInst.setInstanceColor(1, 0, 1, 1);
+
+                    eInst.updateInstances();
+                    eInst.Draw(false);
+
+
+
 
                     tInst.ResetBuffer();
                     tInst.Resize(11);

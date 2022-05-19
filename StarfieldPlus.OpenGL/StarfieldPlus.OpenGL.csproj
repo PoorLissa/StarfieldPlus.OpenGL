@@ -76,6 +76,7 @@
     <Compile Include="myUtils\__myColorPicker.cs" />
     <Compile Include="myUtils\__myUtils.cs" />
     <Compile Include="OpenGL\myPrimitives\_Pentagon.cs" />
+    <Compile Include="OpenGL\myPrimitives\_Ellipse_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Rectangle_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Tex.cs" />
     <Compile Include="OpenGL\myPrimitives\_Triangle_Instanced.cs" />

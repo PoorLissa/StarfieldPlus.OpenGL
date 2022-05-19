@@ -113,6 +113,10 @@ public class myInstancedPrimitive : myPrimitive
 
     public myInstancedPrimitive()
     {
+        instArrayPosition = 0;
+        N = 0;
+        n = 0;
+
         pixelX = 1.0f / Width;
         pixelY = 1.0f / Height;
     }

@@ -1,5 +1,6 @@
 ﻿using GLFW;
 using static OpenGL.GL;
+using System;
 using System.Collections.Generic;
 
 
@@ -30,14 +31,12 @@ namespace my
 
         private static float const_f1 = 0;
         private static int   const_i1 = 0;
+        private static myInstancedPrimitive inst = null;
 
         private float x, y, R, G, B, A, lineTh;
-
         private int shape = 0, lifeCounter = 0, lifeMax = 0, objN = 0;
 
         private List<myObj_300_Particle> structsList = null;
-
-        private static myInstancedPrimitive inst = null;
 
         // -------------------------------------------------------------------------
 
@@ -381,7 +380,8 @@ namespace my
                             break;
 
                         case 333:
-                            ;
+                            obj.x += (float)Math.Sin(obj.time) * 3;
+                            obj.y += (float)Math.Cos(obj.time) * 3;
                             break;
                     }
 
@@ -392,18 +392,16 @@ namespace my
                     // todo: optimize this, it seems to be lagging when the qty of particles is quite large
                     if (doUseCenterRepel)
                     {
-                        float centerx = gl_Width  / 2;
-                        float centery = gl_Height / 2;
                         float radius = 500.0f;
 
-                        if (obj.x > centerx - radius && obj.x < centerx + radius && obj.y > centery - radius && obj.y < centery + radius)
+                        if (obj.x > x0 - radius && obj.x < x0 + radius && obj.y > y0 - radius && obj.y < y0 + radius)
                         {
-                            float distSq = (centerx - obj.x) * (centerx - obj.x) + (centery - obj.y) * (centery - obj.y);
+                            float distSq = (x0 - obj.x) * (x0 - obj.x) + (y0 - obj.y) * (y0 - obj.y);
 
                             if (distSq < radius*radius)
                             {
-                                float dx = (obj.x - centerx) / (distSq / 2 / radius);
-                                float dy = (obj.y - centery) / (distSq / 2 / radius);
+                                float dx = (obj.x - x0) / (distSq / 2 / radius);
+                                float dy = (obj.y - y0) / (distSq / 2 / radius);
 
                                 obj.x += dx;
                                 obj.y += dy;
