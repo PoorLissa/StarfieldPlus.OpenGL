@@ -23,7 +23,7 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false;
+        private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false, doUseCenterRepel = false;
         private static int x0, y0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
         private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0;
         private static float dimAlpha = 0.1f;
@@ -53,6 +53,8 @@ namespace my
 
                 doClearBuffer = myUtils.randomBool(rand);
                 doFillShapes  = myUtils.randomBool(rand);
+
+                doUseCenterRepel = rand.Next(11) == 0;
 
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
                 rotationMode = rand.Next(4);
@@ -377,10 +379,40 @@ namespace my
                         case 35:
                             obj.dt += 0.005f;
                             break;
+
+                        case 333:
+                            ;
+                            break;
+                    }
+
+                    // --- Apply some generic post-effects ---
+
+                    // Push particles out of the centeral circle;
+                    // Randomly applies to any moveType
+                    // todo: optimize this, it seems to be lagging when the qty of particles is quite large
+                    if (doUseCenterRepel)
+                    {
+                        float centerx = gl_Width  / 2;
+                        float centery = gl_Height / 2;
+                        float radius = 500.0f;
+
+                        if (obj.x > centerx - radius && obj.x < centerx + radius && obj.y > centery - radius && obj.y < centery + radius)
+                        {
+                            float distSq = (centerx - obj.x) * (centerx - obj.x) + (centery - obj.y) * (centery - obj.y);
+
+                            if (distSq < radius*radius)
+                            {
+                                float dx = (obj.x - centerx) / (distSq / 2 / radius);
+                                float dy = (obj.y - centery) / (distSq / 2 / radius);
+
+                                obj.x += dx;
+                                obj.y += dy;
+                            }
+                        }
                     }
 
                     // Fast explosion, then abrupt stop and slow motion;
-                    // Rendomly applies to any moveType
+                    // Randomly applies to any moveType
                     if (fastExplosion == 0)
                     {
                         if (lifeCounter < lifeMax + 66)
@@ -408,7 +440,6 @@ namespace my
                             obj.r -= 0.01f;
                         }
                     }
-
                 }
 
                 if (liveCnt == 0)
