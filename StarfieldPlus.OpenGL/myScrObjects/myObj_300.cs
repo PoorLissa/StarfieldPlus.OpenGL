@@ -23,9 +23,9 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        private static bool doClearBuffer = false, doUseRotation = false, doFillShapes = false, doUseInstancing = false;
+        private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false;
         private static int x0, y0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
-        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0;
+        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0;
         private static float dimAlpha = 0.1f;
 
         private static float const_f1 = 0;
@@ -52,9 +52,10 @@ namespace my
                 list = new List<myObject>();
 
                 doClearBuffer = myUtils.randomBool(rand);
-                doUseRotation = myUtils.randomBool(rand);
                 doFillShapes  = myUtils.randomBool(rand);
 
+                // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
+                rotationMode = rand.Next(4);
                 gravityRate = rand.Next(101) + 1;
                 shapeType = rand.Next(7);
                 moveType = rand.Next(36);
@@ -62,10 +63,10 @@ namespace my
                 fastExplosion = rand.Next(11);
 
                 // In case the rotation is enabled, we also may enable additional rotation option:
-                if (doUseRotation)
+                if (rotationMode < 2)
                 {
-                    rotationMode = rand.Next(7);
-                    rotationMode = rotationMode > 2 ? 0 : rotationMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
+                    rotationSubMode = rand.Next(7);
+                    rotationSubMode = rotationSubMode > 2 ? 0 : rotationSubMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
                 }
 
                 const_f1 = (float)rand.NextDouble() * myUtils.randomSign(rand);
@@ -164,7 +165,13 @@ namespace my
                 obj.a = (float)rand.NextDouble() + 0.33f;
 
                 obj.time = 0;
-                obj.dt = doUseRotation ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
+                obj.dt = rotationMode < 2 ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
+
+                // There will be no rotation, but the angle is set to non-zero
+                if (rotationMode == 3)
+                {
+                    obj.time = (float)rand.NextDouble() * 111;
+                }
 
                 obj.dr = (radiusMode == 0) ? 0.0005f * (rand.Next(100)+1) : 0;
             }
@@ -593,13 +600,13 @@ namespace my
             {
                 case 5:
                     myPrimitive.init_RectangleInst(N * maxParticles);
-                    myPrimitive._RectangleInst.setRotationMode(rotationMode);
+                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
                     inst = myPrimitive._RectangleInst;
                     break;
 
                 case 6:
                     myPrimitive.init_TriangleInst(N * maxParticles);
-                    myPrimitive._TriangleInst.setRotationMode(rotationMode);
+                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
                     inst = myPrimitive._TriangleInst;
                     break;
             }

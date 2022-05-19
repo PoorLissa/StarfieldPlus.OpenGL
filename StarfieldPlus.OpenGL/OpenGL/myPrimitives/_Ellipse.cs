@@ -9,10 +9,10 @@ using System;
 
 public class myEllipse : myPrimitive
 {
-    private static uint vao = 0, vbo = 0, ebo = 0, program = 0;
-    private static uint[] indicesFill = null;
+    private static uint ebo = 0, vbo = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static int locationColor = 0, locationCenter = 0, locationScrSize = 0, locationRadSq = 0;
+
     private float lineThickness = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -26,29 +26,20 @@ public class myEllipse : myPrimitive
             for (int i = 0; i < 12; i++)
                 vertices[i] = 0;
 
-            indicesFill = new uint[]
-            {
-                0, 1, 3,   // first triangle
-                1, 2, 3    // second triangle
-            };
-
-            vao = glGenVertexArray();
-            vbo = glGenBuffer();
-
             CreateProgram();
-            locationColor   = glGetUniformLocation(program, "myColor");
-            locationCenter  = glGetUniformLocation(program, "myCenter");
-            locationScrSize = glGetUniformLocation(program, "myScrSize");
-            locationRadSq   = glGetUniformLocation(program, "RadSq");
+            glUseProgram(shaderProgram);
+            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
+            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
+            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
+            locationRadSq   = glGetUniformLocation(shaderProgram, "RadSq");
 
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
+            vbo = glGenBuffer();
             ebo = glGenBuffer();
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+            updateIndices();
         }
 
-        // Default line thickness
+        // Set default line thickness
         resetLineThickness();
     }
 
@@ -90,10 +81,8 @@ public class myEllipse : myPrimitive
         // Draw a rectangle but use shader to hide everything except for the ellipse
         unsafe void __draw()
         {
-            //glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-            //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
         }
 
@@ -103,6 +92,7 @@ public class myEllipse : myPrimitive
         float fx = x;
         float fy = y;
         float radx = (float)w / (float)Width;
+
         vertices[06] = fx;
         vertices[09] = fx;
         vertices[01] = fy;
@@ -116,12 +106,12 @@ public class myEllipse : myPrimitive
         vertices[4] = fy;
         vertices[7] = fy;
 
-        CreateVertices();
+        updateVertices();
 
-        glUseProgram(program);
+        glUseProgram(shaderProgram);
+
         setColor(locationColor, _r, _g, _b, _a);
-
-        glUniform2f(locationCenter, x + w/2, y + h/2);
+        glUniform2f(locationCenter, x + w / 2, y + h / 2);
         updUniformScreenSize(locationScrSize, Width, Height);
 
         float radSquared = radx * radx;
@@ -141,11 +131,15 @@ public class myEllipse : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Create a shader program
     private static void CreateProgram()
     {
         // Multiply either part of zzz in this shader by [float > 1.0f] to get an ellipse, not circle
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-            "layout (location = 0) in vec3 pos; out vec2 zzz; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+            @"layout (location = 0) in vec3 pos;
+                uniform vec2 myCenter; uniform ivec2 myScrSize;
+                out vec2 zzz;",
+
                 main: @"gl_Position.x = 2.0f * pos.x / myScrSize.x - 1.0f;
                         gl_Position.y = 1.0f - 2.0f * pos.y / myScrSize.y;
 
@@ -154,6 +148,7 @@ public class myEllipse : myPrimitive
 
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
             "in vec2 zzz; out vec4 result; uniform vec4 myColor; uniform vec2 RadSq;",
+
                 main: @"float xySqd = zzz.x * zzz.x + zzz.y * zzz.y;
                         if (xySqd <= RadSq.x)
                         {
@@ -175,37 +170,59 @@ public class myEllipse : myPrimitive
                         }"
         );
 
-        program = glCreateProgram();
-        glAttachShader(program, vertex);
-        glAttachShader(program, fragment);
+        shaderProgram = glCreateProgram();
 
-        glLinkProgram(program);
+        glAttachShader(shaderProgram, vertex);
+        glAttachShader(shaderProgram, fragment);
+
+        glLinkProgram(shaderProgram);
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
 
-        glUseProgram(program);
+        return;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static unsafe void CreateVertices()
+    // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
+    private static unsafe void updateVertices()
     {
-        //glBindVertexArray(vao);
+        // Bind a buffer;
+        // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         {
+            // Copy user-defined data into the currently bound buffer:
             fixed (float* v = &vertices[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
         }
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        {
-            fixed (uint* i = &indicesFill[0])
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, GL_DYNAMIC_DRAW);
-        }
-
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
         glEnableVertexAttribArray(0);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Move indices data from CPU to GPU -- needs to be called only once, as we have 2 different EBOs, and they are not going to change;
+    // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo1 : ebo2);
+    private static unsafe void updateIndices()
+    {
+        int usage = GL_STATIC_DRAW;
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        {
+            var indicesFill = new uint[]
+            {
+                0, 1, 3,   // first triangle
+                1, 2, 3    // second triangle
+            };
+
+            fixed (uint* i = &indicesFill[0])
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, usage);
+
+            // Unbind current buffer
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------

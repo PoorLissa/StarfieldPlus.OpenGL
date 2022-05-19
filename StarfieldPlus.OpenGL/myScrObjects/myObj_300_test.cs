@@ -121,8 +121,6 @@ namespace my
             myPrimitive.init_Hexagon();
             myPrimitive.init_Ellipse();
 
-            myEllipse_2 el = new myEllipse_2();
-
             var rInst = new myRectangleInst(10);
             var tInst = new myTriangleInst(10);
 
@@ -236,14 +234,6 @@ namespace my
                     {
                     }
 
-                    {
-                        el.SetColor(1, 1, 0, 0.15f);
-                        el.Draw(1800, 666, 222, 222, true);
-
-                        el.SetColor(1, 1, 0, 1);
-                        el.Draw(1800, 666, 222, 222, false);
-                    }
-
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
                     myPrimitive._Rectangle.Draw(1000 - 100, 500 - 100, 200, 200, false);
@@ -303,14 +293,13 @@ namespace my
                 myPrimitive._Rectangle.Draw(1200, 666, 222, 222, true);
 #endif
 
-                zzz
                 // todo: test which is faster
                 if (mySpeedTest2)
                 {
                     t = 0;
-                    int n = 5000;
+                    int n = 4000;
 
-#if false
+#if true
                     // old ellipse
                     for (int i = 0; i < n; i++)
                     {
@@ -329,12 +318,6 @@ namespace my
                     {
                         int x = rand.Next(gl_Width);
                         int y = rand.Next(gl_Height);
-
-                        el.SetColor(1, 1, 0, 0.15f);
-                        el.Draw(x, y, 50, 50, true);
-
-                        el.SetColor(1, 1, 0, 1);
-                        el.Draw(x, y, 50, 50, false);
                     }
 #endif
                 }
