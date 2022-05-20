@@ -110,59 +110,6 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------------
 
         protected override void Process(Window window)
-        //protected void Process123(Window window)
-        {
-            uint cnt = 0;
-
-            myPrimitive.init_Triangle();
-            myPrimitive.init_Rectangle();
-            myPrimitive.init_Ellipse();
-
-            var rInst = new myRectangleInst(10);
-            var tInst = new myTriangleInst(10);
-            var eInst = new myEllipseInst(10);
-
-            while (!Glfw.WindowShouldClose(window))
-            {
-                processInput(window);
-
-                Glfw.SwapBuffers(window);
-                Glfw.PollEvents();
-
-                glClearColor(0, 0, 0, 1);
-                glClear(GL_COLOR_BUFFER_BIT);
-
-                eInst.setRotationMode(2);
-                eInst.ResetBuffer();
-
-                eInst.setInstanceCoords(666, 666, 666, 1);
-                eInst.setInstanceColor(1, 0.25f, 0.25f, 0.85f);
-
-                eInst.setInstanceCoords(666, 666, 333, 1);
-                eInst.setInstanceColor(1, 0.25f, 0.25f, 0.85f);
-
-                eInst.setInstanceCoords(666, 666, 111, 1);
-                eInst.setInstanceColor(1, 0.25f, 0.25f, 0.85f);
-
-                eInst.updateInstances();
-
-                eInst.SetColorA(-0.5f);
-                eInst.Draw(true);
-
-                eInst.SetColorA(0);
-                eInst.Draw(false);
-
-                myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
-                myPrimitive._Rectangle.Draw(666, 666, 666, 666);
-
-
-                System.Threading.Thread.Sleep(11);
-                cnt++;
-            }
-        }
-
-        //protected override void Process(Window window)
-        protected void Process1(Window window)
         {
             uint cnt = 0;
 
@@ -182,10 +129,11 @@ namespace my
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
             uint program = 0;
 
+            bool myTestShapes = false;
             bool mySpeedTest1 = false;
             bool mySpeedTest2 = false;
-            bool myTestShapes = false;
-            bool myInstanceTest = true;
+            bool myInstanceTest = false;
+            bool instancesTogetherTest = true;
 
             CreateProgram_Instanced(ref program);
 
@@ -264,7 +212,6 @@ namespace my
                         rInst.setInstanceAngle(0);
                     }
 
-                    rInst.updateInstances();
                     rInst.Draw(true);
 
 #endif
@@ -298,7 +245,6 @@ namespace my
                     eInst.setInstanceCoords(gl_Width / 2 - 150, gl_Height / 2 - 150, 300, 300);
                     eInst.setInstanceColor(1, 0, 1, 1);
 
-                    eInst.updateInstances();
                     eInst.Draw(false);
 
 
@@ -313,7 +259,6 @@ namespace my
                     tInst.setInstanceCoords(1000, 500, 3, 0);
                     tInst.setInstanceColor(0, 1, 0, 1);
 
-                    tInst.updateInstances();
                     tInst.Draw(false);
 
 
@@ -337,7 +282,6 @@ namespace my
                     rInst.setInstanceAngle(cnt * 0.23f);
 
                     // update and draw all the instances
-                    rInst.updateInstances();
                     rInst.Draw(false);
 
                     myPrimitive._Rectangle.SetAngle(0);
@@ -348,22 +292,13 @@ namespace my
 #endif
                 }
 
-#if false
-                //myPrimitive._Rectangle.SetAngle(cnt/25);
-                myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
-                myPrimitive._Rectangle.Draw(666, 666, 222, 222, false);
 
-                myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
-                myPrimitive._Rectangle.Draw(1200, 666, 222, 222, true);
-#endif
 
-                // todo: test which is faster
                 if (mySpeedTest2)
                 {
                     t = 0;
                     int n = 4000;
+                    eInst.Resize(n);
 
 #if true
                     // old ellipse
@@ -379,13 +314,69 @@ namespace my
                         myPrimitive._Ellipse.Draw(x, y, 50, 50, false);
                     }
 #else
+                    eInst.ResetBuffer();
+
                     // new ellipse
                     for (int i = 0; i < n; i++)
                     {
                         int x = rand.Next(gl_Width);
                         int y = rand.Next(gl_Height);
+
+                        eInst.setInstanceCoords(x, y, 50, 0);
+                        eInst.setInstanceColor(1, 0, 0, 1);
                     }
+
+                    eInst.updateInstances();
+
+                    eInst.SetColorA(-0.25f);
+                    eInst.Draw(true);
+
+                    eInst.SetColorA(0);
+                    eInst.Draw(false);
+
 #endif
+                }
+
+                if (instancesTogetherTest)
+                {
+                    int n = 666;
+
+                    if (cnt % 50 == 0)
+                    {
+                        rInst.Resize(n);
+                        tInst.Resize(n);
+                        eInst.Resize(n);
+
+                        eInst.ResetBuffer();
+                        tInst.ResetBuffer();
+                        rInst.ResetBuffer();
+
+                        for (int i = 0; i < n; i++)
+                        {
+                            int x = rand.Next(gl_Width);
+                            int y = rand.Next(gl_Height);
+
+                            eInst.setInstanceCoords(x, y, 50, 0);
+                            eInst.setInstanceColor(1, 0, 0, 1);
+
+                            x = rand.Next(gl_Width);
+                            y = rand.Next(gl_Height);
+
+                            tInst.setInstanceCoords(x, y, 50, 0);
+                            tInst.setInstanceColor(0, 1, 0, 1);
+
+                            x = rand.Next(gl_Width);
+                            y = rand.Next(gl_Height);
+
+                            rInst.setInstanceCoords(x, y, 50, 50);
+                            rInst.setInstanceColor(0, 0, 1, 1);
+                            rInst.setInstanceAngle(0);
+                        }
+                    }
+
+                    eInst.Draw(false);
+                    tInst.Draw(false);
+                    rInst.Draw(false);
                 }
 
                 System.Threading.Thread.Sleep(t);

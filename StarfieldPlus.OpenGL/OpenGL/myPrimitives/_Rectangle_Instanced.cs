@@ -90,6 +90,7 @@ public class myRectangleInst : myInstancedPrimitive
         vertices[10] = +pixelY;
 
         // todo: check later, if it is possible to do this only once
+        updateInstances();
         updateVertices();
 
         glUseProgram(shaderProgram);
@@ -294,7 +295,7 @@ public class myRectangleInst : myInstancedPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create GPU buffer out of out instances from the array
-    public override unsafe void updateInstances()
+    protected override unsafe void updateInstances()
     {
         if (instArrayPosition > 1)
         {

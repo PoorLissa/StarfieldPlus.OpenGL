@@ -125,7 +125,7 @@ public class myInstancedPrimitive : myPrimitive
 
     // ---------------------------------------------------------------------------------------
 
-    public virtual unsafe void updateInstances() { }
+    protected virtual unsafe void updateInstances() { }
 
     // ---------------------------------------------------------------------------------------
 

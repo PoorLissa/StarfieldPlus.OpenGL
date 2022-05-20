@@ -3,6 +3,9 @@ using static OpenGL.GL;
 using System;
 
 
+// todo:
+//  - triangles are lrger then other shapes with the same radius
+
 
 public class myTriangleInst : myInstancedPrimitive
 {
@@ -58,6 +61,7 @@ public class myTriangleInst : myInstancedPrimitive
 
     public override void Draw(bool doFill = false)
     {
+        updateInstances();
         updateVertices();
 
         glUseProgram(shaderProgram);
@@ -199,7 +203,7 @@ public class myTriangleInst : myInstancedPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create GPU buffer out of out instances from the array
-    public override unsafe void updateInstances()
+    protected override unsafe void updateInstances()
     {
         if (instArrayPosition > 1)
         {

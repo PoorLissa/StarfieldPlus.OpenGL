@@ -88,13 +88,14 @@ namespace my
                 shapeType = 5;  // instanced square
                 shapeType = 6;  // instanced triangle
                 shapeType = 7;  // instanced circle
-                //shapeType = 5 + rand.Next(3);
+                shapeType = 5 + rand.Next(3);
                 //moveType = 333;
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
                 doUseInstancing = shapeType >= 5;
                 N = 333;
+                //N = 30000;
 #endif
             }
 
@@ -380,9 +381,9 @@ namespace my
                             obj.dt += 0.005f;
                             break;
 
+                        // -----------------------------------------------------
+
                         case 333:
-                            obj.x += (float)Math.Sin(obj.time) * 3;
-                            obj.y += (float)Math.Cos(obj.time) * 3;
                             break;
                     }
 
@@ -709,8 +710,6 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
-
-                    inst.updateInstances();
 
                     if (doFillShapes)
                     {

@@ -5,7 +5,8 @@ using System;
 
 // todo:
 //  - need to create vertices only once -- do I?
-//  - hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
+//  - test shaders performance and optimize
+//  - line lineThickness set to 1 for now
 
 
 public class myEllipseInst : myInstancedPrimitive
@@ -22,9 +23,8 @@ public class myEllipseInst : myInstancedPrimitive
     public myEllipseInst(int maxInstCount)
     {
         // Number of elements in [instanceArray] that define one single instance:
-        // - 4 floats for Coordinates
+        // - 4 floats for Coordinates (x, y, raduis, angle)
         // - 4 floats for RGBA
-        // - 1 float for Angle
         n = 8;
 
         if (vertices == null)
@@ -78,6 +78,7 @@ public class myEllipseInst : myInstancedPrimitive
         vertices[10] = +pixelY;
 
         // todo: check later, if it is possible to do this only once
+        updateInstances();
         updateVertices();
 
         glUseProgram(shaderProgram);
@@ -219,12 +220,12 @@ public class myEllipseInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void setInstanceCoords(float x, float y, float rad, float lineThickness)
+    public void setInstanceCoords(float x, float y, float rad, float angle)
     {
         instanceArray[instArrayPosition + 0] = x;
         instanceArray[instArrayPosition + 1] = y;
         instanceArray[instArrayPosition + 2] = rad;
-        instanceArray[instArrayPosition + 3] = lineThickness;
+        instanceArray[instArrayPosition + 3] = angle;
 
         instArrayPosition += 4;
     }
@@ -263,7 +264,7 @@ public class myEllipseInst : myInstancedPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create GPU buffer out of out instances from the array
-    public override unsafe void updateInstances()
+    protected override unsafe void updateInstances()
     {
         if (instArrayPosition > 1)
         {
