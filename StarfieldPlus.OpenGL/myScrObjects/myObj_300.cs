@@ -87,7 +87,8 @@ namespace my
                 shapeType = 0;
                 shapeType = 5;  // instanced square
                 shapeType = 6;  // instanced triangle
-                shapeType = 5 + rand.Next(2);
+                shapeType = 7;  // instanced circle
+                //shapeType = 5 + rand.Next(3);
                 //moveType = 333;
                 //doClearBuffer = true;
                 //doClearBuffer = false;
@@ -607,6 +608,22 @@ namespace my
                             }
                         }
                         break;
+
+                    // Instanced circles
+                    case 7:
+                        var ellipseInst = inst as myEllipseInst;
+
+                        for (int i = 0; i < objN; i++)
+                        {
+                            var obj = structsList[i];
+
+                            if (obj.a > 0)
+                            {
+                                ellipseInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, obj.time);
+                                ellipseInst.setInstanceColor(R, G, B, obj.a);
+                            }
+                        }
+                        break;
                 }
             }
 
@@ -638,6 +655,12 @@ namespace my
                     myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
                     inst = myPrimitive._TriangleInst;
                     break;
+
+                case 7:
+                    myPrimitive.init_EllipseInst(N * maxParticles);
+                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._EllipseInst;
+                    break;
             }
 
             while (list.Count < N)
@@ -666,7 +689,8 @@ namespace my
                 if (doClearBuffer == false)
                 {
                     myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.SetColor(0, 0, 0, dimAlpha);
+                    // Shift background color just a bit, to hide long lasting traces of shapes
+                    myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha);
                     myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
                 }
                 else

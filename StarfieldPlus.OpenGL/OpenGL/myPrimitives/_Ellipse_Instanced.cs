@@ -13,7 +13,9 @@ public class myEllipseInst : myInstancedPrimitive
     private static float[] vertices = null;
 
     private static uint ebo_fill = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
-    private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0;
+    private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0, locationDoFill = 0;
+
+    private int rotationMode;
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -37,6 +39,7 @@ public class myEllipseInst : myInstancedPrimitive
             locationColor      = glGetUniformLocation(shaderProgram, "myColor");
             locationScrSize    = glGetUniformLocation(shaderProgram, "myScrSize");
             locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
+            locationDoFill     = glGetUniformLocation(shaderProgram, "doFill");
 
             instVbo     = glGenBuffer();
             quadVbo     = glGenBuffer();
@@ -44,6 +47,8 @@ public class myEllipseInst : myInstancedPrimitive
 
             updateIndices();
         }
+
+        rotationMode = 0;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -79,6 +84,8 @@ public class myEllipseInst : myInstancedPrimitive
 
         setColor(locationColor, _r, _g, _b, _a);
         updUniformScreenSize(locationScrSize, Width, Height);
+        glUniform1i(locationDoFill, doFill ? 0 : 1);
+        glUniform1i(locationRotateMode, rotationMode);
 
         __draw(doFill);
     }
@@ -95,14 +102,35 @@ public class myEllipseInst : myInstancedPrimitive
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
                 uniform ivec2 myScrSize;
-                out vec3 zzz;
+                uniform int myRttMode;
+                out vec4 zzz;
                 out vec4 rgbaColor;",
 
                 main: @"rgbaColor = mData[1];
 
                         gl_Position = vec4(pos.x * mData[0].z, pos.y * mData[0].z, 1.0, 1.0);
 
-                        zzz = vec3(gl_Position.x, gl_Position.y * myScrSize.y / myScrSize.x, mData[0].z / myScrSize.x);
+                        zzz = vec4(gl_Position.x, gl_Position.y * myScrSize.y / myScrSize.x, mData[0].z / myScrSize.x, 0);
+
+                        float radSquared = zzz.z * zzz.z;
+                        //float lineThickness = 2.0f * (mData[0].w + 1) / myScrSize.x;
+                        float lineThickness = 4.0f / myScrSize.x;
+
+                        zzz.w = radSquared - zzz.z * lineThickness;
+
+                        if (myRttMode > 0)
+                        {
+                            float sin_a = sin(mData[0].w);
+                            float cos_a = cos(mData[0].w);
+
+                            // Additional pseudo-3d rotation:
+                            switch (myRttMode)
+                            {
+                                case 1: gl_Position.x *= sin_a; break;
+                                case 2: gl_Position.y *= cos_a; break;
+                                case 3: gl_Position.x *= sin_a; gl_Position.y *= cos_a; break;
+                            }
+                        }
 
                         // Adjust for pixel density and move into final position
                         gl_Position.x += +2.0 / myScrSize.x * (mData[0].x + mData[0].z/2) - 1.0;
@@ -114,20 +142,27 @@ public class myEllipseInst : myInstancedPrimitive
         // This is done to be able to draw all the instances the second time with changed opacity
         // For example: we want to draw set of filled-in rectangles with lower opacity, and then we want to give them borders with higher opacity
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-            "in vec3 zzz; in vec4 rgbaColor; out vec4 result;",
+            "in vec4 zzz; in vec4 rgbaColor; out vec4 result; uniform int doFill; uniform vec4 myColor;",
 
-                main: @"
+                main: @"float xySqd = zzz.x * zzz.x + zzz.y * zzz.y;
 
-                        float xySqd = zzz.x * zzz.x + zzz.y * zzz.y;
-
-                        if (xySqd <= zzz.z * zzz.z)
+                        if (doFill == 0)
                         {
-                            result = rgbaColor;
+                            if (xySqd <= zzz.z * zzz.z)
+                                result = rgbaColor;
+                            else
+                                result = vec4(0, 0, 0, 0);
                         }
                         else
                         {
-                            result = vec4(0, 0, 0, 0);
-                        }"
+                            if (xySqd <= zzz.z * zzz.z && xySqd > zzz.w)
+                                result = rgbaColor;
+                            else
+                                result = vec4(0, 0, 0, 0);
+                        }
+
+                        if (myColor.w < 0)
+                            result.w *= -myColor.w;"
         );
 
         shaderProgram = glCreateProgram();
@@ -184,12 +219,12 @@ public class myEllipseInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void setInstanceCoords(float x, float y, float rad, float unused)
+    public void setInstanceCoords(float x, float y, float rad, float lineThickness)
     {
         instanceArray[instArrayPosition + 0] = x;
         instanceArray[instArrayPosition + 1] = y;
         instanceArray[instArrayPosition + 2] = rad;
-        instanceArray[instArrayPosition + 3] = unused;
+        instanceArray[instArrayPosition + 3] = lineThickness;
 
         instArrayPosition += 4;
     }
@@ -216,6 +251,13 @@ public class myEllipseInst : myInstancedPrimitive
         instanceArray[instArrayPosition + 3] = (float)a;
 
         instArrayPosition += 4;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void setRotationMode(int mode)
+    {
+        rotationMode = mode;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

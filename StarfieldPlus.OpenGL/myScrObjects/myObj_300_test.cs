@@ -132,13 +132,24 @@ namespace my
                 glClearColor(0, 0, 0, 1);
                 glClear(GL_COLOR_BUFFER_BIT);
 
-
+                eInst.setRotationMode(2);
                 eInst.ResetBuffer();
 
-                eInst.setInstanceCoords(666, 666, 666, 0);
+                eInst.setInstanceCoords(666, 666, 666, 1);
+                eInst.setInstanceColor(1, 0.25f, 0.25f, 0.85f);
+
+                eInst.setInstanceCoords(666, 666, 333, 1);
+                eInst.setInstanceColor(1, 0.25f, 0.25f, 0.85f);
+
+                eInst.setInstanceCoords(666, 666, 111, 1);
                 eInst.setInstanceColor(1, 0.25f, 0.25f, 0.85f);
 
                 eInst.updateInstances();
+
+                eInst.SetColorA(-0.5f);
+                eInst.Draw(true);
+
+                eInst.SetColorA(0);
                 eInst.Draw(false);
 
                 myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
