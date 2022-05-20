@@ -116,6 +116,7 @@ namespace my
 
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
+            myPrimitive.init_Ellipse();
 
             var rInst = new myRectangleInst(10);
             var tInst = new myTriangleInst(10);
@@ -134,11 +135,15 @@ namespace my
 
                 eInst.ResetBuffer();
 
-                eInst.setInstanceCoords(111, 111, 666, 0);
-                eInst.setInstanceColor(0.5f, 0.25f, 0.75f, 0.75f);
+                eInst.setInstanceCoords(666, 666, 666, 0);
+                eInst.setInstanceColor(1, 0.25f, 0.25f, 0.85f);
 
                 eInst.updateInstances();
                 eInst.Draw(false);
+
+                myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
+                myPrimitive._Rectangle.Draw(666, 666, 666, 666);
+
 
                 System.Threading.Thread.Sleep(11);
                 cnt++;

@@ -90,6 +90,7 @@ public class myEllipseInst : myInstancedPrimitive
         // mat2x4 mData is a [2 x 4] matrix of floats, where:
         // - first  4 floats are [x, y, w, h];
         // - second 4 floats are [r, g, b, a]
+        // todo: see if squaring in 1st shader is faster or slower that in the 2nd one
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
@@ -101,7 +102,7 @@ public class myEllipseInst : myInstancedPrimitive
 
                         gl_Position = vec4(pos.x * mData[0].z, pos.y * mData[0].z, 1.0, 1.0);
 
-                        zzz = vec3(gl_Position.x, gl_Position.y, 0.1);
+                        zzz = vec3(gl_Position.x, gl_Position.y * myScrSize.y / myScrSize.x, mData[0].z / myScrSize.x);
 
                         // Adjust for pixel density and move into final position
                         gl_Position.x += +2.0 / myScrSize.x * (mData[0].x + mData[0].z/2) - 1.0;
