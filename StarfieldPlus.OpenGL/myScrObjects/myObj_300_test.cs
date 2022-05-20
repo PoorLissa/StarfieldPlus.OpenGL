@@ -129,11 +129,11 @@ namespace my
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
             uint program = 0;
 
-            bool myTestShapes = false;
+            bool myTestShapes = true;
             bool mySpeedTest1 = false;
             bool mySpeedTest2 = false;
             bool myInstanceTest = false;
-            bool instancesTogetherTest = true;
+            bool instancesTogetherTest = false;
 
             CreateProgram_Instanced(ref program);
 
@@ -176,6 +176,15 @@ namespace my
 
                     myPrimitive._Ellipse.SetColor(1, 1, 0, 0.9f);
                     myPrimitive._Ellipse.Draw(x0 + 333, y0, 222, 222, false);
+
+                    myPrimitive._Hexagon.SetAngle(cnt / 25);
+                    myPrimitive._Hexagon.SetColor(1, 1, 0, 0.9f);
+                    myPrimitive._Hexagon.Draw(x0 + 800, y0, 222, false);
+
+                    myPrimitive._Hexagon.SetAngle(-cnt / 50);
+                    myPrimitive._Hexagon.SetColor(1, 1, 0, 0.5f);
+                    myPrimitive._Hexagon.Draw(x0 + 800, y0, 222, true);
+
                 }
 
                 if (mySpeedTest1)

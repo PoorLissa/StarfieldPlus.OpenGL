@@ -89,7 +89,7 @@ namespace my
                 shapeType = 6;  // instanced triangle
                 shapeType = 7;  // instanced circle
                 shapeType = 5 + rand.Next(3);
-                //moveType = 333;
+                moveType = 6;
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
@@ -203,7 +203,7 @@ namespace my
                     obj.time += obj.dt;
                     obj.r += obj.dr;
 
-                    if (obj.y > gl_Height)
+                    if (obj.y > gl_Height && moveType != 6)
                         obj.a = 0;
 
                     liveCnt += obj.a > 0 ? 1 : 0;
@@ -231,7 +231,16 @@ namespace my
 
                         // Gravity
                         case 6:
-                            obj.dy += 0.01f * rand.Next(gravityRate);
+                            obj.dx *= 0.999f;
+                            obj.dy += 0.0033f * rand.Next(gravityRate);
+
+                            if (obj.y >= gl_Height)
+                            {
+                                if (rand.Next(5) == 0)
+                                    obj.a = 0;
+
+                                obj.dy *= -0.5f;
+                            }
                             break;
 
                         // Deceleration -- generic
