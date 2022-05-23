@@ -144,21 +144,6 @@ public class myTriangleInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // todo: check later, if it is possible to do this only once
-    private unsafe void updateVertices()
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, triVbo);
-        {
-            fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
-            glEnableVertexAttribArray(0);
-        }
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
     public void setInstanceCoords(float x, float y, float rad, float angle)
     {
         instanceArray[instArrayPosition + 0] = x;
@@ -198,6 +183,21 @@ public class myTriangleInst : myInstancedPrimitive
     public void setRotationMode(int mode)
     {
         rotationMode = mode;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // todo: check later, if it is possible to do this only once
+    private unsafe void updateVertices()
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, triVbo);
+        {
+            fixed (float* v = &vertices[0])
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
+            glEnableVertexAttribArray(0);
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------

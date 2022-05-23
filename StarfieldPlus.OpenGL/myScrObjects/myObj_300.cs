@@ -89,7 +89,6 @@ namespace my
                 shapeType = 6;  // instanced triangle
                 shapeType = 7;  // instanced circle
                 shapeType = 5 + rand.Next(3);
-                moveType = 6;
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
@@ -116,7 +115,7 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            // Set up starting point for some specific moving modes
+            // Additional set up for some specific moving modes
             {
                 // Let gravity-based particles sometimes be generated higher than the top of the screen
                 if (moveType == 6)
@@ -124,13 +123,12 @@ namespace my
                     y = rand.Next(gl_Height + 333) - 333;
                 }
 
-                // For sideways moving, generate particles offscreen as well
+                // For sideways/vertical moving, generate particles offscreen as well
                 if (moveType == 24)
                 {
                     x = rand.Next(gl_Width + 666) - 333;
                 }
 
-                // For vertical moving, generate particles offscreen as well
                 if (moveType == 25)
                 {
                     y = rand.Next(gl_Height + 666) - 333;

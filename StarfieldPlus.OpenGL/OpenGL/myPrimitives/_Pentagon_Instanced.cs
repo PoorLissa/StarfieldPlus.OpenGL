@@ -3,17 +3,17 @@ using static OpenGL.GL;
 using System;
 
 
-public class myPentagon : myPrimitive
+public class myPentagonInst : myInstancedPrimitive
 {
     private static float[] vertices = null;
 
-    private static uint vbo = 0, ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
-
+    private static uint vao = 0, vbo = 0, ebo = 0, program = 0;
     private static uint[] indicesOutline = null;
     private static uint[] indicesFill = null;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
-    private static float h_div_w = 0;
     private static float _angle;
+
+    private static float h_div_w = 0;
     private static float sin18 = (float)(Math.Sin(18.0 * Math.PI / 180.0));
     private static float cos18 = (float)(Math.Cos(18.0 * Math.PI / 180.0));
     private static float sin54 = (float)(Math.Sin(54.0 * Math.PI / 180.0));
@@ -21,8 +21,18 @@ public class myPentagon : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myPentagon()
+    public myPentagonInst(int maxInstCount)
     {
+        unsafe void __glGenBuffers()
+        {
+            fixed (uint* e = &ebo)
+            {
+                glGenBuffers(1, e);
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------
+
         if (vertices == null)
         {
             h_div_w = (float)Height / (float)Width;
@@ -32,18 +42,39 @@ public class myPentagon : myPrimitive
             for (int i = 0; i < 15; i++)
                 vertices[i] = 0.0f;
 
+            indicesOutline = new uint[]
+            {
+                0, 1,
+                1, 2,
+                2, 3,
+                3, 4,
+                4, 0
+            };
+
+            // 3 triangles
+            indicesFill = new uint[]
+            {
+                0, 1, 4,
+                1, 3, 4,
+                1, 2, 3
+            };
+
+            vao = glGenVertexArray();
+            vbo = glGenBuffer();
+
             CreateProgram();
-            glUseProgram(shaderProgram);
-            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
-            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
-            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
+            locationColor   = glGetUniformLocation(program, "myColor");
+            locationAngle   = glGetUniformLocation(program, "myAngle");
+            locationCenter  = glGetUniformLocation(program, "myCenter");
+            locationScrSize = glGetUniformLocation(program, "myScrSize");
 
-            vbo         = glGenBuffer();
-            ebo_fill    = glGenBuffer();
-            ebo_outline = glGenBuffer();
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-            updateIndices();
+            // Ebo is used with glDrawElements (with the array of indices).
+            // glDrawArrays does not need this
+            __glGenBuffers();
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         }
     }
 
@@ -56,19 +87,17 @@ public class myPentagon : myPrimitive
             if (fill)
             {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
                 glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, NULL);
             }
             else
             {
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
                 glDrawElements(GL_LINES, 15, GL_UNSIGNED_INT, NULL);
             }
         }
 
         // ---------------------------------------------------------------------------------------
 
-        float fx = x, fy = y;
+        float fx, fy;
 
         if (_angle == 0)
         {
@@ -97,6 +126,9 @@ public class myPentagon : myPrimitive
         else
         {
             // Leave coordinates as they are, and recalc them in the shader
+            fx = x;
+            fy = y;
+
             vertices[00] = fx;
             vertices[01] = fy + r;
 
@@ -113,9 +145,9 @@ public class myPentagon : myPrimitive
             vertices[13] = fy + r * sin18;
         }
 
-        updateVertices(doFill);
+        CreateVertices(doFill);
 
-        glUseProgram(shaderProgram);
+        glUseProgram(program);
         setColor(locationColor, _r, _g, _b, _a);
         glUniform1f(locationAngle, _angle);
 
@@ -168,77 +200,44 @@ public class myPentagon : myPrimitive
                 main: "result = myColor;"
         );
 
-        shaderProgram = glCreateProgram();
+        program = glCreateProgram();
+        glAttachShader(program, vertex);
+        glAttachShader(program, fragment);
 
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
-
-        glLinkProgram(shaderProgram);
+        glLinkProgram(program);
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
 
-        return;
+        glUseProgram(program);
     }
 
-    // -------------------------------------------------------------------------------------------------------------------
-
-    // Move indices data from CPU to GPU -- needs to be called only once, as we have 2 different EBOs, and they are not going to change;
-    // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo1 : ebo2);
-    private static unsafe void updateIndices()
+    private static unsafe void CreateVertices(bool doFill)
     {
-        int usage = GL_STATIC_DRAW;
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
-        {
-            // 3 triangles
-            var indicesFill = new uint[]
-            {
-                0, 1, 4,
-                1, 3, 4,
-                1, 2, 3
-            };
-
-            fixed (uint* i = &indicesFill[0])
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, usage);
-
-            // Unbind current buffer
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        }
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
-        {
-            // 5 lines
-            var indicesOutline = new uint[]
-            {
-                0, 1,
-                1, 2,
-                2, 3,
-                3, 4,
-                4, 0
-            };
-
-            fixed (uint* i = &indicesOutline[0])
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesOutline.Length, i, usage);
-
-            // Unbind current buffer
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        }
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    private static unsafe void updateVertices(bool doFill)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindVertexArray(vao);
         {
             fixed (float* v = &vertices[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
-            glEnableVertexAttribArray(0);
         }
-    }
 
-    // -------------------------------------------------------------------------------------------------------------------
+        if (doFill)
+        {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+            {
+                fixed (uint* i = &indicesFill[0])
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, GL_DYNAMIC_DRAW);
+            }
+        }
+        else
+        {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+            {
+                fixed (uint* i = &indicesOutline[0])
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesOutline.Length, i, GL_DYNAMIC_DRAW);
+            }
+        }
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
+        glEnableVertexAttribArray(0);
+    }
 };

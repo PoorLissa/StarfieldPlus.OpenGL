@@ -9,7 +9,7 @@ public class myRectangle : myPrimitive
     // Vbo (Vertex Buffer Object) -- Manages memory buffer on the GPU
     // Ebo (Element Buffer Object) is a buffer that stores indices that are used to decide what vertices to draw (and in what order)
 
-    private static uint Vbo = 0, ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
+    private static uint vbo = 0, ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static float _angle;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
@@ -29,7 +29,7 @@ public class myRectangle : myPrimitive
             locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
-            Vbo         = glGenBuffer();
+            vbo         = glGenBuffer();
             ebo_fill    = glGenBuffer();
             ebo_outline = glGenBuffer();
 
@@ -166,7 +166,7 @@ public class myRectangle : myPrimitive
     {
         // Bind a buffer;
         // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
-        glBindBuffer(GL_ARRAY_BUFFER, Vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
         {
             // Copy user-defined data into the currently bound buffer:
             fixed (float* v = &vertices[0])

@@ -185,6 +185,11 @@ namespace my
                     myPrimitive._Hexagon.SetColor(1, 1, 0, 0.5f);
                     myPrimitive._Hexagon.Draw(x0 + 800, y0, 222, true);
 
+                    myPrimitive._Triangle.SetColor(1, 0.5f, 0.25f, 0.25f);
+                    myPrimitive._Triangle.Draw(1000, 300, 900, 400, 1100, 500, true);
+
+                    myPrimitive._Triangle.SetColor(1, 1, 0, 1);
+                    myPrimitive._Triangle.Draw(1000, 300, 900, 400, 1100, 500, false);
                 }
 
                 if (mySpeedTest1)
