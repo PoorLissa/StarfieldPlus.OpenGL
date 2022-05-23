@@ -8,12 +8,10 @@ public class myPentagon : myPrimitive
     private static float[] vertices = null;
 
     private static uint vbo = 0, ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
-
-    private static uint[] indicesOutline = null;
-    private static uint[] indicesFill = null;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
-    private static float h_div_w = 0;
     private static float _angle;
+
+    private static float h_div_w = 0;
     private static float sin18 = (float)(Math.Sin(18.0 * Math.PI / 180.0));
     private static float cos18 = (float)(Math.Cos(18.0 * Math.PI / 180.0));
     private static float sin54 = (float)(Math.Sin(54.0 * Math.PI / 180.0));
