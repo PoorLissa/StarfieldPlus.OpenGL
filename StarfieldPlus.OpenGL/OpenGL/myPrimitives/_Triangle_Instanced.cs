@@ -21,8 +21,7 @@ public class myTriangleInst : myInstancedPrimitive
     public myTriangleInst(int maxInstCount)
     {
         // Number of elements in [instanceArray] that define one single instance:
-        // - 3 floats for Coordinates (x, y, radius of an escribed circle)
-        // - 1 float for angle
+        // - 3 floats for Coordinates (x, y, radius of an escribed circle) + 1 float for angle
         // - 4 floats for RGBA
         n = 8;
 
@@ -37,6 +36,7 @@ public class myTriangleInst : myInstancedPrimitive
                 vertices[i] = 0.0f;
 
             // Coordinates of an equilateral triangle, inscribed in a circle of raduis 1.0
+            // todo: precalc cos
             vertices[0] = +0.0f;
             vertices[1] = +1.0f;
             vertices[3] = +(float)Math.Cos(Math.PI/6);

@@ -58,10 +58,6 @@ public class myRectangleInst : myInstancedPrimitive
         // todo: make parent method unsafe and remove this call: see if this is faster
         unsafe void __draw(bool fill)
         {
-            // todo: do we need this?.. decide when other instanced/standard shapes are drawn successfully together with this one
-            //glBindBuffer(GL_ARRAY_BUFFER, instVbo);
-            //glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
-
             if (fill)
             {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

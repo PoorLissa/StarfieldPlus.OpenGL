@@ -124,15 +124,16 @@ namespace my
             var rInst = new myRectangleInst(10);
             var tInst = new myTriangleInst(10);
             var eInst = new myEllipseInst(10);
+            var pInst = new myPentagonInst(10);
 
             uint instanceVBO = 0, quadVAO = 0, quadVBO = 0;
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
             uint program = 0;
 
-            bool myTestShapes = true;
+            bool myTestShapes = false;
             bool mySpeedTest1 = false;
             bool mySpeedTest2 = false;
-            bool myInstanceTest = false;
+            bool myInstanceTest = true;
             bool instancesTogetherTest = false;
 
             CreateProgram_Instanced(ref program);
@@ -278,7 +279,6 @@ namespace my
 
 
                     rInst.ResetBuffer();
-                    rInst.Resize(11);
 
                     // set instance 1
                     rInst.setInstanceCoords(333, 333, 130, 130);
@@ -303,6 +303,17 @@ namespace my
                     //myPrimitive._Rectangle.Draw(gl_Width/2 - 75, gl_Height/2 - 75, 150, 150, false);
                     //myPrimitive._Rectangle.Draw(325, 325, 127, 127, false);
                     myPrimitive._Rectangle.Draw(323, 323, 150, 150, false);
+
+                    pInst.ResetBuffer();
+                    pInst.setInstanceCoords(333, 333, 200, cnt * 0.01f);
+                    pInst.setInstanceColor(1, 0.1f, 0.1f, 1);
+
+                    pInst.SetColorA(-0.5f);
+                    pInst.Draw(true);
+
+                    pInst.SetColorA(0);
+                    pInst.Draw(false);
+
 #endif
                 }
 

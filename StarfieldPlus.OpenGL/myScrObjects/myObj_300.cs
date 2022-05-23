@@ -58,7 +58,7 @@ namespace my
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
                 rotationMode = rand.Next(4);
                 gravityRate = rand.Next(101) + 1;
-                shapeType = rand.Next(7);
+                shapeType = rand.Next(9);
                 moveType = rand.Next(36);
                 radiusMode = rand.Next(5);
                 fastExplosion = rand.Next(11);
@@ -88,7 +88,8 @@ namespace my
                 shapeType = 5;  // instanced square
                 shapeType = 6;  // instanced triangle
                 shapeType = 7;  // instanced circle
-                shapeType = 5 + rand.Next(3);
+                shapeType = 8;  // instanced pentagon
+                shapeType = 5 + rand.Next(4);
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
@@ -629,6 +630,22 @@ namespace my
                             {
                                 ellipseInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, obj.time);
                                 ellipseInst.setInstanceColor(R, G, B, obj.a);
+                            }
+                        }
+                        break;
+
+                    // Instanced pentagons
+                    case 8:
+                        var pentagonInst = inst as myPentagonInst;
+
+                        for (int i = 0; i < objN; i++)
+                        {
+                            var obj = structsList[i];
+
+                            if (obj.a > 0)
+                            {
+                                pentagonInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, obj.time);
+                                pentagonInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
                         break;

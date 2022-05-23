@@ -23,6 +23,7 @@ public class myPrimitive
     public static myTriangleInst  _TriangleInst  = null;
     public static myRectangleInst _RectangleInst = null;
     public static myEllipseInst   _EllipseInst   = null;
+    public static myPentagonInst  _PentagonInst  = null;
 
     // Quick Initialization of the Predefined Static Standard Primitives
     public static void init_Line()      { if (_Line      == null) _Line      = new myLine();        }
@@ -36,6 +37,7 @@ public class myPrimitive
     public static void init_TriangleInst( int n)    { if (_TriangleInst  == null) _TriangleInst  = new myTriangleInst(n);   }
     public static void init_RectangleInst(int n)    { if (_RectangleInst == null) _RectangleInst = new myRectangleInst(n);  }
     public static void init_EllipseInst(  int n)    { if (_EllipseInst   == null) _EllipseInst   = new myEllipseInst(n);    }
+    public static void init_PentagonInst( int n)    { if (_PentagonInst  == null) _PentagonInst  = new myPentagonInst(n);   }
 
     // ---------------------------------------------------------------------------------------
 
