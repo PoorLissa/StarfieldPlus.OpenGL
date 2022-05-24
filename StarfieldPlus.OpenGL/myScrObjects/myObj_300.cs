@@ -58,7 +58,7 @@ namespace my
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
                 rotationMode = rand.Next(4);
                 gravityRate = rand.Next(101) + 1;
-                shapeType = rand.Next(9);
+                shapeType = rand.Next(10);
                 moveType = rand.Next(36);
                 radiusMode = rand.Next(5);
                 fastExplosion = rand.Next(11);
@@ -89,7 +89,8 @@ namespace my
                 shapeType = 6;  // instanced triangle
                 shapeType = 7;  // instanced circle
                 shapeType = 8;  // instanced pentagon
-                //shapeType = 5 + rand.Next(4);
+                shapeType = 9;  // instanced hexagon
+                shapeType = 5 + rand.Next(5);
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
@@ -649,6 +650,22 @@ namespace my
                             }
                         }
                         break;
+
+                    // Instanced hexagons
+                    case 9:
+                        var hexagonInst = inst as myHexagonInst;
+
+                        for (int i = 0; i < objN; i++)
+                        {
+                            var obj = structsList[i];
+
+                            if (obj.a > 0)
+                            {
+                                hexagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.time);
+                                hexagonInst.setInstanceColor(R, G, B, obj.a);
+                            }
+                        }
+                        break;
                 }
             }
 
@@ -660,10 +677,6 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
-
-            // https://stackoverflow.com/questions/30057286/how-to-use-vbos-without-vaos-with-opengl-core-profile
-            var vao = glGenVertexArray();
-            glBindVertexArray(vao);
 
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
@@ -695,6 +708,12 @@ namespace my
                     myPrimitive.init_PentagonInst(N * maxParticles);
                     myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
                     inst = myPrimitive._PentagonInst;
+                    break;
+
+                case 9:
+                    myPrimitive.init_HexagonInst(N * maxParticles);
+                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._HexagonInst;
                     break;
             }
 

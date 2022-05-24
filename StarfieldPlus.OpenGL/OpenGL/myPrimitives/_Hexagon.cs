@@ -189,7 +189,7 @@ public class myHexagon : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
+    // Move vertices data from CPU to GPU -- needs to be called each time we change the Hexagon's coordinates
     private static unsafe void updateVertices()
     {
         // Bind a buffer;

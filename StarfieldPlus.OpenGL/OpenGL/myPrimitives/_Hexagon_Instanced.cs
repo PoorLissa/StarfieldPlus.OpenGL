@@ -3,23 +3,22 @@ using static OpenGL.GL;
 using System;
 
 
-public class myPentagonInst : myInstancedPrimitive
+
+public class myHexagonInst : myInstancedPrimitive
 {
     private static float[] vertices = null;
 
     private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
     private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0;
 
-    private static float sin18 = (float)(Math.Sin(18.0 * Math.PI / 180.0));
-    private static float cos18 = (float)(Math.Cos(18.0 * Math.PI / 180.0));
-    private static float sin54 = (float)(Math.Sin(54.0 * Math.PI / 180.0));
-    private static float cos54 = (float)(Math.Cos(54.0 * Math.PI / 180.0));
+    private static float sqrt3_div2 = 0;
+    private static float h_div_w = 0;
 
     private int rotationMode;
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myPentagonInst(int maxInstCount)
+    public myHexagonInst(int maxInstCount)
     {
         // Number of elements in [instanceArray] that define one single instance:
         // - 3 floats for Coordinates (x, y, radius of an escribed circle) + 1 float for angle
@@ -30,11 +29,34 @@ public class myPentagonInst : myInstancedPrimitive
         {
             N = 0;
 
-            vertices = new float[15];
+            sqrt3_div2 = (float)(Math.Sqrt(3.0) / 2.0);
+            h_div_w    = (float)Height / (float)Width;
+
+            vertices = new float[18];
             instanceArray = new float[maxInstCount * n];
 
-            for (int i = 0; i < 15; i++)
+            for (int i = 0; i < 18; i++)
                 vertices[i] = 0.0f;
+
+            float fr = pixelY;                      // Radius
+            float frx = fr * h_div_w;               // Radius adjusted for x-coordinate
+
+            float frx_sqrt = fr * sqrt3_div2;
+            float frx_half = frx * 0.5f;
+
+            vertices[00] = -frx;
+            vertices[01] = 0;
+            vertices[03] = -frx_half;
+            vertices[04] = +frx_sqrt;
+            vertices[06] = +frx_half;
+            vertices[07] = +frx_sqrt;
+            vertices[09] = +frx;
+            vertices[10] = 0;
+            vertices[12] = +frx_half;
+            vertices[13] = -frx_sqrt;
+            vertices[15] = -frx_half;
+            vertices[16] = -frx_sqrt;
+
 
             CreateProgram();
             glUseProgram(shaderProgram);
@@ -67,26 +89,11 @@ public class myPentagonInst : myInstancedPrimitive
             else
             {
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
-                glDrawElementsInstanced(GL_LINES, 15, GL_UNSIGNED_INT, NULL, N);
+                glDrawElementsInstanced(GL_LINES, 18, GL_UNSIGNED_INT, NULL, N);
             }
         }
 
         // ---------------------------------------------------------------------------------------
-
-        vertices[00] = 0;
-        vertices[01] = +pixelY;
-
-        vertices[03] = +pixelX * cos18;
-        vertices[04] = +pixelY * sin18;
-
-        vertices[06] = +pixelX * cos54;
-        vertices[07] = -pixelY * sin54;
-
-        vertices[09] = -pixelX * cos54;
-        vertices[10] = -pixelY * sin54;
-
-        vertices[12] = -pixelX * cos18;
-        vertices[13] = +pixelY * sin18;
 
         updateInstances();
         updateVertices();
@@ -223,8 +230,11 @@ public class myPentagonInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Move vertices data from CPU to GPU -- needs to be called each time we change the Hexagon's coordinates
     private static unsafe void updateVertices()
     {
+        // Bind a buffer;
+        // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
         glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
         {
             fixed (float* v = &vertices[0])
@@ -245,12 +255,13 @@ public class myPentagonInst : myInstancedPrimitive
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
         {
-            // 3 triangles
+            // 4 triangles
             var indicesFill = new uint[]
             {
-                0, 1, 4,
-                1, 3, 4,
-                1, 2, 3
+                0, 1, 3,
+                1, 2, 3,
+                0, 4, 3,
+                0, 5, 4
             };
 
             fixed (uint* i = &indicesFill[0])
@@ -262,14 +273,15 @@ public class myPentagonInst : myInstancedPrimitive
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
         {
-            // 5 lines
+            // 6 lines
             var indicesOutline = new uint[]
             {
                 0, 1,
                 1, 2,
                 2, 3,
                 3, 4,
-                4, 0
+                4, 5,
+                5, 0
             };
 
             fixed (uint* i = &indicesOutline[0])

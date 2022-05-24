@@ -125,6 +125,7 @@ namespace my
             var tInst = new myTriangleInst(10);
             var eInst = new myEllipseInst(10);
             var pInst = new myPentagonInst(10);
+            var hInst = new myHexagonInst(10);
 
             uint instanceVBO = 0, quadVAO = 0, quadVBO = 0;
             aaa1(ref instanceVBO, ref quadVAO, ref quadVBO);
@@ -254,26 +255,21 @@ namespace my
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
                     myPrimitive._Rectangle.Draw(1000 - 100, 500 - 100, 200, 200, false);
 
-                    eInst.ResetBuffer();
-                    eInst.Resize(11);
 
+
+
+                    eInst.ResetBuffer();
                     eInst.setInstanceCoords(gl_Width / 2 - 150, gl_Height / 2 - 150, 300, 300);
                     eInst.setInstanceColor(1, 0, 1, 1);
-
                     eInst.Draw(false);
 
 
 
-
                     tInst.ResetBuffer();
-                    tInst.Resize(11);
-
                     tInst.setInstanceCoords(1000, 500, 100, cnt * 0.01f);
                     tInst.setInstanceColor(1, 0, 0, 1);
-
                     tInst.setInstanceCoords(1000, 500, 3, 0);
                     tInst.setInstanceColor(0, 1, 0, 1);
-
                     tInst.Draw(false);
 
 
@@ -298,11 +294,15 @@ namespace my
                     // update and draw all the instances
                     rInst.Draw(false);
 
+
+
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
                     //myPrimitive._Rectangle.Draw(gl_Width/2 - 75, gl_Height/2 - 75, 150, 150, false);
                     //myPrimitive._Rectangle.Draw(325, 325, 127, 127, false);
                     myPrimitive._Rectangle.Draw(323, 323, 150, 150, false);
+
+
 
                     pInst.ResetBuffer();
                     pInst.setInstanceCoords(333, 333, 200, cnt * 0.01f);
@@ -313,6 +313,28 @@ namespace my
 
                     pInst.SetColorA(0);
                     pInst.Draw(false);
+
+
+
+                    myPrimitive._Ellipse.SetColor(1, 1, 1, 1);
+                    myPrimitive._Ellipse.Draw(1333-100, 333-100, 200, 200, false);
+
+
+
+                    hInst.ResetBuffer();
+                    hInst.setInstanceCoords(1333, 333, 200, cnt * 0.01f);
+                    hInst.setInstanceColor(0.5f, 0.85f, 0.15f, 1);
+                    hInst.setInstanceCoords(1333, 333, 200 + 33, cnt * -0.01f);
+                    hInst.setInstanceColor(0.5f, 0.85f, 0.15f, 1);
+
+                    hInst.SetColorA(-0.5f);
+                    hInst.Draw(true);
+
+                    hInst.SetColorA(0);
+                    hInst.Draw(false);
+
+                    myPrimitive._Hexagon.SetColor(1, 1, 1, 1);
+                    myPrimitive._Hexagon.Draw(gl_Width / 2, gl_Height / 2, 200, false);
 
 #endif
                 }

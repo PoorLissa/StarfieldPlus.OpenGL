@@ -4,7 +4,7 @@ using System;
 
 
 /*
-    Base class for all my drawing OpenGL primitives
+    Base classes for all drawing OpenGL primitives
 */
 
 
@@ -12,7 +12,7 @@ public class myPrimitive
 {
     // ---------------------------------------------------------------------------------------
 
-    // Predefined Static Primitives
+    // Predefined Static Primitives: Standard
     public static myLine        _Line      = null;
     public static myTriangle    _Triangle  = null;
     public static myRectangle   _Rectangle = null;
@@ -20,10 +20,16 @@ public class myPrimitive
     public static myHexagon     _Hexagon   = null;
     public static myEllipse     _Ellipse   = null;
 
+    // ---------------------------------------------------------------------------------------
+
+    // Predefined Static Primitives: Instanced
     public static myTriangleInst  _TriangleInst  = null;
     public static myRectangleInst _RectangleInst = null;
-    public static myEllipseInst   _EllipseInst   = null;
     public static myPentagonInst  _PentagonInst  = null;
+    public static myHexagonInst   _HexagonInst   = null;
+    public static myEllipseInst   _EllipseInst   = null;
+
+    // ---------------------------------------------------------------------------------------
 
     // Quick Initialization of the Predefined Static Standard Primitives
     public static void init_Line()      { if (_Line      == null) _Line      = new myLine();        }
@@ -33,16 +39,26 @@ public class myPrimitive
     public static void init_Hexagon()   { if (_Hexagon   == null) _Hexagon   = new myHexagon();     }
     public static void init_Ellipse()   { if (_Ellipse   == null) _Ellipse   = new myEllipse();     }
 
+    // ---------------------------------------------------------------------------------------
+
     // Quick Initialization of the Predefined Static Instanced Primitives
-    public static void init_TriangleInst( int n)    { if (_TriangleInst  == null) _TriangleInst  = new myTriangleInst(n);   }
+    public static void init_TriangleInst (int n)    { if (_TriangleInst  == null) _TriangleInst  = new myTriangleInst(n);   }
     public static void init_RectangleInst(int n)    { if (_RectangleInst == null) _RectangleInst = new myRectangleInst(n);  }
-    public static void init_EllipseInst(  int n)    { if (_EllipseInst   == null) _EllipseInst   = new myEllipseInst(n);    }
-    public static void init_PentagonInst( int n)    { if (_PentagonInst  == null) _PentagonInst  = new myPentagonInst(n);   }
+    public static void init_PentagonInst (int n)    { if (_PentagonInst  == null) _PentagonInst  = new myPentagonInst(n);   }
+    public static void init_HexagonInst  (int n)    { if (_HexagonInst   == null) _HexagonInst    = new myHexagonInst(n);   }
+    public static void init_EllipseInst  (int n)    { if (_EllipseInst   == null) _EllipseInst   = new myEllipseInst(n);    }
 
     // ---------------------------------------------------------------------------------------
 
+    private static uint static_vao = 0;
     protected static int Width = -1, Height = -1;
     protected float _r = 0, _g = 0, _b = 0, _a = 0;
+
+    // ---------------------------------------------------------------------------------------
+
+    public myPrimitive()
+    {
+    }
 
     // ---------------------------------------------------------------------------------------
 
@@ -53,6 +69,12 @@ public class myPrimitive
         {
             Width  = width;
             Height = height;
+
+            // https://stackoverflow.com/questions/30057286/how-to-use-vbos-without-vaos-with-opengl-core-profile
+            // Need at least one VAO to be able to render;
+            // But as I don't really have a use for VAOs, it is possible to just create and bind one and forget about it:
+            static_vao = glGenVertexArray();
+            glBindVertexArray(static_vao);
         }
     }
 
