@@ -30,7 +30,7 @@ public class ScreenSaver
     // -------------------------------------------------------------------------------------------------------------------
 
     // todo:
-    // - concentric circles moving inwards. The lesss the circle is, the less is its decreasing speed. Should look like a funnel of sorts
+    // - concentric circles moving inwards. The less the circle is, the less is its decreasing speed. Should look like a funnel of sorts
 
     public void selectObject()
     {

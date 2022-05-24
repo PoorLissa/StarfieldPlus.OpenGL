@@ -32,6 +32,14 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        // Randomly return a chance: [min] out of [max]
+        public static bool randomChance(Random r, int min, int max)
+        {
+            return r.Next(max) <= min;
+        }
+
+        // -------------------------------------------------------------------------
+
         public static float getRandomNum(float min, float max, float step, Random r)
         {
             float rrr = min + step * r.Next((int)max - (int)min);

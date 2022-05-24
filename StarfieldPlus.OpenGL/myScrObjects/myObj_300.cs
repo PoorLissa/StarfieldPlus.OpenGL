@@ -24,13 +24,14 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false, doUseCenterRepel = false;
+        private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false, doUseCenterRepel = false, doUseBorderRepel = false;
         private static int x0, y0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
         private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0;
         private static float dimAlpha = 0.1f;
 
-        private static float const_f1 = 0;
+        private static float const_f1 = 0, const_f2 = 0;
         private static int   const_i1 = 0;
+
         private static myInstancedPrimitive inst = null;
 
         private float x, y, R, G, B, A, lineTh;
@@ -52,15 +53,15 @@ namespace my
 
                 doClearBuffer = myUtils.randomBool(rand);
                 doFillShapes  = myUtils.randomBool(rand);
-
-                doUseCenterRepel = rand.Next(11) == 0;
+                doUseCenterRepel = myUtils.randomChance(rand, 0, 11);
+                doUseBorderRepel = myUtils.randomChance(rand, 0, 11);
 
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
-                rotationMode = rand.Next(4);
-                gravityRate = rand.Next(101) + 1;
-                shapeType = rand.Next(10);
-                moveType = rand.Next(36);
-                radiusMode = rand.Next(5);
+                rotationMode  = rand.Next(4);
+                gravityRate   = rand.Next(101) + 1;
+                shapeType     = rand.Next(10);
+                moveType      = rand.Next(38);
+                radiusMode    = rand.Next(5);
                 fastExplosion = rand.Next(11);
 
                 // In case the rotation is enabled, we also may enable additional rotation option:
@@ -76,7 +77,7 @@ namespace my
                 // Set number of objects N:
                 N = rand.Next(666) + 100;
 
-                if (rand.Next(3) == 0)
+                if (myUtils.randomChance(rand, 0, 3))
                 {
                     N = rand.Next(11) + 1;
                 }
@@ -94,6 +95,7 @@ namespace my
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
+                //moveType = 333;
                 doUseInstancing = shapeType >= 5;
                 N = 333;
                 //N = 30000;
@@ -388,6 +390,24 @@ namespace my
                             obj.dt += 0.005f;
                             break;
 
+                        // Harmonic to int - 1
+                        case 36:
+                            if (const_f2 == 0)
+                                const_f2 = 200.0f + rand.Next(100);
+
+                            obj.dx += ((int)(Math.Sin(obj.x) * 500)) / const_f2;
+                            obj.dy += ((int)(Math.Sin(obj.y) * 500)) / const_f2;
+                            break;
+
+                        // Harmonic to int - 2
+                        case 37:
+                            if (const_f2 == 0)
+                                const_f2 = 200.0f + rand.Next(100);
+
+                            obj.x += ((int)(Math.Sin(obj.x) * 500)) / const_f2;
+                            obj.y += ((int)(Math.Sin(obj.y) * 500)) / const_f2;
+                            break;
+
                         // -----------------------------------------------------
 
                         case 333:
@@ -446,6 +466,18 @@ namespace my
                             obj.dy *= 1.005f;
                             obj.r -= 0.01f;
                         }
+                    }
+
+                    if (doUseBorderRepel)
+                    {
+                        float repelRate = 666.0f;
+
+                        // Repel from side borders
+                        obj.x -= repelRate / (gl_Width - obj.x);
+                        obj.x += repelRate / (obj.x);
+
+                        obj.y -= repelRate / (gl_Height - obj.y);
+                        obj.y += repelRate / (obj.y);
                     }
                 }
 
