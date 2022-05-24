@@ -661,8 +661,9 @@ namespace my
         {
             uint cnt = 0;
 
-            var quadVAO = glGenVertexArray();
-            glBindVertexArray(quadVAO);
+            // https://stackoverflow.com/questions/30057286/how-to-use-vbos-without-vaos-with-opengl-core-profile
+            var vao = glGenVertexArray();
+            glBindVertexArray(vao);
 
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
