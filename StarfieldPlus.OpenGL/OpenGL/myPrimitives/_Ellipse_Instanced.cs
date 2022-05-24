@@ -134,9 +134,8 @@ public class myEllipseInst : myInstancedPrimitive
                         }
 
                         // Adjust for pixel density and move into final position
-                        gl_Position.x += +2.0 / myScrSize.x * (mData[0].x + mData[0].z/2) - 1.0;
-                        gl_Position.y += -2.0 / myScrSize.y * (mData[0].y + mData[0].z/2) + 1.0;
-"
+                        gl_Position.x += +2.0 / myScrSize.x * mData[0].x - 1.0;
+                        gl_Position.y += -2.0 / myScrSize.y * mData[0].y + 1.0;"
         );
 
         // In case opacity in myColor vec is negative, we know that we should just multiply our instance's opacity by this value (with neg.sign)

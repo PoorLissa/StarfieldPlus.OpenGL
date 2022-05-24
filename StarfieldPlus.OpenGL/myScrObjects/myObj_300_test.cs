@@ -247,10 +247,6 @@ namespace my
 #else
                     // --- my instancing ----------------------
 
-                    if (cnt % 100 == 0)
-                    {
-                    }
-
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
                     myPrimitive._Rectangle.Draw(1000 - 100, 500 - 100, 200, 200, false);

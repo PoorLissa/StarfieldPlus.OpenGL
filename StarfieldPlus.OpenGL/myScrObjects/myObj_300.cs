@@ -159,8 +159,6 @@ namespace my
 
                 obj.x = x;
                 obj.y = y;
-                obj.r = 5;
-
                 obj.r = rand.Next(6) + 2;
 
                 obj.dx = 0.001f * (rand.Next(max) - max/2);
@@ -613,7 +611,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                triangleInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, obj.time);
+                                triangleInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.time);
                                 triangleInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
@@ -629,7 +627,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                ellipseInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, obj.time);
+                                ellipseInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.time);
                                 ellipseInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
@@ -645,7 +643,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                pentagonInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, obj.time);
+                                pentagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.time);
                                 pentagonInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
