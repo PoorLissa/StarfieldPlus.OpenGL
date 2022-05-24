@@ -89,7 +89,7 @@ namespace my
                 shapeType = 6;  // instanced triangle
                 shapeType = 7;  // instanced circle
                 shapeType = 8;  // instanced pentagon
-                shapeType = 5 + rand.Next(4);
+                //shapeType = 5 + rand.Next(4);
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
@@ -661,6 +661,9 @@ namespace my
         {
             uint cnt = 0;
 
+            var quadVAO = glGenVertexArray();
+            glBindVertexArray(quadVAO);
+
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
             myPrimitive.init_Pentagon();
@@ -685,6 +688,12 @@ namespace my
                     myPrimitive.init_EllipseInst(N * maxParticles);
                     myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
                     inst = myPrimitive._EllipseInst;
+                    break;
+
+                case 8:
+                    myPrimitive.init_PentagonInst(N * maxParticles);
+                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._PentagonInst;
                     break;
             }
 
