@@ -467,14 +467,14 @@ namespace my
                             break;
 
                         case 44:
-                            zzz:
+                            testCase:
                             break;
 
                         // -----------------------------------------------------
 
                         case 3333:
 
-                            goto zzz;
+                            goto testCase;
 
                             if (lifeCounter - lifeMax < 100)
                             {
