@@ -19,7 +19,7 @@ namespace my
         private class myObj_300_Particle
         {
             public bool isFirstIteration = false;
-            public float x, y, r, dx, dy, dr, a, time, dt;
+            public float x, y, r, dx, dy, dr, a, angle, dAngle, time, dTime;
         };
 
         // -------------------------------------------------------------------------
@@ -60,7 +60,7 @@ namespace my
                 rotationMode  = rand.Next(4);
                 gravityRate   = rand.Next(101) + 1;
                 shapeType     = rand.Next(10);
-                moveType      = rand.Next(38);
+                moveType      = rand.Next(44);
                 radiusMode    = rand.Next(5);
                 fastExplosion = rand.Next(11);
 
@@ -95,9 +95,9 @@ namespace my
                 //doClearBuffer = true;
                 //doClearBuffer = false;
                 //radiusMode = 2;
-                //moveType = 333;
+                //moveType = 3333;
                 doUseInstancing = shapeType >= 5;
-                N = 333;
+                N = 3333;
                 //N = 30000;
 #endif
             }
@@ -167,13 +167,16 @@ namespace my
                 obj.dy = 0.001f * (rand.Next(max) - max/2);
                 obj.a = (float)rand.NextDouble() + 0.33f;
 
-                obj.time = 0;
-                obj.dt = rotationMode < 2 ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
+                obj.angle = 0;
+                obj.dAngle = rotationMode < 2 ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
+
+                obj.time = 0 + 0.001f * rand.Next(1111);
+                obj.dTime = 0.001f * rand.Next(111);
 
                 // There will be no rotation, but the angle is set to non-zero
                 if (rotationMode == 3)
                 {
-                    obj.time = (float)rand.NextDouble() * 111;
+                    obj.angle = (float)rand.NextDouble() * 111;
                 }
 
                 obj.dr = (radiusMode == 0) ? 0.0005f * (rand.Next(100)+1) : 0;
@@ -200,12 +203,14 @@ namespace my
                     obj.y += obj.dy;
                     obj.a -= 0.005f;
 
-                    obj.time += obj.dt;
+                    obj.angle += obj.dAngle;
+                    obj.time += obj.dTime;
                     obj.r += obj.dr;
 
+/*
                     if (obj.y > gl_Height && moveType != 6)
                         obj.a = 0;
-
+*/
                     liveCnt += obj.a > 0 ? 1 : 0;
 
                     switch (moveType)
@@ -387,7 +392,7 @@ namespace my
 
                         // Ever increasing rotation speed
                         case 35:
-                            obj.dt += 0.005f;
+                            obj.dAngle += 0.005f;
                             break;
 
                         // Harmonic to int - 1
@@ -408,9 +413,96 @@ namespace my
                             obj.y += ((int)(Math.Sin(obj.y) * 500)) / const_f2;
                             break;
 
+                        // Random changes in dx, dy
+                        case 38:
+                            obj.dx += 0.001f * rand.Next(333) * myUtils.randomSign(rand);
+                            obj.dy += 0.001f * rand.Next(333) * myUtils.randomSign(rand);
+                            break;
+
+                        // Vertical oscillation
+                        case 39:
+                            obj.dx *= 0.75f;
+                            obj.dy += (rand.Next(10) + 1) * (obj.y > y0 ? -0.1f : 0.1f);
+                            break;
+
+                        // Horizontal oscillation
+                        case 40:
+                            obj.dx += (rand.Next(10) + 1) * (obj.x > x0 ? -0.1f : 0.1f);
+                            obj.dy *= 0.75f;
+                            break;
+
+                        // Horizontal + Vertical oscillation
+                        case 41:
+                            obj.dx += (rand.Next(100) + 1) * (obj.x > x0 ? -0.01f : 0.01f);
+                            obj.dy += (rand.Next(100) + 1) * (obj.y > y0 ? -0.01f : 0.01f);
+                            t = 11;
+                            break;
+
+                        // Sinking/floating, where the weight is the particle's color
+                        case 42:
+                            obj.dx *= (float)rand.NextDouble();
+
+                            if ((R + G + B) * obj.a * 2.0f > 1.0f)
+                            {
+                                obj.dy *= obj.dy > 0 ? 1 : -1;
+                            }
+                            else
+                            {
+                                obj.dy *= obj.dy < 0 ? 1 : -1;
+                            }
+                            break;
+
+                        // Sinking/sticking, where the weight is the particle's color
+                        case 43:
+                            obj.dx *= (float)rand.NextDouble();
+
+                            if ((R + G + B) * obj.a > 1.0f)
+                            {
+                                obj.dy *= obj.dy > 0 ? 1 : -1;
+                            }
+                            else
+                            {
+                                obj.dy = 0;
+                            }
+                            break;
+
+                        case 44:
+                            zzz:
+                            break;
+
                         // -----------------------------------------------------
 
-                        case 333:
+                        case 3333:
+
+                            goto zzz;
+
+                            if (lifeCounter - lifeMax < 100)
+                            {
+                                obj.a += 0.0075f;
+                            }
+                            else
+                            {
+                                float dist = (float)((x - obj.x)*(x - obj.x) + (y - obj.y) * (y - obj.y));
+
+                                if (dist > 10000)
+                                {
+                                    //obj.dy += 0.1f;
+                                }
+
+                                //obj.x += (float)Math.Sin(lifeCounter*0.01f) * 2;
+                                //obj.y += (float)Math.Cos(lifeCounter*0.01f) * 2;
+
+                                //obj.x = x + (float)Math.Sin(obj.time/10) * dist;
+                                //obj.y = y + (float)Math.Cos(obj.time/10) * dist;
+
+                                //obj.x += (float)Math.Sin(obj.time / 10) * 3;
+                                //obj.y += (float)Math.Cos(obj.time / 10) * 3;
+
+                                //obj.x += (float)Math.Sin(obj.time / 10) * 1;
+                                //obj.y += (float)Math.Cos(obj.time / 10) * 1;
+
+                            }
+
                             break;
                     }
 
@@ -508,7 +600,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                myPrimitive._Hexagon.SetAngle(obj.time);
+                                myPrimitive._Hexagon.SetAngle(obj.angle);
 
                                 if (doFillShapes)
                                 {
@@ -532,7 +624,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                myPrimitive._Triangle.SetAngle(obj.time);
+                                myPrimitive._Triangle.SetAngle(obj.angle);
 
                                 if (doFillShapes)
                                 {
@@ -556,7 +648,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                myPrimitive._Pentagon.SetAngle(obj.time);
+                                myPrimitive._Pentagon.SetAngle(obj.angle);
 
                                 if (doFillShapes)
                                 {
@@ -580,7 +672,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                myPrimitive._Rectangle.SetAngle(obj.time);
+                                myPrimitive._Rectangle.SetAngle(obj.angle);
 
                                 if (doFillShapes)
                                 {
@@ -628,7 +720,7 @@ namespace my
                             {
                                 rectInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
                                 rectInst.setInstanceColor(R, G, B, obj.a);
-                                rectInst.setInstanceAngle(obj.time);
+                                rectInst.setInstanceAngle(obj.angle);
                             }
                         }
                         break;
@@ -643,7 +735,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                triangleInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.time);
+                                triangleInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
                                 triangleInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
@@ -659,7 +751,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                ellipseInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.time);
+                                ellipseInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
                                 ellipseInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
@@ -675,7 +767,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                pentagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.time);
+                                pentagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
                                 pentagonInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
@@ -691,7 +783,7 @@ namespace my
 
                             if (obj.a > 0)
                             {
-                                hexagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.time);
+                                hexagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
                                 hexagonInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
