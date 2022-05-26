@@ -24,7 +24,8 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false, doUseCenterRepel = false, doUseBorderRepel = false;
+        private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false, doUseCenterRepel = false,
+                            doUseBorderRepel = false, doGenerateAtCenter = false;
         private static int x0, y0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
         private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0;
         private static float dimAlpha = 0.1f;
@@ -51,16 +52,17 @@ namespace my
                 colorPicker = new myColorPicker(gl_Width, gl_Height);
                 list = new List<myObject>();
 
-                doClearBuffer = myUtils.randomBool(rand);
-                doFillShapes  = myUtils.randomBool(rand);
-                doUseCenterRepel = myUtils.randomChance(rand, 0, 11);
-                doUseBorderRepel = myUtils.randomChance(rand, 0, 11);
+                doClearBuffer      = myUtils.randomBool(rand);
+                doFillShapes       = myUtils.randomBool(rand);
+                doUseCenterRepel   = myUtils.randomChance(rand, 0, 11);
+                doUseBorderRepel   = myUtils.randomChance(rand, 0, 11);
+                doGenerateAtCenter = myUtils.randomChance(rand, 0, 11);
 
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
                 rotationMode  = rand.Next(4);
                 gravityRate   = rand.Next(101) + 1;
                 shapeType     = rand.Next(10);
-                moveType      = rand.Next(44);
+                moveType      = rand.Next(51);
                 radiusMode    = rand.Next(5);
                 fastExplosion = rand.Next(11);
 
@@ -97,9 +99,19 @@ namespace my
                 //radiusMode = 2;
                 //moveType = 3333;
                 doUseInstancing = shapeType >= 5;
-                N = 3333;
+                N = 333;
                 //N = 30000;
 #endif
+
+                // Generation at center of the screen does not look good for some of the move modes;
+                // Make sure it is turned off for those particular modes:
+                {
+                    int[] noCenterModes = { 13, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 39, 40, 42, 43, 44, 49 };
+
+                    foreach (var mode in noCenterModes)
+                        if (moveType == mode)
+                            doGenerateAtCenter = false;
+                }
             }
 
             structsList = new List<myObj_300_Particle>();
@@ -159,8 +171,23 @@ namespace my
 
                 obj.isFirstIteration = true;
 
-                obj.x = x;
-                obj.y = y;
+                // Generate every particle the the center of the screen or at the position of our object
+                if (doGenerateAtCenter)
+                {
+                    obj.x = x0;
+                    obj.y = y0;
+
+                    if (moveType == 6)
+                    {
+                        obj.y = 111;
+                    }
+                }
+                else
+                {
+                    obj.x = x;
+                    obj.y = y;
+                }
+
                 obj.r = rand.Next(6) + 2;
 
                 obj.dx = 0.001f * (rand.Next(max) - max/2);
@@ -419,22 +446,30 @@ namespace my
                             obj.dy += 0.001f * rand.Next(333) * myUtils.randomSign(rand);
                             break;
 
-                        // Vertical oscillation
+                        // Vertical oscillation -- global
                         case 39:
                             obj.dx *= 0.75f;
                             obj.dy += (rand.Next(10) + 1) * (obj.y > y0 ? -0.1f : 0.1f);
                             break;
 
-                        // Horizontal oscillation
+                        // Horizontal oscillation -- global
                         case 40:
                             obj.dx += (rand.Next(10) + 1) * (obj.x > x0 ? -0.1f : 0.1f);
                             obj.dy *= 0.75f;
                             break;
 
-                        // Horizontal + Vertical oscillation
+                        // Horizontal + Vertical oscillation -- global
                         case 41:
-                            obj.dx += (rand.Next(100) + 1) * (obj.x > x0 ? -0.01f : 0.01f);
-                            obj.dy += (rand.Next(100) + 1) * (obj.y > y0 ? -0.01f : 0.01f);
+                            if (doGenerateAtCenter)
+                            {
+                                obj.dx += (rand.Next(1111) + 1) * (obj.x > x0 ? -0.01f : 0.01f);
+                                obj.dy += (rand.Next(1111) + 1) * (obj.y > y0 ? -0.01f : 0.01f);
+                            }
+                            else
+                            {
+                                obj.dx += (rand.Next(100) + 1) * (obj.x > x0 ? -0.01f : 0.01f);
+                                obj.dy += (rand.Next(100) + 1) * (obj.y > y0 ? -0.01f : 0.01f);
+                            }
                             t = 11;
                             break;
 
@@ -466,14 +501,63 @@ namespace my
                             }
                             break;
 
+                        // Vertical oscillation -- local 1
                         case 44:
+                            obj.dx *= 0.85f;
+                            obj.dy += (rand.Next(333) + 1) * (obj.y > y ? -0.01f : 0.01f);
+                            t = 11;
+                            break;
+
+                        // Vertical oscillation -- local 2
+                        case 45:
+                            obj.dx *= 0.999f;
+                            obj.dy += (rand.Next(333) + 1) * (obj.y > y ? -0.01f : 0.01f);
+                            t = 11;
+                            break;
+
+                        // Horizontal oscillation -- local 1
+                        case 46:
+                            obj.dy *= 0.85f;
+                            obj.dx += (rand.Next(333) + 1) * (obj.x > x ? -0.01f : 0.01f);
+                            t = 11;
+                            break;
+
+                        // Horizontal oscillation -- local 2
+                        case 47:
+                            obj.dy *= 0.999f;
+                            obj.dx += (rand.Next(333) + 1) * (obj.x > x ? -0.01f : 0.01f);
+                            t = 11;
+                            break;
+
+                        // Horizontal + Vertical oscillation -- local
+                        case 48:
+                            obj.dx += (rand.Next(500) + 1) * (obj.x > x ? -0.01f : 0.01f);
+                            obj.dy += (rand.Next(500) + 1) * (obj.y > y ? -0.01f : 0.01f);
+                            t = 11;
+                            break;
+
+                        // Horizontal oscillation -- local + Vertical compression
+                        case 49:
+                            obj.dy *= 0.95f;
+                            obj.dx += (rand.Next(500) + 1) * (obj.x > x ? -0.01f : 0.01f);
+                            obj.y -= (obj.y - gl_Height/2) / 50.0f;
+                            break;
+
+                        // Horizontal + Vertical oscillation -- local + Vertical compression + Horizontal compression
+                        case 50:
+                            obj.dx += (rand.Next(500) + 1) * (obj.x > x ? -0.01f : 0.01f);
+                            obj.dy += (rand.Next(500) + 1) * (obj.y > y ? -0.01f : 0.01f);
+                            obj.x -= (obj.x - gl_Width /2) / 10.0f;
+                            obj.y -= (obj.y - gl_Height/2) / 10.0f;
+                            break;
+
+                        case 51:
                             testCase:
                             break;
 
                         // -----------------------------------------------------
 
                         case 3333:
-
                             goto testCase;
 
                             if (lifeCounter - lifeMax < 100)
