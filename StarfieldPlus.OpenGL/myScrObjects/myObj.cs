@@ -12,7 +12,7 @@ namespace my
 {
     public class myObject
     {
-        public static int gl_Width, gl_Height;
+        public static int gl_Width, gl_Height, renderDelay = 25;
 
         // -------------------------------------------------------------------------
 
@@ -24,15 +24,6 @@ namespace my
 
         protected float _a, _r, _g, _b;
 
-        // -------------------------------------------------------------------------
-#if false
-        protected static Pen p = null;
-        protected static SolidBrush br = null;
-        protected static Graphics g = null;
-        protected static Form form = null;
-        protected static Font f = null;
-        protected static bool isAlive = true;
-#endif
         // -------------------------------------------------------------------------
 
         public myObject()
@@ -59,6 +50,13 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        protected virtual string CollectCurrentInfo()
+        {
+            return string.Empty;
+        }
+
+        // -------------------------------------------------------------------------
+
         // Override it for every derived class to implement the logic
         protected virtual void Process(Window window)
         {
@@ -66,10 +64,31 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        protected static void processInput(Window window)
+        protected void processInput(Window window)
         {
+            // Exit
             if (Glfw.GetKey(window, GLFW.Keys.Escape) == GLFW.InputState.Press)
+            {
                 Glfw.SetWindowShouldClose(window, true);
+            }
+
+            // Show some info
+            if (Glfw.GetKey(window, GLFW.Keys.Tab) == GLFW.InputState.Press)
+            {
+                MessageBox.Show(CollectCurrentInfo(), "Current info", MessageBoxButtons.OK);
+            }
+
+            // Increase speed
+            if (Glfw.GetKey(window, GLFW.Keys.Up) == GLFW.InputState.Press)
+            {
+                renderDelay++;
+            }
+
+            // Increase speed
+            if (Glfw.GetKey(window, GLFW.Keys.Down) == GLFW.InputState.Press)
+            {
+                renderDelay -= (renderDelay > 0) ? 1 : 0;
+            }
         }
 
         // -------------------------------------------------------------------------

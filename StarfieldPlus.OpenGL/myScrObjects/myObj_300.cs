@@ -20,18 +20,19 @@ namespace my
         {
             public bool isFirstIteration = false;
             public float x, y, r, dx, dy, dr, a, angle, dAngle, time, dTime;
+            public int i1, i2, i3;
         };
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false, doUseCenterRepel = false,
                             doUseBorderRepel = false, doGenerateAtCenter = false;
-        private static int x0, y0, t = 25, N = 1, gravityRate = 0, maxParticles = 25;
+        private static int x0, y0, N = 1, gravityRate = 0, maxParticles = 25, maxSize = 6;
         private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0;
         private static float dimAlpha = 0.1f;
 
         private static float const_f1 = 0, const_f2 = 0;
-        private static int   const_i1 = 0;
+        private static int   const_i1 = 0, const_i2 = 0;
 
         private static myInstancedPrimitive inst = null;
 
@@ -40,78 +41,13 @@ namespace my
 
         private List<myObj_300_Particle> structsList = null;
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_300()
         {
             if (colorPicker == null)
             {
-                x0 = gl_Width  / 2;
-                y0 = gl_Height / 2;
-
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                doClearBuffer      = myUtils.randomBool(rand);
-                doFillShapes       = myUtils.randomBool(rand);
-                doUseCenterRepel   = myUtils.randomChance(rand, 0, 11);
-                doUseBorderRepel   = myUtils.randomChance(rand, 0, 11);
-                doGenerateAtCenter = myUtils.randomChance(rand, 0, 11);
-
-                // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
-                rotationMode  = rand.Next(4);
-                gravityRate   = rand.Next(101) + 1;
-                shapeType     = rand.Next(10);
-                moveType      = rand.Next(51);
-                radiusMode    = rand.Next(5);
-                fastExplosion = rand.Next(11);
-
-                // In case the rotation is enabled, we also may enable additional rotation option:
-                if (rotationMode < 2)
-                {
-                    rotationSubMode = rand.Next(7);
-                    rotationSubMode = rotationSubMode > 2 ? 0 : rotationSubMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
-                }
-
-                const_f1 = (float)rand.NextDouble() * myUtils.randomSign(rand);
-                const_i1 = rand.Next(300) + 100;
-
-                // Set number of objects N:
-                N = rand.Next(666) + 100;
-
-                if (myUtils.randomChance(rand, 0, 3))
-                {
-                    N = rand.Next(11) + 1;
-                }
-
-                t = 1;
-
-#if true
-                shapeType = 0;
-                shapeType = 5;  // instanced square
-                shapeType = 6;  // instanced triangle
-                shapeType = 7;  // instanced circle
-                shapeType = 8;  // instanced pentagon
-                shapeType = 9;  // instanced hexagon
-                shapeType = 5 + rand.Next(5);
-                //doClearBuffer = true;
-                //doClearBuffer = false;
-                //radiusMode = 2;
-                //moveType = 3333;
-                doUseInstancing = shapeType >= 5;
-                N = 333;
-                //N = 30000;
-#endif
-
-                // Generation at center of the screen does not look good for some of the move modes;
-                // Make sure it is turned off for those particular modes:
-                {
-                    int[] noCenterModes = { 13, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 39, 40, 42, 43, 44, 49 };
-
-                    foreach (var mode in noCenterModes)
-                        if (moveType == mode)
-                            doGenerateAtCenter = false;
-                }
+                init();
             }
 
             structsList = new List<myObj_300_Particle>();
@@ -124,7 +60,121 @@ namespace my
             generateNew();
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time initialization
+        private void init()
+        {
+            x0 = gl_Width  / 2;
+            y0 = gl_Height / 2;
+
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            doClearBuffer      = myUtils.randomBool(rand);
+            doFillShapes       = myUtils.randomBool(rand);
+            doUseCenterRepel   = myUtils.randomChance(rand, 0, 11);
+            doUseBorderRepel   = myUtils.randomChance(rand, 0, 11);
+            doGenerateAtCenter = myUtils.randomChance(rand, 0, 11);
+
+            // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
+            rotationMode  = rand.Next(4);
+            gravityRate   = rand.Next(101) + 1;
+            shapeType     = rand.Next(10);
+            moveType      = rand.Next(54);
+            radiusMode    = rand.Next(5);
+            fastExplosion = rand.Next(11);
+
+            // In case the rotation is enabled, we also may enable additional rotation option:
+            if (rotationMode < 2)
+            {
+                rotationSubMode = rand.Next(7);
+                rotationSubMode = rotationSubMode > 2 ? 0 : rotationSubMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
+            }
+
+            const_f1 = (float)rand.NextDouble() * myUtils.randomSign(rand);
+            const_i1 = rand.Next(300) + 100;
+
+            // Set number of objects N:
+            N = rand.Next(666) + 100;
+
+            if (myUtils.randomChance(rand, 0, 3))
+            {
+                N = rand.Next(11) + 1;
+            }
+
+            // Set max size of a particle:
+            if (myUtils.randomChance(rand, 0, 3))
+            {
+                maxSize += rand.Next(66);
+            }
+
+            renderDelay = 1;
+
+#if true
+            shapeType = 0;
+            shapeType = 5;  // instanced square
+            shapeType = 6;  // instanced triangle
+            shapeType = 7;  // instanced circle
+            shapeType = 8;  // instanced pentagon
+            shapeType = 9;  // instanced hexagon
+            shapeType = 5 + rand.Next(5);
+            //doClearBuffer = true;
+            //doClearBuffer = false;
+            //radiusMode = 2;
+            //moveType = 3333;
+            doUseInstancing = shapeType >= 5;
+            N = 333;
+            //N = 30000;
+#endif
+
+            // Generation at center of the screen does not look good for some of the move modes;
+            // Make sure it is turned off for those particular modes (at least most of the times, anyway)
+            if (myUtils.randomChance(rand, 95, 100))
+            {
+                int[] noCenterModes = { 13, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 39, 40, 42, 43, 44, 49 };
+
+                foreach (var mode in noCenterModes)
+                    if (moveType == mode)
+                        doGenerateAtCenter = false;
+            }
+
+            // Set up some constants, depending on the current movement mode
+            {
+                if (moveType == 51 || moveType == 52)
+                {
+                    const_i1 = rand.Next(15) + 1;
+                    const_i2 = rand.Next(15) + 1;
+                }
+
+                if (moveType == 53)
+                {
+                    const_i1 = gl_Height / (rand.Next(20) + 5);
+                    const_f1 = 0.03f * (rand.Next(100) + 10);
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override string CollectCurrentInfo()
+        {
+            string str = $"Obj = myObj_300;\n" +
+                            $"N = {N};\n" +
+                            $"renderDelay = {renderDelay}\n" +
+                            $"moveType = {moveType};\n" +
+                            $"shapeType = {shapeType};\n" +
+                            $"rotationMode = {rotationMode};\n" +
+                            $"rotationSubMode = {rotationSubMode};\n" +
+                            $"maxSize = {maxSize};\n" +
+                            $"const_i1 = {const_i1}\n" +
+                            $"const_i2 = {const_i2}\n" +
+                            $"const_f1 = {const_f1}\n" +
+                            $"const_f2 = {const_f2}\n";
+            return str;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
@@ -188,7 +238,7 @@ namespace my
                     obj.y = y;
                 }
 
-                obj.r = rand.Next(6) + 2;
+                obj.r = rand.Next(maxSize) + 2;
 
                 obj.dx = 0.001f * (rand.Next(max) - max/2);
                 obj.dy = 0.001f * (rand.Next(max) - max/2);
@@ -212,7 +262,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Move()
         {
@@ -470,7 +520,7 @@ namespace my
                                 obj.dx += (rand.Next(100) + 1) * (obj.x > x0 ? -0.01f : 0.01f);
                                 obj.dy += (rand.Next(100) + 1) * (obj.y > y0 ? -0.01f : 0.01f);
                             }
-                            t = 11;
+                            renderDelay = 11;
                             break;
 
                         // Sinking/floating, where the weight is the particle's color
@@ -505,35 +555,35 @@ namespace my
                         case 44:
                             obj.dx *= 0.85f;
                             obj.dy += (rand.Next(333) + 1) * (obj.y > y ? -0.01f : 0.01f);
-                            t = 11;
+                            renderDelay = 11;
                             break;
 
                         // Vertical oscillation -- local 2
                         case 45:
                             obj.dx *= 0.999f;
                             obj.dy += (rand.Next(333) + 1) * (obj.y > y ? -0.01f : 0.01f);
-                            t = 11;
+                            renderDelay = 11;
                             break;
 
                         // Horizontal oscillation -- local 1
                         case 46:
                             obj.dy *= 0.85f;
                             obj.dx += (rand.Next(333) + 1) * (obj.x > x ? -0.01f : 0.01f);
-                            t = 11;
+                            renderDelay = 11;
                             break;
 
                         // Horizontal oscillation -- local 2
                         case 47:
                             obj.dy *= 0.999f;
                             obj.dx += (rand.Next(333) + 1) * (obj.x > x ? -0.01f : 0.01f);
-                            t = 11;
+                            renderDelay = 11;
                             break;
 
                         // Horizontal + Vertical oscillation -- local
                         case 48:
                             obj.dx += (rand.Next(500) + 1) * (obj.x > x ? -0.01f : 0.01f);
                             obj.dy += (rand.Next(500) + 1) * (obj.y > y ? -0.01f : 0.01f);
-                            t = 11;
+                            renderDelay = 11;
                             break;
 
                         // Horizontal oscillation -- local + Vertical compression
@@ -551,7 +601,69 @@ namespace my
                             obj.y -= (obj.y - gl_Height/2) / 10.0f;
                             break;
 
+                        // Vertical/Horizontal movement, taking random turns -- keep initial sign
                         case 51:
+                            if (obj.isFirstIteration)
+                            {
+                                obj.isFirstIteration = false;
+
+                                obj.i1 = obj.dx > 0 ? 1 : -1;   // keep the sign of dx and dy
+                                obj.i2 = obj.dy > 0 ? 1 : -1;
+                                obj.i3 = rand.Next(22) + 11;
+                                obj.i3 *= const_i1;
+
+                                if (myUtils.randomBool(rand))
+                                    obj.dx = 0;
+                                else
+                                    obj.dy = 0;
+                            }
+
+                            if (myUtils.randomChance(rand, 0, obj.i3))
+                            {
+                                float obj_dz = obj.dx;
+                                obj.dx = (float)Math.Abs(obj.dy) * obj.i1;
+                                obj.dy = (float)Math.Abs(obj_dz) * obj.i2;
+                            }
+                            break;
+
+                        // Vertical/Horizontal movement, taking random turns -- sign randomized as well
+                        case 52:
+                            if (obj.isFirstIteration)
+                            {
+                                obj.isFirstIteration = false;
+
+                                obj.i1 = obj.dx > 0 ? 1 : -1;   // keep the sign of dx and dy
+                                obj.i2 = obj.dy > 0 ? 1 : -1;
+                                obj.i3 = rand.Next(22) + 11;
+                                obj.i3 *= const_i1;
+
+                                if (myUtils.randomBool(rand))
+                                    obj.dx = 0;
+                                else
+                                    obj.dy = 0;
+                            }
+
+                            if (myUtils.randomChance(rand, 0, obj.i3))
+                            {
+                                if (myUtils.randomChance(rand, 0, const_i2))
+                                    obj.i1 *= -1;
+
+                                if (myUtils.randomChance(rand, 0, const_i2))
+                                    obj.i2 *= -1;
+
+                                float obj_dz = obj.dx;
+                                obj.dx = (float)Math.Abs(obj.dy) * obj.i1;
+                                obj.dy = (float)Math.Abs(obj_dz) * obj.i2;
+                            }
+                            break;
+
+                        // Sideways movement in n streams (similar to case 34)
+                        case 53:
+                            int pos = (int)(obj.y / const_i1);
+                            obj.x += (pos % 2 == 0) ? const_f1 : -const_f1;
+                            break;
+
+                        case 54:
                             testCase:
                             break;
 
@@ -666,7 +778,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Show()
         {
@@ -878,7 +990,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Process(Window window)
         {
@@ -991,13 +1103,13 @@ namespace my
                     }
                 }
 
-                System.Threading.Thread.Sleep(t);
+                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         unsafe void readPixel(int x, int y)
         {
@@ -1007,8 +1119,6 @@ namespace my
             {
                 glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, ppp);
             }
-
-            ;
         }
     }
 };
