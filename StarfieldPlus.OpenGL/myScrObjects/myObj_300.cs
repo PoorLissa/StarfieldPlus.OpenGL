@@ -28,7 +28,7 @@ namespace my
         private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false, doUseCenterRepel = false,
                             doUseBorderRepel = false, doGenerateAtCenter = false;
         private static int x0, y0, N = 1, gravityRate = 0, maxParticles = 25, maxSize = 6;
-        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0;
+        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0, colorMode = 0;
         private static float dimAlpha = 0.1f;
 
         private static float const_f1 = 0, const_f2 = 0;
@@ -76,6 +76,15 @@ namespace my
             doUseCenterRepel   = myUtils.randomChance(rand, 0, 11);
             doUseBorderRepel   = myUtils.randomChance(rand, 0, 11);
             doGenerateAtCenter = myUtils.randomChance(rand, 0, 11);
+
+            // In case the colorPicker has an underlying image, we might want to draw every particle using the image color at this particular point
+            if (colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE || colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT)
+            {
+                if (myUtils.randomChance(rand, 0, 7))
+                {
+                    colorMode = 1;
+                }
+            }
 
             // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
             rotationMode  = rand.Next(4);
@@ -159,14 +168,15 @@ namespace my
 
         protected override string CollectCurrentInfo()
         {
-            string str = $"Obj = myObj_300;\n" +
-                            $"N = {N};\n" +
+            string str = $"Obj = myObj_300\n\n" +
+                            $"N = {N}\n" +
                             $"renderDelay = {renderDelay}\n" +
-                            $"moveType = {moveType};\n" +
-                            $"shapeType = {shapeType};\n" +
-                            $"rotationMode = {rotationMode};\n" +
-                            $"rotationSubMode = {rotationSubMode};\n" +
-                            $"maxSize = {maxSize};\n" +
+                            $"moveType = {moveType}\n" +
+                            $"shapeType = {shapeType}\n" +
+                            $"rotationMode = {rotationMode}\n" +
+                            $"rotationSubMode = {rotationSubMode}\n" +
+                            $"colorMode = {colorMode}\n" +
+                            $"maxSize = {maxSize}\n" +
                             $"const_i1 = {const_i1}\n" +
                             $"const_i2 = {const_i2}\n" +
                             $"const_f1 = {const_f1}\n" +
@@ -914,6 +924,9 @@ namespace my
 
                             if (obj.a > 0)
                             {
+                                if (colorMode == 1)
+                                    colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
+
                                 rectInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
                                 rectInst.setInstanceColor(R, G, B, obj.a);
                                 rectInst.setInstanceAngle(obj.angle);
@@ -931,6 +944,9 @@ namespace my
 
                             if (obj.a > 0)
                             {
+                                if (colorMode == 1)
+                                    colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
+
                                 triangleInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
                                 triangleInst.setInstanceColor(R, G, B, obj.a);
                             }
@@ -947,6 +963,9 @@ namespace my
 
                             if (obj.a > 0)
                             {
+                                if (colorMode == 1)
+                                    colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
+
                                 ellipseInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
                                 ellipseInst.setInstanceColor(R, G, B, obj.a);
                             }
@@ -963,6 +982,9 @@ namespace my
 
                             if (obj.a > 0)
                             {
+                                if (colorMode == 1)
+                                    colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
+
                                 pentagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
                                 pentagonInst.setInstanceColor(R, G, B, obj.a);
                             }
@@ -979,6 +1001,9 @@ namespace my
 
                             if (obj.a > 0)
                             {
+                                if (colorMode == 1)
+                                    colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
+
                                 hexagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
                                 hexagonInst.setInstanceColor(R, G, B, obj.a);
                             }
