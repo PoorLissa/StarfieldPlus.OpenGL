@@ -16,7 +16,7 @@ namespace my
         private float x, y, dx, dy, Size, angle, dAngle;
         private float A = 0, R = 0, G = 0, B = 0;
 
-        private static bool doClearBuffer = false, doFillShapes = false;
+        private static bool doClearBuffer = false, doFillShapes = false, doConnect = false;
         private static int minX = 0, minY = 0, maxX = 0, maxY = 0, maxSize = 0, N = 1;
         private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0;
         private static float dimAlpha = 0.25f;
@@ -41,6 +41,7 @@ namespace my
 */
                 doClearBuffer = myUtils.randomBool(rand);
                 doFillShapes  = myUtils.randomBool(rand);
+                doConnect     = myUtils.randomBool(rand);
 
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
                 rotationMode = rand.Next(4);
@@ -194,7 +195,8 @@ namespace my
         {
             uint cnt = 0;
 
-            N = 500;
+
+            N = 50;
             renderDelay = 10;
 
 
@@ -232,7 +234,11 @@ namespace my
                 }
 
                 inst.ResetBuffer();
-                myPrimitive._LineInst.ResetBuffer();
+
+                if (doConnect)
+                {
+                    myPrimitive._LineInst.ResetBuffer();
+                }
 
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -240,15 +246,21 @@ namespace my
                     obj.Show();
                     obj.Move();
 
-                    for (int j = i+1; j < list.Count; j++)
+                    if (doConnect)
                     {
-                        var obj2 = list[j] as myObj_010;
-                        myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj2.x, obj2.y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
+                        for (int j = i + 1; j < list.Count; j++)
+                        {
+                            var obj2 = list[j] as myObj_010;
+                            myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj2.x, obj2.y);
+                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.033f);
+                        }
                     }
                 }
 
-                myPrimitive._LineInst.Draw();
+                if (doConnect)
+                {
+                    myPrimitive._LineInst.Draw();
+                }
 
                 if (doFillShapes)
                 {
@@ -278,8 +290,17 @@ namespace my
 
         private void initShapes()
         {
+            // Find out how many lines do we need to connect each particle with the rest of them
+            int totalLines = 0;
+            for (int i = 0; i < N; i++)
+                totalLines += i;
+
             myPrimitive.init_Rectangle();
-            myPrimitive.init_LineInst(N * N);
+
+            if (doConnect)
+            {
+                myPrimitive.init_LineInst(totalLines);
+            }
 
             switch (shapeType)
             {

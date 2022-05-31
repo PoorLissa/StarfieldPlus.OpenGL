@@ -59,6 +59,7 @@ public class myLineInst : myInstancedPrimitive
 
     private static void CreateProgram()
     {
+        // Use gl_VertexID to be able to address the first or the second pair of coordinates
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
@@ -67,10 +68,12 @@ public class myLineInst : myInstancedPrimitive
 
                     main: @"rgbaColor = mData[1];
 
+                            int idx = gl_VertexID * 2;
+
                             float realSizeX = +2.0 / myScrSize.x;
                             float realSizeY = -2.0 / myScrSize.y;
 
-                            gl_Position = vec4(realSizeX * mData[0][gl_VertexID * 2] - 1.0, realSizeY * mData[0][gl_VertexID * 2 + 1] + 1.0, 1.0, 1.0);"
+                            gl_Position = vec4(realSizeX * mData[0][idx] - 1.0, realSizeY * mData[0][idx+1] + 1.0, 1.0, 1.0);"
         );
 
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
