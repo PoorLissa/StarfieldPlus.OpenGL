@@ -5,10 +5,12 @@ using System;
 
 public class myLine : myPrimitive
 {
-    private static uint vao = 0, vbo = 0, program = 0;
+    private static uint vbo = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
     private static float _angle = 0;
+
+    // -------------------------------------------------------------------------------------------------------------------
 
     public myLine()
     {
@@ -16,19 +18,18 @@ public class myLine : myPrimitive
         {
             vertices = new float[4];
 
-            vao = glGenVertexArray();
-            vbo = glGenBuffer();
-
             CreateProgram();
-            locationColor = glGetUniformLocation(program, "myColor");
-            locationAngle = glGetUniformLocation(program, "myAngle");
-            locationCenter = glGetUniformLocation(program, "myCenter");
-            locationScrSize = glGetUniformLocation(program, "myScrSize");
+            glUseProgram(shaderProgram);
+            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
+            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            vbo = glGenBuffer();
         }
     }
+
+    // -------------------------------------------------------------------------------------------------------------------
 
     public void Draw(float x1, float y1, float x2, float y2, float lineWidth = 1.0f)
     {
@@ -55,11 +56,11 @@ public class myLine : myPrimitive
             vertices[3] = y2;
         }
 
-        CreateVertices();
+        updateVertices();
 
-        glUseProgram(program);
+        glUseProgram(shaderProgram);
         setColor(locationColor, _r, _g, _b, _a);
-        setAngle(locationAngle, _angle);
+        glUniform1f(locationAngle, _angle);
 
         // Set the center of rotation
         if (_angle != 0.0f)
@@ -73,20 +74,21 @@ public class myLine : myPrimitive
         glDrawArrays(GL_LINES, 0, 2);
     }
 
+    // -------------------------------------------------------------------------------------------------------------------
+
     public void SetAngle(float angle)
     {
         _angle = angle;
     }
 
-    private static void setAngle(int location, float angle)
-    {
-        glUniform1f(location, angle);
-    }
+    // -------------------------------------------------------------------------------------------------------------------
 
     private static void CreateProgram()
     {
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-                "layout (location = 0) in vec2 pos; uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+                "layout (location = 0) in vec2 pos;" +
+                "   uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+
                     main: @"if (myAngle == 0)
                             {
                                 gl_Position = vec4(pos.x, pos.y, 0.0, 1.0);
@@ -111,26 +113,35 @@ public class myLine : myPrimitive
                     main: "result = myColor;"
         );
 
-        program = glCreateProgram();
-        glAttachShader(program, vertex);
-        glAttachShader(program, fragment);
+        shaderProgram = glCreateProgram();
 
-        glLinkProgram(program);
+        glAttachShader(shaderProgram, vertex);
+        glAttachShader(shaderProgram, fragment);
+
+        glLinkProgram(shaderProgram);
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
 
-        glUseProgram(program);
+        return;
     }
 
-    private static unsafe void CreateVertices()
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
+    private static unsafe void updateVertices()
     {
-        fixed (float* v = &vertices[0])
+        // Bind a buffer;
+        // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
         {
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_STATIC_DRAW);
-        }
+            fixed (float* v = &vertices[0])
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
-        glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
+            glEnableVertexAttribArray(0);
+        }
     }
+
+    // -------------------------------------------------------------------------------------------------------------------
 };
