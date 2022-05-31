@@ -69,6 +69,8 @@ namespace my
             y0 = gl_Height / 2;
 
             colorPicker = new myColorPicker(gl_Width, gl_Height);
+            //colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            
             list = new List<myObject>();
 
             doClearBuffer      = myUtils.randomBool(rand);
@@ -133,7 +135,7 @@ namespace my
             //radiusMode = 2;
             //moveType = 3333;
             doUseInstancing = shapeType >= 5;
-            N = 333;
+            N = 13333;
             //N = 30000;
 #endif
 

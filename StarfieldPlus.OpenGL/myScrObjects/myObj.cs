@@ -78,7 +78,7 @@ namespace my
                 MessageBox.Show(CollectCurrentInfo(), "Current info", MessageBoxButtons.OK);
             }
 
-            // Increase speed
+            // Decrease speed
             if (Glfw.GetKey(window, GLFW.Keys.Up) == GLFW.InputState.Press)
             {
                 renderDelay++;

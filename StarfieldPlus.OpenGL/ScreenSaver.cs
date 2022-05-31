@@ -34,10 +34,14 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        int id = 2;
+        int id = -1;
 
         switch (id)
         {
+            case -1:
+                _obj = new my.myObj_010();          // Randomly Roaming Squares (Snow Like)
+                break;
+
             case 0:
                 _obj = new my.myObj_200();          // Spiraling out shapes
                 break;

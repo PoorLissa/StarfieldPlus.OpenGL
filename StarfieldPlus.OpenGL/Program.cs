@@ -8,11 +8,15 @@ namespace StarfieldPlus.OpenGL
 {
     class Program
     {
+        private static System.Threading.Mutex mutex = null;
+
         // -------------------------------------------------------------------------------------------------------------------
 
         static void Main(string[] args)
         {
-            const string appName = "starField.Plus.OpenGL";
+            //const string appName = "starField.Plus.OpenGL";
+            const string appName = "MyAppName";
+            
             bool createdNew;
             var mutex = new System.Threading.Mutex(true, appName, out createdNew);
 
