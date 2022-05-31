@@ -28,6 +28,7 @@ public class myPrimitive
     public static myPentagonInst  _PentagonInst  = null;
     public static myHexagonInst   _HexagonInst   = null;
     public static myEllipseInst   _EllipseInst   = null;
+    public static myLineInst      _LineInst      = null;
 
     // ---------------------------------------------------------------------------------------
 
@@ -47,6 +48,7 @@ public class myPrimitive
     public static void init_PentagonInst (int n)    { if (_PentagonInst  == null) _PentagonInst  = new myPentagonInst(n);   }
     public static void init_HexagonInst  (int n)    { if (_HexagonInst   == null) _HexagonInst    = new myHexagonInst(n);   }
     public static void init_EllipseInst  (int n)    { if (_EllipseInst   == null) _EllipseInst   = new myEllipseInst(n);    }
+    public static void init_LineInst     (int n)    { if (_LineInst      == null) _LineInst      = new myLineInst(n);       }
 
     // ---------------------------------------------------------------------------------------
 

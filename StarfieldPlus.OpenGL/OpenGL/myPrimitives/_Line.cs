@@ -87,7 +87,7 @@ public class myLine : myPrimitive
     {
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
                 "layout (location = 0) in vec2 pos;" +
-                "   uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+                    "uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
 
                     main: @"if (myAngle == 0)
                             {

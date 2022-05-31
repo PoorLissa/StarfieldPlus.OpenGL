@@ -194,12 +194,14 @@ namespace my
         {
             uint cnt = 0;
 
-            N = 5;
+            N = 500;
             renderDelay = 10;
 
 
             initShapes();
 
+
+            myPrimitive.init_Line();
 
             if (doClearBuffer == false)
             {
@@ -230,6 +232,7 @@ namespace my
                 }
 
                 inst.ResetBuffer();
+                myPrimitive._LineInst.ResetBuffer();
 
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -240,9 +243,12 @@ namespace my
                     for (int j = i+1; j < list.Count; j++)
                     {
                         var obj2 = list[j] as myObj_010;
-                        myPrimitive._Line.Draw(obj.x, obj.y, obj2.x, obj2.y);
+                        myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj2.x, obj2.y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
                     }
                 }
+
+                myPrimitive._LineInst.Draw();
 
                 if (doFillShapes)
                 {
@@ -272,10 +278,8 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Line();
-            myPrimitive._Line.SetColor(1, 1, 1, 0.05f);
-
             myPrimitive.init_Rectangle();
+            myPrimitive.init_LineInst(N * N);
 
             switch (shapeType)
             {
