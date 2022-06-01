@@ -196,7 +196,7 @@ namespace my
             uint cnt = 0;
 
 
-            N = 50;
+            N = 500;
             renderDelay = 10;
 
 
