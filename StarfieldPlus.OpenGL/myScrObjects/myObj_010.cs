@@ -13,13 +13,14 @@ namespace my
 {
     public class myObj_010 : myObject
     {
-        private float x, y, dx, dy, Size, angle, dAngle;
+        private float x, y, dx, dy, Size, angle, dAngle, xOld, yOld, xOrig, yOrig;
         private float A = 0, R = 0, G = 0, B = 0;
 
-        private static bool doClearBuffer = false, doFillShapes = false, doConnect = false;
-        private static int minX = 0, minY = 0, maxX = 0, maxY = 0, maxSize = 0, N = 1;
-        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0;
+        private static bool doClearBuffer = false, doFillShapes = false, doConnect = false, doUseGravityAnomaly = false;
+        private static int x0, y0, minX = 0, minY = 0, maxX = 0, maxY = 0, maxSize = 0, N = 1;
+        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, connectType = 0, connectColorType = 0, gravityMode = 0;
         private static float dimAlpha = 0.25f;
+        static float radius = gl_Height / 3;
 
         private static myInstancedPrimitive inst = null;
 
@@ -42,10 +43,16 @@ namespace my
                 doClearBuffer = myUtils.randomBool(rand);
                 doFillShapes  = myUtils.randomBool(rand);
                 doConnect     = myUtils.randomBool(rand);
+                doUseGravityAnomaly = myUtils.randomBool(rand);
+
+doConnect = true;
 
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
                 rotationMode = rand.Next(4);
-                shapeType = rand.Next(5);
+                shapeType    = rand.Next(5);
+                connectType  = rand.Next(10);
+                gravityMode  = rand.Next(3);
+                connectColorType = rand.Next(2);
 
                 // In case the rotation is enabled, we also may enable additional rotation option:
                 if (rotationMode < 2)
@@ -63,6 +70,23 @@ namespace my
                 maxY = gl_Height + offset;
 
                 maxSize = myUtils.randomChance(rand, 0, 10) ? 33 : 11;
+
+                x0 = gl_Width /2;
+                y0 = gl_Height/2;
+/*
+                if (myUtils.randomBool(rand))
+                {
+                    x0 = rand.Next(gl_Width);
+                    y0 = rand.Next(gl_Height);
+                }
+*/
+                N = 50000;
+                renderDelay = 10;
+
+                if (connectType == 0)
+                {
+                    N = 333;
+                }
             }
 
             generateNew();
@@ -85,10 +109,14 @@ namespace my
 
             string str = $"Obj = myObj_010\n\n" +
                             $"N = {N}\n" +
-                            $"renderDelay = {renderDelay}" +
+                            $"renderDelay = {renderDelay}\n" +
                             $"shapeType = {shapeType}\n" + 
-                            $"rotationMode = {rotationMode}" +
-                            $"rotationSubMode = {rotationSubMode}";
+                            $"rotationMode = {rotationMode}\n" +
+                            $"rotationSubMode = {rotationSubMode}\n" +
+                            $"doConnect = {doConnect}\n" +
+                            $"connectType = {connectType}\n" +
+                            $"doUseGravity = {doUseGravityAnomaly}\n" + 
+                            $"gravityMode = {gravityMode}";
             return str;
         }
 
@@ -98,6 +126,12 @@ namespace my
         {
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
+
+            xOld = x;
+            yOld = y;
+
+            xOrig = x;
+            yOrig = y;
 
             int maxSpeed = 2000;
 
@@ -130,14 +164,64 @@ namespace my
             y += dy;
             angle += dAngle;
 
+            if (doUseGravityAnomaly)
+            {
+                if (x > x0 - radius && x < x0 + radius && y > y0 - radius && y < y0 + radius)
+                {
+                    float dist2 = (x - x0) * (x - x0) + (y - y0) * (y - y0);
+
+                    if (dist2 < radius * radius)
+                    {
+                        float ddx, ddy, sqrt = (float)Math.Sqrt(dist2);
+
+                        switch (gravityMode)
+                        {
+                            case 0:
+                                ddx = (x - x0) / (dist2 / radius / 1.0f);
+                                ddy = (y - y0) / (dist2 / radius / 1.0f);
+                                dx -= ddx;
+                                dy -= ddy;
+                                break;
+
+                            case 1:
+                                ddx = (x - x0) / (dist2 / radius / 10.0f);
+                                ddy = (y - y0) / (dist2 / radius / 10.0f);
+                                x += ddx;
+                                y += ddy;
+                                break;
+
+                            case 2:
+                                ddx = (x - x0) / (dist2 / 50.0f);
+                                ddy = (y - y0) / (dist2 / 50.0f);
+                                dx += ddx;
+                                dy += ddy;
+                                break;
+
+                            case 3:
+                                ddx = (x - x0) / (sqrt / 5.0f);
+                                ddy = (y - y0) / (sqrt / 5.0f);
+                                x -= ddx;
+                                y -= ddy;
+                                break;
+                        }
+                    }
+
+                    return;
+                }
+            }
+
             if (x < minX || x > maxX)
             {
                 dx *= -1;
+                xOld = x;
+                yOld = y;
             }
 
             if (y < minY || y > maxY)
             {
                 dy *= -1;
+                xOld = x;
+                yOld = y;
             }
 
             return;
@@ -194,14 +278,7 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
-
-
-            N = 500;
-            renderDelay = 10;
-
-
             initShapes();
-
 
             myPrimitive.init_Line();
 
@@ -248,11 +325,70 @@ namespace my
 
                     if (doConnect)
                     {
-                        for (int j = i + 1; j < list.Count; j++)
+                        float r = 1;
+                        float g = 1;
+                        float b = 1;
+
+                        switch (connectColorType)
                         {
-                            var obj2 = list[j] as myObj_010;
-                            myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj2.x, obj2.y);
-                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.033f);
+                            case 0:
+                                r = obj.R;
+                                g = obj.G;
+                                b = obj.B;
+                                break;
+                        }
+
+                        switch (connectType)
+                        {
+                            // Connect every particle to every other particle out there
+                            case 0:
+                                for (int j = i + 1; j < list.Count; j++)
+                                {
+                                    var obj2 = list[j] as myObj_010;
+                                    myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj2.x, obj2.y);
+                                    myPrimitive._LineInst.setInstanceColor(r, g, b, 0.023f);
+                                    //myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.023f);
+                                }
+                                break;
+
+                            // Connect every particle to center (which sometimes is randomized)
+                            case 1:
+                            case 2:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x0, y0);
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, 0.021f);
+                                break;
+
+                            // Connect every particle to random point each frame
+                            case 3:
+                            case 4:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, rand.Next(gl_Width), rand.Next(gl_Height));
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, 0.066f);
+                                break;
+
+                            // Connect each particle to its originating point
+                            case 5:
+                            case 6:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj.xOrig, obj.yOrig);
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, 0.066f);
+                                break;
+
+                            // Connect particle to its last reflection point - 1
+                            case 7:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj.xOld, obj.yOld);
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, 0.066f);
+                                break;
+
+                            // Connect particle to its last reflection point - 2
+                            case 8:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj.xOld, obj.yOld);
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, 0.1f);
+                                break;
+
+                            // Connect particle to its last reflection point - 3
+                            case 9:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj.xOld, obj.yOld);
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, obj.A * 0.1f);
+                                break;
                         }
                     }
                 }
@@ -281,6 +417,8 @@ namespace my
                 System.Threading.Thread.Sleep(renderDelay);
 
                 cnt++;
+
+                //radius += (float)Math.Sin(cnt * 0.025f) * 1;
             }
 
             return;
@@ -291,9 +429,13 @@ namespace my
         private void initShapes()
         {
             // Find out how many lines do we need to connect each particle with the rest of them
-            int totalLines = 0;
-            for (int i = 0; i < N; i++)
-                totalLines += i;
+            int totalLines = N;
+            if (connectType == 0)
+            {
+                totalLines = 0;
+                for (int i = 0; i < N; i++)
+                    totalLines += i;
+            }
 
             myPrimitive.init_Rectangle();
 
