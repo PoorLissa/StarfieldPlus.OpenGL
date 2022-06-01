@@ -135,7 +135,7 @@ namespace my
             //radiusMode = 2;
             //moveType = 3333;
             doUseInstancing = shapeType >= 5;
-            N = 13333;
+            N = 3333;
             //N = 30000;
 #endif
 
