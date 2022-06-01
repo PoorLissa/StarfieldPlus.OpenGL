@@ -75,7 +75,45 @@ namespace my
             // Show some info
             if (Glfw.GetKey(window, GLFW.Keys.Tab) == GLFW.InputState.Press)
             {
-                MessageBox.Show(CollectCurrentInfo(), "Current info", MessageBoxButtons.OK);
+                var form = new Form();
+                var rich = new RichTextBox();
+
+                form.Width = 500;
+                form.Height = 500;
+                form.StartPosition = FormStartPosition.CenterScreen;
+                form.TopMost = true;
+                form.Opacity = 50;
+                form.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+                form.BackColor = System.Drawing.Color.Black;
+
+                rich.BackColor = System.Drawing.Color.Black;
+                rich.ForeColor = System.Drawing.Color.Red;
+
+                rich.Font = new System.Drawing.Font("Helvetica Condensed", 11, System.Drawing.FontStyle.Regular, rich.Font.Unit, rich.Font.GdiCharSet);
+
+                rich.Dock = DockStyle.Fill;
+                rich.AppendText("\n");
+                rich.AppendText(CollectCurrentInfo());
+                rich.AppendText("\n");
+                rich.SelectAll();
+                rich.SelectionAlignment = HorizontalAlignment.Center;
+                rich.DeselectAll();
+                rich.Select(rich.TextLength, 0);
+                rich.ReadOnly = true;
+                form.Controls.Add(rich);
+
+                rich.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
+                    if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
+                        form.Close();
+                };
+
+                form.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
+                    if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
+                        form.Close();
+                };
+
+                form.ShowDialog();
+                //MessageBox.Show(CollectCurrentInfo(), "Current info", MessageBoxButtons.OK);
             }
 
             // Decrease speed

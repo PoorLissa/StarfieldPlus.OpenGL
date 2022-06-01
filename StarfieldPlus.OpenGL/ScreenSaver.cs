@@ -34,27 +34,36 @@ public class ScreenSaver
 
     public void selectObject()
     {
-        int id = 2;
+        int id = 1;
 
         switch (id)
         {
-            case -1:
-                _obj = new my.myObj_010();          // Randomly Roaming Squares (Snow Like)
-                break;
-
+            // Stars
             case 0:
-                _obj = new my.myObj_200();          // Spiraling out shapes
+                //_obj = new my.myObj_010();
                 break;
 
+            // Randomly Roaming Squares (Snow Like)
             case 1:
-                _obj = new my.myObj_210();          // Another spiraling shapes -- see what's the difference
+                _obj = new my.myObj_010();
                 break;
 
+            // Spiraling out shapes
             case 2:
-                _obj = new my.myObj_300();          // Small Explosions of Particles + Movement type Variations
+                _obj = new my.myObj_200();
                 break;
 
+            // Another spiraling shapes -- see what's the difference
             case 3:
+                _obj = new my.myObj_210();
+                break;
+
+            // Small Explosions of Particles + Movement type Variations
+            case 4:
+                _obj = new my.myObj_300();
+                break;
+
+            case 5:
                 _obj = new my.myObj_300_test();
                 break;
 

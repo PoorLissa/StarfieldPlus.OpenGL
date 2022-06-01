@@ -45,8 +45,6 @@ namespace my
                 doConnect     = myUtils.randomBool(rand);
                 doUseGravityAnomaly = myUtils.randomBool(rand);
 
-doConnect = true;
-
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
                 rotationMode = rand.Next(4);
                 shapeType    = rand.Next(5);
@@ -73,20 +71,28 @@ doConnect = true;
 
                 x0 = gl_Width /2;
                 y0 = gl_Height/2;
-/*
+
                 if (myUtils.randomBool(rand))
                 {
                     x0 = rand.Next(gl_Width);
                     y0 = rand.Next(gl_Height);
                 }
-*/
-                N = 50000;
-                renderDelay = 10;
 
                 if (connectType == 0)
                 {
                     N = 333;
                 }
+                else
+                {
+                    switch(rand.Next(3))
+                    {
+                        case 0: N = 500;   break;
+                        case 1: N = 5000;  break;
+                        case 2: N = 50000; break;
+                    }
+                }
+
+                renderDelay = 10;
             }
 
             generateNew();
@@ -414,11 +420,10 @@ doConnect = true;
                     list.Add(new myObj_010());
                 }
 
-                System.Threading.Thread.Sleep(renderDelay);
-
+                radius += (float)Math.Sin(cnt * 0.025f) * 1;
                 cnt++;
 
-                //radius += (float)Math.Sin(cnt * 0.025f) * 1;
+                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
