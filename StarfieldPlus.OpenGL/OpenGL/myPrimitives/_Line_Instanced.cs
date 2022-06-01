@@ -98,36 +98,30 @@ public class myLineInst : myInstancedPrimitive
 
     public void setInstanceCoords(float x1, float y1, float x2, float y2)
     {
-        instanceArray[instArrayPosition + 0] = x1;
-        instanceArray[instArrayPosition + 1] = y1;
-        instanceArray[instArrayPosition + 2] = x2;
-        instanceArray[instArrayPosition + 3] = y2;
-
-        instArrayPosition += 4;
+        instanceArray[instArrayPosition++] = x1;
+        instanceArray[instArrayPosition++] = y1;
+        instanceArray[instArrayPosition++] = x2;
+        instanceArray[instArrayPosition++] = y2;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public void setInstanceColor(float r, float g, float b, float a)
     {
-        instanceArray[instArrayPosition + 0] = r;
-        instanceArray[instArrayPosition + 1] = g;
-        instanceArray[instArrayPosition + 2] = b;
-        instanceArray[instArrayPosition + 3] = a;
-
-        instArrayPosition += 4;
+        instanceArray[instArrayPosition++] = r;
+        instanceArray[instArrayPosition++] = g;
+        instanceArray[instArrayPosition++] = b;
+        instanceArray[instArrayPosition++] = a;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     public void setInstanceColor(double r, double g, double b, double a)
     {
-        instanceArray[instArrayPosition + 0] = (float)r;
-        instanceArray[instArrayPosition + 1] = (float)g;
-        instanceArray[instArrayPosition + 2] = (float)b;
-        instanceArray[instArrayPosition + 3] = (float)a;
-
-        instArrayPosition += 4;
+        instanceArray[instArrayPosition++] = (float)r;
+        instanceArray[instArrayPosition++] = (float)g;
+        instanceArray[instArrayPosition++] = (float)b;
+        instanceArray[instArrayPosition++] = (float)a;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
