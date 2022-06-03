@@ -76,15 +76,15 @@ namespace my
             doClearBuffer      = myUtils.randomBool(rand);
             doFillShapes       = myUtils.randomBool(rand);
             doAddObjGradually  = myUtils.randomBool(rand);
-            doUseCenterRepel   = myUtils.randomChance(rand, 0, 11);
-            doUseBorderRepel   = myUtils.randomChance(rand, 0, 11);
-            doGenerateAtCenter = myUtils.randomChance(rand, 0, 11);
-            doShowConnections  = myUtils.randomChance(rand, 0, 3);
+            doUseCenterRepel   = myUtils.randomChance(rand, 1, 11);
+            doUseBorderRepel   = myUtils.randomChance(rand, 1, 11);
+            doGenerateAtCenter = myUtils.randomChance(rand, 1, 11);
+            doShowConnections  = myUtils.randomChance(rand, 1, 3);
 
             // In case the colorPicker has an underlying image, we might want to draw every particle using the image color at this particular point
             if (colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE || colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT)
             {
-                if (myUtils.randomChance(rand, 0, 7))
+                if (myUtils.randomChance(rand, 1, 7))
                 {
                     colorMode = 1;
                 }
@@ -138,7 +138,7 @@ namespace my
             }
 
             // Set max size of a particle:
-            if (myUtils.randomChance(rand, 0, 3))
+            if (myUtils.randomChance(rand, 1, 3))
             {
                 maxSize += rand.Next(66);
             }
@@ -655,7 +655,7 @@ namespace my
                                     obj.dy = 0;
                             }
 
-                            if (myUtils.randomChance(rand, 0, obj.i3))
+                            if (myUtils.randomChance(rand, 1, obj.i3))
                             {
                                 float obj_dz = obj.dx;
                                 obj.dx = (float)Math.Abs(obj.dy) * obj.i1;
@@ -680,12 +680,12 @@ namespace my
                                     obj.dy = 0;
                             }
 
-                            if (myUtils.randomChance(rand, 0, obj.i3))
+                            if (myUtils.randomChance(rand, 1, obj.i3))
                             {
-                                if (myUtils.randomChance(rand, 0, const_i2))
+                                if (myUtils.randomChance(rand, 1, const_i2))
                                     obj.i1 *= -1;
 
-                                if (myUtils.randomChance(rand, 0, const_i2))
+                                if (myUtils.randomChance(rand, 1, const_i2))
                                     obj.i2 *= -1;
 
                                 float obj_dz = obj.dx;

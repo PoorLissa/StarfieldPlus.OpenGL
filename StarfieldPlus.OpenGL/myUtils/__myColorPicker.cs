@@ -146,11 +146,24 @@ namespace my
         // Get color at a random point, as float R-G-B ([0..1]-[0..1]-[0..1])
         public void getColorRand(ref float R, ref float G, ref float B)
         {
-            getColor(_rand.Next(_W), _rand.Next(_W), ref gl_r, ref gl_g, ref gl_b);
+            getColor(_rand.Next(_W), _rand.Next(_H), ref gl_r, ref gl_g, ref gl_b);
 
             R = gl_r / 255.0f;
             G = gl_g / 255.0f;
             B = gl_b / 255.0f;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Get color at a random point, as float R-G-B ([0..1]-[0..1]-[0..1][0..1])
+        public void getColorRand(ref float R, ref float G, ref float B, ref float A)
+        {
+            getColor(_rand.Next(_W), _rand.Next(_H), ref gl_r, ref gl_g, ref gl_b);
+
+            R = gl_r / 255.0f;
+            G = gl_g / 255.0f;
+            B = gl_b / 255.0f;
+            A = (float)_rand.NextDouble();
         }
 
         // -------------------------------------------------------------------------

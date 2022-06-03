@@ -36,11 +36,11 @@ public class ScreenSaver
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
     // - 
 
-    private enum ids { myObj_000, myObj_010, myObj_200, myObj_210, myObj_220, myObj_300, myObj_300_test, myObj_999a };
+    private enum ids { myObj_000, myObj_010, myObj_180, myObj_200, myObj_210, myObj_220, myObj_300, myObj_300_test, myObj_999a };
 
     public void selectObject()
     {
-        ids id = (ids)5;
+        ids id = (ids)2;
 
         switch (id)
         {
@@ -52,6 +52,11 @@ public class ScreenSaver
             // Randomly Roaming Squares (Snow Like)
             case ids.myObj_010:
                 _obj = new my.myObj_010();
+                break;
+
+            // 
+            case ids.myObj_180:
+                _obj = new my.myObj_180();
                 break;
 
             // Spiraling out shapes

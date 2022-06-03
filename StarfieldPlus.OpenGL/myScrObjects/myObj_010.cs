@@ -67,7 +67,7 @@ namespace my
                 maxX = gl_Width  + offset;
                 maxY = gl_Height + offset;
 
-                maxSize = myUtils.randomChance(rand, 0, 10) ? 33 : 11;
+                maxSize = myUtils.randomChance(rand, 1, 10) ? 33 : 11;
 
                 x0 = gl_Width /2;
                 y0 = gl_Height/2;
