@@ -498,7 +498,10 @@ namespace my
 
                         // Sideways movement in 2 streams
                         case 34:
-                            obj.x += (obj.y > gl_Height/2) ? const_f1 * 10 : -const_f1 * 10;
+                            if (obj.y > gl_Height / 2 + 100)
+                                obj.x += const_f1 * 10;
+                            else if (obj.y < gl_Height / 2 - 100)
+                                obj.x -= const_f1 * 10;
                             break;
 
                         // Ever increasing rotation speed
@@ -944,9 +947,10 @@ namespace my
                 list.Add(new myObj_300());
             }
 
-            if (doClearBuffer == false)
+            if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK);
+                glClearColor(0, 0, 0, 1);
             }
 
             // https://stackoverflow.com/questions/25548179/opengl-alpha-blending-suddenly-stops
@@ -961,9 +965,13 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                // Dim the screen constantly
-                if (doClearBuffer == false)
+                if (doClearBuffer)
                 {
+                    glClear(GL_COLOR_BUFFER_BIT);
+                }
+                else
+                {
+                    // Dim the screen constantly;
                     // Shift background color just a bit, to hide long lasting traces of shapes
                     float r = (float)Math.Sin(cnt * 0.001f) * 0.03f;
                     float g = (float)Math.Cos(cnt * 0.002f) * 0.03f;
@@ -971,11 +979,6 @@ namespace my
                     myPrimitive._Rectangle.SetColor(r, g, b, dimAlpha);
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
-                }
-                else
-                {
-                    glClearColor(0, 0, 0, 1);
-                    glClear(GL_COLOR_BUFFER_BIT);
                 }
 
                 // Render Frame
