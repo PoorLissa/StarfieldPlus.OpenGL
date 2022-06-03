@@ -25,8 +25,8 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static bool doClearBuffer = false, doFillShapes = false, doUseInstancing = false, doUseCenterRepel = false,
-                            doUseBorderRepel = false, doGenerateAtCenter = false;
+        private static bool doClearBuffer = false, doFillShapes = false, doUseCenterRepel = false,
+                            doUseBorderRepel = false, doGenerateAtCenter = false, doAddObjGradually = false, doShowConnections = false;
         private static int x0, y0, N = 1, gravityRate = 0, maxParticles = 25, maxSize = 6;
         private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0, colorMode = 0;
         private static float dimAlpha = 0.1f;
@@ -75,9 +75,11 @@ namespace my
 
             doClearBuffer      = myUtils.randomBool(rand);
             doFillShapes       = myUtils.randomBool(rand);
+            doAddObjGradually  = myUtils.randomBool(rand);
             doUseCenterRepel   = myUtils.randomChance(rand, 0, 11);
             doUseBorderRepel   = myUtils.randomChance(rand, 0, 11);
             doGenerateAtCenter = myUtils.randomChance(rand, 0, 11);
+            doShowConnections  = myUtils.randomChance(rand, 0, 3);
 
             // In case the colorPicker has an underlying image, we might want to draw every particle using the image color at this particular point
             if (colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE || colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT)
@@ -91,7 +93,7 @@ namespace my
             // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
             rotationMode  = rand.Next(4);
             gravityRate   = rand.Next(101) + 1;
-            shapeType     = rand.Next(10);
+            shapeType     = rand.Next(5);
             moveType      = rand.Next(54);
             radiusMode    = rand.Next(5);
             fastExplosion = rand.Next(11);
@@ -107,11 +109,32 @@ namespace my
             const_i1 = rand.Next(300) + 100;
 
             // Set number of objects N:
-            N = rand.Next(666) + 100;
-
-            if (myUtils.randomChance(rand, 0, 3))
             {
-                N = rand.Next(11) + 1;
+                switch (rand.Next(8))
+                {
+                    case 0:
+                        N = rand.Next(10) + 5;
+                        break;
+
+                    case 1:
+                    case 2:
+                        N = rand.Next(33) + 100;
+                        break;
+
+                    case 3:
+                    case 4:
+                        N = rand.Next(333) + 1000;
+                        break;
+
+                    case 5:
+                    case 6:
+                        N = rand.Next(3333) + 1000;
+                        break;
+
+                    case 7:
+                        N = rand.Next(3333) + 3333;
+                        break;
+                }
             }
 
             // Set max size of a particle:
@@ -122,24 +145,20 @@ namespace my
 
             renderDelay = 1;
 
-#if true
-            shapeType = 0;
-            shapeType = 5;  // instanced square
-            shapeType = 6;  // instanced triangle
-            shapeType = 7;  // instanced circle
-            shapeType = 8;  // instanced pentagon
-            shapeType = 9;  // instanced hexagon
-            shapeType = 5 + rand.Next(5);
+#if false
+            shapeType = 0;  // instanced square
+            shapeType = 1;  // instanced triangle
+            shapeType = 2;  // instanced circle
+            shapeType = 3;  // instanced pentagon
+            shapeType = 4;  // instanced hexagon
             //doClearBuffer = true;
             //doClearBuffer = false;
             //radiusMode = 2;
             //moveType = 3333;
-            doUseInstancing = shapeType >= 5;
             N = 3333;
-            //N = 30000;
 #endif
 
-            // Generation at center of the screen does not look good for some of the move modes;
+            // Generation at center of the screen does not look right for some of the move modes;
             // Make sure it is turned off for those particular modes (at least most of the times, anyway)
             if (myUtils.randomChance(rand, 95, 100))
             {
@@ -164,6 +183,8 @@ namespace my
                     const_f1 = 0.03f * (rand.Next(100) + 10);
                 }
             }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -179,6 +200,7 @@ namespace my
                             $"rotationSubMode = {rotationSubMode}\n" +
                             $"colorMode = {colorMode}\n" +
                             $"maxSize = {maxSize}\n" +
+                            $"doGenerateAtCenter = {doGenerateAtCenter}\n" + 
                             $"const_i1 = {const_i1}\n" +
                             $"const_i2 = {const_i2}\n" +
                             $"const_f1 = {const_f1}\n" +
@@ -796,128 +818,20 @@ namespace my
         {
             if (lifeCounter > lifeMax)
             {
+                // Render connecting lines
+                if (doShowConnections)
+                {
+                    for (int i = 0; i < objN; i++)
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(structsList[i].x, structsList[i].y, x, y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.025f);
+                    }
+                }
+
                 switch (shape)
                 {
-                    case 0:
-                        glLineWidth(lineTh);
-                        myPrimitive._Hexagon.SetColor(R, G, B, 1.0f);
-
-                        for (int i = 0; i < objN; i++)
-                        {
-                            var obj = structsList[i];
-
-                            if (obj.a > 0)
-                            {
-                                myPrimitive._Hexagon.SetAngle(obj.angle);
-
-                                if (doFillShapes)
-                                {
-                                    myPrimitive._Hexagon.SetColorA(obj.a/2);
-                                    myPrimitive._Hexagon.Draw(obj.x, obj.y, obj.r, true);
-                                }
-
-                                myPrimitive._Hexagon.SetColorA(obj.a);
-                                myPrimitive._Hexagon.Draw(obj.x, obj.y, obj.r, false);
-                            }
-                        }
-                        break;
-
-                    case 1:
-                        glLineWidth(lineTh);
-                        myPrimitive._Triangle.SetColor(R, G, B, 1.0f);
-
-                        for (int i = 0; i < objN; i++)
-                        {
-                            var obj = structsList[i];
-
-                            if (obj.a > 0)
-                            {
-                                myPrimitive._Triangle.SetAngle(obj.angle);
-
-                                if (doFillShapes)
-                                {
-                                    myPrimitive._Triangle.SetColorA(obj.a/2);
-                                    myPrimitive._Triangle.Draw(obj.x, obj.y - obj.r, obj.x - 5 * obj.r / 6, obj.y + obj.r / 2, obj.x + 5 * obj.r / 6, obj.y + obj.r / 2, true);
-                                }
-
-                                myPrimitive._Triangle.SetColorA(obj.a);
-                                myPrimitive._Triangle.Draw(obj.x, obj.y - obj.r, obj.x - 5 * obj.r / 6, obj.y + obj.r / 2, obj.x + 5 * obj.r / 6, obj.y + obj.r / 2, false);
-                            }
-                        }
-                        break;
-
-                    case 2:
-                        glLineWidth(lineTh);
-                        myPrimitive._Pentagon.SetColor(R, G, B, 1.0f);
-
-                        for (int i = 0; i < objN; i++)
-                        {
-                            var obj = structsList[i];
-
-                            if (obj.a > 0)
-                            {
-                                myPrimitive._Pentagon.SetAngle(obj.angle);
-
-                                if (doFillShapes)
-                                {
-                                    myPrimitive._Pentagon.SetColorA(obj.a/2);
-                                    myPrimitive._Pentagon.Draw(obj.x, obj.y, obj.r, true);
-                                }
-
-                                myPrimitive._Pentagon.SetColorA(obj.a);
-                                myPrimitive._Pentagon.Draw(obj.x, obj.y, obj.r, false);
-                            }
-                        }
-                        break;
-
-                    case 3:
-                        glLineWidth(lineTh);
-                        myPrimitive._Rectangle.SetColor(R, G, B, 1.0f);
-
-                        for (int i = 0; i < objN; i++)
-                        {
-                            var obj = structsList[i];
-
-                            if (obj.a > 0)
-                            {
-                                myPrimitive._Rectangle.SetAngle(obj.angle);
-
-                                if (doFillShapes)
-                                {
-                                    myPrimitive._Rectangle.SetColorA(obj.a/2);
-                                    myPrimitive._Rectangle.Draw(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, 2 * obj.r, true);
-                                }
-
-                                myPrimitive._Rectangle.SetColorA(obj.a);
-                                myPrimitive._Rectangle.Draw(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, 2 * obj.r, false);
-                            }
-                        }
-                        break;
-
-                    case 4:
-                        glLineWidth(1);
-                        myPrimitive._Ellipse.SetColor(R, G, B, 1.0f);
-
-                        for (int i = 0; i < objN; i++)
-                        {
-                            var obj = structsList[i];
-
-                            if (obj.a > 0)
-                            {
-                                if (doFillShapes)
-                                {
-                                    myPrimitive._Ellipse.SetColorA(obj.a/2);
-                                    myPrimitive._Ellipse.Draw(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, 2 * obj.r, true);
-                                }
-
-                                myPrimitive._Ellipse.SetColorA(obj.a);
-                                myPrimitive._Ellipse.Draw(obj.x - obj.r, obj.y - obj.r, 2 * obj.r, 2 * obj.r, false);
-                            }
-                        }
-                        break;
-
                     // Instanced squares
-                    case 5:
+                    case 0:
                         var rectInst = inst as myRectangleInst;
 
                         for (int i = 0; i < objN; i++)
@@ -937,7 +851,7 @@ namespace my
                         break;
 
                     // Instanced triangles
-                    case 6:
+                    case 1:
                         var triangleInst = inst as myTriangleInst;
 
                         for (int i = 0; i < objN; i++)
@@ -956,7 +870,7 @@ namespace my
                         break;
 
                     // Instanced circles
-                    case 7:
+                    case 2:
                         var ellipseInst = inst as myEllipseInst;
 
                         for (int i = 0; i < objN; i++)
@@ -975,7 +889,7 @@ namespace my
                         break;
 
                     // Instanced pentagons
-                    case 8:
+                    case 3:
                         var pentagonInst = inst as myPentagonInst;
 
                         for (int i = 0; i < objN; i++)
@@ -994,7 +908,7 @@ namespace my
                         break;
 
                     // Instanced hexagons
-                    case 9:
+                    case 4:
                         var hexagonInst = inst as myHexagonInst;
 
                         for (int i = 0; i < objN; i++)
@@ -1023,46 +937,9 @@ namespace my
         {
             uint cnt = 0;
 
-            myPrimitive.init_Triangle();
-            myPrimitive.init_Rectangle();
-            myPrimitive.init_Pentagon();
-            myPrimitive.init_Hexagon();
-            myPrimitive.init_Ellipse();
+            initShapes();
 
-            switch (shapeType)
-            {
-                case 5:
-                    myPrimitive.init_RectangleInst(N * maxParticles);
-                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._RectangleInst;
-                    break;
-
-                case 6:
-                    myPrimitive.init_TriangleInst(N * maxParticles);
-                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._TriangleInst;
-                    break;
-
-                case 7:
-                    myPrimitive.init_EllipseInst(N * maxParticles);
-                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._EllipseInst;
-                    break;
-
-                case 8:
-                    myPrimitive.init_PentagonInst(N * maxParticles);
-                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._PentagonInst;
-                    break;
-
-                case 9:
-                    myPrimitive.init_HexagonInst(N * maxParticles);
-                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._HexagonInst;
-                    break;
-            }
-
-            while (list.Count < N)
+            while (!doAddObjGradually && list.Count < N)
             {
                 list.Add(new myObj_300());
             }
@@ -1087,9 +964,12 @@ namespace my
                 // Dim the screen constantly
                 if (doClearBuffer == false)
                 {
-                    myPrimitive._Rectangle.SetAngle(0);
                     // Shift background color just a bit, to hide long lasting traces of shapes
-                    myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha);
+                    float r = (float)Math.Sin(cnt * 0.001f) * 0.03f;
+                    float g = (float)Math.Cos(cnt * 0.002f) * 0.03f;
+                    float b = (float)Math.Sin(cnt * 0.003f) * 0.03f;
+                    myPrimitive._Rectangle.SetColor(r, g, b, dimAlpha);
+                    myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
                 }
                 else
@@ -1098,15 +978,21 @@ namespace my
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
 
-                if (doUseInstancing)
+                // Render Frame
                 {
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i < list.Count; i++)
                     {
                         var obj = list[i] as myObj_300;
                         obj.Show();
                         obj.Move();
+                    }
+
+                    if (doShowConnections)
+                    {
+                        myPrimitive._LineInst.Draw();
                     }
 
                     if (doFillShapes)
@@ -1120,17 +1006,57 @@ namespace my
                     inst.SetColorA(0);
                     inst.Draw(false);
                 }
-                else
+
+                if (doAddObjGradually && list.Count < N)
                 {
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        var obj = list[i] as myObj_300;
-                        obj.Show();
-                        obj.Move();
-                    }
+                    list.Add(new myObj_300());
                 }
 
                 System.Threading.Thread.Sleep(renderDelay);
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void initShapes()
+        {
+            myPrimitive.init_Rectangle();
+
+            myPrimitive.init_LineInst(N * maxParticles);
+
+            switch (shapeType)
+            {
+                case 0:
+                    myPrimitive.init_RectangleInst(N * maxParticles);
+                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._RectangleInst;
+                    break;
+
+                case 1:
+                    myPrimitive.init_TriangleInst(N * maxParticles);
+                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._TriangleInst;
+                    break;
+
+                case 2:
+                    myPrimitive.init_EllipseInst(N * maxParticles);
+                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._EllipseInst;
+                    break;
+
+                case 3:
+                    myPrimitive.init_PentagonInst(N * maxParticles);
+                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._PentagonInst;
+                    break;
+
+                case 4:
+                    myPrimitive.init_HexagonInst(N * maxParticles);
+                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._HexagonInst;
+                    break;
             }
 
             return;

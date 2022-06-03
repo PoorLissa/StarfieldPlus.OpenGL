@@ -167,11 +167,15 @@ namespace my
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Set blending function                    
                 }
 
+                // Hide cursor
+                Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
+
                 // One time call to let all the primitives know the screen dimensions
                 myPrimitive.init(gl_Width, gl_Height);
 
                 Process(openGL_Window);
 
+                Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Normal);
                 Glfw.Terminate();
             }
             catch (System.Exception ex)

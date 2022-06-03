@@ -19,117 +19,6 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_999 : myObject
-    {
-        private float x, y, time = 0, dt = 0.01f;
-        private float y1, x2, y2, x3, y3;
-
-        // -------------------------------------------------------------------------
-
-        public myObj_999()
-        {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.SNAPSHOT);
-                list = new List<myObject>();
-            }
-
-            generateNew();
-        }
-
-        // -------------------------------------------------------------------------
-
-        protected override void generateNew()
-        {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
-
-            _a = (float)rand.NextDouble() + 0.02f;
-            colorPicker.getColor(x, y, ref _r, ref _g, ref _b);
-
-            y1 = rand.Next(66) + 5;
-            x2 = 5 * y1 / 6;
-            y2 = y1/2;
-            x3 = 5 * y1 / 6;
-            y3 = y1/2;
-
-            time = 0.0f;
-            dt = 0.002f * (rand.Next(33)+1);
-        }
-
-        // -------------------------------------------------------------------------
-
-        protected override void Move()
-        {
-            time += dt;
-        }
-
-        // -------------------------------------------------------------------------
-
-        protected override void Show()
-        {
-            int mode = 0;
-
-            switch (mode)
-            {
-                case 0:
-                    myPrimitive._Triangle.SetAngle(time);
-                    myPrimitive._Triangle.SetColor(_r, _g, _b, _a);
-                    myPrimitive._Triangle.Draw(x, y - y1, x - x2, y + y2, x + x3, y + y3, false);
-                    break;
-
-                case 1:
-                    myPrimitive._Rectangle.SetColor(_r, _g, _b, _a);
-                    myPrimitive._Rectangle.Draw((int)x, (int)y, 50, 50, true);
-                    break;
-            }
-        }
-
-        // -------------------------------------------------------------------------
-
-        protected override void Process(Window window)
-        {
-            myPrimitive.init_Triangle();
-            myPrimitive.init_Rectangle();
-
-            while (list.Count < 3333)
-            {
-                list.Add(new myObj_999());
-            }
-
-            while (!Glfw.WindowShouldClose(window))
-            {
-                processInput(window);
-
-                // Swap fore/back framebuffers, and poll for operating system events.
-                Glfw.SwapBuffers(window);
-                Glfw.PollEvents();
-
-                // Clear the framebuffer to defined background color
-                glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-                // Render frame:
-                {
-                    foreach (myObj_999 obj in list)
-                    {
-                        obj.Show();
-                        obj.Move();
-                    }
-                }
-
-                System.Threading.Thread.Sleep(20);
-            }
-
-            return;
-        }
-    }
-};
-
-
-
-namespace my
-{
     public class myObj_999a : myObject
     {
         private float x, y, time = 0, dt = 0.01f;
@@ -160,7 +49,6 @@ namespace my
         {
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
-
         }
 
         // -------------------------------------------------------------------------
@@ -236,6 +124,8 @@ namespace my
                 }
 
                 // Render frame:
+                // Copy rectangles from the texture
+                // drops lots of colored rectangles and sometimes draws a piece of real picture -- need this
                 if (false)
                 {
                     foreach (myObj_999a obj in list)
@@ -269,7 +159,8 @@ namespace my
                     }
                 }
 
-                if (false)
+                // need this option -- if not already
+                if (!true)
                 {
                     for (int i = 0; i < 100; i++)
                     {
@@ -281,12 +172,14 @@ namespace my
                         int r = rand.Next(33) + 1;
 
                         //myPrimitive._Rectangle.Draw(x, y, r, r, true);
-                        myPrimitive._Hexagon.SetAngle((float)rand.NextDouble() * 11);
+                        //myPrimitive._Hexagon.SetAngle((float)rand.NextDouble() * 11);
+                        myPrimitive._Hexagon.SetAngle(cnt * 0.1f);
                         myPrimitive._Hexagon.Draw(x, y, r, false);
                     }
                 }
 
-                if (true)
+                // already have something like this, but need this as well
+                if (false)
                 {
                     myPrimitive._Hexagon.SetColor(1, 0, 0, 1);
 
@@ -372,9 +265,6 @@ namespace my
                 if (true)
                 {
                     myPrimitive._Line.SetColor(1, 1, 0, 1);
-
-                    myPrimitive._Line.SetAngle(0);
-                    myPrimitive._Line.Draw(0, 0, gl_Width, gl_Height);
 
                     myPrimitive._Line.SetAngle(t/2);
                     myPrimitive._Line.SetColor(1, 1, 0, 0.1f);
