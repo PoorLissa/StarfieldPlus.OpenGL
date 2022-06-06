@@ -326,7 +326,7 @@ namespace my
 
             if (doClearBuffer)
             {
-                glDrawBuffer(GL_FRONT_AND_BACK);
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0, 0, 0, 1);
             }
 
@@ -358,6 +358,9 @@ namespace my
 
                 // Render Frame
                 {
+                    x0 += (rand.Next(5) - 2);
+                    y0 += (rand.Next(5) - 2);
+
                     inst.ResetBuffer();
 
                     if (connectionMode > 2)
