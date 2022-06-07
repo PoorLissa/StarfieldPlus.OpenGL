@@ -14,7 +14,7 @@ namespace my
     public class myObj_180 : myObject
     {
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
-                            doUseIncreasingWaveSize = false;
+                            doUseIncreasingWaveSize = false, doShiftCenter = false;
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 1111, WaveLifeCnt = 0, LifeCntBase = 0;
         private static int shapeType = 0, moveType = 0, rotationMode = 0, rotationSubMode = 0, colorMode = 0, dispersionMode = 0;
         private static int heightRatioMode = 0, connectionMode = 0;
@@ -58,6 +58,7 @@ namespace my
             doFillShapes    = myUtils.randomBool(rand);
             doUseDispersion = myUtils.randomChance(rand, 2, 3);
             doUseXOffset    = myUtils.randomChance(rand, 1, 7);
+            doShiftCenter   = myUtils.randomChance(rand, 1, 6);
             doUseRandomSpeed = myUtils.randomBool(rand);
             doUseIncreasingWaveSize = myUtils.randomChance(rand, 1, 3);
             dispersionMode  = rand.Next(6);
@@ -358,8 +359,11 @@ namespace my
 
                 // Render Frame
                 {
-                    x0 += (rand.Next(5) - 2);
-                    y0 += (rand.Next(5) - 2);
+                    if (doShiftCenter)
+                    {
+                        x0 += (rand.Next(3) - 1);
+                        y0 += (rand.Next(3) - 1);
+                    }
 
                     inst.ResetBuffer();
 
