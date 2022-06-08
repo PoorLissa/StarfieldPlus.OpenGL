@@ -13,12 +13,16 @@ namespace my
 {
     public class myObj_180 : myObject
     {
+        private delegate float family1Delegate(float f1, float f2);
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
-                            doUseIncreasingWaveSize = false, doShiftCenter = false;
+                            doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgenerationMode_useRandSign = false;
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 1111, WaveLifeCnt = 0, LifeCntBase = 0;
-        private static int shapeType = 0, moveType = 0, rotationMode = 0, rotationSubMode = 0, colorMode = 0, dispersionMode = 0;
-        private static int heightRatioMode = 0, connectionMode = 0;
-        private static float R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
+        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0;
+        private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1;
+        private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
                                             dispersionConst = 0, heightRatio = 1.0f, xOffset = 0, dSize = 0;
 
         private static myInstancedPrimitive inst = null;
@@ -29,6 +33,8 @@ namespace my
 
         private bool isLive = false;
         private float dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f, acceleration = 1.0f;
+
+        private static family1Delegate f1dFunc = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -114,10 +120,120 @@ namespace my
                 rotationSubMode = rotationSubMode > 2 ? 0 : rotationSubMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
             }
 
+            // Set up additional dx/dy generation mode:
+            if (myUtils.randomChance(rand, 1, 3))
+            {
+                dXYgenerationMode = rand.Next(33);
+                dXYgenerationMode_useRandSign = myUtils.randomBool(rand);
+            }
+
+            // Set delegates:
+            {
+                int delegateNo = 999;
+
+                delegateNo = rand.Next(18);
+
+                switch (delegateNo)
+                {
+                    case 0:
+                        f1dFunc = new family1Delegate((float x, float y) => { return x; });
+                        break;
+
+                    case 1:
+                        f1dFunc = new family1Delegate((float x, float y) => { return y; });
+                        break;
+
+                    case 2:
+                        f1dFunc = new family1Delegate((float x, float y) => { return x + y; });
+                        break;
+
+                    case 3:
+                        f1dFunc = new family1Delegate((float x, float y) => { return x * y; });
+                        break;
+
+                    case 4:
+                        f1dFunc = new family1Delegate((float x, float y) => { return x / y; });
+                        break;
+
+                    case 5:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x + y) / (x * y); });
+                        break;
+
+                    case 6:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) / (x + y); });
+                        break;
+
+                    case 7:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x + y) * (x - y); });
+                        break;
+
+                    case 8:
+                        f1dFunc = new family1Delegate((float x, float y) => { return x * x * y * y; });
+                        break;
+
+                    case 9:
+                        f1dFunc = new family1Delegate((float x, float y) => { return 1 / (x + y); });
+                        break;
+
+                    case 10:
+                        f1dFunc = new family1Delegate((float x, float y) => { return 1 / (x - y); });
+                        break;
+
+                    case 11:
+                        f1dFunc = new family1Delegate((float x, float y) => { return y / (x + y); });
+                        break;
+
+                    case 12:
+                        f1dFunc = new family1Delegate((float x, float y) => { return y / (x - y); });
+                        break;
+
+                    case 13:
+                        f1dFunc = new family1Delegate((float x, float y) => { return x / y + y / x; });
+                        break;
+
+                    case 14:
+                        f1dFunc = new family1Delegate((float x, float y) => { return x > y ? x / y : y / x; });
+                        break;
+
+                    case 15:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x + y) * t; });
+                        break;
+
+                    case 16:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > (x / y) ? x : y; });
+                        break;
+
+                    case 17:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > (x / y) ? y : x; });
+                        break;
+
+                    case 999:
+                        f1dFunc = new family1Delegate((float x, float y) => 
+                        {
+                            return (x * y * x) * (y * x * y);
+                            return (x * x) > (y * y) ? y / x : x / y;
+                            return (x * x) > (y * y) ? x/y : y/x;
+                            return (x * x) > (y * y) ? x : y;
+                            return (x * x) > (y * y) ? y : x;
+
+                            //return (float)Math.Sin(1/(x + y));
+                        });
+                        break;
+                }
+            }
+
             // Set number of objects N:
             N = 100000;
-
             renderDelay = 1;
+
+#if true
+            doUseIncreasingWaveSize = false;
+            doShiftCenter = false;
+            doUseXOffset = false;
+            heightRatioMode = 1;
+            dXYgenerationMode = 0;
+            dXYgenerationMode = rand.Next(20);
+#endif
 
             return;
         }
@@ -130,11 +246,16 @@ namespace my
                             $"N = {N}\n" +
                             $"deadCnt = {deadCnt}\n" + 
                             $"renderDelay = {renderDelay}\n" +
-                            $"moveType = {moveType}\n" +
                             $"shapeType = {shapeType}\n" +
                             $"rotationMode = {rotationMode}\n" +
                             $"rotationSubMode = {rotationSubMode}\n" +
-                            $"colorMode = {colorMode}\n" + 
+                            $"doUseDispersion = {doUseDispersion}\n" +
+                            $"dispersionMode = {dispersionMode}\n" +
+                            $"dispersionConst = {dispersionConst}\n" +
+                            $"connectionMode = {connectionMode}\n" +
+                            $"heightRatioMode = {heightRatioMode}\n" +
+                            $"doUseXOffset = {doUseXOffset}\n" +
+                            $"doShiftCenter = {doShiftCenter}\n" +
                             $"LifeCntBase = {LifeCntBase}"
                 ;
             return str;
@@ -160,6 +281,12 @@ namespace my
             if (heightRatioMode > 2)
             {
                 dy *= (heightRatioMode == 3) ? heightRatio : (float)rand.NextDouble();
+            }
+
+            // Additionally modify dx/dy in order to get various non-elliptical shapes
+            if (dXYgenerationMode > -1)
+            {
+                addDxDyModifier(ref dx, ref dy, x, y, dist);
             }
 
             x = x0;
@@ -438,6 +565,8 @@ namespace my
                     inst.Draw(false);
                 }
 
+                t += 0.001f;
+
                 System.Threading.Thread.Sleep(renderDelay);
             }
 
@@ -483,6 +612,126 @@ namespace my
                     myPrimitive.init_HexagonInst(N);
                     myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
                     inst = myPrimitive._HexagonInst;
+                    break;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private enum Operations { EQUALS, PLUS, MINUS, MULT, DIV, SIN, COS };
+
+        private void family1(ref float f1, Operations op1, ref float f2, Operations op2, bool randSign)
+        {
+            double res = 0;
+
+            switch (op2)
+            {
+                case Operations.SIN: res = Math.Sin(f2); break;
+                case Operations.COS: res = Math.Cos(f2); break;
+            }
+
+            switch (op1)
+            {
+                case Operations.EQUALS: f1  = (float)res; break;
+                case Operations.PLUS:   f1 += (float)res; break;
+                case Operations.MINUS:  f1 -= (float)res; break;
+                case Operations.MULT:   f1 *= (float)res; break;
+                case Operations.DIV:    f1 /= (float)res; break;
+            }
+
+            if (randSign)
+            {
+                f1 *= myUtils.randomSign(rand);
+            }
+
+            return;
+        }
+
+        // Must be used for 20 switch cases;
+        // startIndex is the index of the first case used;
+        // Applies 4 different [family1] calls with 5 different operations;
+        // Must receive a function delegate to perform an operation on the incoming dx and dy values;
+        private void useFamily1(ref float dx, ref float dy, family1Delegate func, int startIndex, bool randSign)
+        {
+            float val = func(dx, dy);
+
+            Operations op = Operations.EQUALS;
+
+            switch ((dXYgenerationMode - startIndex) / 4)
+            {
+                case 1: op = Operations.PLUS; break;
+                case 2: op = Operations.MINUS; break;
+                case 3: op = Operations.MULT; break;
+                case 4: op = Operations.DIV; break;
+            }
+
+            switch (dXYgenerationMode % 4)
+            {
+                case 0:
+                    family1(ref dy, op, ref val, Operations.SIN, randSign);
+                    break;
+
+                case 1:
+                    family1(ref dy, op, ref val, Operations.COS, randSign);
+                    break;
+
+                case 2:
+                    family1(ref dx, op, ref val, Operations.SIN, randSign);
+                    break;
+
+                case 3:
+                    family1(ref dx, op, ref val, Operations.COS, randSign);
+                    break;
+            }
+        }
+
+        // todo: test later how much slower is using this family business instead of direct 1-level switch
+        private void addDxDyModifier(ref float dx, ref float dy, float x, float y, float dist)
+        {
+            //dXYgenerationMode = 999;
+            //dXYgenerationMode = 0;
+
+            //dXYgenerationMode_useRandSign = true;
+            //dXYgenerationMode_useRandSign = false;
+
+            switch (dXYgenerationMode)
+            {
+                case 0: case 1: case 2: case 3:
+                case 4: case 5: case 6: case 7:
+                case 8: case 9: case 10: case 11:
+                case 12: case 13: case 14: case 15:
+                case 16: case 17: case 18: case 19:
+                    useFamily1(ref dx, ref dy, f1dFunc, 0, randSign: dXYgenerationMode_useRandSign);
+                    break;
+
+                // -------------------------------------------------------------
+
+                case 721:
+                    dx = (float)(Math.Cos(dx) * Math.Sin(dx) * 2);
+                    dy = (float)(Math.Cos(dy) * Math.Sin(dy) * 2);
+                    break;
+
+                case 722:
+                    float tmp73 = dx;
+                    dx = (float)Math.Cos(dy) * (float)Math.Sin(dy) * 2;
+                    dy = (float)Math.Cos(tmp73) * (float)Math.Sin(tmp73) * 2;
+                    break;
+
+                // -------------------------------------------------------------
+
+                case 999:
+                    //dy = (float)Math.Sin(dx+dy) * myUtils.randomSign(rand);
+
+                    // dy = (float)Math.Sin(dx + dy);
+                    // dy = (float)Math.Sin(dx * dy);
+                    // dy = (float)Math.Sin(dx / dy);
+
+                    dy = (float)Math.Sin((dx + dy) / (dx * dy));
+
+                    //dy = (float)Math.Sin(1/(dx + dy));
+
                     break;
             }
 
