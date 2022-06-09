@@ -19,8 +19,8 @@ namespace my
 
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgenerationMode_useRandSign = false;
-        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 1111, WaveLifeCnt = 0, LifeCntBase = 0;
-        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0;
+        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
+        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, delegateNo = -1;
         private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1;
         private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
                                             dispersionConst = 0, heightRatio = 1.0f, xOffset = 0, dSize = 0;
@@ -123,15 +123,11 @@ namespace my
             // Set up additional dx/dy generation mode:
             if (myUtils.randomChance(rand, 1, 3))
             {
-                dXYgenerationMode = rand.Next(33);
+                dXYgenerationMode = rand.Next(20);
                 dXYgenerationMode_useRandSign = myUtils.randomBool(rand);
-            }
 
-            // Set delegates:
-            {
-                int delegateNo = 999;
-
-                delegateNo = rand.Next(18);
+                delegateNo = 999;
+                delegateNo = rand.Next(30);
 
                 switch (delegateNo)
                 {
@@ -207,16 +203,58 @@ namespace my
                         f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > (x / y) ? y : x; });
                         break;
 
+                    case 18:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y * x) * (y * x * y); });
+                        break;
+
+                    case 19:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > (y * y) ? y/x : x/y; });
+                        break;
+
+                    case 20:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > (y * y) ? x/y : y/x; });
+                        break;
+
+                    case 21:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > (y * y) ? x : y; });
+                        break;
+
+                    case 22:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > (y * y) ? y : x; });
+                        break;
+
+                    case 23:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > 0.5f ? 1 : -1; });
+                        break;
+
+                    case 24:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > 0.5f ? x+y : x-y; });
+                        break;
+
+                    case 25:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > 0.5f ? (float)Math.Sin(x) : (float)Math.Sin(y); });
+                        break;
+
+                    case 26:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > 1 ? (float)Math.Sin(x) : (float)Math.Sin(y); });
+                        break;
+
+                    case 27:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (x + y) > 1 ? (float)Math.Sin(x) : (float)Math.Cos(y); });
+                        break;
+
+                    case 28:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (float)Math.Sin(x + y); });
+                        break;
+
+                    case 29:
+                        f1dFunc = new family1Delegate((float x, float y) => { return (float)Math.Sin(1 / (x + y)); });
+                        break;
+
                     case 999:
                         f1dFunc = new family1Delegate((float x, float y) => 
                         {
-                            return (x * y * x) * (y * x * y);
-                            return (x * x) > (y * y) ? y / x : x / y;
-                            return (x * x) > (y * y) ? x/y : y/x;
-                            return (x * x) > (y * y) ? x : y;
-                            return (x * x) > (y * y) ? y : x;
-
-                            //return (float)Math.Sin(1/(x + y));
+                            return (x - 1)*(x + 1) - (y - 1) * (y + 1);
                         });
                         break;
                 }
@@ -253,6 +291,9 @@ namespace my
                             $"dispersionMode = {dispersionMode}\n" +
                             $"dispersionConst = {dispersionConst}\n" +
                             $"connectionMode = {connectionMode}\n" +
+                            $"dXYgenerationMode = {dXYgenerationMode}\n" +
+                            $"dXYgenerationMode_useRandSign = {dXYgenerationMode_useRandSign}\n" +
+                            $"delegateNo = {delegateNo}\n" +
                             $"heightRatioMode = {heightRatioMode}\n" +
                             $"doUseXOffset = {doUseXOffset}\n" +
                             $"doShiftCenter = {doShiftCenter}\n" +
@@ -649,7 +690,7 @@ namespace my
             return;
         }
 
-        // Must be used for 20 switch cases;
+        // Must be used with a block of 20 switch cases;
         // startIndex is the index of the first case used;
         // Applies 4 different [family1] calls with 5 different operations;
         // Must receive a function delegate to perform an operation on the incoming dx and dy values;
@@ -661,10 +702,10 @@ namespace my
 
             switch ((dXYgenerationMode - startIndex) / 4)
             {
-                case 1: op = Operations.PLUS; break;
+                case 1: op = Operations.PLUS;  break;
                 case 2: op = Operations.MINUS; break;
-                case 3: op = Operations.MULT; break;
-                case 4: op = Operations.DIV; break;
+                case 3: op = Operations.MULT;  break;
+                case 4: op = Operations.DIV;   break;
             }
 
             switch (dXYgenerationMode % 4)
@@ -690,11 +731,7 @@ namespace my
         // todo: test later how much slower is using this family business instead of direct 1-level switch
         private void addDxDyModifier(ref float dx, ref float dy, float x, float y, float dist)
         {
-            //dXYgenerationMode = 999;
-            //dXYgenerationMode = 0;
-
-            //dXYgenerationMode_useRandSign = true;
-            //dXYgenerationMode_useRandSign = false;
+            dXYgenerationMode = 999;
 
             switch (dXYgenerationMode)
             {
@@ -722,15 +759,10 @@ namespace my
                 // -------------------------------------------------------------
 
                 case 999:
-                    //dy = (float)Math.Sin(dx+dy) * myUtils.randomSign(rand);
+                    //dy = (float)Math.Sin(dx) + (float)Math.Sin(dy);
+                    //dy = (float)Math.Sin(dx) + (float)Math.Cos(dy);
 
-                    // dy = (float)Math.Sin(dx + dy);
-                    // dy = (float)Math.Sin(dx * dy);
-                    // dy = (float)Math.Sin(dx / dy);
-
-                    dy = (float)Math.Sin((dx + dy) / (dx * dy));
-
-                    //dy = (float)Math.Sin(1/(dx + dy));
+                    dy = (float)Math.Cos(dx) + (float)Math.Sin(dy);
 
                     break;
             }
