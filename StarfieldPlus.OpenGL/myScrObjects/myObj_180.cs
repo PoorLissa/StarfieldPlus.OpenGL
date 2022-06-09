@@ -265,6 +265,7 @@ namespace my
             renderDelay = 1;
 
 #if true
+            doUseDispersion = false;
             doUseIncreasingWaveSize = false;
             doShiftCenter = false;
             doUseXOffset = false;
@@ -762,7 +763,56 @@ namespace my
                     //dy = (float)Math.Sin(dx) + (float)Math.Sin(dy);
                     //dy = (float)Math.Sin(dx) + (float)Math.Cos(dy);
 
-                    dy = (float)Math.Cos(dx) + (float)Math.Sin(dy);
+                    //dy = (float)(Math.Cos(dx+dy) + Math.Sin(dx+dy));
+                    //dy = (float)Math.Cos(dx) + (float)Math.Sin(dy);
+
+                    //dy = (float)Math.Cos(dx)*dy;
+
+                    //dy = (float)Math.Cos(dx + dy) * (dy + dx);
+
+                    //dy = (float)Math.Cos(dx * dy) * (dy * dx);
+
+                    //dy = (float)Math.Cos(dx * dy) * (dy / dx);
+
+                    //dy = (float)Math.Cos(dx + dy) * (dy / dx);
+
+                    //dy = (float)Math.Cos(dx - dy) * (dy / dx);
+
+                    //dy = (float)Math.Cos(dx / dy) * (dy / dx);
+
+                    //dy = (float)Math.Cos(dx / dy) * (dy + dx);    // khm
+
+                    //dy = (float)Math.Sin(dx + dy) + (float)Math.Cos(dy+dx);
+
+                    // together
+                    //dx = (float)(Math.Cos(dx))/dx;
+                    //dy = (float)(Math.Sin(dy))/dy;
+
+                    // together
+                    //dx = (float)(Math.Sin(dx))/dy;
+                    //dy = (float)(Math.Cos(dy))/dx;
+
+                    // together
+                    //dx = (float)(Math.Sin(dy))/dx;
+                    //dy = (float)(Math.Cos(dx))/dy;
+
+                    switch (rand.Next(3))
+                    {
+                        case 0:
+                            dx = (float)(Math.Cos(dx))/dx;
+                            dy = (float)(Math.Sin(dy))/dy;
+                            break;
+
+                        case 1:
+                            dx = (float)(Math.Sin(dx))/dy;
+                            dy = (float)(Math.Cos(dy))/dx;
+                            break;
+
+                        case 2:
+                            dx = (float)(Math.Sin(dy))/dx;
+                            dy = (float)(Math.Cos(dx))/dy;
+                            break;
+                    }
 
                     break;
             }
