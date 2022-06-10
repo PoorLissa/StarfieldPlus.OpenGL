@@ -19,8 +19,8 @@ namespace my
 
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgenerationMode_useRandSign = false;
-        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
-        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, delegateNo = -1;
+        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 1111, WaveLifeCnt = 0, LifeCntBase = 0;
+        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, delegateNo = -1, rateBase = 50, rateMode = 0;
         private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1;
         private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
                                             dispersionConst = 0, heightRatio = 1.0f, xOffset = 0, dSize = 0;
@@ -35,6 +35,12 @@ namespace my
         private float dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f, acceleration = 1.0f;
 
         private static family1Delegate f1dFunc = null;
+
+        // Function Generation
+        static myTest.Targets target;
+        static myTest.BasicFunctions f1, f2;
+        static uint argmode1, argmode2, argmode3;
+        static myTest.Operations targetOp;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -67,6 +73,7 @@ namespace my
             doShiftCenter   = myUtils.randomChance(rand, 1, 6);
             doUseRandomSpeed = myUtils.randomBool(rand);
             doUseIncreasingWaveSize = myUtils.randomChance(rand, 1, 3);
+            rateMode = rand.Next(3);
             dispersionMode  = rand.Next(6);
             heightRatioMode = rand.Next(5);
 
@@ -270,9 +277,20 @@ namespace my
             doShiftCenter = false;
             doUseXOffset = false;
             heightRatioMode = 1;
-            dXYgenerationMode = 0;
             dXYgenerationMode = rand.Next(20);
+            dXYgenerationMode = 999;
 #endif
+
+            if (dXYgenerationMode == 999)
+            {
+                target = (myTest.Targets)rand.Next(2);
+                f1 = (myTest.BasicFunctions)(rand.Next(3) + 1);
+                f2 = (myTest.BasicFunctions)(rand.Next(3) + 1);
+                argmode1 = (uint)rand.Next(10);
+                argmode2 = (uint)rand.Next(10);
+                argmode3 = (uint)rand.Next(10);
+                targetOp = (myTest.Operations)rand.Next(5);
+            }
 
             return;
         }
@@ -281,6 +299,18 @@ namespace my
 
         protected override string CollectCurrentInfo()
         {
+            string getFuncGeneratorParams()
+            {
+                return $"target = {target}\n" +
+                       $"targetOp = {targetOp}\n" + 
+                       $"f1 = {f1}\n" +
+                       $"f2 = {f2}\n" +
+                       $"argmode1 = {argmode1}\n" +
+                       $"argmode2 = {argmode2}\n" +
+                       $"argmode3 = {argmode3}"
+                ;
+            }
+
             string str = $"Obj = myObj_180\n\n" +
                             $"N = {N}\n" +
                             $"deadCnt = {deadCnt}\n" + 
@@ -298,7 +328,9 @@ namespace my
                             $"heightRatioMode = {heightRatioMode}\n" +
                             $"doUseXOffset = {doUseXOffset}\n" +
                             $"doShiftCenter = {doShiftCenter}\n" +
-                            $"LifeCntBase = {LifeCntBase}"
+                            $"LifeCntBase = {LifeCntBase}\n" +
+                            "\nFuncGeneratorParams:\n\n"
+                            + getFuncGeneratorParams()
                 ;
             return str;
         }
@@ -479,7 +511,7 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
-            int rate = 50;
+            int rate = rateBase;
             int waveSize = doUseIncreasingWaveSize ? 1 : waveSizeBase;
             int dWaveSize = doUseIncreasingWaveSize ? rand.Next(17) + 1 : 0;
 
@@ -549,6 +581,21 @@ namespace my
 
                         if (waveSize < waveSizeBase)
                             waveSize += dWaveSize;
+
+                        // Vary rate:
+                        //  rateMode = 0: const pace
+                        //  rateMode = 1: sin of time
+                        //  rateMode = 2: random pick
+                        switch (rateMode)
+                        {
+                            case 1:
+                                rate = (int)(Math.Abs(Math.Sin(t)) * rateBase) + 5;
+                                break;
+
+                            case 2:
+                                rate = rand.Next(rateBase * 2) + 5;
+                                break;
+                        }
                     }
 
                     for (int i = 0; i < list.Count; i++)
@@ -666,6 +713,9 @@ namespace my
 
         private void family1(ref float f1, Operations op1, ref float f2, Operations op2, bool randSign)
         {
+            // f1 +-*/= Sin(f2);
+            // f1 +-*/= Cos(f2);
+
             double res = 0;
 
             switch (op2)
@@ -732,7 +782,7 @@ namespace my
         // todo: test later how much slower is using this family business instead of direct 1-level switch
         private void addDxDyModifier(ref float dx, ref float dy, float x, float y, float dist)
         {
-            dXYgenerationMode = 999;
+            float tmp = 0;
 
             switch (dXYgenerationMode)
             {
@@ -752,14 +802,15 @@ namespace my
                     break;
 
                 case 722:
-                    float tmp73 = dx;
+                    tmp = dx;
                     dx = (float)Math.Cos(dy) * (float)Math.Sin(dy) * 2;
-                    dy = (float)Math.Cos(tmp73) * (float)Math.Sin(tmp73) * 2;
+                    dy = (float)Math.Cos(tmp) * (float)Math.Sin(tmp) * 2;
                     break;
 
                 // -------------------------------------------------------------
 
                 case 999:
+
                     //dy = (float)Math.Sin(dx) + (float)Math.Sin(dy);
                     //dy = (float)Math.Sin(dx) + (float)Math.Cos(dy);
 
@@ -796,24 +847,76 @@ namespace my
                     //dx = (float)(Math.Sin(dy))/dx;
                     //dy = (float)(Math.Cos(dx))/dy;
 
-                    switch (rand.Next(3))
+
+                    // =============================================================
+
+                    // heart shaped box
+                    //dy -= (float)(Math.Sqrt(Math.Abs(dx)));
+
+                    //dy /= (float)(Math.Sqrt(Math.Abs(dx)));
+
+                    // together
+                    //dx = (dx > 0 ? 1 : -1) * (float)(Math.Sqrt(Math.Abs(dx)));
+                    //dy = (dy > 0 ? 1 : -1) * (float)(Math.Sqrt(Math.Abs(dy)));
+
+                    //myTest.myFunc1.func_001(ref dx, ref dy, 2, mode: 1, myTest.BasicFunctions.SIN);
+
+                    //dy -= (float)Math.Sin(dx/dy);
+                    //dy = (float)Math.Sin(dy/dx);
+
+                    //myTest.myFunc1.func_001(ref dx, ref dy, 2, argMode: 6, myTest.BasicFunctions.SIN, myTest.Operations.MINUS);
+
+                    //myTest.myFunc1.func_001(ref dx, ref dy, myTest.Targets.SECOND, 8, myTest.BasicFunctions.SQRT, myTest.Operations.MINUS);
+
+                    //myTest.myFunc1.func_001(ref dx, ref dy, myTest.Targets.SECOND, 0, myTest.BasicFunctions.SQRT, myTest.Operations.EQUALS);
+
+                    //dy = (float)Math.Sin(dx+dy) + (float)Math.Cos(dy+dx);
+
+#if false
+                    dy += (float)Math.Sin(dx) + (float)Math.Cos(dy);
+#else
+
+                    if (false)
                     {
-                        case 0:
-                            dx = (float)(Math.Cos(dx))/dx;
-                            dy = (float)(Math.Sin(dy))/dy;
-                            break;
-
-                        case 1:
-                            dx = (float)(Math.Sin(dx))/dy;
-                            dy = (float)(Math.Cos(dy))/dx;
-                            break;
-
-                        case 2:
-                            dx = (float)(Math.Sin(dy))/dx;
-                            dy = (float)(Math.Cos(dx))/dy;
-                            break;
+                        myTest.myFunc1.func_002(ref dx, ref dy, target, targetOp, f1, argmode1, f2, argmode2, argmode3);
                     }
 
+                    dy /= (float)Math.Sin(Math.Abs(dx));// + (float)Math.Sqrt(dy);
+
+/*
+target = FIRST
+op = DIV
+f1 = COS
+f2 = SIN
+argmode1 = 3
+argmode2 = 9
+argmode3 = 0
+*/
+
+/*
+dy += (float)Math.Cos((Math.Abs(dy))) / (float)Math.Cos(dy*dx);* 
+target = SECOND
+targetOp = PLUS
+f1 = COS
+f2 = COS
+argmode1 = 7
+argmode2 = 3
+argmode3 = 9
+*/
+
+/*
+    -- save this one
+target = SECOND
+targetOp = DIV
+f1 = SIN
+f2 = SQRT
+argmode1 = 1
+argmode2 = 1
+argmode3 = 0
+*/
+
+#endif
+                    // =============================================================
                     break;
             }
 
@@ -822,4 +925,92 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
     }
+};
+
+
+namespace myTest
+{
+    public enum Targets { FIRST, SECOND, THIRD };
+    public enum Operations { EQUALS, PLUS, MINUS, MULT, DIV };
+    public enum BasicFunctions { NONE, SIN, COS, SQRT };
+
+    public class myFunc1
+    {
+        public static void func_001(ref float f1, ref float f2, Targets target, uint argMode, BasicFunctions func, Operations op)
+        {
+            float arg = nArgsFunc(argMode, f1, f2);
+
+            if (target == Targets.FIRST)
+            {
+                applyBasicFunc(ref f1, arg, func, op);
+            }
+            else
+            {
+                applyBasicFunc(ref f2, arg, func, op);
+            }
+        }
+
+        public static void func_002(ref float f1, ref float f2, Targets target, Operations targetOp,
+                                        BasicFunctions func1, uint argMode1,
+                                        BasicFunctions func2, uint argMode2,
+                                        uint argMode3)
+        {
+            float res1 = f1, res2 = f1;
+
+            func_001(ref res1, ref f2, Targets.FIRST, argMode1, func1, Operations.EQUALS);
+            func_001(ref res2, ref f2, Targets.FIRST, argMode2, func2, Operations.EQUALS);
+
+            float res = nArgsFunc(argMode3, res1, res2);
+
+            if (target == Targets.FIRST)
+            {
+                applyBasicFunc(ref f1, res, BasicFunctions.NONE, targetOp);
+            }
+            else
+            {
+                applyBasicFunc(ref f2, res, BasicFunctions.NONE, targetOp);
+            }
+        }
+
+        private static float nArgsFunc(uint mode, float f1, float f2 = 0, float f3 = 0, float f4 = 0, float f5 = 0)
+        {
+            switch (mode)
+            {
+                case 0: return f1;
+                case 1: return Math.Abs(f1);
+                case 2: return f2;
+                case 3: return Math.Abs(f2);
+                case 4: return f1 + f2;
+                case 5: return f1 - f2;
+                case 6: return f2 - f1;
+                case 7: return f1 * f2;
+                case 8: return f1 / f2;
+                case 9: return f2 / f1;
+            }
+
+            return 0;
+        }
+
+        private static void applyBasicFunc(ref float f1, float f2, BasicFunctions func, Operations operation)
+        {
+            double res = 0;
+
+            switch (func)
+            {
+                case BasicFunctions.SIN  : res = Math.Sin(f2);  break;
+                case BasicFunctions.COS  : res = Math.Cos(f2);  break;
+                case BasicFunctions.SQRT : res = Math.Sqrt(f2); break;
+                                 default : res = f2;            break;
+            }
+
+            switch (operation)
+            {
+                case Operations.EQUALS  : f1  = (float)res; break;
+                case Operations.PLUS    : f1 += (float)res; break;
+                case Operations.MINUS   : f1 -= (float)res; break;
+                case Operations.MULT    : f1 *= (float)res; break;
+                case Operations.DIV     : f1 /= (float)res; break;
+            }
+        }
+    };
 };
