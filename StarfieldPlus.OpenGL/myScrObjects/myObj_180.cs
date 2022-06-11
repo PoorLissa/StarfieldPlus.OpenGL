@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - moving points generator
+    - Generator of waves that are made of particles
 */
 
 
@@ -19,7 +19,7 @@ namespace my
 
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgenerationMode_useRandSign = false;
-        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 1111, WaveLifeCnt = 0, LifeCntBase = 0;
+        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
         private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, delegateNo = -1, rateBase = 50, rateMode = 0;
         private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1;
         private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
@@ -34,13 +34,11 @@ namespace my
         private bool isLive = false;
         private float dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f, acceleration = 1.0f;
 
-        private static family1Delegate f1dFunc = null;
-
         // Function Generation
-        static myTest.Targets target;
-        static myTest.BasicFunctions f1, f2;
-        static uint argmode1, argmode2, argmode3;
-        static myTest.Operations targetOp;
+        static uint                             argmode1, argmode2, argmode3;
+        static myFuncGenerator.Targets          target;
+        static myFuncGenerator.BasicFunctions   f1, f2;
+        static myFuncGenerator.Operations       targetOp;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -127,143 +125,24 @@ namespace my
                 rotationSubMode = rotationSubMode > 2 ? 0 : rotationSubMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
             }
 
+            // todo: remove true later
             // Set up additional dx/dy generation mode:
-            if (myUtils.randomChance(rand, 1, 3))
+            if (true || myUtils.randomChance(rand, 1, 3))
             {
-                dXYgenerationMode = rand.Next(20);
+                dXYgenerationMode = rand.Next(1);
                 dXYgenerationMode_useRandSign = myUtils.randomBool(rand);
 
-                delegateNo = 999;
-                delegateNo = rand.Next(30);
-
-                switch (delegateNo)
+                if (dXYgenerationMode == 0)
                 {
-                    case 0:
-                        f1dFunc = new family1Delegate((float x, float y) => { return x; });
-                        break;
+                    myFuncGenerator.myFunc1.rand = rand;
 
-                    case 1:
-                        f1dFunc = new family1Delegate((float x, float y) => { return y; });
-                        break;
-
-                    case 2:
-                        f1dFunc = new family1Delegate((float x, float y) => { return x + y; });
-                        break;
-
-                    case 3:
-                        f1dFunc = new family1Delegate((float x, float y) => { return x * y; });
-                        break;
-
-                    case 4:
-                        f1dFunc = new family1Delegate((float x, float y) => { return x / y; });
-                        break;
-
-                    case 5:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x + y) / (x * y); });
-                        break;
-
-                    case 6:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) / (x + y); });
-                        break;
-
-                    case 7:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x + y) * (x - y); });
-                        break;
-
-                    case 8:
-                        f1dFunc = new family1Delegate((float x, float y) => { return x * x * y * y; });
-                        break;
-
-                    case 9:
-                        f1dFunc = new family1Delegate((float x, float y) => { return 1 / (x + y); });
-                        break;
-
-                    case 10:
-                        f1dFunc = new family1Delegate((float x, float y) => { return 1 / (x - y); });
-                        break;
-
-                    case 11:
-                        f1dFunc = new family1Delegate((float x, float y) => { return y / (x + y); });
-                        break;
-
-                    case 12:
-                        f1dFunc = new family1Delegate((float x, float y) => { return y / (x - y); });
-                        break;
-
-                    case 13:
-                        f1dFunc = new family1Delegate((float x, float y) => { return x / y + y / x; });
-                        break;
-
-                    case 14:
-                        f1dFunc = new family1Delegate((float x, float y) => { return x > y ? x / y : y / x; });
-                        break;
-
-                    case 15:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x + y) * t; });
-                        break;
-
-                    case 16:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > (x / y) ? x : y; });
-                        break;
-
-                    case 17:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > (x / y) ? y : x; });
-                        break;
-
-                    case 18:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y * x) * (y * x * y); });
-                        break;
-
-                    case 19:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > (y * y) ? y/x : x/y; });
-                        break;
-
-                    case 20:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > (y * y) ? x/y : y/x; });
-                        break;
-
-                    case 21:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > (y * y) ? x : y; });
-                        break;
-
-                    case 22:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > (y * y) ? y : x; });
-                        break;
-
-                    case 23:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > 0.5f ? 1 : -1; });
-                        break;
-
-                    case 24:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * x) > 0.5f ? x+y : x-y; });
-                        break;
-
-                    case 25:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > 0.5f ? (float)Math.Sin(x) : (float)Math.Sin(y); });
-                        break;
-
-                    case 26:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x * y) > 1 ? (float)Math.Sin(x) : (float)Math.Sin(y); });
-                        break;
-
-                    case 27:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (x + y) > 1 ? (float)Math.Sin(x) : (float)Math.Cos(y); });
-                        break;
-
-                    case 28:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (float)Math.Sin(x + y); });
-                        break;
-
-                    case 29:
-                        f1dFunc = new family1Delegate((float x, float y) => { return (float)Math.Sin(1 / (x + y)); });
-                        break;
-
-                    case 999:
-                        f1dFunc = new family1Delegate((float x, float y) => 
-                        {
-                            return (x - 1)*(x + 1) - (y - 1) * (y + 1);
-                        });
-                        break;
+                    target = (myFuncGenerator.Targets)rand.Next(2);
+                    f1 = (myFuncGenerator.BasicFunctions)(rand.Next(3));
+                    f2 = (myFuncGenerator.BasicFunctions)(rand.Next(3));
+                    argmode1 = (uint)rand.Next(35);
+                    argmode2 = (uint)rand.Next(35);
+                    argmode3 = (uint)rand.Next(35);
+                    targetOp = (myFuncGenerator.Operations)rand.Next(5);
                 }
             }
 
@@ -277,21 +156,9 @@ namespace my
             doShiftCenter = false;
             doUseXOffset = false;
             heightRatioMode = 1;
-            dXYgenerationMode = rand.Next(20);
-            dXYgenerationMode = 999;
+            //dXYgenerationMode = rand.Next(20);
+            //dXYgenerationMode = 999;
 #endif
-
-            if (dXYgenerationMode == 999)
-            {
-                target = (myTest.Targets)rand.Next(2);
-                f1 = (myTest.BasicFunctions)(rand.Next(3) + 1);
-                f2 = (myTest.BasicFunctions)(rand.Next(3) + 1);
-                argmode1 = (uint)rand.Next(10);
-                argmode2 = (uint)rand.Next(10);
-                argmode3 = (uint)rand.Next(10);
-                targetOp = (myTest.Operations)rand.Next(5);
-            }
-
             return;
         }
 
@@ -301,7 +168,10 @@ namespace my
         {
             string getFuncGeneratorParams()
             {
-                return $"target = {target}\n" +
+                return $"\n" + 
+                       $"dXYgenerationMode = {dXYgenerationMode}\n" +
+                       $"dXYgenerationMode_useRandSign = {dXYgenerationMode_useRandSign}\n" +
+                       $"target = {target}\n" +
                        $"targetOp = {targetOp}\n" + 
                        $"f1 = {f1}\n" +
                        $"f2 = {f2}\n" +
@@ -322,15 +192,11 @@ namespace my
                             $"dispersionMode = {dispersionMode}\n" +
                             $"dispersionConst = {dispersionConst}\n" +
                             $"connectionMode = {connectionMode}\n" +
-                            $"dXYgenerationMode = {dXYgenerationMode}\n" +
-                            $"dXYgenerationMode_useRandSign = {dXYgenerationMode_useRandSign}\n" +
-                            $"delegateNo = {delegateNo}\n" +
                             $"heightRatioMode = {heightRatioMode}\n" +
                             $"doUseXOffset = {doUseXOffset}\n" +
                             $"doShiftCenter = {doShiftCenter}\n" +
                             $"LifeCntBase = {LifeCntBase}\n" +
-                            "\nFuncGeneratorParams:\n\n"
-                            + getFuncGeneratorParams()
+                            getFuncGeneratorParams()
                 ;
             return str;
         }
@@ -417,6 +283,9 @@ namespace my
                 x += dx;
                 y += dy;
                 angle += dAngle;
+
+                // gravity
+                //dy += (float)Math.Sin(t)/10;
 
                 if (--lifeCnt < 0)
                 {
@@ -709,76 +578,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private enum Operations { EQUALS, PLUS, MINUS, MULT, DIV, SIN, COS };
-
-        private void family1(ref float f1, Operations op1, ref float f2, Operations op2, bool randSign)
-        {
-            // f1 +-*/= Sin(f2);
-            // f1 +-*/= Cos(f2);
-
-            double res = 0;
-
-            switch (op2)
-            {
-                case Operations.SIN: res = Math.Sin(f2); break;
-                case Operations.COS: res = Math.Cos(f2); break;
-            }
-
-            switch (op1)
-            {
-                case Operations.EQUALS: f1  = (float)res; break;
-                case Operations.PLUS:   f1 += (float)res; break;
-                case Operations.MINUS:  f1 -= (float)res; break;
-                case Operations.MULT:   f1 *= (float)res; break;
-                case Operations.DIV:    f1 /= (float)res; break;
-            }
-
-            if (randSign)
-            {
-                f1 *= myUtils.randomSign(rand);
-            }
-
-            return;
-        }
-
-        // Must be used with a block of 20 switch cases;
-        // startIndex is the index of the first case used;
-        // Applies 4 different [family1] calls with 5 different operations;
-        // Must receive a function delegate to perform an operation on the incoming dx and dy values;
-        private void useFamily1(ref float dx, ref float dy, family1Delegate func, int startIndex, bool randSign)
-        {
-            float val = func(dx, dy);
-
-            Operations op = Operations.EQUALS;
-
-            switch ((dXYgenerationMode - startIndex) / 4)
-            {
-                case 1: op = Operations.PLUS;  break;
-                case 2: op = Operations.MINUS; break;
-                case 3: op = Operations.MULT;  break;
-                case 4: op = Operations.DIV;   break;
-            }
-
-            switch (dXYgenerationMode % 4)
-            {
-                case 0:
-                    family1(ref dy, op, ref val, Operations.SIN, randSign);
-                    break;
-
-                case 1:
-                    family1(ref dy, op, ref val, Operations.COS, randSign);
-                    break;
-
-                case 2:
-                    family1(ref dx, op, ref val, Operations.SIN, randSign);
-                    break;
-
-                case 3:
-                    family1(ref dx, op, ref val, Operations.COS, randSign);
-                    break;
-            }
-        }
-
         // todo: test later how much slower is using this family business instead of direct 1-level switch
         private void addDxDyModifier(ref float dx, ref float dy, float x, float y, float dist)
         {
@@ -786,12 +585,8 @@ namespace my
 
             switch (dXYgenerationMode)
             {
-                case 0: case 1: case 2: case 3:
-                case 4: case 5: case 6: case 7:
-                case 8: case 9: case 10: case 11:
-                case 12: case 13: case 14: case 15:
-                case 16: case 17: case 18: case 19:
-                    useFamily1(ref dx, ref dy, f1dFunc, 0, randSign: dXYgenerationMode_useRandSign);
+                case 0:
+                    myFuncGenerator.myFunc1.func_001(ref dx, ref dy, target, argmode1, f1, targetOp, dXYgenerationMode_useRandSign);
                     break;
 
                 // -------------------------------------------------------------
@@ -835,6 +630,30 @@ namespace my
 
                     //dy = (float)Math.Sin(dx + dy) + (float)Math.Cos(dy+dx);
 
+                    //dy = (float)(Math.Sin(dx)) / dy;
+
+                    //dy = (float)(Math.Cos(dx)) / dy;
+
+                    //dx = (float)(Math.Cos(dy)) / dx;
+
+                    //dx = (float)(Math.Sin(dy)) / dx;
+
+                    //dy = (int)(Math.Cos(dy) * dy * 2);
+
+                    //dy += (int)(Math.Sin(dx) * Math.Cos(dy) * 2);
+
+                    //dy *= (int)(Math.Sin(dx) * Math.Cos(dy) * 2);
+
+                    //dy /= (int)(Math.Sin(dx) * 2);
+
+                    // together
+                    //dx += (int)(Math.Sin(dy) * Math.Cos(dx) * 2);
+                    //dy += (int)(Math.Sin(dx) * Math.Cos(dy) * 2);
+
+                    // together
+                    //dx = (int)(Math.Sin(dx) * dy * 3);
+                    //dy = (int)(Math.Cos(dy) * dx * 3);
+
                     // together
                     //dx = (float)(Math.Cos(dx))/dx;
                     //dy = (float)(Math.Sin(dy))/dy;
@@ -872,51 +691,7 @@ namespace my
 
                     //dy = (float)Math.Sin(dx+dy) + (float)Math.Cos(dy+dx);
 
-#if false
-                    dy += (float)Math.Sin(dx) + (float)Math.Cos(dy);
-#else
-
-                    if (false)
-                    {
-                        myTest.myFunc1.func_002(ref dx, ref dy, target, targetOp, f1, argmode1, f2, argmode2, argmode3);
-                    }
-
-                    dy /= (float)Math.Sin(Math.Abs(dx));// + (float)Math.Sqrt(dy);
-
-/*
-target = FIRST
-op = DIV
-f1 = COS
-f2 = SIN
-argmode1 = 3
-argmode2 = 9
-argmode3 = 0
-*/
-
-/*
-dy += (float)Math.Cos((Math.Abs(dy))) / (float)Math.Cos(dy*dx);* 
-target = SECOND
-targetOp = PLUS
-f1 = COS
-f2 = COS
-argmode1 = 7
-argmode2 = 3
-argmode3 = 9
-*/
-
-/*
-    -- save this one
-target = SECOND
-targetOp = DIV
-f1 = SIN
-f2 = SQRT
-argmode1 = 1
-argmode2 = 1
-argmode3 = 0
-*/
-
-#endif
-                    // =============================================================
+                    myFuncGenerator.myFunc1.func_002(ref dx, ref dy, target, targetOp, f1, argmode1, f2, argmode2, argmode3);
                     break;
             }
 
@@ -925,92 +700,4 @@ argmode3 = 0
 
         // ---------------------------------------------------------------------------------------------------------------
     }
-};
-
-
-namespace myTest
-{
-    public enum Targets { FIRST, SECOND, THIRD };
-    public enum Operations { EQUALS, PLUS, MINUS, MULT, DIV };
-    public enum BasicFunctions { NONE, SIN, COS, SQRT };
-
-    public class myFunc1
-    {
-        public static void func_001(ref float f1, ref float f2, Targets target, uint argMode, BasicFunctions func, Operations op)
-        {
-            float arg = nArgsFunc(argMode, f1, f2);
-
-            if (target == Targets.FIRST)
-            {
-                applyBasicFunc(ref f1, arg, func, op);
-            }
-            else
-            {
-                applyBasicFunc(ref f2, arg, func, op);
-            }
-        }
-
-        public static void func_002(ref float f1, ref float f2, Targets target, Operations targetOp,
-                                        BasicFunctions func1, uint argMode1,
-                                        BasicFunctions func2, uint argMode2,
-                                        uint argMode3)
-        {
-            float res1 = f1, res2 = f1;
-
-            func_001(ref res1, ref f2, Targets.FIRST, argMode1, func1, Operations.EQUALS);
-            func_001(ref res2, ref f2, Targets.FIRST, argMode2, func2, Operations.EQUALS);
-
-            float res = nArgsFunc(argMode3, res1, res2);
-
-            if (target == Targets.FIRST)
-            {
-                applyBasicFunc(ref f1, res, BasicFunctions.NONE, targetOp);
-            }
-            else
-            {
-                applyBasicFunc(ref f2, res, BasicFunctions.NONE, targetOp);
-            }
-        }
-
-        private static float nArgsFunc(uint mode, float f1, float f2 = 0, float f3 = 0, float f4 = 0, float f5 = 0)
-        {
-            switch (mode)
-            {
-                case 0: return f1;
-                case 1: return Math.Abs(f1);
-                case 2: return f2;
-                case 3: return Math.Abs(f2);
-                case 4: return f1 + f2;
-                case 5: return f1 - f2;
-                case 6: return f2 - f1;
-                case 7: return f1 * f2;
-                case 8: return f1 / f2;
-                case 9: return f2 / f1;
-            }
-
-            return 0;
-        }
-
-        private static void applyBasicFunc(ref float f1, float f2, BasicFunctions func, Operations operation)
-        {
-            double res = 0;
-
-            switch (func)
-            {
-                case BasicFunctions.SIN  : res = Math.Sin(f2);  break;
-                case BasicFunctions.COS  : res = Math.Cos(f2);  break;
-                case BasicFunctions.SQRT : res = Math.Sqrt(f2); break;
-                                 default : res = f2;            break;
-            }
-
-            switch (operation)
-            {
-                case Operations.EQUALS  : f1  = (float)res; break;
-                case Operations.PLUS    : f1 += (float)res; break;
-                case Operations.MINUS   : f1 -= (float)res; break;
-                case Operations.MULT    : f1 *= (float)res; break;
-                case Operations.DIV     : f1 /= (float)res; break;
-            }
-        }
-    };
 };
