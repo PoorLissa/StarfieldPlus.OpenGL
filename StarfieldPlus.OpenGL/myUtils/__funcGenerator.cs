@@ -21,13 +21,13 @@ namespace myFuncGenerator
         // Uses the result as a parameter to a single main function;
         // Sometimes reverses the sign of the result, which leads to a symmetric resulting shape;
         // y [+-*/]= FUNC(args(x, y)) => y += Sin(x + y); y = Cos(x/y);
-        public static void func_001(ref float f1, ref float f2, Targets target, uint argMode, BasicFunctions func, Operations op, bool randomSign)
+        public static void func_001(ref float f1, ref float f2, Targets target, Operations targetOp, uint argMode, BasicFunctions func, bool randomSign)
         {
             float arg = nArgsFunc(argMode, f1, f2);
 
             if (target == Targets.FIRST)
             {
-                applyBasicFunc(ref f1, arg, func, op);
+                applyBasicFunc(ref f1, arg, func, targetOp);
 
                 if (randomSign)
                 {
@@ -36,7 +36,7 @@ namespace myFuncGenerator
             }
             else
             {
-                applyBasicFunc(ref f2, arg, func, op);
+                applyBasicFunc(ref f2, arg, func, targetOp);
 
                 if (randomSign)
                 {
@@ -47,15 +47,12 @@ namespace myFuncGenerator
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public static void func_002(ref float f1, ref float f2, Targets target, Operations targetOp,
-                                        BasicFunctions func1, uint argMode1,
-                                        BasicFunctions func2, uint argMode2,
-                                        uint argMode3)
+        public static void func_001_1(ref float f1, ref float f2, Targets target, Operations targetOp, uint argMode1, BasicFunctions func, uint argMode2, uint argMode3, bool randomSign)
         {
             float res1 = f1, res2 = f1;
 
-            func_001(ref res1, ref f2, Targets.FIRST, argMode1, func1, Operations.EQUALS, false);
-            func_001(ref res2, ref f2, Targets.FIRST, argMode2, func2, Operations.EQUALS, false);
+            func_001(ref res1, ref f2, Targets.FIRST, Operations.EQUALS, argMode1, func, false);
+            func_001(ref res2, ref f2, Targets.FIRST, Operations.EQUALS, argMode2, BasicFunctions.NONE, false);
 
             float res = nArgsFunc(argMode3, res1, res2);
 
@@ -70,6 +67,36 @@ namespace myFuncGenerator
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        public static void func_002(ref float f1, ref float f2, Targets target, Operations targetOp,
+                                        BasicFunctions func1, uint argMode1,
+                                        BasicFunctions func2, uint argMode2,
+                                        uint argMode3)
+        {
+            float res1 = f1, res2 = f1;
+
+            func_001(ref res1, ref f2, Targets.FIRST, Operations.EQUALS, argMode1, func1, false);
+            func_001(ref res2, ref f2, Targets.FIRST, Operations.EQUALS, argMode2, func2, false);
+
+            float res = nArgsFunc(argMode3, res1, res2);
+
+            if (target == Targets.FIRST)
+            {
+                applyBasicFunc(ref f1, res, BasicFunctions.NONE, targetOp);
+            }
+            else
+            {
+                applyBasicFunc(ref f2, res, BasicFunctions.NONE, targetOp);
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Get number of modes in nArgsFunc
+        public static int nArgsFuncNum()
+        {
+            return (int)nArgsFunc(9999999, 0, 0);
+        }
 
         private static float nArgsFunc(uint mode, float f1, float f2)
         {
@@ -95,7 +122,7 @@ namespace myFuncGenerator
                 case 17: return f2 / (f1 - f2);
                 case 18: return f1 / f2 + f2 / f1;
                 case 19: return f1 > f2 ? f1 / f2 : f2 / f1;
-                case 20: return (f1 + f2) * 0.0001f;    // should be t, but don't know how to pass it here yet
+                case 20: return (f1 + f2) * 0.0001f;    // should be 't', but couldn't figure out how to pass it in here yet
                 case 21: return (f1 * f2) > (f1 / f2) ? f1 : f2;
                 case 22: return (f1 * f2) > (f1 / f2) ? f2 : f1;
                 case 23: return (f1 * f2 * f1) * (f2 * f1 * f2);
@@ -116,7 +143,8 @@ namespace myFuncGenerator
                 case 999: return (f1 - 1.0f) * (f1 + 1.0f) - (f2 - 1.0f) * (f2 + 1.0f);
             }
 
-            return 0;
+            // Return the number of distinct modes
+            return 35;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -155,21 +183,17 @@ namespace myFuncGenerator
     argmode1 = 3
     argmode2 = 9
     argmode3 = 0
-    */
 
-    /*
     dy += (float)Math.Cos((Math.Abs(dy))) / (float)Math.Cos(dy*dx);* 
-    target = SECOND
-    targetOp = PLUS
-    f1 = COS
-    f2 = COS
-    argmode1 = 7
-    argmode2 = 3
-    argmode3 = 9
-    */
+        target = SECOND
+        targetOp = PLUS
+        f1 = COS
+        f2 = COS
+        argmode1 = 7
+        argmode2 = 3
+        argmode3 = 9
 
-    /*
-        -- save this one
+    -- save this one
     target = SECOND
     targetOp = DIV
     f1 = SIN
@@ -177,4 +201,19 @@ namespace myFuncGenerator
     argmode1 = 1
     argmode2 = 1
     argmode3 = 0
+
+    // heart shaped box
+    //dy -= (float)(Math.Sqrt(Math.Abs(dx)));
+        dXYgenerationMode = 0
+        target = SECOND
+        targetOp = MINUS
+        f1 = SQRT
+        argmode1 = 1
+
+    // dy /= (float)(Math.Sqrt(Math.Abs(dx)));
+    dXYgenerationMode = 0
+    target = SECOND
+    targetOp = DIV
+    f1 = SQRT
+    argmode1 = 1
 */

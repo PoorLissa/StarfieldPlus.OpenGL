@@ -57,22 +57,22 @@ namespace my
         // One-time initialization
         private void init()
         {
-            x0 = gl_Width  / 2;
+            x0 = gl_Width / 2;
             y0 = gl_Height / 2;
 
             colorPicker = new myColorPicker(gl_Width, gl_Height);
-            
+
             list = new List<myObject>();
 
-            doClearBuffer   = myUtils.randomChance(rand, 4, 5);
-            doFillShapes    = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomChance(rand, 4, 5);
+            doFillShapes = myUtils.randomBool(rand);
             doUseDispersion = myUtils.randomChance(rand, 2, 3);
-            doUseXOffset    = myUtils.randomChance(rand, 1, 7);
-            doShiftCenter   = myUtils.randomChance(rand, 1, 6);
+            doUseXOffset = myUtils.randomChance(rand, 1, 7);
+            doShiftCenter = myUtils.randomChance(rand, 1, 6);
             doUseRandomSpeed = myUtils.randomBool(rand);
             doUseIncreasingWaveSize = myUtils.randomChance(rand, 1, 3);
             rateMode = rand.Next(3);
-            dispersionMode  = rand.Next(6);
+            dispersionMode = rand.Next(6);
             heightRatioMode = rand.Next(5);
 
             // Set up x-offset
@@ -111,12 +111,12 @@ namespace my
             }
 
             // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
-            rotationMode   = rand.Next(4);
-            shapeType      = rand.Next(5);
-            LifeCntBase    = rand.Next(333) + 111;
+            rotationMode = rand.Next(4);
+            shapeType = rand.Next(5);
+            LifeCntBase = rand.Next(333) + 111;
             connectionMode = rand.Next(5);
-            speedBase      = 1.0f + 0.001f * rand.Next(2000);
-            dSize          = (float)rand.NextDouble()/100;
+            speedBase = 1.0f + 0.001f * rand.Next(2000);
+            dSize = (float)rand.NextDouble() / 100;
 
             // In case the rotation is enabled, we also may enable additional rotation option:
             if (rotationMode < 2)
@@ -129,10 +129,11 @@ namespace my
             // Set up additional dx/dy generation mode:
             if (true || myUtils.randomChance(rand, 1, 3))
             {
-                dXYgenerationMode = rand.Next(1);
+                dXYgenerationMode = rand.Next(2);
+                dXYgenerationMode = 1;
                 dXYgenerationMode_useRandSign = myUtils.randomBool(rand);
 
-                if (dXYgenerationMode == 0)
+                if (dXYgenerationMode == 0 || dXYgenerationMode == 1)
                 {
                     myFuncGenerator.myFunc1.rand = rand;
 
@@ -156,8 +157,6 @@ namespace my
             doShiftCenter = false;
             doUseXOffset = false;
             heightRatioMode = 1;
-            //dXYgenerationMode = rand.Next(20);
-            //dXYgenerationMode = 999;
 #endif
             return;
         }
@@ -583,10 +582,39 @@ namespace my
         {
             float tmp = 0;
 
+            //dy = dx;
+
+            //dy = (float)Math.Cos(dx) * dy;
+            //myFuncGenerator.myFunc1.func_001_1(ref dx, ref dy, myFuncGenerator.Targets.SECOND, myFuncGenerator.Operations.EQUALS, (uint)0, myFuncGenerator.BasicFunctions.COS, (uint)2, (uint)7, false);
+
+            //dy = (float)Math.Cos(dx + dy) * (dy + dx);
+            //myFuncGenerator.myFunc1.func_001_1(ref dx, ref dy, myFuncGenerator.Targets.SECOND, myFuncGenerator.Operations.EQUALS, (uint)4, myFuncGenerator.BasicFunctions.COS, (uint)4, (uint)7, false);
+
+            float DX = dx, DY = dy;
+            dy = (float)Math.Cos(dx + dy) * (dy + dx);
+
+            myFuncGenerator.myFunc1.func_001_1(ref DX, ref DY, myFuncGenerator.Targets.SECOND, myFuncGenerator.Operations.EQUALS, (uint)4, myFuncGenerator.BasicFunctions.COS, (uint)4, (uint)7, false);
+
+            if (dx != DX || dy != DY)
+            {
+                ;
+            }
+
+            return;
+
+            dXYgenerationMode = 0;
+            target = myFuncGenerator.Targets.SECOND;
+            f1 = myFuncGenerator.BasicFunctions.SQRT;
+            argmode1 = (uint)1;
+            targetOp = myFuncGenerator.Operations.DIV;
+
             switch (dXYgenerationMode)
             {
                 case 0:
-                    myFuncGenerator.myFunc1.func_001(ref dx, ref dy, target, argmode1, f1, targetOp, dXYgenerationMode_useRandSign);
+                    myFuncGenerator.myFunc1.func_001(ref dx, ref dy, target, targetOp, argmode1, f1, dXYgenerationMode_useRandSign);
+                    break;
+
+                case 1:
                     break;
 
                 // -------------------------------------------------------------
@@ -612,9 +640,9 @@ namespace my
                     //dy = (float)(Math.Cos(dx+dy) + Math.Sin(dx+dy));
                     //dy = (float)Math.Cos(dx) + (float)Math.Sin(dy);
 
-                    //dy = (float)Math.Cos(dx)*dy;
+//dy = (float)Math.Cos(dx)*dy;
 
-                    //dy = (float)Math.Cos(dx + dy) * (dy + dx);
+//dy = (float)Math.Cos(dx + dy) * (dy + dx);
 
                     //dy = (float)Math.Cos(dx * dy) * (dy * dx);
 
@@ -668,11 +696,6 @@ namespace my
 
 
                     // =============================================================
-
-                    // heart shaped box
-                    //dy -= (float)(Math.Sqrt(Math.Abs(dx)));
-
-                    //dy /= (float)(Math.Sqrt(Math.Abs(dx)));
 
                     // together
                     //dx = (dx > 0 ? 1 : -1) * (float)(Math.Sqrt(Math.Abs(dx)));
