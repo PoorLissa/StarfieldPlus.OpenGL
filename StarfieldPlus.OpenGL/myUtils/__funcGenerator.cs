@@ -2,7 +2,7 @@
 
 
 
-namespace myFuncGenerator
+namespace myFuncGenerator0
 {
     public enum Targets { FIRST, SECOND };
     public enum Operations { EQUALS, PLUS, MINUS, MULT, DIV };
@@ -176,14 +176,6 @@ namespace myFuncGenerator
 };
 
 /*
-    target = FIRST
-    op = DIV
-    f1 = COS
-    f2 = SIN
-    argmode1 = 3
-    argmode2 = 9
-    argmode3 = 0
-
     dy += (float)Math.Cos((Math.Abs(dy))) / (float)Math.Cos(dy*dx);* 
         target = SECOND
         targetOp = PLUS
@@ -193,27 +185,143 @@ namespace myFuncGenerator
         argmode2 = 3
         argmode3 = 9
 
-    -- save this one
-    target = SECOND
-    targetOp = DIV
-    f1 = SIN
-    f2 = SQRT
-    argmode1 = 1
-    argmode2 = 1
-    argmode3 = 0
-
-    // heart shaped box
-    //dy -= (float)(Math.Sqrt(Math.Abs(dx)));
-        dXYgenerationMode = 0
+    -- save this one -- probably need to use it with 2 funcs
         target = SECOND
-        targetOp = MINUS
-        f1 = SQRT
+        targetOp = DIV
+        f1 = SIN
+        f2 = SQRT
         argmode1 = 1
-
-    // dy /= (float)(Math.Sqrt(Math.Abs(dx)));
-    dXYgenerationMode = 0
-    target = SECOND
-    targetOp = DIV
-    f1 = SQRT
-    argmode1 = 1
+        argmode2 = 1
+        argmode3 = 0
 */
+
+
+namespace myFuncGenerator1
+{
+    public enum Funcs { SIN, COS, SQRT, NONE };
+    public enum eqModes { EQUALS, PLUS, MINUS, MULT, DIV };
+    public enum Targets { FIRST, SECOND };
+
+    // ---------------------------------------------------------------------------------------------------------------
+
+    public class myFuncs
+    {
+        public static int iFunc(Funcs f, float arg)
+        {
+            switch (f)
+            {
+                case Funcs.SIN : return (int)Math.Sin(arg);
+                case Funcs.COS : return (int)Math.Cos(arg);
+                case Funcs.SQRT: return (int)Math.Sqrt(arg);
+            }
+
+            return 3;
+        }
+
+        public static float fFunc(Funcs f, float arg)
+        {
+            switch (f)
+            {
+                case Funcs.SIN : return (float)Math.Sin(arg);
+                case Funcs.COS : return (float)Math.Cos(arg);
+                case Funcs.SQRT: return (float)Math.Sqrt(arg);
+            }
+
+            return 3;
+        }
+
+    };
+
+    // ---------------------------------------------------------------------------------------------------------------
+
+    public class myArgs
+    {
+        public static float argsFunc(float x, float y, int argMode)
+        {
+            switch (argMode)
+            {
+                case 0: return x;
+                case 1: return Math.Abs(x);
+                case 2: return y;
+                case 3: return Math.Abs(y);
+                case 4: return x + y;
+                case 5: return x - y;
+                case 6: return y - x;
+                case 7: return x * y;
+                case 8: return x / y;
+                case 9: return y / x;
+                case 10: return (x + y) / (x * y);
+                case 11: return (x * y) / (x + y);
+                case 12: return (x + y) * (x - y);
+                case 13: return x * x * y * y;
+                case 14: return 1.0f / (x + y);
+                case 15: return 1.0f / (x - y);
+                case 16: return y / (x + y);
+                case 17: return y / (x - y);
+                case 18: return x / y + y / x;
+                case 19: return x > y ? x / y : y / x;
+                case 20: return (x + y) * 0.0001f;    // should be 't', but couldn't figure out how to pass it in here yet
+                case 21: return (x * y) > (x / y) ? x : y;
+                case 22: return (x * y) > (x / y) ? y : x;
+                case 23: return (x * y * x) * (y * x * y);
+                case 24: return (x * x) > (y * y) ? y / x : x / y;
+                case 25: return (x * x) > (y * y) ? x / y : y / x;
+                case 26: return (x * x) > (y * y) ? x : y;
+                case 27: return (x * x) > (y * y) ? y : x;
+                case 28: return (x * x) > 0.5f ? 1.0f : -1.0f;
+                case 29: return (x * x) > 0.5f ? x + y : x - y;
+                case 30: return (x * y) > 0.5f ? (float)Math.Sin(x) : (float)Math.Sin(y);
+                case 31: return (x * y) > 1.0f ? (float)Math.Sin(x) : (float)Math.Sin(y);
+                case 32: return (x + y) > 1.0f ? (float)Math.Sin(x) : (float)Math.Cos(y);
+                case 33: return (float)Math.Sin(x + y);
+                case 34: return (float)Math.Sin(1.0f / (x + y));
+
+                // ========================================================
+
+                case 999: return (x - 1.0f) * (x + 1.0f) - (y - 1.0f) * (y + 1.0f);
+            }
+
+            return 35;
+        }
+    };
+
+    // ---------------------------------------------------------------------------------------------------------------
+
+    public class myExpr
+    {
+        public static Random rand = null;
+
+        public static void expr(ref float val, eqModes eqMode, bool randSign, float arg)
+        {
+            switch (eqMode)
+            {
+                case eqModes.EQUALS : val  = arg; break;
+                case eqModes.PLUS   : val += arg; break;
+                case eqModes.MINUS  : val -= arg; break;
+                case eqModes.MULT   : val *= arg; break;
+                case eqModes.DIV    : val /= arg; break;
+            }
+
+            if (randSign)
+            {
+                val *= my.myUtils.randomSign(rand);
+            }
+        }
+
+        public static void expr(ref float f1, ref float f2, Targets t, eqModes eqMode, bool randSign, float arg)
+        {
+            switch (t)
+            {
+                case Targets.FIRST:
+                    expr(ref f1, eqMode, randSign, arg);
+                    break;
+
+                case Targets.SECOND:
+                    expr(ref f2, eqMode, randSign, arg);
+                    break;
+            }
+        }
+    };
+
+    // ---------------------------------------------------------------------------------------------------------------
+};
