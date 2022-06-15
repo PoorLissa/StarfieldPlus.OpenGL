@@ -18,7 +18,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
-                            doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign = false;
+                            doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false;
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
         private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, delegateNo = -1, rateBase = 50, rateMode = 0;
         private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1;
@@ -35,10 +35,10 @@ namespace my
         private float dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f, acceleration = 1.0f;
 
         // Function Generation
-        static int argmode1, argmode2, argmode3;
+        static int argmode1, argmode2, argmode3, argmode4, argmode5, argmode6;
         static myFuncGenerator1.Targets target;
-        static myFuncGenerator1.Funcs   f1, f2;
-        static myFuncGenerator1.eqModes eqMode;
+        static myFuncGenerator1.Funcs   f1, f2, f3, f4;
+        static myFuncGenerator1.eqModes eqMode1, eqMode2;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -129,24 +129,28 @@ namespace my
             // Set up additional dx/dy generation mode:
             if (true || myUtils.randomChance(rand, 1, 3))
             {
-                dXYgenerationMode = rand.Next(2);
-                dXYgenerationMode = 1;
-                dXYgen_useRandSign = myUtils.randomBool(rand);
+                dXYgenerationMode = rand.Next(6);
+                dXYgen_useRandSign1 = myUtils.randomBool(rand);
+                dXYgen_useRandSign2 = myUtils.randomBool(rand);
 
-                if (dXYgenerationMode == 0 || dXYgenerationMode == 1)
-                {
-                    myFuncGenerator1.myExpr.rand = rand;
+                myFuncGenerator1.myExpr.rand = rand;
 
-                    int argModesQty = (int)myFuncGenerator1.myArgs.argsFunc(0, 0, -1);
+                int argModesQty = (int)myFuncGenerator1.myArgs.argsFunc(-1, 0, 0);
+                int funcsQty = (int)myFuncGenerator1.myFuncs.fFunc(myFuncGenerator1.Funcs.NONE, 0);
 
-                    target = (myFuncGenerator1.Targets)rand.Next(2);
-                    f1 = (myFuncGenerator1.Funcs)rand.Next(myFuncGenerator1.myFuncs.iFunc(myFuncGenerator1.Funcs.NONE, 0));
-                    f2 = (myFuncGenerator1.Funcs)rand.Next(myFuncGenerator1.myFuncs.iFunc(myFuncGenerator1.Funcs.NONE, 0));
-                    argmode1 = rand.Next(argModesQty);
-                    argmode1 = rand.Next(argModesQty);
-                    argmode1 = rand.Next(argModesQty);
-                    eqMode = (myFuncGenerator1.eqModes)rand.Next(5);
-                }
+                target = (myFuncGenerator1.Targets)rand.Next(2);
+                f1 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
+                f2 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
+                f3 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
+                f4 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
+                argmode1 = rand.Next(argModesQty);
+                argmode2 = rand.Next(argModesQty);
+                argmode3 = rand.Next(argModesQty);
+                argmode4 = rand.Next(argModesQty);
+                argmode5 = rand.Next(argModesQty);
+                argmode6 = rand.Next(argModesQty);
+                eqMode1 = (myFuncGenerator1.eqModes)rand.Next(5);
+                eqMode2 = (myFuncGenerator1.eqModes)rand.Next(5);
             }
 
             // Set number of objects N:
@@ -171,14 +175,21 @@ namespace my
             {
                 return $"\n" + 
                        $"dXYgenerationMode = {dXYgenerationMode}\n" +
-                       $"dXYgen_useRandSign = {dXYgen_useRandSign}\n" +
-                       $"target = {target}\n" +
-                       $"eqMode = {eqMode}\n" + 
-                       $"f1 = {f1}\n" +
-                       $"f2 = {f2}\n" +
+                       $"dXYgen_useRandSign1 = {dXYgen_useRandSign1}\n" +
+                       $"dXYgen_useRandSign2 = {dXYgen_useRandSign2}\n" +
+                       $"target = {target} ({(int)target})\n" +
+                       $"eqMode1 = {eqMode1} ({(int)eqMode1})\n" +
+                       $"eqMode2 = {eqMode2} ({(int)eqMode2})\n" +
+                       $"f1 = {f1} ({(int)f1})\n" +
+                       $"f2 = {f2} ({(int)f2})\n" +
+                       $"f3 = {f3} ({(int)f3})\n" +
+                       $"f4 = {f4} ({(int)f4})\n" +
                        $"argmode1 = {argmode1}\n" +
                        $"argmode2 = {argmode2}\n" +
-                       $"argmode3 = {argmode3}"
+                       $"argmode3 = {argmode3}\n" +
+                       $"argmode4 = {argmode4}\n" +
+                       $"argmode5 = {argmode5}\n" +
+                       $"argmode6 = {argmode6}"
                 ;
             }
 
@@ -582,119 +593,178 @@ namespace my
         // todo: test later how much slower is using this family business instead of direct 1-level switch
         private void addDxDyModifier(ref float dx, ref float dy, float x, float y, float dist)
         {
-            float tmp = 0;
-
-            if (false)
-            {
-                float dx2 = dx;
-                float dy2 = dy;
-
-                dy /= (float)Math.Sin(dx + dy);
-
-                tmp = myFuncGenerator1.myFuncs.fFunc(myFuncGenerator1.Funcs.SIN, myFuncGenerator1.myArgs.argsFunc(dx2, dy2, 2));
-                myFuncGenerator1.myExpr.expr(ref dx2, ref dy2, myFuncGenerator1.Targets.SECOND, myFuncGenerator1.eqModes.DIV, dXYgen_useRandSign, tmp);
-
-                if (dx2 != dx || dy2 != dy)
-                {
-                    ;
-                }
-
-                return;
-
-                dx -= (float)Math.Sqrt(dx / dy);
-                dx *= myUtils.randomSign(rand);
-            }
-
             // Set predefined mode
             if (false)
             {
-                int[] arr0 = { 0, 4, 1, 0, 3, 9, 0 };
-                int[] arr1 = { 1, 2, 2, 2, 1, 0, 0 };           // heart shaped box -- dXYgenerationMode 0
-                int[] arr2 = { 1, 4, 2, 2, 1, 0, 0 };           // 
+                //dx = (float)Math.Cos(dx);
+                //dy = (float)Math.Sin(dy);
 
-                var arr = arr2;
+                //dx = (float)(Math.Cos(dx))/dx;
+                //dy = (float)(Math.Sin(dy))/dy;
+                //return;
 
-                target = (myFuncGenerator1.Targets)arr[0];
-                eqMode = (myFuncGenerator1.eqModes)arr[1];
-                f1 = (myFuncGenerator1.Funcs)arr[2];
-                f1 = (myFuncGenerator1.Funcs)arr[3];
+                float dx1 = dx;
+                float dx2 = dx;
+                float dy1 = dy;
+                float dy2 = dy;
+
+                dx += (float)Math.Cos(1.0f / (dx1 + dy1));
+                dy /= (float)Math.Cos((dx2 * dy2) / (dx2 + dy2));
+
+                dx *= myUtils.randomSign(rand);
+                dy *= myUtils.randomSign(rand);
+                return;
+
+                int[] arr00 = { 0, 4, 1, 0, 3, 9, 0 };
+                int[] arr01 = { 1, 2, 2, 2, 1, 0, 0 };           // heart shaped box -- dXYgenerationMode 0
+                int[] arr02 = { 1, 4, 2, 2, 1, 0, 0 };           // 
+                int[] arr03 = { 1, 0, 1, 0, 0, 2, 7 };           // dy = (float)Math.Cos(dx) * dy;
+                int[] arr04 = { 1, 0, 1, 0, 4, 4, 7 };           // dy = (float)Math.Cos(dx + dy) * (dy + dx);
+                int[] arr05 = { 1, 0, 1, 0, 7, 7, 7 };           // dy = (float)Math.Cos(dx * dy) * (dy * dx);
+                int[] arr06 = { 1, 0, 1, 0, 7, 9, 7 };           // dy = (float)Math.Cos(dx * dy) * (dy / dx);
+                int[] arr07 = { 1, 0, 1, 0, 4, 9, 7 };           // dy = (float)Math.Cos(dx + dy) * (dy / dx);
+                int[] arr08 = { 1, 0, 1, 0, 5, 9, 7 };           // dy = (float)Math.Cos(dx - dy) * (dy / dx);
+                int[] arr09 = { 1, 0, 1, 0, 8, 9, 7 };           // dy = (float)Math.Cos(dx / dy) * (dy / dx);
+                int[] arr10 = { 1, 0, 0, 0, 0, 2, 8 };           // dy = (float)Math.Sin(dx) / dy;
+                int[] arr11 = { 0, 0, 1, 0, 2, 0, 8 };           // dx = (float)Math.Cos(dy) / dx;
+                int[] arr12 = { 0, 0, 0, 0, 2, 0, 8 };           // dx = (float)Math.Sin(dy) / dx;
+                int[] arr13 = { 1, 0, 0, 0, 9, 0, 0 };           // dy = (float)Math.Sin(dy/dx);
+                int[] arr14 = { 1, 2, 0, 0, 6, 0, 0 };           // dy -= (float)Math.Sin(dy - dx);
+                int[] arr15 = { 1, 2, 0, 0, 6, 0, 0 };           // dy = (float)Math.Sqrt(dx);
+
+                // dXYgenerationMode == 2
+                int[] arr20 = { 1, 0, 0, 0, 0, 2, 4 };           // dy = (float)Math.Sin(dx) + (float)Math.Sin(dy);
+
+                // dXYgenerationMode == 3
+                int[] arr30 = { 0, 0, 1, 0, 0, 2, 0 };           // dy = (float)Math.Sin(dx) + (float)Math.Sin(dy);
+
+                var arr = arr30;
+
+                target   = (myFuncGenerator1.Targets)arr[0];
+                eqMode1  = (myFuncGenerator1.eqModes)arr[1];
+                f1       = (myFuncGenerator1.Funcs)arr[2];
+                f2       = (myFuncGenerator1.Funcs)arr[3];
                 argmode1 = arr[4];
                 argmode2 = arr[5];
                 argmode3 = arr[6];
             }
 
+            dXYgenerationMode = 5;
+
             switch (dXYgenerationMode)
             {
-                // y += Sin(x+y); y = Cos(x/y);
+                // FUNC(arg): [y += Sin(x+y)]; [y = Cos(x/y)];
                 case 0:
-                    myFuncGenerator1.myExpr.expr(ref dx, ref dy, target, eqMode, dXYgen_useRandSign,
-                        myFuncGenerator1.myFuncs.fFunc(f1, myFuncGenerator1.myArgs.argsFunc(dx, dy, argmode1)));
+                    myFuncGenerator1.myExpr.expr(ref dx, ref dy, target, eqMode1, dXYgen_useRandSign1,
+                        myFuncGenerator1.myFuncs.fFunc(f1, myFuncGenerator1.myArgs.argsFunc(argmode1, dx, dy)));
                     break;
 
-                // y += Sin(x+y) * (x-y); y = Cos(x/y) + (x+y);
+                // FUNC(arg1) op (arg2): [y += Sin(x+y) * (x-y)]; [y = Cos(x/y) + (x+y)];
                 case 1:
-                    myFuncGenerator1.myExpr.expr(ref dx, ref dy, target, eqMode, dXYgen_useRandSign,
-                        myFuncGenerator1.myArgs.argsFunc(myFuncGenerator1.myFuncs.fFunc(f1, myFuncGenerator1.myArgs.argsFunc(dx, dy, argmode1)),
-                                                         myFuncGenerator1.myArgs.argsFunc(dx, dy, argmode2),
-                                                         argmode3
+                    myFuncGenerator1.myExpr.expr(ref dx, ref dy, target, eqMode1, dXYgen_useRandSign1,
+                        myFuncGenerator1.myArgs.argsFunc(argmode3,
+                                myFuncGenerator1.myFuncs.fFunc(f1, myFuncGenerator1.myArgs.argsFunc(argmode1, dx, dy)),
+                                myFuncGenerator1.myArgs.argsFunc(argmode2, dx, dy)
                     ));
                     break;
 
-                // -------------------------------------------------------------
+                // FUNC1(arg1) op FUNC2(arg2): [y = Sin(x+y) * Cos(x-y)]
+                case 2:
+                    myFuncGenerator1.myExpr.expr(ref dx, ref dy, target, eqMode1, dXYgen_useRandSign1,
 
-                case 721:
-                    dx = (float)(Math.Cos(dx) * Math.Sin(dx) * 2);
-                    dy = (float)(Math.Cos(dy) * Math.Sin(dy) * 2);
+                        myFuncGenerator1.myArgs.argsFunc(argmode3,
+                                myFuncGenerator1.myFuncs.fFunc(f1, myFuncGenerator1.myArgs.argsFunc(argmode1, dx, dy)),
+                                myFuncGenerator1.myFuncs.fFunc(f2, myFuncGenerator1.myArgs.argsFunc(argmode2, dx, dy))
+                    ));
                     break;
 
-                case 722:
-                    tmp = dx;
-                    dx = (float)Math.Cos(dy) * (float)Math.Sin(dy) * 2;
-                    dy = (float)Math.Cos(tmp) * (float)Math.Sin(tmp) * 2;
+                // dx = FUNC1(arg1): dx = Sin(dx + dy);
+                // dy = FUNC2(arg2): dy = Cos(dy / dx);
+                case 3:
+                    {
+                        float arg1 = myFuncGenerator1.myArgs.argsFunc(argmode1, dx, dy);
+                        float arg2 = myFuncGenerator1.myArgs.argsFunc(argmode2, dx, dy);
+
+                        myFuncGenerator1.myExpr.expr(ref dx, eqMode1, dXYgen_useRandSign1, myFuncGenerator1.myFuncs.fFunc(f1, arg1));
+                        myFuncGenerator1.myExpr.expr(ref dy, eqMode2, dXYgen_useRandSign2, myFuncGenerator1.myFuncs.fFunc(f2, arg2));
+                    }
+                    break;
+
+                // dx = FUNC1(arg1) op (arg2): dx = Sin(dx + dy) / dx;
+                // dy = FUNC2(arg3) op (arg4): dy = Cos(dy / dx) * dy;
+                case 4:
+                    {
+                        float arg1 = myFuncGenerator1.myArgs.argsFunc(argmode1, dx, dy);
+                        float arg2 = myFuncGenerator1.myArgs.argsFunc(argmode2, dx, dy);
+                        float arg3 = myFuncGenerator1.myArgs.argsFunc(argmode3, dx, dy);
+                        float arg4 = myFuncGenerator1.myArgs.argsFunc(argmode4, dx, dy);
+
+                        myFuncGenerator1.myExpr.expr(ref dx, eqMode1, dXYgen_useRandSign1,
+                            myFuncGenerator1.myArgs.argsFunc(argmode5, myFuncGenerator1.myFuncs.fFunc(f1, arg1), arg2));
+
+                        myFuncGenerator1.myExpr.expr(ref dy, eqMode2, dXYgen_useRandSign2,
+                            myFuncGenerator1.myArgs.argsFunc(argmode6, myFuncGenerator1.myFuncs.fFunc(f2, arg3), arg4));
+                    }
+                    break;
+
+                // dx = FUNC1(arg1) op FUNC2(arg2): [dx = Sin(x+y) * Cos(x-y)]
+                // dy = FUNC3(arg3) op FUNC4(arg4): [dy = Cos(x*y) * Sin(x/y)]
+                case 5:
+                    {
+/*
+                        dx = (float)(Math.Cos(dx) * Math.Sin(dx) * 2);
+                        dy = (float)(Math.Cos(dy) * Math.Sin(dy) * 2);
+                        break;
+
+                        float ttt = dx;
+                        dx = (float)Math.Cos(dy) * (float)Math.Sin(dy) * 2;
+                        dy = (float)Math.Cos(ttt) * (float)Math.Sin(ttt) * 2;
+                        break;
+
+                        argmode1 = 0;
+                        argmode2 = 0;
+                        argmode3 = 2;
+                        argmode4 = 2;
+                        argmode5 = 7;
+                        argmode6 = 7;
+
+                        f1 = myFuncGenerator1.Funcs.COS;
+                        f2 = myFuncGenerator1.Funcs.SIN;
+                        f3 = myFuncGenerator1.Funcs.COS;
+                        f4 = myFuncGenerator1.Funcs.SIN;
+
+                        eqMode1 = myFuncGenerator1.eqModes.EQUALS;
+                        eqMode2 = myFuncGenerator1.eqModes.EQUALS;
+
+                        dXYgen_useRandSign1 = false;
+                        dXYgen_useRandSign2 = false;
+*/
+                        float arg1 = myFuncGenerator1.myArgs.argsFunc(argmode1, dx, dy);
+                        float arg2 = myFuncGenerator1.myArgs.argsFunc(argmode2, dx, dy);
+                        float arg3 = myFuncGenerator1.myArgs.argsFunc(argmode3, dx, dy);
+                        float arg4 = myFuncGenerator1.myArgs.argsFunc(argmode4, dx, dy);
+
+                        myFuncGenerator1.myExpr.expr(ref dx, eqMode1, dXYgen_useRandSign1,
+                            myFuncGenerator1.myArgs.argsFunc(argmode5,
+                                myFuncGenerator1.myFuncs.fFunc(f1, arg1),
+                                myFuncGenerator1.myFuncs.fFunc(f2, arg2)
+                        ));
+
+                        myFuncGenerator1.myExpr.expr(ref dy, eqMode2, dXYgen_useRandSign2,
+                            myFuncGenerator1.myArgs.argsFunc(argmode6,
+                                myFuncGenerator1.myFuncs.fFunc(f3, arg3),
+                                myFuncGenerator1.myFuncs.fFunc(f4, arg4)
+                        ));
+                    }
                     break;
 
                 // -------------------------------------------------------------
 
                 case 999:
-
-                    //dy = (float)Math.Sin(dx) + (float)Math.Sin(dy);
-                    //dy = (float)Math.Sin(dx) + (float)Math.Cos(dy);
-
-                    //dy = (float)(Math.Cos(dx+dy) + Math.Sin(dx+dy));
-                    //dy = (float)Math.Cos(dx) + (float)Math.Sin(dy);
-
-                    //dy = (float)Math.Cos(dx)*dy;
-
-                    //dy = (float)Math.Cos(dx + dy) * (dy + dx);
-
-                    //dy = (float)Math.Cos(dx * dy) * (dy * dx);
-
-                    //dy = (float)Math.Cos(dx * dy) * (dy / dx);
-
-                    //dy = (float)Math.Cos(dx + dy) * (dy / dx);
-
-                    //dy = (float)Math.Cos(dx - dy) * (dy / dx);
-
-                    //dy = (float)Math.Cos(dx / dy) * (dy / dx);
-
-                    //dy = (float)Math.Cos(dx / dy) * (dy + dx);    // khm
-
-                    //dy = (float)Math.Sin(dx + dy) + (float)Math.Cos(dy+dx);
-
-                    //dy = (float)(Math.Sin(dx)) / dy;
-
-                    //dy = (float)(Math.Cos(dx)) / dy;
-
-                    //dx = (float)(Math.Cos(dy)) / dx;
-
-                    //dx = (float)(Math.Sin(dy)) / dx;
-
+                    // INT
                     //dy = (int)(Math.Cos(dy) * dy * 2);
-
                     //dy += (int)(Math.Sin(dx) * Math.Cos(dy) * 2);
-
                     //dy *= (int)(Math.Sin(dx) * Math.Cos(dy) * 2);
-
                     //dy /= (int)(Math.Sin(dx) * 2);
 
                     // together
@@ -705,42 +775,16 @@ namespace my
                     //dx = (int)(Math.Sin(dx) * dy * 3);
                     //dy = (int)(Math.Cos(dy) * dx * 3);
 
-                    // together
-                    //dx = (float)(Math.Cos(dx))/dx;
-                    //dy = (float)(Math.Sin(dy))/dy;
-
-                    // together
-                    //dx = (float)(Math.Sin(dx))/dy;
-                    //dy = (float)(Math.Cos(dy))/dx;
-
-                    // together
-                    //dx = (float)(Math.Sin(dy))/dx;
-                    //dy = (float)(Math.Cos(dx))/dy;
-
-
                     // =============================================================
 
                     // together
                     //dx = (dx > 0 ? 1 : -1) * (float)(Math.Sqrt(Math.Abs(dx)));
                     //dy = (dy > 0 ? 1 : -1) * (float)(Math.Sqrt(Math.Abs(dy)));
 
-                    //myTest.myFunc1.func_001(ref dx, ref dy, 2, mode: 1, myTest.BasicFunctions.SIN);
-
-                    //dy -= (float)Math.Sin(dx/dy);
-                    //dy = (float)Math.Sin(dy/dx);
-
-                    //myTest.myFunc1.func_001(ref dx, ref dy, 2, argMode: 6, myTest.BasicFunctions.SIN, myTest.Operations.MINUS);
-
-                    //myTest.myFunc1.func_001(ref dx, ref dy, myTest.Targets.SECOND, 8, myTest.BasicFunctions.SQRT, myTest.Operations.MINUS);
-
-                    //myTest.myFunc1.func_001(ref dx, ref dy, myTest.Targets.SECOND, 0, myTest.BasicFunctions.SQRT, myTest.Operations.EQUALS);
-
-                    //dy = (float)Math.Sin(dx+dy) + (float)Math.Cos(dy+dx);
-
-                    // it was working. see what it does
+                    // it was working. see what it does -- probably it is covered by [case 2]
                     //myFuncGenerator0.myFunc1.func_002(ref dx, ref dy, target, targetOp, f1, argmode1, f2, argmode2, argmode3);
 
-                    // looks like frozen droplets from the puddle !
+                    // looks like frozen droplets from the puddle!
                     //dy /= (float)Math.Sqrt(y);
                     break;
             }

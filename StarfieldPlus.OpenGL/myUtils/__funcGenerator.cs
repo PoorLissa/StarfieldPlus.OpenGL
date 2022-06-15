@@ -198,7 +198,7 @@ namespace myFuncGenerator0
 
 namespace myFuncGenerator1
 {
-    public enum Funcs { SIN, COS, SQRT, NONE };
+    public enum Funcs { SIN, COS, SQRT, EXP, NONE };
     public enum eqModes { EQUALS, PLUS, MINUS, MULT, DIV };
     public enum Targets { FIRST, SECOND };
 
@@ -213,6 +213,7 @@ namespace myFuncGenerator1
                 case Funcs.SIN : return (int)Math.Sin(arg);
                 case Funcs.COS : return (int)Math.Cos(arg);
                 case Funcs.SQRT: return (int)Math.Sqrt(arg);
+                case Funcs.EXP : return (int)Math.Exp(arg);         // not used yet
             }
 
             return 3;
@@ -225,6 +226,7 @@ namespace myFuncGenerator1
                 case Funcs.SIN : return (float)Math.Sin(arg);
                 case Funcs.COS : return (float)Math.Cos(arg);
                 case Funcs.SQRT: return (float)Math.Sqrt(arg);
+                case Funcs.EXP : return (float)Math.Exp(arg);       // not used yet
             }
 
             return 3;
@@ -236,20 +238,22 @@ namespace myFuncGenerator1
 
     public class myArgs
     {
-        public static float argsFunc(float x, float y, int argMode)
+        // Calculates some predefined function of 2 arguments;
+        // With [argMode == -1], returns the number of implemented functions
+        public static float argsFunc(int argMode, float x, float y)
         {
             switch (argMode)
             {
-                case 0: return x;
-                case 1: return Math.Abs(x);
-                case 2: return y;
-                case 3: return Math.Abs(y);
-                case 4: return x + y;
-                case 5: return x - y;
-                case 6: return y - x;
-                case 7: return x * y;
-                case 8: return x / y;
-                case 9: return y / x;
+                case 0 : return x;
+                case 1 : return Math.Abs(x);
+                case 2 : return y;
+                case 3 : return Math.Abs(y);
+                case 4 : return x + y;
+                case 5 : return x - y;
+                case 6 : return y - x;
+                case 7 : return x * y;
+                case 8 : return x / y;
+                case 9 : return y / x;
                 case 10: return (x + y) / (x * y);
                 case 11: return (x * y) / (x + y);
                 case 12: return (x + y) * (x - y);
