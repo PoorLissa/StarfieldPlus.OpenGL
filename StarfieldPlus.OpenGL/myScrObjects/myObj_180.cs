@@ -18,7 +18,8 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
-                            doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false;
+                            doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,
+                            doUseIntConversion = false;
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
         private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, delegateNo = -1, rateBase = 50, rateMode = 0;
         private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1;
@@ -70,6 +71,7 @@ namespace my
             doUseXOffset = myUtils.randomChance(rand, 1, 7);
             doShiftCenter = myUtils.randomChance(rand, 1, 6);
             doUseRandomSpeed = myUtils.randomBool(rand);
+            doUseIntConversion = myUtils.randomBool(rand);
             doUseIncreasingWaveSize = myUtils.randomChance(rand, 1, 3);
             rateMode = rand.Next(3);
             dispersionMode = rand.Next(6);
@@ -649,7 +651,13 @@ namespace my
                 argmode3 = arr[6];
             }
 
-            dXYgenerationMode = 5;
+
+            if (true)
+            {
+                getTestResult(ref dx, ref dy, x, y, dist, 0);
+                return;
+            }
+
 
             switch (dXYgenerationMode)
             {
@@ -784,14 +792,50 @@ namespace my
                     // it was working. see what it does -- probably it is covered by [case 2]
                     //myFuncGenerator0.myFunc1.func_002(ref dx, ref dy, target, targetOp, f1, argmode1, f2, argmode2, argmode3);
 
-                    // looks like frozen droplets from the puddle!
-                    //dy /= (float)Math.Sqrt(y);
                     break;
+            }
+
+            if (doUseIntConversion)
+            {
+                if (target == myFuncGenerator1.Targets.FIRST)
+                {
+                    dx = (int)(dx * 10000) / 10000;
+                }
+                else
+                {
+                    dy = (int)(dy * 10000) / 10000;
+                }
             }
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // 
+        private void getTestResult(ref float dx, ref float dy, float x, float y, float dist, int n)
+        {
+            float olddx = dx;
+            float olddy = dy;
+
+            switch (n)
+            {
+                case 0:
+                    dx = (float)Math.Sin(olddy);
+                    dy = (float)Math.Sin(olddx);
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        dx += (float)Math.Sin(dx);
+                        dy += (float)Math.Sin(dy);
+                    }
+                    break;
+
+                // looks like frozen droplets from the puddle!
+                case 1:
+                    dy /= (float)Math.Sqrt(y);
+                    break;
+            }
+        }
     }
 };
