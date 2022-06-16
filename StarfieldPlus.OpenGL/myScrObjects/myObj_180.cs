@@ -652,9 +652,9 @@ namespace my
             }
 
 
-            if (true)
+            if (false)
             {
-                getTestResult(ref dx, ref dy, x, y, dist, 0);
+                getTestResult(ref dx, ref dy, x, y, dist, 2);
                 return;
             }
 
@@ -835,7 +835,47 @@ namespace my
                 case 1:
                     dy /= (float)Math.Sqrt(y);
                     break;
+
+                case 2:
+                    break;
             }
         }
     }
 };
+
+
+/*
+    dXYgenerationMode = 2
+    dXYgen_useRandSign1 = True
+    dXYgen_useRandSign2 = True
+    target = FIRST (0)
+    eqMode1 = PLUS (1)
+    eqMode2 = EQUALS (0)
+    f1 = SIN (0)
+    f2 = COS (1)
+    f3 = COS (1)
+    f4 = COS (1)
+    argmode1 = 23
+    argmode2 = 6
+    argmode3 = 3
+    argmode4 = 13
+    argmode5 = 33
+    argmode6 = 23 
+
+    dXYgenerationMode = 3
+    dXYgen_useRandSign1 = True
+    dXYgen_useRandSign2 = False
+    target = SECOND (1)
+    eqMode1 = DIV (4)
+    eqMode2 = MULT (3)
+    f1 = SIN (0)
+    f2 = SQRT (2)
+    f3 = SQRT (2)
+    f4 = SIN (0)
+    argmode1 = 6
+    argmode2 = 25
+    argmode3 = 14
+    argmode4 = 2
+    argmode5 = 30
+    argmode6 = 16
+*/
