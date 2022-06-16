@@ -189,7 +189,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        protected override string CollectCurrentInfo()
+        protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = myObj_300\n\n" +
                             $"N = {N}\n" +

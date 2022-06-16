@@ -100,7 +100,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        protected override string CollectCurrentInfo()
+        protected override string CollectCurrentInfo(ref int width, ref int height)
         {
 /*
             string str = $"Obj = myObj_010\n\n" +

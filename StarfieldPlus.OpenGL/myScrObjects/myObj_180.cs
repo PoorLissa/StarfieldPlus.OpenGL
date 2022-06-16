@@ -19,10 +19,10 @@ namespace my
 
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,
-                            doUseIntConversion = false;
+                            doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true;
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
         private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, rateBase = 50, rateMode = 0;
-        private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1;
+        private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1, startDispersionRate = 0;
         private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
                                             dispersionConst = 0, heightRatio = 1.0f, xOffset = 0, dSize = 0;
 
@@ -33,7 +33,7 @@ namespace my
         private int shape = 0;
 
         private bool isLive = false;
-        private float dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f, acceleration = 1.0f;
+        private float dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f;
 
         // Function Generation
         static int argmode1, argmode2, argmode3, argmode4, argmode5, argmode6;
@@ -64,11 +64,14 @@ namespace my
             x0 = gl_Width  / 2;
             y0 = gl_Height / 2;
 
-            //dXYgenerationMode = -1;
+            dXYgenerationMode = -1;
+            startDispersionRate = 5;
 
+            doShowParticles         = true;
             doClearBuffer           = myUtils.randomChance(rand, 4, 5);
             doFillShapes            = myUtils.randomBool(rand);
-            doUseDispersion         = myUtils.randomChance(rand, 2, 3);
+            doUseDispersion         = myUtils.randomChance(rand, 1, 3);
+            doUseStartDispersion    = myUtils.randomChance(rand, 1, 3);
             doUseXOffset            = myUtils.randomChance(rand, 1, 7);
             doShiftCenter           = myUtils.randomChance(rand, 1, 6);
             doUseRandomSpeed        = myUtils.randomBool(rand);
@@ -86,6 +89,16 @@ namespace my
 
             // Set up Dispersion: in modes 5 and 6 dispersion rate will be very close to 1
             {
+                if (doUseStartDispersion)
+                {
+                    switch (rand.Next(3))
+                    {
+                        case 0: startDispersionRate += rand.Next(11); break;
+                        case 1: startDispersionRate += rand.Next(22); break;
+                        case 2: startDispersionRate += rand.Next(33); break;
+                    }
+                }
+
                 if (dispersionMode == 5)
                 {
                     dispersionConst = (myUtils.randomBool(rand) ? 0.9f : 0.95f) + 0.0001f * rand.Next(1000);
@@ -121,6 +134,11 @@ namespace my
             speedBase = 1.0f + 0.001f * rand.Next(2000);
             dSize = (float)rand.NextDouble() / 100;
 
+            if (connectionMode > 2)
+            {
+                doShowParticles = myUtils.randomChance(rand, 4, 5);
+            }
+
             // In case the rotation is enabled, we also may enable additional rotation option:
             if (rotationMode < 2)
             {
@@ -130,7 +148,7 @@ namespace my
 
             // Set up additional dx/dy generation mode:
             // todo: remove true later
-            if (myUtils.randomChance(rand, 2, 3))
+            if (myUtils.randomChance(rand, 2, 5))
             {
                 myFuncGenerator1.myExpr.rand = rand;
                 dXYgen_useRandSign1 = myUtils.randomBool(rand);
@@ -170,18 +188,23 @@ namespace my
 
 #if true
             doUseDispersion = false;
+            doUseStartDispersion = false;
+            doShowParticles = true;
             doUseIncreasingWaveSize = false;
             doShiftCenter = false;
             doUseXOffset = false;
             heightRatioMode = 1;
 #endif
+
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        protected override string CollectCurrentInfo()
+        protected override string CollectCurrentInfo(ref int width, ref int height)
         {
+            height = 800;
+
             string getFuncGeneratorParams()
             {
                 return $"\n" + 
@@ -226,13 +249,15 @@ namespace my
                             $"rotationMode = {rotationMode}\n" +
                             $"rotationSubMode = {rotationSubMode}\n" +
                             $"doUseDispersion = {doUseDispersion}\n" +
+                            $"doUseStartDispersion = {doUseStartDispersion}\n" +
                             $"dispersionMode = {dispersionMode}\n" +
                             $"dispersionConst = {dispersionConst}\n" +
                             $"connectionMode = {connectionMode}\n" +
                             $"heightRatioMode = {heightRatioMode}\n" +
                             $"doUseXOffset = {doUseXOffset}\n" +
                             $"doShiftCenter = {doShiftCenter}\n" +
-                            $"doUseIntConversion = {doUseIntConversion}\n" + 
+                            $"doUseIntConversion = {doUseIntConversion}\n" +
+                            $"doShowParticles = {doShowParticles}\n" +
                             $"LifeCntBase = {LifeCntBase}\n" +
                             getFuncGeneratorParams() + "\n" + 
                             getFuncGeneratorParamsShort()
@@ -254,6 +279,12 @@ namespace my
 
             shapeType = oldShapeType;
             connectionMode = oldConnectionMode;
+
+            // todo: remove this when the one above is fixed
+            if (connectionMode <= 2)
+            {
+                doShowParticles = true;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -286,6 +317,12 @@ namespace my
 
             x = x0;
             y = y0;
+
+            if (doUseStartDispersion)
+            {
+                x += (rand.Next(startDispersionRate) - rand.Next(startDispersionRate));
+                y += (rand.Next(startDispersionRate) - rand.Next(startDispersionRate));
+            }
 
             r = R + 0.01f * (rand.Next(11) - 5);
             g = G + 0.01f * (rand.Next(11) - 5);
@@ -389,7 +426,7 @@ namespace my
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2*size, 2*size);
+                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
                     rectInst.setInstanceColor(r, g, b, a);
                     rectInst.setInstanceAngle(angle);
                     break;
@@ -397,8 +434,8 @@ namespace my
                 // Instanced triangles
                 case 1:
                     var triangleInst = inst as myTriangleInst;
-                    
-                    triangleInst.setInstanceCoords(x, y, 2*size, angle);
+
+                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
                     triangleInst.setInstanceColor(r, g, b, a);
                     break;
 
@@ -406,7 +443,7 @@ namespace my
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2*size, angle);
+                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
                     ellipseInst.setInstanceColor(r, g, b, a);
                     break;
 
@@ -414,7 +451,7 @@ namespace my
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2*size, angle);
+                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
                     pentagonInst.setInstanceColor(r, g, b, a);
                     break;
 
@@ -422,7 +459,7 @@ namespace my
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2*size, angle);
+                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
                     hexagonInst.setInstanceColor(r, g, b, a);
                     break;
             }
@@ -484,7 +521,7 @@ namespace my
 
                 // Render Frame
                 {
-                    if (doShiftCenter)
+                    if (doShiftCenter && cnt % 100 == 0)
                     {
                         x0 += (rand.Next(3) - 1);
                         y0 += (rand.Next(3) - 1);
@@ -566,16 +603,19 @@ namespace my
                         myPrimitive._LineInst.Draw();
                     }
 
-                    if (doFillShapes)
+                    if (doShowParticles)
                     {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
-                    }
+                        if (doFillShapes)
+                        {
+                            // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                            inst.SetColorA(-0.5f);
+                            inst.Draw(true);
+                        }
 
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
+                        // Tell the fragment shader to do nothing with the existing instance opacity:
+                        inst.SetColorA(0);
+                        inst.Draw(false);
+                    }
                 }
 
                 t += 0.001f;

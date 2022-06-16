@@ -51,7 +51,7 @@ namespace my
         // -------------------------------------------------------------------------
 
         // Override it for every derived class to implement the logic
-        protected virtual string CollectCurrentInfo()
+        protected virtual string CollectCurrentInfo(ref int width, ref int height)
         {
             return string.Empty;
         }
@@ -83,11 +83,14 @@ namespace my
             // Show some info
             if (Glfw.GetKey(window, GLFW.Keys.Tab) == GLFW.InputState.Press)
             {
+                int width = 500;
+                int height = 500;
+
                 var form = new Form();
                 var rich = new RichTextBox();
 
-                form.Width = 500;
-                form.Height = 500;
+                form.Width = width;
+                form.Height = height;
                 form.StartPosition = FormStartPosition.CenterScreen;
                 form.TopMost = true;
                 form.Opacity = 50;
@@ -101,7 +104,7 @@ namespace my
 
                 rich.Dock = DockStyle.Fill;
                 rich.AppendText("\n");
-                rich.AppendText(CollectCurrentInfo());
+                rich.AppendText(CollectCurrentInfo(ref width, ref height));
                 rich.AppendText("\n");
                 rich.SelectAll();
                 rich.SelectionAlignment = HorizontalAlignment.Center;
@@ -109,6 +112,12 @@ namespace my
                 rich.Select(rich.TextLength, 0);
                 rich.ReadOnly = true;
                 form.Controls.Add(rich);
+
+                if (form.Width != width)
+                    form.Width = width;
+
+                if (form.Height != height)
+                    form.Height = height;
 
                 rich.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
                     if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
