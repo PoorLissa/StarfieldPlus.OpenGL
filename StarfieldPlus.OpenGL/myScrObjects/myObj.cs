@@ -50,9 +50,17 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        // Override it for every derived class to implement the logic
         protected virtual string CollectCurrentInfo()
         {
             return string.Empty;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Override it for every derived class to implement the logic
+        protected virtual void getNextMode()
+        {
         }
 
         // -------------------------------------------------------------------------
@@ -112,8 +120,8 @@ namespace my
                         form.Close();
                 };
 
+                // Display modal form
                 form.ShowDialog();
-                //MessageBox.Show(CollectCurrentInfo(), "Current info", MessageBoxButtons.OK);
             }
 
             // Decrease speed
@@ -126,6 +134,12 @@ namespace my
             if (Glfw.GetKey(window, GLFW.Keys.Down) == GLFW.InputState.Press)
             {
                 renderDelay -= (renderDelay > 0) ? 1 : 0;
+            }
+
+            // Next mode
+            if (Glfw.GetKey(window, GLFW.Keys.Space) == GLFW.InputState.Press)
+            {
+                getNextMode();
             }
         }
 

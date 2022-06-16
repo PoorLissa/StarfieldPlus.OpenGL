@@ -175,25 +175,7 @@ namespace myFuncGenerator0
     };
 };
 
-/*
-    dy += (float)Math.Cos((Math.Abs(dy))) / (float)Math.Cos(dy*dx);* 
-        target = SECOND
-        targetOp = PLUS
-        f1 = COS
-        f2 = COS
-        argmode1 = 7
-        argmode2 = 3
-        argmode3 = 9
 
-    -- save this one -- probably need to use it with 2 funcs
-        target = SECOND
-        targetOp = DIV
-        f1 = SIN
-        f2 = SQRT
-        argmode1 = 1
-        argmode2 = 1
-        argmode3 = 0
-*/
 
 
 namespace myFuncGenerator1

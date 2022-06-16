@@ -21,7 +21,7 @@ namespace my
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,
                             doUseIntConversion = false;
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
-        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, delegateNo = -1, rateBase = 50, rateMode = 0;
+        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, rateBase = 50, rateMode = 0;
         private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1;
         private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
                                             dispersionConst = 0, heightRatio = 1.0f, xOffset = 0, dSize = 0;
@@ -47,6 +47,9 @@ namespace my
         {
             if (colorPicker == null)
             {
+                colorPicker = new myColorPicker(gl_Width, gl_Height);
+                list = new List<myObject>();
+
                 init();
             }
 
@@ -58,24 +61,22 @@ namespace my
         // One-time initialization
         private void init()
         {
-            x0 = gl_Width / 2;
+            x0 = gl_Width  / 2;
             y0 = gl_Height / 2;
 
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            //dXYgenerationMode = -1;
 
-            list = new List<myObject>();
-
-            doClearBuffer = myUtils.randomChance(rand, 4, 5);
-            doFillShapes = myUtils.randomBool(rand);
-            doUseDispersion = myUtils.randomChance(rand, 2, 3);
-            doUseXOffset = myUtils.randomChance(rand, 1, 7);
-            doShiftCenter = myUtils.randomChance(rand, 1, 6);
-            doUseRandomSpeed = myUtils.randomBool(rand);
-            doUseIntConversion = myUtils.randomBool(rand);
+            doClearBuffer           = myUtils.randomChance(rand, 4, 5);
+            doFillShapes            = myUtils.randomBool(rand);
+            doUseDispersion         = myUtils.randomChance(rand, 2, 3);
+            doUseXOffset            = myUtils.randomChance(rand, 1, 7);
+            doShiftCenter           = myUtils.randomChance(rand, 1, 6);
+            doUseRandomSpeed        = myUtils.randomBool(rand);
+            doUseIntConversion      = myUtils.randomChance(rand, 1, 5);
             doUseIncreasingWaveSize = myUtils.randomChance(rand, 1, 3);
-            rateMode = rand.Next(3);
-            dispersionMode = rand.Next(6);
-            heightRatioMode = rand.Next(5);
+            rateMode                = rand.Next(3);
+            dispersionMode          = rand.Next(6);
+            heightRatioMode         = rand.Next(5);
 
             // Set up x-offset
             if (doUseXOffset)
@@ -127,32 +128,40 @@ namespace my
                 rotationSubMode = rotationSubMode > 2 ? 0 : rotationSubMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
             }
 
-            // todo: remove true later
             // Set up additional dx/dy generation mode:
-            if (true || myUtils.randomChance(rand, 1, 3))
+            // todo: remove true later
+            if (myUtils.randomChance(rand, 2, 3))
             {
-                dXYgenerationMode = rand.Next(6);
+                myFuncGenerator1.myExpr.rand = rand;
                 dXYgen_useRandSign1 = myUtils.randomBool(rand);
                 dXYgen_useRandSign2 = myUtils.randomBool(rand);
 
-                myFuncGenerator1.myExpr.rand = rand;
+                if (true)
+                {
+                    dXYgenerationMode = rand.Next(6);
 
-                int argModesQty = (int)myFuncGenerator1.myArgs.argsFunc(-1, 0, 0);
-                int funcsQty = (int)myFuncGenerator1.myFuncs.fFunc(myFuncGenerator1.Funcs.NONE, 0);
+                    int argModesQty = (int)myFuncGenerator1.myArgs.argsFunc(-1, 0, 0);
+                    int funcsQty = (int)myFuncGenerator1.myFuncs.fFunc(myFuncGenerator1.Funcs.NONE, 0);
 
-                target = (myFuncGenerator1.Targets)rand.Next(2);
-                f1 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
-                f2 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
-                f3 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
-                f4 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
-                argmode1 = rand.Next(argModesQty);
-                argmode2 = rand.Next(argModesQty);
-                argmode3 = rand.Next(argModesQty);
-                argmode4 = rand.Next(argModesQty);
-                argmode5 = rand.Next(argModesQty);
-                argmode6 = rand.Next(argModesQty);
-                eqMode1 = (myFuncGenerator1.eqModes)rand.Next(5);
-                eqMode2 = (myFuncGenerator1.eqModes)rand.Next(5);
+                    target = (myFuncGenerator1.Targets)rand.Next(2);
+                    f1 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
+                    f2 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
+                    f3 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
+                    f4 = (myFuncGenerator1.Funcs)rand.Next(funcsQty);
+                    argmode1 = rand.Next(argModesQty);
+                    argmode2 = rand.Next(argModesQty);
+                    argmode3 = rand.Next(argModesQty);
+                    argmode4 = rand.Next(argModesQty);
+                    argmode5 = rand.Next(argModesQty);
+                    argmode6 = rand.Next(argModesQty);
+                    eqMode1 = (myFuncGenerator1.eqModes)rand.Next(5);
+                    eqMode2 = (myFuncGenerator1.eqModes)rand.Next(5);
+                }
+                else
+                {
+                    // Set predefined mode
+                    setPredefinedMode();
+                }
             }
 
             // Set number of objects N:
@@ -177,22 +186,36 @@ namespace my
             {
                 return $"\n" + 
                        $"dXYgenerationMode = {dXYgenerationMode}\n" +
-                       $"dXYgen_useRandSign1 = {dXYgen_useRandSign1}\n" +
-                       $"dXYgen_useRandSign2 = {dXYgen_useRandSign2}\n" +
-                       $"target = {target} ({(int)target})\n" +
-                       $"eqMode1 = {eqMode1} ({(int)eqMode1})\n" +
-                       $"eqMode2 = {eqMode2} ({(int)eqMode2})\n" +
-                       $"f1 = {f1} ({(int)f1})\n" +
-                       $"f2 = {f2} ({(int)f2})\n" +
-                       $"f3 = {f3} ({(int)f3})\n" +
-                       $"f4 = {f4} ({(int)f4})\n" +
-                       $"argmode1 = {argmode1}\n" +
-                       $"argmode2 = {argmode2}\n" +
-                       $"argmode3 = {argmode3}\n" +
-                       $"argmode4 = {argmode4}\n" +
-                       $"argmode5 = {argmode5}\n" +
-                       $"argmode6 = {argmode6}"
+                       $"dXYgen_useRandSign = ({dXYgen_useRandSign1}, {dXYgen_useRandSign2})\n" +
+                       $"target = {target}\n" +
+                       $"eqMode = ({eqMode1}, {eqMode2})\n" +
+                       $"f = ({f1}, {f2}, {f3}, {f4})\n" +
+                       $"argmode = ({argmode1}, {argmode2}, {argmode3}, {argmode4}, {argmode5}, {argmode6})"
                 ;
+            }
+
+            string getFuncGeneratorParamsShort()
+            {
+                string res = "";
+
+                switch (dXYgenerationMode)
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                        res = $"{(int)dXYgenerationMode}, {(int)target}, {(int)eqMode1}, {(int)f1}, {(int)f2}, {(int)argmode1}, {(int)argmode2}, {(int)argmode3}";
+                        break;
+
+                    case 3:
+                        res = $"{(int)dXYgenerationMode}, {(int)target}, {(int)eqMode1}, {(int)f1}, {(int)f2}, {(int)argmode1}, {(int)argmode2}, {(int)argmode3}, {(int)eqMode2}";
+                        break;
+
+                    case 4:
+                        res = $"{(int)dXYgenerationMode}, {(int)target}, {(int)eqMode1}, {(int)f1}, {(int)f2}, {(int)argmode1}, {(int)argmode2}, {(int)argmode3}, {(int)eqMode2}, {(int)f3}, {(int)f4}, {(int)argmode4}, {(int)argmode5}, {(int)argmode6}";
+                        break;
+                }
+
+                return $"\n Short: {res}";
             }
 
             string str = $"Obj = myObj_180\n\n" +
@@ -209,10 +232,28 @@ namespace my
                             $"heightRatioMode = {heightRatioMode}\n" +
                             $"doUseXOffset = {doUseXOffset}\n" +
                             $"doShiftCenter = {doShiftCenter}\n" +
+                            $"doUseIntConversion = {doUseIntConversion}\n" + 
                             $"LifeCntBase = {LifeCntBase}\n" +
-                            getFuncGeneratorParams()
+                            getFuncGeneratorParams() + "\n" + 
+                            getFuncGeneratorParamsShort()
                 ;
             return str;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // 
+        protected override void getNextMode()
+        {
+            // Keep shape type and connection mode, as changing those requires also reinitializing other primitives;
+            // todo: fix this sometimes later
+            var oldShapeType = shapeType;
+            var oldConnectionMode = connectionMode;
+
+            init();
+
+            shapeType = oldShapeType;
+            connectionMode = oldConnectionMode;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -595,69 +636,12 @@ namespace my
         // todo: test later how much slower is using this family business instead of direct 1-level switch
         private void addDxDyModifier(ref float dx, ref float dy, float x, float y, float dist)
         {
-            // Set predefined mode
+            // Use some test function
             if (false)
             {
-                //dx = (float)Math.Cos(dx);
-                //dy = (float)Math.Sin(dy);
-
-                //dx = (float)(Math.Cos(dx))/dx;
-                //dy = (float)(Math.Sin(dy))/dy;
-                //return;
-
-                float dx1 = dx;
-                float dx2 = dx;
-                float dy1 = dy;
-                float dy2 = dy;
-
-                dx += (float)Math.Cos(1.0f / (dx1 + dy1));
-                dy /= (float)Math.Cos((dx2 * dy2) / (dx2 + dy2));
-
-                dx *= myUtils.randomSign(rand);
-                dy *= myUtils.randomSign(rand);
-                return;
-
-                int[] arr00 = { 0, 4, 1, 0, 3, 9, 0 };
-                int[] arr01 = { 1, 2, 2, 2, 1, 0, 0 };           // heart shaped box -- dXYgenerationMode 0
-                int[] arr02 = { 1, 4, 2, 2, 1, 0, 0 };           // 
-                int[] arr03 = { 1, 0, 1, 0, 0, 2, 7 };           // dy = (float)Math.Cos(dx) * dy;
-                int[] arr04 = { 1, 0, 1, 0, 4, 4, 7 };           // dy = (float)Math.Cos(dx + dy) * (dy + dx);
-                int[] arr05 = { 1, 0, 1, 0, 7, 7, 7 };           // dy = (float)Math.Cos(dx * dy) * (dy * dx);
-                int[] arr06 = { 1, 0, 1, 0, 7, 9, 7 };           // dy = (float)Math.Cos(dx * dy) * (dy / dx);
-                int[] arr07 = { 1, 0, 1, 0, 4, 9, 7 };           // dy = (float)Math.Cos(dx + dy) * (dy / dx);
-                int[] arr08 = { 1, 0, 1, 0, 5, 9, 7 };           // dy = (float)Math.Cos(dx - dy) * (dy / dx);
-                int[] arr09 = { 1, 0, 1, 0, 8, 9, 7 };           // dy = (float)Math.Cos(dx / dy) * (dy / dx);
-                int[] arr10 = { 1, 0, 0, 0, 0, 2, 8 };           // dy = (float)Math.Sin(dx) / dy;
-                int[] arr11 = { 0, 0, 1, 0, 2, 0, 8 };           // dx = (float)Math.Cos(dy) / dx;
-                int[] arr12 = { 0, 0, 0, 0, 2, 0, 8 };           // dx = (float)Math.Sin(dy) / dx;
-                int[] arr13 = { 1, 0, 0, 0, 9, 0, 0 };           // dy = (float)Math.Sin(dy/dx);
-                int[] arr14 = { 1, 2, 0, 0, 6, 0, 0 };           // dy -= (float)Math.Sin(dy - dx);
-                int[] arr15 = { 1, 2, 0, 0, 6, 0, 0 };           // dy = (float)Math.Sqrt(dx);
-
-                // dXYgenerationMode == 2
-                int[] arr20 = { 1, 0, 0, 0, 0, 2, 4 };           // dy = (float)Math.Sin(dx) + (float)Math.Sin(dy);
-
-                // dXYgenerationMode == 3
-                int[] arr30 = { 0, 0, 1, 0, 0, 2, 0 };           // dy = (float)Math.Sin(dx) + (float)Math.Sin(dy);
-
-                var arr = arr30;
-
-                target   = (myFuncGenerator1.Targets)arr[0];
-                eqMode1  = (myFuncGenerator1.eqModes)arr[1];
-                f1       = (myFuncGenerator1.Funcs)arr[2];
-                f2       = (myFuncGenerator1.Funcs)arr[3];
-                argmode1 = arr[4];
-                argmode2 = arr[5];
-                argmode3 = arr[6];
-            }
-
-
-            if (false)
-            {
-                getTestResult(ref dx, ref dy, x, y, dist, 2);
+                useTestFunc(ref dx, ref dy, x, y, dist, 2);
                 return;
             }
-
 
             switch (dXYgenerationMode)
             {
@@ -812,8 +796,8 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // 
-        private void getTestResult(ref float dx, ref float dy, float x, float y, float dist, int n)
+        // Use test function
+        private void useTestFunc(ref float dx, ref float dy, float x, float y, float dist, int n)
         {
             float olddx = dx;
             float olddy = dy;
@@ -836,46 +820,97 @@ namespace my
                     dy /= (float)Math.Sqrt(y);
                     break;
 
+                // looks cool with connectionMOde = 4
                 case 2:
+                    dx = (int)(Math.Sin(x) * 2);
+                    dy = (int)(Math.Sin(y) * 2);
                     break;
+
+                case 3:
+                    dx += dx / (x);
+                    dy += dy / (y);
+                    break;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Set predefined mode
+        private void setPredefinedMode()
+        {
+#if false
+                //dx = (float)Math.Cos(dx);
+                //dy = (float)Math.Sin(dy);
+
+                //dx = (float)(Math.Cos(dx))/dx;
+                //dy = (float)(Math.Sin(dy))/dy;
+                //return;
+
+                float dx1 = dx;
+                float dx2 = dx;
+                float dy1 = dy;
+                float dy2 = dy;
+
+                dx += (float)Math.Cos(1.0f / (dx1 + dy1));
+                dy /= (float)Math.Cos((dx2 * dy2) / (dx2 + dy2));
+
+                dx *= myUtils.randomSign(rand);
+                dy *= myUtils.randomSign(rand);
+                return;
+#endif
+            int[] arr00 = { 0, 0, 4, 1, 0, 3, 9, 0 };
+            int[] arr01 = { 0, 1, 2, 2, 2, 1, 0, 0 };           // heart shaped box
+            int[] arr16 = { 0, 1, 4, 0, 0, 1, 0, 0 };           // dy /= (float)Math.Sin(Math.Abs(dx));
+            int[] arr02 = { 0, 1, 4, 2, 2, 1, 0, 0 };           // dy /= (float)Math.Sqrt(Math.Abs(dx));
+            int[] arr13 = { 0, 1, 0, 0, 0, 9, 0, 0 };           // dy  = (float)Math.Sin(dy/dx);
+            int[] arr14 = { 0, 1, 2, 0, 0, 6, 0, 0 };           // dy -= (float)Math.Sin(dy-dx);
+            int[] arr15 = { 0, 1, 2, 0, 0, 6, 0, 0 };           // dy  = (float)Math.Sqrt(dx);
+
+            int[] arr03 = { 1, 1, 0, 1, 0, 0, 2, 7 };           // dy = (float)Math.Cos(dx) * dy;
+            int[] arr04 = { 1, 1, 0, 1, 0, 4, 4, 7 };           // dy = (float)Math.Cos(dx + dy) * (dy + dx);
+            int[] arr05 = { 1, 1, 0, 1, 0, 7, 7, 7 };           // dy = (float)Math.Cos(dx * dy) * (dy * dx);
+            int[] arr06 = { 1, 1, 0, 1, 0, 7, 9, 7 };           // dy = (float)Math.Cos(dx * dy) * (dy / dx);
+            int[] arr07 = { 1, 1, 0, 1, 0, 4, 9, 7 };           // dy = (float)Math.Cos(dx + dy) * (dy / dx);
+            int[] arr08 = { 1, 1, 0, 1, 0, 5, 9, 7 };           // dy = (float)Math.Cos(dx - dy) * (dy / dx);
+            int[] arr09 = { 1, 1, 0, 1, 0, 8, 9, 7 };           // dy = (float)Math.Cos(dx / dy) * (dy / dx);
+            int[] arr10 = { 1, 1, 0, 0, 0, 0, 2, 8 };           // dy = (float)Math.Sin(dx) / dy;
+            int[] arr11 = { 1, 0, 0, 1, 0, 2, 0, 8 };           // dx = (float)Math.Cos(dy) / dx;
+            int[] arr12 = { 1, 0, 0, 0, 0, 2, 0, 8 };           // dx = (float)Math.Sin(dy) / dx;
+
+            int[] arr20 = { 2, 1, 0, 0, 0,  0, 2, 4 };          // dy  = (float)Math.Sin(dx) + (float)Math.Sin(dy);
+            int[] arr21 = { 2, 0, 1, 0, 1, 23, 6, 3 };          // dx += (float)Math.Cos(Math.Abs(dy-dx));
+
+            int[] arr30 = { 3, 0, 4, 0, 2,  6, 25,  0, 3 };     //
+            int[] arr31 = { 3, 0, 3, 0, 0, 28, 22, 16, 3 };     // 
+
+            int[] arr40 = { 4, 1, 2, 2, 0, 30, 2, 32, 4, 0, 0, 28, 31, 14 };
+
+            var arr = arr40;
+
+            dXYgenerationMode = arr[0];
+            target  = (myFuncGenerator1.Targets)arr[1];
+            eqMode1 = (myFuncGenerator1.eqModes)arr[2];
+            f1 = (myFuncGenerator1.Funcs)arr[3];
+            f2 = (myFuncGenerator1.Funcs)arr[4];
+            argmode1 = arr[5];
+            argmode2 = arr[6];
+            argmode3 = arr[7];
+
+            // More params
+            if (dXYgenerationMode == 3)
+            {
+                eqMode2 = (myFuncGenerator1.eqModes)arr[8];
+            }
+
+            if (dXYgenerationMode == 4)
+            {
+                eqMode2 = (myFuncGenerator1.eqModes)arr[8];
+                f3 = (myFuncGenerator1.Funcs)arr[9];
+                f4 = (myFuncGenerator1.Funcs)arr[10];
+                argmode4 = arr[11];
+                argmode5 = arr[12];
+                argmode6 = arr[13];
             }
         }
     }
 };
-
-
-/*
-    dXYgenerationMode = 2
-    dXYgen_useRandSign1 = True
-    dXYgen_useRandSign2 = True
-    target = FIRST (0)
-    eqMode1 = PLUS (1)
-    eqMode2 = EQUALS (0)
-    f1 = SIN (0)
-    f2 = COS (1)
-    f3 = COS (1)
-    f4 = COS (1)
-    argmode1 = 23
-    argmode2 = 6
-    argmode3 = 3
-    argmode4 = 13
-    argmode5 = 33
-    argmode6 = 23 
-
-    dXYgenerationMode = 3
-    dXYgen_useRandSign1 = True
-    dXYgen_useRandSign2 = False
-    target = SECOND (1)
-    eqMode1 = DIV (4)
-    eqMode2 = MULT (3)
-    f1 = SIN (0)
-    f2 = SQRT (2)
-    f3 = SQRT (2)
-    f4 = SIN (0)
-    argmode1 = 6
-    argmode2 = 25
-    argmode3 = 14
-    argmode4 = 2
-    argmode5 = 30
-    argmode6 = 16
-*/
