@@ -19,10 +19,10 @@ namespace my
 
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,
-                            doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true;
+                            doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true, doRandomizeCenter = false;
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
         private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, rateBase = 50, rateMode = 0;
-        private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1, startDispersionRate = 0;
+        private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1, startDispersionRate = 0, centerRandSize = 0;
         private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
                                             dispersionConst = 0, heightRatio = 1.0f, xOffset = 0, dSize = 0;
 
@@ -77,6 +77,7 @@ namespace my
             doUseRandomSpeed        = myUtils.randomBool(rand);
             doUseIntConversion      = myUtils.randomChance(rand, 1, 5);
             doUseIncreasingWaveSize = myUtils.randomChance(rand, 1, 3);
+            doRandomizeCenter       = myUtils.randomChance(rand, 1, 5);
             rateMode                = rand.Next(3);
             dispersionMode          = rand.Next(6);
             heightRatioMode         = rand.Next(5);
@@ -133,6 +134,7 @@ namespace my
             connectionMode = rand.Next(5);
             speedBase = 1.0f + 0.001f * rand.Next(2000);
             dSize = (float)rand.NextDouble() / 100;
+            centerRandSize = rand.Next(100) + 10;
 
             if (connectionMode > 2)
             {
@@ -186,7 +188,7 @@ namespace my
             N = 100000;
             renderDelay = 1;
 
-#if true
+#if false
             doUseDispersion = false;
             doUseStartDispersion = false;
             doShowParticles = true;
@@ -542,6 +544,12 @@ namespace my
 
                         if (waveSize < waveSizeBase)
                             waveSize += dWaveSize;
+
+                        if (doRandomizeCenter)
+                        {
+                            x0 = gl_Width  / 2 + rand.Next(centerRandSize) - rand.Next(centerRandSize/2);
+                            y0 = gl_Height / 2 + rand.Next(centerRandSize) - rand.Next(centerRandSize/2);
+                        }
 
                         // Vary rate:
                         //  rateMode = 0: const pace
