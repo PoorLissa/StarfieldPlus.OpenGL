@@ -34,13 +34,16 @@ public class ScreenSaver
     // - number of rotating lines. the length of each line is changing over time
     // - lots of triangles, where each vertice is moving like a bouncing ball
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
+    // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
     // - 
 
-    private enum ids { myObj_000, myObj_010, myObj_180, myObj_200, myObj_210, myObj_220, myObj_300, myObj_300_test, myObj_999a };
+    private enum ids { myObj_000, myObj_010, myObj_180, myObj_200, myObj_210, myObj_220, myObj_300, myObj_310, myObj_320, myObj_300_test, myObj_999a };
 
     public void selectObject()
     {
         ids id = (ids)2;
+
+        id = ids.myObj_320;
 
         switch (id)
         {
@@ -54,7 +57,7 @@ public class ScreenSaver
                 _obj = new my.myObj_010();
                 break;
 
-            // 
+            // Generator of waves that are made of particles
             case ids.myObj_180:
                 _obj = new my.myObj_180();
                 break;
@@ -77,6 +80,15 @@ public class ScreenSaver
             // Small Explosions of Particles + Movement type Variations
             case ids.myObj_300:
                 _obj = new my.myObj_300();
+                break;
+
+            // Triangulation
+            case ids.myObj_310:
+                _obj = new my.myObj_310();
+                break;
+
+            case ids.myObj_320:
+                _obj = new my.myObj_320();
                 break;
 
             case ids.myObj_300_test:

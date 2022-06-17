@@ -13,29 +13,26 @@ namespace my
 {
     public class myObj_180 : myObject
     {
-        private delegate float family1Delegate(float f1, float f2);
-
-        // ---------------------------------------------------------------------------------------------------------------
-
         private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,
-                            doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true, doRandomizeCenter = false;
-        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0;
-        private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, rateBase = 50, rateMode = 0;
-        private static int heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1, startDispersionRate = 0, centerRandSize = 0;
+                            doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true, doRandomizeCenter = false,
+                            doUseTestFunc = false;
+
+        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0,
+                           shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, rateBase = 50, rateMode = 0,
+                           heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1, startDispersionRate = 0, centerRandSize = 0,
+                           testFuncNo = -1;
+
         private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
                                             dispersionConst = 0, heightRatio = 1.0f, xOffset = 0, dSize = 0;
 
         private static myInstancedPrimitive inst = null;
 
-        private float x, y, r, g, b, a;
-        private int lifeCnt = 0;
-        private int shape = 0;
+        private int     lifeCnt = 0, shape = 0;
+        private bool    isLive = false;
+        private float   x, y, r, g, b, a, dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f;
 
-        private bool isLive = false;
-        private float dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f;
-
-        // Function Generation
+        // Function Generation Params
         static int argmode1, argmode2, argmode3, argmode4, argmode5, argmode6;
         static myFuncGenerator1.Targets target;
         static myFuncGenerator1.Funcs   f1, f2, f3, f4;
@@ -49,6 +46,7 @@ namespace my
             {
                 colorPicker = new myColorPicker(gl_Width, gl_Height);
                 list = new List<myObject>();
+                myFuncGenerator1.myExpr.rand = rand;
 
                 init();
             }
@@ -68,16 +66,17 @@ namespace my
             startDispersionRate = 5;
 
             doShowParticles         = true;
-            doClearBuffer           = myUtils.randomChance(rand, 4, 5);
             doFillShapes            = myUtils.randomBool(rand);
+            doUseRandomSpeed        = myUtils.randomBool(rand);
+            doClearBuffer           = myUtils.randomChance(rand, 4, 5);
             doUseDispersion         = myUtils.randomChance(rand, 1, 3);
             doUseStartDispersion    = myUtils.randomChance(rand, 1, 3);
             doUseXOffset            = myUtils.randomChance(rand, 1, 7);
             doShiftCenter           = myUtils.randomChance(rand, 1, 6);
-            doUseRandomSpeed        = myUtils.randomBool(rand);
+            doRandomizeCenter       = myUtils.randomChance(rand, 1, 5);
             doUseIntConversion      = myUtils.randomChance(rand, 1, 5);
             doUseIncreasingWaveSize = myUtils.randomChance(rand, 1, 3);
-            doRandomizeCenter       = myUtils.randomChance(rand, 1, 5);
+            doUseTestFunc           = myUtils.randomChance(rand, 1, 20);
             rateMode                = rand.Next(3);
             dispersionMode          = rand.Next(6);
             heightRatioMode         = rand.Next(5);
@@ -152,7 +151,6 @@ namespace my
             // todo: remove true later
             if (myUtils.randomChance(rand, 2, 5))
             {
-                myFuncGenerator1.myExpr.rand = rand;
                 dXYgen_useRandSign1 = myUtils.randomBool(rand);
                 dXYgen_useRandSign2 = myUtils.randomBool(rand);
 
@@ -188,13 +186,14 @@ namespace my
             N = 100000;
             renderDelay = 1;
 
-#if false
+#if DEBUG && false
             doUseDispersion = false;
             doUseStartDispersion = false;
             doShowParticles = true;
             doUseIncreasingWaveSize = false;
             doShiftCenter = false;
             doUseXOffset = false;
+            doRandomizeCenter = false;
             heightRatioMode = 1;
 #endif
 
@@ -270,7 +269,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // 
-        protected override void getNextMode()
+        protected override void setNextMode()
         {
             // Keep shape type and connection mode, as changing those requires also reinitializing other primitives;
             // todo: fix this sometimes later
@@ -685,9 +684,14 @@ namespace my
         private void addDxDyModifier(ref float dx, ref float dy, float x, float y, float dist)
         {
             // Use some test function
-            if (false)
+            if (doUseTestFunc)
             {
-                useTestFunc(ref dx, ref dy, x, y, dist, 2);
+                if (testFuncNo < 0)
+                {
+                    testFuncNo = rand.Next(4);
+                }
+
+                useTestFunc(ref dx, ref dy, x, y, dist, testFuncNo);
                 return;
             }
 

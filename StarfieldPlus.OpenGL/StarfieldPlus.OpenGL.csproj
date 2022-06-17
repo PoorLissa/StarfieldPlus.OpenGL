@@ -70,6 +70,8 @@
     <Compile Include="myScrObjects\myObj_010.cs" />
     <Compile Include="myScrObjects\myObj_220.cs" />
     <Compile Include="myScrObjects\myObj_180.cs" />
+    <Compile Include="myScrObjects\myObj_320.cs" />
+    <Compile Include="myScrObjects\myObj_310.cs" />
     <Compile Include="myScrObjects\myObj_300_test.cs" />
     <Compile Include="myScrObjects\myObj_300.cs" />
     <Compile Include="myScrObjects\myObj_210.cs" />

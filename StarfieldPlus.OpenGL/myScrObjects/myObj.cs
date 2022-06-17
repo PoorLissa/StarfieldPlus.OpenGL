@@ -59,7 +59,7 @@ namespace my
         // -------------------------------------------------------------------------
 
         // Override it for every derived class to implement the logic
-        protected virtual void getNextMode()
+        protected virtual void setNextMode()
         {
         }
 
@@ -148,7 +148,7 @@ namespace my
             // Next mode
             if (Glfw.GetKey(window, GLFW.Keys.Space) == GLFW.InputState.Press)
             {
-                getNextMode();
+                setNextMode();
             }
         }
 
