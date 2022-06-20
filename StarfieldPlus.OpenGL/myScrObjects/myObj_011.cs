@@ -17,15 +17,18 @@ namespace my
 
         private class myObj_011_Particle
         {
+            public int cnt;
             public float x, y, dx, dy;
         };
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static int N = 1, pN = 1;
-        private static bool doClearBuffer = false;
+        private static int N = 1, pN = 1, borderOffset = 0;
+        private static bool doClearBuffer = false, doCleanOnce = false;
+        private static float dimAlpha = 0.01f;
 
-        private float R, G, B, A;
+        private int Cnt;
+        private float R, G, B, A, r, g, b;
         private List<myObj_011_Particle> particles = null;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -50,11 +53,15 @@ namespace my
         // One-time initialization
         private void init()
         {
-            N = 2;
+            N = 33;
             pN = 2;
 
+            borderOffset = myUtils.randomBool(rand) ? 0 : rand.Next(321);
+
             doClearBuffer = false;
-            renderDelay = 5;
+            renderDelay = 15;
+
+            dimAlpha = 0.001f;
 
             return;
         }
@@ -73,25 +80,28 @@ namespace my
         protected override void generateNew()
         {
             if (particles.Count == 0)
-            {
                 while (particles.Count < pN)
                     particles.Add(new myObj_011_Particle());
-            }
 
             foreach (myObj_011_Particle item in particles)
             {
                 item.x = rand.Next(gl_Width);
                 item.y = rand.Next(gl_Height);
 
-                item.dx = (rand.Next(111) + 11) * 0.01f * myUtils.randomSign(rand);
-                item.dy = (rand.Next(111) + 11) * 0.01f * myUtils.randomSign(rand);
+                item.dx = (rand.Next(1111) + 111) * 0.01f * myUtils.randomSign(rand);
+                item.dy = (rand.Next(1111) + 111) * 0.01f * myUtils.randomSign(rand);
+
+                item.cnt = 0;
             }
 
             R = 1;
             G = 1;
             B = 1;
 
-            A = 0.25f;
+            //A = 1.0f / N;
+            A = 0.33f;
+
+            Cnt = rand.Next(1000) + 1000;
 
             return;
         }
@@ -101,25 +111,61 @@ namespace my
         protected override void setNextMode()
         {
             init();
+            doCleanOnce = true;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Move()
         {
+            Cnt--;
+
             foreach (myObj_011_Particle item in particles)
             {
                 item.x += item.dx;
                 item.y += item.dy;
+/*
+                if (item.cnt > 0)
+                {
+                    item.cnt--;
 
-                if (item.x < 0 || item.x > gl_Width)
+                    item.x += (float)Math.Sin(item.x) * 3;
+                    item.y += (float)Math.Cos(item.y) * 3;
+                }
+*/
+                if (item.x < 0 - borderOffset || item.x > gl_Width + borderOffset)
                 {
                     item.dx *= -1;
+                    item.cnt = 100;
                 }
 
-                if (item.y < 0 || item.y > gl_Height)
+                if (item.y < 0 - borderOffset || item.y > gl_Height + borderOffset)
                 {
                     item.dy *= -1;
+                    item.cnt = 100;
+                }
+            }
+
+            if (Cnt == 0)
+            {
+                r = (float)rand.NextDouble();
+                g = (float)rand.NextDouble();
+                b = (float)rand.NextDouble();
+            }
+
+            if (Cnt < 0)
+            {
+                R += (R > r) ? -0.001f : 0.001f;
+                G += (G > g) ? -0.001f : 0.001f;
+                B += (B > b) ? -0.001f : 0.001f;
+
+                double rDiff = Math.Abs(R - r);
+                double gDiff = Math.Abs(G - g);
+                double bDiff = Math.Abs(B - b);
+
+                if (rDiff + gDiff + bDiff < 0.005)
+                {
+                    Cnt = rand.Next(1000) + 1000;
                 }
             }
         }
@@ -183,14 +229,15 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                if (doClearBuffer)
+                if (doClearBuffer || doCleanOnce)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
+                    doCleanOnce = false;
                 }
                 else
                 {
                     // Dim the screen constantly;
-                    myPrimitive._Rectangle.SetColor(0, 0, 0, 0.01f);
+                    myPrimitive._Rectangle.SetColor(0, 0, 0, dimAlpha);
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
                 }
