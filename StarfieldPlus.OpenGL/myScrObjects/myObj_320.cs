@@ -54,6 +54,10 @@ namespace my
             gridMode = rand.Next(3);
             drawMode = rand.Next(3);
 
+drawMode = 1;
+gridMode = 0;
+objN = 1;
+
             if (gridMode > 0)
             {
                 objN = 100;
@@ -132,6 +136,32 @@ namespace my
 
             dx = dy = rand.Next(10) + 3;
 
+x1 = 333;
+y1 = 333;
+
+x2 = 1000;
+y2 = 444;
+
+x3 = 1200;
+y3 = 777;
+
+x4old = x4 = 222;
+y4old = y4 = 666;
+
+x1 = rand.Next(gl_Width);
+y1 = rand.Next(gl_Height);
+
+x2 = rand.Next(gl_Width); ;
+y2 = rand.Next(gl_Height);
+
+x3 = rand.Next(gl_Width); ;
+y3 = rand.Next(gl_Height);
+
+x4old = x4 = rand.Next(gl_Width); ;
+y4old = y4 = rand.Next(gl_Height);
+
+A = 0.5f;
+
             return;
         }
 
@@ -141,8 +171,8 @@ namespace my
         {
             init();
 
-            gridMode = 0;
-            objN = 1;
+gridMode = 0;
+objN = 1;
 
             list.Clear();
 
@@ -206,9 +236,10 @@ namespace my
                 {
                     stepx = 1;
                     stepy = 1;
-
+/*
                     if (--cnt == 0)
                         generateNew();
+*/
                 }
             }
 

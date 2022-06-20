@@ -118,13 +118,12 @@ namespace my
             for (int i = 0; i < list.Count; i++)
             {
                 var obj = list[i] as myObj_310;
-/*
+
                 if (obj != this)
                 {
                     myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
                     myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
                 }
-*/
             }
 
             myPrimitive._LineInst.setInstanceCoords(x, 0, x, gl_Height);
@@ -221,7 +220,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
-            myPrimitive.init_LineInst(N);
+            myPrimitive.init_LineInst(N*N);
 
             switch (shapeType)
             {
