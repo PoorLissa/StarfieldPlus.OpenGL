@@ -25,7 +25,7 @@ namespace my
 
         private static int N = 1, pN = 1, borderOffset = 0;
         private static bool doClearBuffer = false, doCleanOnce = false;
-        private static float dimAlpha = 0.01f;
+        private static float dimAlpha = 0.01f, t = 0;
 
         private int Cnt;
         private float R, G, B, A, r, g, b;
@@ -53,15 +53,15 @@ namespace my
         // One-time initialization
         private void init()
         {
-            N = 33;
-            pN = 2;
+            N = 10;         // obj number
+            pN = 10;         // particles per obj
 
             borderOffset = myUtils.randomBool(rand) ? 0 : rand.Next(321);
 
             doClearBuffer = false;
             renderDelay = 15;
 
-            dimAlpha = 0.001f;
+            dimAlpha = 0.1f;
 
             return;
         }
@@ -236,6 +236,9 @@ namespace my
                 }
                 else
                 {
+                    dimAlpha = (float)Math.Sin(t) * 0.01f;
+                    t += 0.01f;
+
                     // Dim the screen constantly;
                     myPrimitive._Rectangle.SetColor(0, 0, 0, dimAlpha);
                     myPrimitive._Rectangle.SetAngle(0);
