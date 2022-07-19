@@ -17,10 +17,10 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static bool doClearBuffer = false, doCleanOnce = false, doUseGrid = false, doUseRandSize = false, doShowBorder = false;
-        private static int angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0;
+        private static bool doClearBuffer = false, doCleanOnce = false, doUseGrid = false, doUseRandSize = false;
+        private static int angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0, borderMode = 0;
 
-        private int x, y, size, Cnt;
+        private int x, y, size;
         private float R, G, B, angle;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -45,11 +45,11 @@ namespace my
         {
             doUseGrid     = myUtils.randomBool(rand);
             doUseRandSize = myUtils.randomBool(rand);
-            doShowBorder  = myUtils.randomBool(rand);
             doClearBuffer = false;
 
             shapeMode = rand.Next(6);
             colorMode = rand.Next(2);
+            borderMode = rand.Next(5);
             baseSize  = rand.Next(50) + 10;
 
             angleMode = rand.Next(13);
@@ -72,11 +72,11 @@ namespace my
             string str = $"Obj = myObj_102\n\n" +
                          $"doUseGrid = {doUseGrid}\n" +
                          $"doUseRandSize = {doUseRandSize}\n" +
-                         $"doShowBorder = {doShowBorder}\n" +
                          $"doClearBuffer = {doClearBuffer}\n" +
                          $"shapeMode = {shapeMode}\n" +
                          $"colorMode = {colorMode}\n" +
                          $"angleMode = {angleMode}\n" +
+                         $"borderMode = {borderMode}\n" +
                          $"gridSize = {gridSize}";
 
             return str;
@@ -141,60 +141,30 @@ randShape:
                     myPrimitive._Rectangle.SetColor(R, G, B, 0.25f);
                     myPrimitive._Rectangle.SetAngle(angle);
                     myPrimitive._Rectangle.Draw(x - size, y - size, 2 * size, 2 * size, true);
-
-                    if (doShowBorder)
-                    {
-                        myPrimitive._Rectangle.SetColor(0, 0, 0, 0.5f);
-                        myPrimitive._Rectangle.Draw(x - size, y - size, 2 * size, 2 * size, false);
-                    }
                     break;
 
                 case 1:
                     myPrimitive._Ellipse.SetColor(R, G, B, 0.25f);
                     myPrimitive._Ellipse.setLineThickness(2);
                     myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, true);
-
-                    if (doShowBorder)
-                    {
-                        myPrimitive._Ellipse.SetColor(0, 0, 0, 0.5f);
-                        myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, false);
-                    }
                     break;
 
                 case 2:
                     myPrimitive._Triangle.SetColor(R, G, B, 0.25f);
                     myPrimitive._Triangle.SetAngle(angle);
                     myPrimitive._Triangle.Draw(x, y - size, x - 5 * size / 6, y + size / 2, x + 5 * size / 6, y + size / 2, true);
-
-                    if (doShowBorder)
-                    {
-                        myPrimitive._Triangle.SetColor(0, 0, 0, 0.5f);
-                        myPrimitive._Triangle.Draw(x, y - size, x - 5 * size / 6, y + size / 2, x + 5 * size / 6, y + size / 2, false);
-                    }
                     break;
 
                 case 3:
                     myPrimitive._Hexagon.SetColor(R, G, B, 0.25f);
                     myPrimitive._Hexagon.SetAngle(angle);
                     myPrimitive._Hexagon.Draw(x, y, size, true);
-
-                    if (doShowBorder)
-                    {
-                        myPrimitive._Hexagon.SetColor(0, 0, 0, 0.5f);
-                        myPrimitive._Hexagon.Draw(x, y, size, false);
-                    }
                     break;
 
                 case 4:
                     myPrimitive._Pentagon.SetColor(R, G, B, 0.25f);
                     myPrimitive._Pentagon.SetAngle(angle);
                     myPrimitive._Pentagon.Draw(x, y, size, true);
-
-                    if (doShowBorder)
-                    {
-                        myPrimitive._Pentagon.SetColor(0, 0, 0, 0.5f);
-                        myPrimitive._Pentagon.Draw(x, y, size, false);
-                    }
                     break;
 
                 case 5:
@@ -203,9 +173,62 @@ randShape:
                     goto randShape;
             }
 
+            drawBorder();
+
             if (oldShapeMode != -1)
             {
                 shapeMode = oldShapeMode;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void drawBorder()
+        {
+            if (borderMode > 1)
+            {
+                float r = R, g = G, b = B;
+
+                if (borderMode == 2)
+                {
+                    r = 0; g = 0; b = 0;
+                }
+
+                if (borderMode == 3)
+                {
+                    r = 1; g = 1; b = 1;
+                }
+
+                switch (shapeMode)
+                {
+                    case 0:
+                        myPrimitive._Rectangle.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Rectangle.Draw(x - size, y - size, 2 * size, 2 * size, false);
+                        break;
+
+                    case 1:
+                        myPrimitive._Ellipse.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, false);
+                        break;
+
+                    case 2:
+                        myPrimitive._Triangle.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Triangle.Draw(x, y - size, x - 5 * size / 6, y + size / 2, x + 5 * size / 6, y + size / 2, false);
+                        break;
+
+                    case 3:
+                        myPrimitive._Hexagon.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Hexagon.Draw(x, y, size, false);
+                        break;
+
+                    case 4:
+                        myPrimitive._Pentagon.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Pentagon.Draw(x, y, size, false);
+                        break;
+
+                }
             }
 
             return;
