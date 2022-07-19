@@ -69,7 +69,15 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_102\n\n";
+            string str = $"Obj = myObj_102\n\n" +
+                         $"doUseGrid = {doUseGrid}\n" +
+                         $"doUseRandSize = {doUseRandSize}\n" +
+                         $"doShowBorder = {doShowBorder}\n" +
+                         $"doClearBuffer = {doClearBuffer}\n" +
+                         $"shapeMode = {shapeMode}\n" +
+                         $"colorMode = {colorMode}\n" +
+                         $"angleMode = {angleMode}\n" +
+                         $"gridSize = {gridSize}";
 
             return str;
         }
