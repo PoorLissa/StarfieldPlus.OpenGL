@@ -18,7 +18,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         private static bool doClearBuffer = false, doCleanOnce = false, doUseGrid = false, doUseRandSize = false;
-        private static int angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0, borderMode = 0;
+        private static int angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0, borderMode = 0, randSizeFactor = 1;
 
         private int x, y, size;
         private float R, G, B, angle;
@@ -47,20 +47,22 @@ namespace my
             doUseRandSize = myUtils.randomBool(rand);
             doClearBuffer = false;
 
-            shapeMode = rand.Next(6);
-            colorMode = rand.Next(2);
+            shapeMode  = rand.Next(6);
+            colorMode  = rand.Next(2);
             borderMode = rand.Next(5);
-            baseSize  = rand.Next(50) + 10;
+            baseSize   = rand.Next(50) + 10;
 
             angleMode = rand.Next(13);
 
             renderDelay = 0;
             gridSize = baseSize * 2 + 2 * rand.Next(5) + 1;
+            randSizeFactor = rand.Next(3) + 1;
 
-#if false
-            //angleMode = 2;
-            //shapeMode = 0;
-            doShowBorder = true;
+#if true
+            angleMode = 2;
+            shapeMode = 0;
+            doUseGrid = true;
+            doUseRandSize = true;
 #endif
             return;
         }
@@ -117,7 +119,7 @@ namespace my
 
             if (doUseRandSize)
             {
-                size = rand.Next(baseSize) + 3;
+                size = rand.Next(baseSize * randSizeFactor) + 3;
             }
 
             switch (angleMode)
@@ -145,7 +147,6 @@ randShape:
 
                 case 1:
                     myPrimitive._Ellipse.SetColor(R, G, B, 0.25f);
-                    myPrimitive._Ellipse.setLineThickness(2);
                     myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, true);
                     break;
 
@@ -210,6 +211,7 @@ randShape:
 
                     case 1:
                         myPrimitive._Ellipse.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Ellipse.setLineThickness(1);
                         myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, false);
                         break;
 
