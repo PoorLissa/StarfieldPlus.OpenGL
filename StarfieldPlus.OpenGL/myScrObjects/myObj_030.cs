@@ -51,6 +51,7 @@ namespace my
             doFillShapes  = myUtils.randomBool(rand);
             doClearBuffer = myUtils.randomBool(rand);
 
+            shapeType = rand.Next(5);
             connectionMode = rand.Next(2);
 
             // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
