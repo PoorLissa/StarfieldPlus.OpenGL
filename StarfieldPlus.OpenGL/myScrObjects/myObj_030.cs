@@ -108,7 +108,7 @@ namespace my
             dy = 0;
 
             A = (float)rand.NextDouble();
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            colorPicker.getColorRand(ref R, ref G, ref B);
 
             return;
         }
