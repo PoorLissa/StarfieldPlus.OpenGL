@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Linearly Moving Circles (Soap Bubbles)
+    - Linearly Moving Shapes (Soap Bubbles alike)
 */
 
 
@@ -49,7 +49,7 @@ namespace my
             doFillShapes = myUtils.randomBool(rand);
 
             shape = rand.Next(5);
-            shapeCnt = rand.Next(5) + 1;
+            shapeCnt = (myUtils.randomChance(rand, 1, 3) ? rand.Next(15) : rand.Next(5)) + 1;
 
             return;
         }
@@ -141,7 +141,7 @@ namespace my
 
                 for (int i = 1; i < shapeCnt + 1; i++)
                 {
-                    Size = oldSize / i;
+                    Size = oldSize - (oldSize * (i-1) / shapeCnt);
 
                     switch (shape)
                     {
