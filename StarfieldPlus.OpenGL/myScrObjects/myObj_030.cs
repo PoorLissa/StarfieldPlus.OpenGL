@@ -13,14 +13,14 @@ namespace my
 {
     public class myObj_030 : myObject
     {
-        private float x, y, dx, dy, Size, angle, dAngle, xOld, yOld, xOrig, yOrig;
+        private float x, y, dx, dy, Size, angle, dAngle, xOld, yOld, dA;
         private float A = 0, R = 0, G = 0, B = 0;
         private int lifeCounter = -1;
         private bool isSlow = false, isFalling = true;
 
         private static float dimAlpha = 0;
         private static bool doClearBuffer = true, doFillShapes = false;
-        private static int N = 1, shapeType = 0, rotationMode = 0, rotationSubMode = 0, connectionMode = 0;
+        private static int N = 1, shapeType = 0, rotationMode = 0, rotationSubMode = 0, connectionMode = 0, moveMode = 0;
 
         private static myInstancedPrimitive inst = null;
 
@@ -51,6 +51,7 @@ namespace my
             doFillShapes  = myUtils.randomBool(rand);
             doClearBuffer = myUtils.randomBool(rand);
 
+            moveMode = rand.Next(7);
             shapeType = rand.Next(5);
             connectionMode = rand.Next(2);
 
@@ -72,43 +73,66 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             return $"Obj = myObj_030\n\n" +
-                            $"N = {N}\n";
+                            $"N = {N}\n" +
+                            $"moveMode = {moveMode}\n"
+                            ;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
-            int rnd = rand.Next(1000);
-            int maxSize = 13;
-
-            isSlow = false;
-            isFalling = true;
-
-            if (rnd < 100)
-                maxSize = 27;
-
-            if (rnd > 750)
+            if (moveMode == 0)
             {
                 isSlow = true;
-                maxSize = 2;
-                lifeCounter = rand.Next(5) + 1;
+
+                Size = rand.Next(7) + 1;
+                angle = 0;
+                dAngle = rotationMode < 2 ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
+
+                xOld = x = rand.Next(gl_Width);
+                yOld = y = rand.Next(gl_Height);
+
+                lifeCounter = 0;
+                dx = 0;
+                dy = 0;
+                A = 0;
+                dA = 0.001f * (rand.Next(11) + 1);
+                colorPicker.getColorRand(ref R, ref G, ref B);
             }
+            else
+            {
+                int rnd = rand.Next(1000);
+                int maxSize = 13;
 
-            Size = rand.Next(maxSize) + 1;
-            angle = 0;
-            dAngle = rotationMode < 2 ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
+                isSlow = false;
+                isFalling = true;
 
-            lifeCounter = (lifeCounter == -1) ? rand.Next(100) : rand.Next(100) + 100;
+                if (rnd < 100)
+                    maxSize = 27;
 
-            xOld = x = rand.Next(gl_Width);
-            yOld = y = isSlow ? rand.Next(gl_Height) : -rand.Next((int)Size);
+                if (rnd > 750)
+                {
+                    isSlow = true;
+                    maxSize = 2;
+                    lifeCounter = rand.Next(5) + 1;
+                }
 
-            dx = 0;
-            dy = 0;
+                Size = rand.Next(maxSize) + 1;
+                angle = 0;
+                dAngle = rotationMode < 2 ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
 
-            A = (float)rand.NextDouble();
-            colorPicker.getColorRand(ref R, ref G, ref B);
+                lifeCounter = (lifeCounter == -1) ? rand.Next(100) : rand.Next(100) + 100;
+
+                xOld = x = rand.Next(gl_Width);
+                yOld = y = isSlow ? rand.Next(gl_Height) : -rand.Next((int)Size);
+
+                dx = 0;
+                dy = 0;
+
+                A = (float)rand.NextDouble();
+                colorPicker.getColorRand(ref R, ref G, ref B);
+            }
 
             return;
         }
@@ -117,6 +141,13 @@ namespace my
 
         protected override void Move()
         {
+            if (moveMode == 0)
+            {
+                A += dA;
+                if (A < 0.85f)
+                    return;
+            }
+
             if (isSlow)
             {
                 if (y % 5 == 0)
