@@ -16,7 +16,7 @@ namespace my
         private float x, y, dx, dy, Size, dSize, angle, dAngle, A = 0, R = 0, G = 0, B = 0;
         int lifeCounter = 0;
 
-        private static int shape = 0, N = 0;
+        private static int shape = 0, N = 0, shapeCnt = 1;
         private static bool doFillShapes = false;
         private static float spdConst = 0;
 
@@ -49,6 +49,7 @@ namespace my
             doFillShapes = myUtils.randomBool(rand);
 
             shape = rand.Next(5);
+            shapeCnt = rand.Next(5) + 1;
 
             return;
         }
@@ -59,7 +60,8 @@ namespace my
         {
             return $"Obj = myObj_020\n\n" +
                             $"N = {N}\n" +
-                            $"spdConst = {spdConst}\n"
+                            $"spdConst = {spdConst}\n" +
+                            $"shapeCnt = {shapeCnt}\n"
                             ;
         }
 
@@ -135,44 +137,53 @@ namespace my
         {
             if (Size > 0)
             {
-                switch (shape)
+                float oldSize = Size;
+
+                for (int i = 1; i < shapeCnt + 1; i++)
                 {
-                    case 0:
-                        var rectInst = inst as myRectangleInst;
+                    Size = oldSize / i;
 
-                        rectInst.setInstanceCoords(x - Size, y - Size, 2 * Size, 2 * Size);
-                        rectInst.setInstanceColor(R, G, B, A);
-                        rectInst.setInstanceAngle(angle);
-                        break;
+                    switch (shape)
+                    {
+                        case 0:
+                            var rectInst = inst as myRectangleInst;
 
-                    case 1:
-                        var triangleInst = inst as myTriangleInst;
+                            rectInst.setInstanceCoords(x - Size, y - Size, 2 * Size, 2 * Size);
+                            rectInst.setInstanceColor(R, G, B, A/i);
+                            rectInst.setInstanceAngle(angle/i);
+                            break;
 
-                        triangleInst.setInstanceCoords(x, y, Size, angle);
-                        triangleInst.setInstanceColor(R, G, B, A);
-                        break;
+                        case 1:
+                            var triangleInst = inst as myTriangleInst;
 
-                    case 2:
-                        var ellipseInst = inst as myEllipseInst;
+                            triangleInst.setInstanceCoords(x, y, Size, angle/i);
+                            triangleInst.setInstanceColor(R, G, B, A/i);
+                            break;
 
-                        ellipseInst.setInstanceCoords(x, y, 2 * Size, angle);
-                        ellipseInst.setInstanceColor(R, G, B, A);
-                        break;
+                        case 2:
+                            var ellipseInst = inst as myEllipseInst;
 
-                    case 3:
-                        var pentagonInst = inst as myPentagonInst;
+                            ellipseInst.setInstanceCoords(x, y, 2 * Size, angle/i);
+                            ellipseInst.setInstanceColor(R, G, B, A/i);
+                            break;
 
-                        pentagonInst.setInstanceCoords(x, y, 2 * Size, angle);
-                        pentagonInst.setInstanceColor(R, G, B, A);
-                        break;
+                        case 3:
+                            var pentagonInst = inst as myPentagonInst;
 
-                    case 4:
-                        var hexagonInst = inst as myHexagonInst;
+                            pentagonInst.setInstanceCoords(x, y, 2 * Size, angle/i);
+                            pentagonInst.setInstanceColor(R, G, B, A/i);
+                            break;
 
-                        hexagonInst.setInstanceCoords(x, y, 2 * Size, angle);
-                        hexagonInst.setInstanceColor(R, G, B, A);
-                        break;
+                        case 4:
+                            var hexagonInst = inst as myHexagonInst;
+
+                            hexagonInst.setInstanceCoords(x, y, 2 * Size, angle/i);
+                            hexagonInst.setInstanceColor(R, G, B, A/i);
+                            break;
+                    }
                 }
+
+                Size = oldSize;
             }
 
             return;
@@ -234,7 +245,7 @@ namespace my
 
         private void initShapes()
         {
-            int lineN = N * 3, shapeN = N;
+            int lineN = N * 3, shapeN = N * shapeCnt;
 
             myPrimitive.init_Rectangle();
 
