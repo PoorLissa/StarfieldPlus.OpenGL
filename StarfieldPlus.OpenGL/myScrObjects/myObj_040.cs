@@ -44,7 +44,7 @@ namespace my
             gl_x0 = gl_Width / 2;
             gl_y0 = gl_Height / 2;
 
-            N = 111;
+            N = 1111;
             renderDelay = 10;
 
             shape = rand.Next(5);
@@ -216,10 +216,10 @@ namespace my
                     // Shift background color just a bit, to hide long lasting traces of shapes
                     myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha);
 
-                    if (rand.Next(11) == 0)
+                    if (rand.Next(11) == -1)
                         myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * 2);
 
-                    if (rand.Next(33) == 0)
+                    if (rand.Next(33) == -1)
                         myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * 5);
 
                     myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
@@ -317,6 +317,8 @@ namespace my
             angle += dAngle;
 
             angle = (float)rand.NextDouble();
+
+            //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
             {
