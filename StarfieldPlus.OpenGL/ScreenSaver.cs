@@ -37,16 +37,12 @@ public class ScreenSaver
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
     // - 
 
-    private enum ids { myObj_000, myObj_010, myObj_011, myObj_030, myObj_102, myObj_180, myObj_200, myObj_210, myObj_220, myObj_300, myObj_310, myObj_320, myObj_300_test, myObj_999a };
+    private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_102, myObj_180, myObj_200, myObj_210, myObj_220, myObj_300, myObj_310, myObj_320, myObj_300_test, myObj_999a };
 
     public void selectObject()
     {
-        ids id = (ids)2;
-
-        id = ids.myObj_310;
-        id = ids.myObj_011;
-        id = ids.myObj_102;
-        id = ids.myObj_030;
+        ids id = (ids)0;
+        id = ids.myObj_020;
 
         switch (id)
         {
@@ -63,6 +59,11 @@ public class ScreenSaver
             // Randomly Roaming Lines (based on Randomly Roaming Squares)
             case ids.myObj_011:
                 _obj = new my.myObj_011();
+                break;
+
+            // Linearly Moving Circles (Soap Bubbles)
+            case ids.myObj_020:
+                _obj = new my.myObj_020();
                 break;
 
             // Rain Drops(Vertical, Top-Down)

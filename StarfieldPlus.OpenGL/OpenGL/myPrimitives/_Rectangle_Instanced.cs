@@ -5,7 +5,6 @@ using System;
 
 // todo:
 //  - need to create vertices only once -- do I?
-//  - hexagons don't draw when instancing is enabled. fix hexagons and other shapes that are broken by instancing
 
 
 public class myRectangleInst : myInstancedPrimitive
