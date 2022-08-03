@@ -14,10 +14,10 @@ namespace my
     public class myObj_040 : myObject
     {
         private float x, y, dx, dy, size, dSize, R, G, B, A, dA, angle, dAngle;
-        int angleMode = 0, signX, signY, oldX = 0, oldY = 0, initX = 0, initY = 0;
+        int angleMode = 0, signX, signY, oldX = 0, oldY = 0;
 
         static float dimAlpha = 0;
-        static int N = 0, rndMax = 0, shape = 0, moveType = 0, dimRate = 0, maxSize = 0, lineMode = 0;
+        static int N = 0, rndMax = 0, shape = 0, moveType = 0, dimRate = 0, maxSize = 0, lineMode = 0, fillMode = 0;
 
         private static myInstancedPrimitive inst = null;
 
@@ -44,18 +44,33 @@ namespace my
             gl_x0 = gl_Width / 2;
             gl_y0 = gl_Height / 2;
 
-            N = 1111 + rand.Next(333);
+            N = (N == 0) ? 1111 + rand.Next(333) : N;
             renderDelay = 10;
 
             shape = rand.Next(5);
             moveType = rand.Next(12);
             lineMode = rand.Next(5);
+            fillMode = rand.Next(3);
 
             rndMax = rand.Next(800) + 100;
 
             dimAlpha = 0.001f * (rand.Next(100) + 1);
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void setNextMode()
+        {
+            // Keep shape type and connection mode, as changing those requires also reinitializing other primitives;
+            // todo: fix this sometimes later
+            var oldShapeType = shape;
+
+            list.Clear();
+
+            init();
+            shape = oldShapeType;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -67,6 +82,7 @@ namespace my
                             $"moveType = {moveType}\n" +
                             $"dimAlpha = {dimAlpha}\n" + 
                             $"rndMax = {rndMax}\n" +
+                            $"fillMode = {fillMode}\n" + 
                             $"lineMode = {lineMode}"
                             ;
         }
@@ -81,8 +97,8 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            oldX = initX = (int)x;
-            oldY = initY = (int)y;
+            oldX = (int)x;
+            oldY = (int)y;
 
             float speed = 1.5f + 0.1f * rand.Next(30);
             float dist = (float)(Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0)));
@@ -112,7 +128,7 @@ namespace my
 
             dA = 0.0001f * (rand.Next(100) + 1);
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            colorPicker.getColorRand(ref R, ref G, ref B);
 
             return;
         }
@@ -249,6 +265,12 @@ namespace my
                 }
 
                 myPrimitive._LineInst.Draw();
+
+                if (fillMode > 0)
+                {
+                    inst.SetColorA(-0.25f);
+                    inst.Draw(true);
+                }
 
                 inst.SetColorA(0);
                 inst.Draw(false);
