@@ -52,9 +52,12 @@ namespace my
             lineMode = rand.Next(5);
             fillMode = rand.Next(3);
 
+            moveType = 13;
+
             rndMax = rand.Next(800) + 100;
 
             dimAlpha = 0.001f * (rand.Next(100) + 1);
+            dimAlpha *= myUtils.randomChance(rand, 1, 2) ? 1.0f : 0.5f;
 
             return;
         }
@@ -154,6 +157,8 @@ namespace my
                 case 9 :  move9(); break;
                 case 10: move10(); break;
                 case 11: move11(); break;
+                case 12: move12(); break;
+                case 13: move13(); break;
             }
 
             if (y < 0 || y > gl_Height || x < 0 || x > gl_Width || A < 0)
@@ -554,5 +559,87 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void move12()
+        {
+            if (dx != 0 && dy != 0)
+            {
+                if (myUtils.randomChance(rand, 1, 2))
+                {
+                    dx = 0;
+                }
+                else
+                {
+                    dy = 0;
+                }
+            }
+
+            float baseStep = 0.001f;
+
+            x += dx;
+            y += dy;
+
+            if (dy == 0)
+                y += baseStep * rand.Next(rndMax) * myUtils.randomSign(rand);
+            else
+                x += baseStep * rand.Next(rndMax) * myUtils.randomSign(rand);
+
+            size += dSize;
+
+            if (size > 10 && dA > 0)
+            {
+                dA *= -1;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move13()
+        {
+            if (dx != 0 && dy != 0)
+            {
+                if (myUtils.randomChance(rand, 1, 2))
+                {
+                    dx = 0;
+                }
+                else
+                {
+                    dy = 0;
+                }
+            }
+
+            float baseStep = 0.005f;
+
+            x += dx;
+            y += dy;
+
+            if (dx == 0)
+                y += baseStep * rand.Next(rndMax) * myUtils.randomSign(rand);
+            else
+                x += baseStep * rand.Next(rndMax) * myUtils.randomSign(rand);
+
+            size += dSize;
+
+            if (size > 10 && dA > 0)
+            {
+                dA *= -1;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move14()
+        {
+            x += dx + dy;
+            y += dy + dx;
+
+            size += dSize;
+
+            if (size > 10 && dA > 0)
+            {
+                dA *= -1;
+            }
+        }
+
     };
 };
