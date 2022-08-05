@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - todo -- provide description
+    - Branches/snakes moving outwards
 */
 
 
@@ -54,8 +54,20 @@ namespace my
 
             rndMax = rand.Next(800) + 100;
 
-            dimAlpha = 0.001f * (rand.Next(100) + 1);
-            dimAlpha *= myUtils.randomChance(rand, 1, 2) ? 1.0f : 0.5f;
+            switch (rand.Next(3))
+            {
+                case 0:
+                    dimAlpha = 0.001f * (rand.Next(100) + 1);
+                    break;
+
+                case 1:
+                    dimAlpha = 0.001f * (rand.Next(66) + 1);
+                    break;
+
+                case 2:
+                    dimAlpha = 0.001f * (rand.Next(33) + 1);
+                    break;
+            }
 
             return;
         }

@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="myScrObjects\myObj.cs" />
     <Compile Include="myScrObjects\myObj_020.cs" />
+    <Compile Include="myScrObjects\myObj_041.cs" />
     <Compile Include="myScrObjects\myObj_040.cs" />
     <Compile Include="myScrObjects\myObj_030.cs" />
     <Compile Include="myScrObjects\myObj_010.cs" />

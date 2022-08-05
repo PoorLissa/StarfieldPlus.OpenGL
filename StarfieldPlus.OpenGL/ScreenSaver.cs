@@ -37,7 +37,7 @@ public class ScreenSaver
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
     // - point moves along the rectangle right or left. Rectangle is a perimeter of the screen. Lots of such points.
 
-    private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_040_b, myObj_040_c, myObj_040_d,
+    private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_040_c, myObj_040_d,
                        myObj_102, myObj_180, myObj_200, myObj_210, myObj_220,
                        myObj_300, myObj_310, myObj_320,
                        myObj_300_test, myObj_999a
@@ -46,7 +46,7 @@ public class ScreenSaver
     public void selectObject()
     {
         ids id = (ids)0;
-        id = ids.myObj_040;
+        id = ids.myObj_041;
 
         switch (id)
         {
@@ -70,19 +70,19 @@ public class ScreenSaver
                 _obj = new my.myObj_020();
                 break;
 
-            // Rain Drops(Vertical, Top-Down)
+            // Rain Drops (Vertical, Top-Down)
             case ids.myObj_030:
                 _obj = new my.myObj_030();
                 break;
 
-            // Lines 1
+            // Lines 1: Branches/snakes moving outwards
             case ids.myObj_040:
                 _obj = new my.myObj_040();
                 break;
 
-            // Lines 2
-            case ids.myObj_040_b:
-                //_obj = new my.myObj_004_b();
+            // Lines 2: Branches/snakes moving inwards/outwards with different set of rules
+            case ids.myObj_041:
+                _obj = new my.myObj_041();
                 break;
 
             // Lines 3 -- Patchwork / Micro Schematics
