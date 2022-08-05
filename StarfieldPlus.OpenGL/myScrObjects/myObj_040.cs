@@ -41,18 +41,16 @@ namespace my
         // One-time initialization
         private void init()
         {
-            gl_x0 = gl_Width / 2;
+            gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
             N = (N == 0) ? 1111 + rand.Next(333) : N;
             renderDelay = 10;
 
             shape = rand.Next(5);
-            moveType = rand.Next(12);
+            moveType = rand.Next(14);
             lineMode = rand.Next(5);
             fillMode = rand.Next(3);
-
-            moveType = 13;
 
             rndMax = rand.Next(800) + 100;
 

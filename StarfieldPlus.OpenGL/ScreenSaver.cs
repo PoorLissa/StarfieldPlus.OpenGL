@@ -35,7 +35,7 @@ public class ScreenSaver
     // - lots of triangles, where each vertice is moving like a bouncing ball
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
-    // - 
+    // - point moves along the rectangle right or left. Rectangle is a perimeter of the screen. Lots of such points.
 
     private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_040_b, myObj_040_c, myObj_040_d,
                        myObj_102, myObj_180, myObj_200, myObj_210, myObj_220,
