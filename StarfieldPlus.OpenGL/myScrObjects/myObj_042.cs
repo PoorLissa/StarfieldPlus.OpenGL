@@ -298,9 +298,20 @@ namespace my
 
             A += dA;
 
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height || A > 3.0f)
+            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height || A < 0)
             {
                 generateNew();
+            }
+
+            if (A > 3.0f && dA > 0)
+            {
+                dA *= -2;
+            }
+
+            if (dimAlpha > 0.3f && rand.Next(33) == 0)
+            {
+                x0 += rand.Next(11) - 5;
+                y0 += rand.Next(11) - 5;
             }
 
             return;
