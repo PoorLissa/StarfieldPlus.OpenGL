@@ -85,14 +85,10 @@ namespace my
             iterCounter = 0;
 
 
-N = 1;
 moveMode = 0;
-moveConst = 1.5f;
-divider = 1;
 maxSize = 2;
-spd = 20;
 dimAlpha = 0.001f;
-renderDelay = 1;
+renderDelay = 2;
 
 
             return;
@@ -135,9 +131,6 @@ renderDelay = 1;
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Height);
 
-                x = 748;
-                y = 954;
-
                 int speed = (spd > 0) ? spd : rand.Next(20) + 1;
 
                 int dist = (int)Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0));
@@ -178,10 +171,6 @@ renderDelay = 1;
 
         protected override void Move()
         {
-
-            x++;
-            return;
-
             x += (int)(Math.Sin(y) * moveConst) / divider;
             y += (int)(Math.Sin(x) * moveConst) / divider;
 
@@ -382,9 +371,7 @@ renderDelay = 1;
             initShapes();
 
             glDrawBuffer(GL_FRONT_AND_BACK);
-
-            //glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-
+            Glfw.SwapInterval(0);
 
             for (int i = 0; i < N; i++)
                 list.Add(new myObj_042());
@@ -423,6 +410,11 @@ renderDelay = 1;
                 if (renderDelay >= 0)
                 {
                     System.Threading.Thread.Sleep(renderDelay);
+                }
+
+                if (cnt > 1000)
+                {
+                    ;
                 }
 
                 if (++cnt > maxIter)
