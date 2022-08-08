@@ -14,7 +14,7 @@ namespace my
     public class myObj_041 : myObject
     {
         private int dxi, dyi, oldX, oldY;
-        private float dxf = 0, dyf = 0, x = 0, y = 0, time = 0, size = 0, A = 0, dA = 0;
+        private float dxf = 0, dyf = 0, x = 0, y = 0, time = 0, size = 0, A = 0, dA = 0, angle, dAngle;
 
         static float dimAlpha = 0.0f, R = 1, G = 1, B = 1;
         static int N = 0, x0 = 0, y0 = 0, moveMode = -1, shape = -1, speedMode = -1, t = -1, fillMode = 0, lineMode = 0, maxRnd = 0;
@@ -43,10 +43,10 @@ namespace my
         // One-time initialization
         private void init()
         {
-            gl_x0 = gl_Width  / 2;
+            gl_x0 = gl_Width / 2;
             gl_y0 = gl_Height / 2;
 
-            N = (N == 0) ? 333 + rand.Next(3) : N;
+            N = (N == 0) ? 1111 + rand.Next(333) : N;
             renderDelay = 10;
 
             maxRnd = rand.Next(20) + 1;
@@ -58,7 +58,7 @@ namespace my
             fillMode = rand.Next(3);
             t = rand.Next(15) + 1;
 
-            x0 = gl_Width  / 2;
+            x0 = gl_Width / 2;
             y0 = gl_Height / 2;
 
             x0 += rand.Next(gl_Width) - x0;
@@ -92,10 +92,10 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             return $"Obj = myObj_041\n\n" +
-                            $"N = {N}\n" + 
+                            $"N = {N}\n" +
                             $"moveMode = {moveMode}\n" +
-                            $"dimAlpha = {dimAlpha}\n" + 
-                            $"fillMode = {fillMode}\n" + 
+                            $"dimAlpha = {dimAlpha}\n" +
+                            $"fillMode = {fillMode}\n" +
                             $"lineMode = {lineMode}\n" +
                             $"maxRnd = {maxRnd}\n"
                             ;
@@ -143,6 +143,9 @@ namespace my
 
             size = rand.Next(5) + 1;
             time = 0.001f * rand.Next(1111);
+
+            angle = (float)rand.NextDouble();
+            dAngle = 0.0001f * rand.Next(333);
 
             return;
         }
@@ -297,10 +300,22 @@ namespace my
             }
 
             A += dA;
+            angle += dAngle;
 
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height || A > 3.0f)
+            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height || A < 0)
             {
                 generateNew();
+            }
+
+            if (A > 3.0f && dA > 0)
+            {
+                dA *= -1.25f;
+            }
+
+            if (dimAlpha > 0.3f && rand.Next(33) == 0)
+            {
+                x0 += rand.Next(11) - 5;
+                y0 += rand.Next(11) - 5;
             }
 
             return;
@@ -310,8 +325,6 @@ namespace my
 
         protected override void Show()
         {
-            float angle = 0;
-
             switch (shape)
             {
                 case 0:
@@ -357,11 +370,13 @@ namespace my
 
                 switch (lineMode)
                 {
-                    case 1: case 2:
+                    case 1:
+                    case 2:
                         myPrimitive._LineInst.setInstanceColor(1, 1, 1, A);
                         break;
 
-                    case 3: case 4:
+                    case 3:
+                    case 4:
                         myPrimitive._LineInst.setInstanceColor(1, 1, 1, 1);
                         break;
                 }
@@ -374,7 +389,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
             glDrawBuffer(GL_FRONT_AND_BACK);
@@ -415,8 +429,6 @@ namespace my
                 {
                     list.Add(new myObj_041());
                 }
-
-                cnt++;
 
                 System.Threading.Thread.Sleep(renderDelay);
             }

@@ -13,11 +13,13 @@ namespace my
 {
     public class myObj_042 : myObject
     {
-        private int dxi, dyi, oldX, oldY;
-        private float dxf = 0, dyf = 0, x = 0, y = 0, time = 0, size = 0, A = 0, dA = 0;
+        private int x, y, dx, dy, oldx, oldy, iterCounter;
+        private float size, A;
+        private bool isStatic = false;
 
-        static float dimAlpha = 0.0f, R = 1, G = 1, B = 1;
-        static int N = 0, x0 = 0, y0 = 0, moveMode = -1, shape = -1, speedMode = -1, t = -1, fillMode = 0, lineMode = 0, maxRnd = 0;
+        private static int N = 0, moveMode = 0, shape = 0, maxSize = 0, spd = 0, divider = 0;
+        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f;
+        private static bool showStatics = false;
 
         private static myInstancedPrimitive inst = null;
 
@@ -34,8 +36,6 @@ namespace my
             }
 
             generateNew();
-
-            time = 0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -46,37 +46,54 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            N = (N == 0) ? 333 + rand.Next(3) : N;
+            N = (N == 0) ? 333 + rand.Next(111) : N;
             renderDelay = 10;
 
-            maxRnd = rand.Next(20) + 1;
+            dimAlpha = 0.01f;
 
-            shape = rand.Next(5);
-            lineMode = rand.Next(5);
-            moveMode = rand.Next(19);
-            speedMode = rand.Next(2);
-            fillMode = rand.Next(3);
-            t = rand.Next(15) + 1;
+            spd = (rand.Next(2) == 0) ? -1 : rand.Next(20) + 1;
+            maxSize = rand.Next(4) + 1;
 
-            x0 = gl_Width  / 2;
-            y0 = gl_Height / 2;
+            moveMode = rand.Next(18);
 
-            x0 += rand.Next(gl_Width) - x0;
-
-            switch (rand.Next(3))
+            // Get moveConst as a Gaussian distribution [1 .. 10] skewed to the left
             {
-                case 0:
-                    dimAlpha = 0.001f * (rand.Next(100) + 1);
-                    break;
+                int n = 3, moveConst_i = 0;
 
-                case 1:
-                    dimAlpha = 0.001f * (rand.Next(66) + 1);
-                    break;
+                for (int i = 0; i < n; i++)
+                {
+                    // Get symmetrical distribution...
+                    moveConst_i += rand.Next(999 / n);
 
-                case 2:
-                    dimAlpha = 0.001f * (rand.Next(33) + 1);
-                    break;
+                    if (rand.Next(2) == 0)
+                    {
+                        // ... and skew it to the left
+                        moveConst_i -= 2 * rand.Next(moveConst_i) / 3;
+                    }
+                }
+
+                moveConst = 1.0f + moveConst_i * 0.01f;
             }
+
+            divider = rand.Next(10) + 1;
+
+            // More often this divider will be 1, but sometimes it can be [1..4]
+            divider = divider > 4 ? 1 : divider;
+
+            showStatics = rand.Next(3) == 0;
+            isStatic = false;
+            iterCounter = 0;
+
+
+N = 1;
+moveMode = 0;
+moveConst = 1.5f;
+divider = 1;
+maxSize = 2;
+spd = 20;
+dimAlpha = 0.001f;
+renderDelay = 1;
+
 
             return;
         }
@@ -94,10 +111,10 @@ namespace my
             return $"Obj = myObj_042\n\n" +
                             $"N = {N}\n" + 
                             $"moveMode = {moveMode}\n" +
-                            $"dimAlpha = {dimAlpha}\n" + 
-                            $"fillMode = {fillMode}\n" + 
-                            $"lineMode = {lineMode}\n" +
-                            $"maxRnd = {maxRnd}\n"
+                            $"dimAlpha = {dimAlpha}\n"
+                            //$"fillMode = {fillMode}\n" + 
+                            //$"lineMode = {lineMode}\n" +
+                            //$"maxRnd = {maxRnd}\n"
                             ;
         }
 
@@ -105,44 +122,54 @@ namespace my
 
         protected override void generateNew()
         {
-            int speed = 5;
+            dx = 0;
+            dy = 0;
+            A = maxA;
+            size = maxSize;
 
-            if (speedMode == 0)
-            {
-                speed = 3 + rand.Next(5);
-            }
-
-            dxi = 0;
-            dyi = 0;
-            dxf = 0;
-            dyf = 0;
+#if true
 
             do
             {
+
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Height);
 
-                double dist = Math.Sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
+                x = 748;
+                y = 954;
 
-                dxi = (int)((x - x0) * speed / dist);
-                dyi = (int)((y - y0) * speed / dist);
+                int speed = (spd > 0) ? spd : rand.Next(20) + 1;
 
-                // floats
-                {
-                    dxf = (float)((x - x0) * speed / dist);
-                    dyf = (float)((y - y0) * speed / dist);
-                }
+                int dist = (int)Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0));
+
+                dx = (x - gl_x0) * speed / dist;
+                dy = (y - gl_y0) * speed / dist;
+
+                oldx = x;
+                oldy = y;
+
             }
-            while (dxi == 0 && dyi == 0);
+            while (false);
 
-            oldX = (int)x;
-            oldY = (int)y;
+#else
 
-            A = 0;
-            dA = 0.0001f * (rand.Next(100) + 1);
+            do
+            {
 
-            size = rand.Next(5) + 1;
-            time = 0.001f * rand.Next(1111);
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
+
+                int speed = 5;
+
+                double dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0));
+
+                dx = (int)((x - gl_x0) * speed / dist);
+                dy = (int)((y - gl_y0) * speed / dist);
+
+            }
+            while (dx == 0 && dy == 0);
+
+#endif
 
             return;
         }
@@ -151,169 +178,148 @@ namespace my
 
         protected override void Move()
         {
-            oldX = (int)x;
-            oldY = (int)y;
+
+            x++;
+            return;
+
+            x += (int)(Math.Sin(y) * moveConst) / divider;
+            y += (int)(Math.Sin(x) * moveConst) / divider;
+
+#if false
 
             switch (moveMode)
             {
                 case 0:
-                    x += dxf * 2 + (float)(Math.Sin(y) * 5);
-                    y += dyf * 2 + (float)(Math.Sin(x) * 5);
+                    X += (int)(Math.Sin(Y) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X) * moveConst) / divider;
                     break;
 
                 case 1:
-                    x += dxf;
-                    y += dyf;
+                    X += (int)(Math.Sin(Y) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X) * moveConst) / divider;
                     break;
 
                 case 2:
-                    x += dxf;
-                    y += dyf;
-                    x = (int)x;
-                    y = (int)y;
+                    X += (int)(Math.Sin(Y + dy) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X + dx) * moveConst) / divider;
                     break;
 
                 case 3:
-                    time += (float)(rand.Next(999) / 1000.0f);
-
-                    x = (int)(x + dxf + (float)(Math.Sin(time) * 1));
-                    y = (int)(y + dyf + (float)(Math.Cos(time) * 1));
+                    X += (int)(Math.Sin(Y + dy) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X + dx) * moveConst) / divider;
                     break;
 
                 case 4:
-                    time += 0.1f;
-
-                    x = (int)(x + dxf + (float)(Math.Sin(time) * 1));
-                    y = (int)(y + dyf + (float)(Math.Cos(time) * 1));
+                    X += (int)(Math.Sin(Y + dx) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X + dy) * moveConst) / divider;
                     break;
 
                 case 5:
-                    time += 0.01f;
-
-                    x = (int)(x + dxf + (float)(Math.Sin(time) * 1));
-                    y = (int)(y + dyf + (float)(Math.Cos(time) * 1));
+                    X += (int)(Math.Sin(Y + dx) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X + dy) * moveConst) / divider;
                     break;
 
                 case 6:
-                    time += 0.1f;
-
-                    x = (int)(x + dxf + (float)(Math.Sin(time * dxf) * 2));
-                    y = (int)(y + dyf + (float)(Math.Cos(time * dyf) * 2));
+                    X += (int)(Math.Sin(Y + dx) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X + dx) * moveConst) / divider;
                     break;
 
                 case 7:
-                    time += 0.01f;
-
-                    x = (int)(x + dxf + (float)(Math.Sin(time * dxf) * 2));
-                    y = (int)(y + dyf + (float)(Math.Sin(time * dyf) * 2));
+                    X += (int)(Math.Sin(Y + dx) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X + dx) * moveConst) / divider;
                     break;
 
                 case 8:
-                    time += 0.01f;
-
-                    x = (int)(x + dxf + (float)(Math.Sin(time * dxf) * 3));
-                    y = (int)(y + dyf + (float)(Math.Sin(time * dyf) * 3));
+                    X += (int)(Math.Sin(Y + dy) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X + dy) * moveConst) / divider;
                     break;
 
                 case 9:
-                    time += 0.01f;
-
-                    x = (int)(x + dxf + (float)(Math.Sin(time * dyf) * 2));
-                    y = (int)(y + dyf + (float)(Math.Sin(time * dxf) * 2));
+                    X += (int)(Math.Sin(Y + dy) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X + dy) * moveConst) / divider;
                     break;
 
                 case 10:
-                    // need low alpha
-                    time += 0.01f;
-
-                    x = (int)(x - dxf + (float)(Math.Sin(time * 1) * 1));
-                    y = (int)(y - dyf + (float)(Math.Sin(time * 2) * 1));
+                    X += (int)(Math.Sin(Y * dy) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X * dx) * moveConst) / divider;
                     break;
 
                 case 11:
-                    // need low alpha
-                    time += 0.1f;
-
-                    x = (int)(x - dxf + (float)(Math.Sin(time * 1) * 1));
-                    y = (int)(y - dyf + (float)(Math.Sin(time * 2) * 1));
+                    X += (int)(Math.Sin(Y * dy) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X * dx) * moveConst) / divider;
                     break;
 
                 case 12:
-                    time += 0.01f;
-
-                    x += dxf + (float)(Math.Sin(x) * time);
-                    y += dyf + (float)(Math.Cos(y) * time);
+                    X += (int)(Math.Sin(Y * dx) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X * dy) * moveConst) / divider;
                     break;
 
                 case 13:
-                    time += 0.01f;
-
-                    x += dxf + (float)(Math.Sin(time * x));
-                    y += dyf + (float)(Math.Cos(time * y));
+                    X += (int)(Math.Sin(Y * dx) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X * dy) * moveConst) / divider;
                     break;
 
                 case 14:
-                    time += 0.01f;
-
-                    x += dxf + (float)(Math.Sin(time));
-                    y += dyf + (float)(Math.Cos(time));
+                    X += (int)(Math.Sin(Y * dx) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X * dx) * moveConst) / divider;
                     break;
 
                 case 15:
-                    time += (float)(rand.NextDouble() / (rand.Next(100) + 1));
-
-                    x += dxf + (float)(Math.Sin(time));
-                    y += dyf + (float)(Math.Cos(time));
+                    X += (int)(Math.Sin(Y * dx) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X * dx) * moveConst) / divider;
                     break;
 
                 case 16:
-                    time += (float)(rand.NextDouble() / (rand.Next(100) + 1));
-
-                    x += dxf + (float)(Math.Sin(time));
-                    y -= dyf + (float)(Math.Cos(time));
+                    X += (int)(Math.Sin(Y * dy) * moveConst) / divider;
+                    Y += (int)(Math.Sin(X * dy) * moveConst) / divider;
                     break;
 
                 case 17:
-                    time += 0.01f;
-
-                    x += dxf + (float)(Math.Sin(time) * Math.Cos(x));
-                    y += dyf + (float)(Math.Cos(time) * Math.Sin(y));
+                    X += (int)(Math.Sin(Y * dy) * moveConst) / divider;
+                    Y += (int)(Math.Cos(X * dy) * moveConst) / divider;
                     break;
+                    /*
+                                    case 995:
+                                        X += (int)(Math.Sin(Y * Math.Tan(time)) * 3);
+                                        Y += (int)(Math.Sin(X * Math.Tan(time)) * 3);
+                                        break;
 
-                case 18:
-                    time += 0.01f;
+                                    case 994:
+                                        X += (int)(Math.Sin(Y * Math.Sin(time)) * 3);
+                                        Y += (int)(Math.Sin(X * Math.Cos(time)) * 3);
+                                        break;
 
-                    x += dxf + (float)Math.Sin(Math.Cos(x) + Math.Cos(y) * 13) * rand.Next(maxRnd);
-                    y += dyf + (float)Math.Cos(Math.Sin(y) + Math.Sin(x) * 13) * rand.Next(maxRnd);
-                    break;
+                                    case 993:
+                                        X += (int)(Math.Sin(Y * Math.Sin(time)) * 3);
+                                        Y += (int)(Math.Sin(X * Math.Sin(time)) * 3);
+                                        break;
 
-                // --- Research mode, don't use ---
-                case 99:
-                    time += 0.01f;
+                                    case 992:
+                                        X += (int)(Math.Sin(Y * time) * 3);
+                                        Y += (int)(Math.Sin(X * time) * 3);
+                                        break;
 
-                    x += dxf + (float)Math.Sin(Math.Cos(x) + Math.Cos(y) * 13) * rand.Next(maxRnd);
-                    y += dyf + (float)Math.Cos(Math.Sin(y) + Math.Sin(x) * 13) * rand.Next(maxRnd);
-                    break;
+                                    case 991:
+                                        X += (int)(Math.Sin(Y * time) * 3);
+                                        Y += (int)(Math.Cos(X * time) * 3);
+                                        break;
+                    */
             }
 
-            A += dA;
-
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height || A < 0)
+            if (!isStatic)
             {
-                generateNew();
-            }
+                // Find the shapes that are relatively small and static
+                // Set their opacity to random low values
+                if (X == oldx && Y == oldy && iterCounter < 1000)
+                {
+                    isStatic = true;
+                    a = rand.Next(10) + 1;
+                    oldx = oldy = -12345;
+                }
 
-            if (A > 3.0f && dA > 0)
-            {
-                dA *= -2;
+                iterCounter++;
             }
-
-            if (dimAlpha > 0.3f && rand.Next(33) == 0)
-            {
-                x0 += rand.Next(11) - 5;
-                y0 += rand.Next(11) - 5;
-            }
-
+#endif
             return;
         }
 
@@ -321,7 +327,7 @@ namespace my
 
         protected override void Show()
         {
-            float angle = 0;
+            int angle = 0;
 
             switch (shape)
             {
@@ -329,10 +335,12 @@ namespace my
                     var rectInst = inst as myRectangleInst;
 
                     rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(R, G, B, A);
+                    //rectInst.setInstanceColor(R, G, B, A);
+
+                    rectInst.setInstanceColor(1, 1, 1, A);
                     rectInst.setInstanceAngle(angle);
                     break;
-
+/*
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
@@ -360,22 +368,7 @@ namespace my
                     hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
-            }
-
-            if (lineMode > 0)
-            {
-                myPrimitive._LineInst.setInstanceCoords(x, y, oldX, oldY);
-
-                switch (lineMode)
-                {
-                    case 1: case 2:
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, A);
-                        break;
-
-                    case 3: case 4:
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 1);
-                        break;
-                }
+*/
             }
 
             return;
@@ -385,13 +378,22 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
+            int cnt = 0, maxIter = 500 + rand.Next(1500);
             initShapes();
 
             glDrawBuffer(GL_FRONT_AND_BACK);
 
+            //glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+
+
+            for (int i = 0; i < N; i++)
+                list.Add(new myObj_042());
+
             while (!Glfw.WindowShouldClose(window))
             {
+                int staticsCnt = 0;
+                time += 0.01f;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -401,7 +403,6 @@ namespace my
                 dimScreen(useStrongerDimFactor: dimAlpha < 0.05f);
 
                 inst.ResetBuffer();
-                myPrimitive._LineInst.ResetBuffer();
 
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -409,27 +410,33 @@ namespace my
 
                     obj.Show();
                     obj.Move();
-                }
 
-                myPrimitive._LineInst.Draw();
-
-                if (fillMode > 0)
-                {
-                    inst.SetColorA(-0.25f);
-                    inst.Draw(true);
+                    if (obj.isStatic)
+                        staticsCnt++;
                 }
 
                 inst.SetColorA(0);
                 inst.Draw(false);
 
-                if (list.Count < N)
-                {
-                    list.Add(new myObj_042());
-                }
-
                 cnt++;
 
-                System.Threading.Thread.Sleep(renderDelay);
+                if (renderDelay >= 0)
+                {
+                    System.Threading.Thread.Sleep(renderDelay);
+                }
+
+                if (++cnt > maxIter)
+                {
+/*
+                    bool gotNewBrush = colorPicker.getNewBrush(br, cnt == (maxIter + 1));
+
+                    if (gotNewBrush)
+                    {
+                        g.FillRectangle(dimBrush, 0, 0, Width, Height);
+                        cnt = 0;
+                    }
+*/
+                }
             }
 
             return;
