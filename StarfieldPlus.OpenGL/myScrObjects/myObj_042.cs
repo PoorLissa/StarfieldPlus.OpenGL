@@ -18,7 +18,7 @@ namespace my
         private bool isStatic = false;
 
         private static int N = 0, moveMode = 0, shape = 0, maxSize = 0, spd = 0, divider = 0;
-        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f;
+        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, R = 1, G = 1, B = 1, dR, dG, dB;
         private static bool showStatics = false;
 
         private static myInstancedPrimitive inst = null;
@@ -324,9 +324,7 @@ renderDelay = 2;
                     var rectInst = inst as myRectangleInst;
 
                     rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    //rectInst.setInstanceColor(R, G, B, A);
-
-                    rectInst.setInstanceColor(1, 1, 1, A);
+                    rectInst.setInstanceColor(R, G, B, A);
                     rectInst.setInstanceAngle(angle);
                     break;
 /*
@@ -371,6 +369,8 @@ renderDelay = 2;
             initShapes();
 
             glDrawBuffer(GL_FRONT_AND_BACK);
+
+            // Disable VSYNC, as we nee to draw fast in this mode
             Glfw.SwapInterval(0);
 
             for (int i = 0; i < N; i++)
@@ -419,6 +419,11 @@ renderDelay = 2;
 
                 if (++cnt > maxIter)
                 {
+                    R = (float)rand.NextDouble();
+                    G = (float)rand.NextDouble();
+                    B = (float)rand.NextDouble();
+                    cnt = 0;
+
 /*
                     bool gotNewBrush = colorPicker.getNewBrush(br, cnt == (maxIter + 1));
 
@@ -503,5 +508,50 @@ renderDelay = 2;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // Get new random color and then gradually get closer to it with each iteration, until the color value is matched
+        // Update the brush with the current color on each iteration
+        public bool getNewColor(ref float R, ref float G, ref float B, bool doGenerate)
+        {
+/*
+            if (doGenerate)
+            {
+                dR = 0;
+                dG = 0;
+                dB = 0;
+
+                float gl_R = 0;
+                float gl_G = 0;
+                float gl_B = 0;
+
+                while (gl_R + gl_G + gl_B < 0.33f)
+                {
+                    gl_R = (float)rand.NextDouble();
+                    gl_G = (float)rand.NextDouble();
+                    gl_B = (float)rand.NextDouble();
+                }
+
+                dR = (R - gl_R) / 100;
+                dG = (G - gl_G) / 100;
+                dB = (B - gl_B) / 100;
+            }
+
+            int r = br.Color.R;
+            int g = br.Color.G;
+            int b = br.Color.B;
+
+            r += r == gl_R ? 0 : r > gl_R ? -1 : 1;
+            g += g == gl_G ? 0 : g > gl_G ? -1 : 1;
+            b += b == gl_B ? 0 : b > gl_B ? -1 : 1;
+
+            br.Color = Color.FromArgb(255, r, g, b);
+
+            return r == gl_R && g == gl_G && b == gl_B;
+*/
+
+            return false;
+        }
+
+        // -------------------------------------------------------------------------
     };
 };
