@@ -8,6 +8,10 @@ using System.Collections.Generic;
     - Lines 3: Patchwork / Micro Schematics
 */
 
+// todo:
+//  - reintegrate statics
+//  - divider must be less than moveConst
+//  - get rand color each iteration
 
 namespace my
 {
@@ -17,7 +21,7 @@ namespace my
         private float size, A;
         private bool isStatic = false;
 
-        private static int N = 0, moveMode = 0, shape = 0, maxSize = 0, spd = 0, divider = 0;
+        private static int N = 0, moveMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0;
         private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, R = 1, G = 1, B = 1, dR, dG, dB;
         private static bool showStatics = false;
 
@@ -47,12 +51,13 @@ namespace my
             gl_y0 = gl_Height / 2;
 
             N = (N == 0) ? 333 + rand.Next(111) : N;
-            renderDelay = 10;
+            renderDelay = 2;
 
-            dimAlpha = 0.01f;
+            dimAlpha = 0.001f * (rand.Next(10) + 1);
 
             spd = (rand.Next(2) == 0) ? -1 : rand.Next(20) + 1;
-            maxSize = rand.Next(4) + 1;
+            baseSize = (rand.Next(7))/3 + 1;
+            shape = rand.Next(5);
 
             moveMode = rand.Next(18);
 
@@ -75,21 +80,19 @@ namespace my
                 moveConst = 1.0f + moveConst_i * 0.01f;
             }
 
-            divider = rand.Next(10) + 1;
-
+            // Get divider:
             // More often this divider will be 1, but sometimes it can be [1..4]
-            divider = divider > 4 ? 1 : divider;
+            {
+                divider = rand.Next(10) + 1;
+                divider = divider > 4 ? 1 : divider;
+            }
+
+            //moveConst = 4.01f;
+            //divider = 2;
 
             showStatics = rand.Next(3) == 0;
             isStatic = false;
             iterCounter = 0;
-
-
-moveMode = 0;
-maxSize = 2;
-dimAlpha = 0.001f;
-renderDelay = 2;
-
 
             return;
         }
@@ -105,12 +108,15 @@ renderDelay = 2;
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             return $"Obj = myObj_042\n\n" +
-                            $"N = {N}\n" + 
+                            $"N = {N}\n" +
+                            $"shape = {shape}\n" +
                             $"moveMode = {moveMode}\n" +
-                            $"dimAlpha = {dimAlpha}\n"
-                            //$"fillMode = {fillMode}\n" + 
-                            //$"lineMode = {lineMode}\n" +
-                            //$"maxRnd = {maxRnd}\n"
+                            $"moveConst = {moveConst}\n" +
+                            $"divider = {divider}\n" +
+                            $"spd = {spd}\n" +
+                            $"dimAlpha = {dimAlpha}\n" +
+                            $"baseSize = {baseSize}\n" +
+                            $"renderDelay = {renderDelay}\n"
                             ;
         }
 
@@ -121,7 +127,7 @@ renderDelay = 2;
             dx = 0;
             dy = 0;
             A = maxA;
-            size = maxSize;
+            size = baseSize;
 
 #if true
 
@@ -171,144 +177,154 @@ renderDelay = 2;
 
         protected override void Move()
         {
-            x += (int)(Math.Sin(y) * moveConst) / divider;
-            y += (int)(Math.Sin(x) * moveConst) / divider;
+            x += (int)(Math.Sin(y % 333) * moveConst) / divider;
+            y += (int)(Math.Cos(x % 333) * moveConst) / divider;
 
-#if false
+            return;
+
 
             switch (moveMode)
             {
                 case 0:
-                    X += (int)(Math.Sin(Y) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X) * moveConst) / divider;
+                    x += (int)(Math.Sin(y) * moveConst) / divider;
+                    y += (int)(Math.Sin(x) * moveConst) / divider;
                     break;
 
                 case 1:
-                    X += (int)(Math.Sin(Y) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X) * moveConst) / divider;
+                    x += (int)(Math.Sin(y) * moveConst) / divider;
+                    y += (int)(Math.Cos(x) * moveConst) / divider;
                     break;
 
                 case 2:
-                    X += (int)(Math.Sin(Y + dy) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X + dx) * moveConst) / divider;
+                    x += (int)(Math.Sin(y + dy) * moveConst) / divider;
+                    y += (int)(Math.Sin(x + dx) * moveConst) / divider;
                     break;
 
                 case 3:
-                    X += (int)(Math.Sin(Y + dy) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X + dx) * moveConst) / divider;
+                    x += (int)(Math.Sin(y + dy) * moveConst) / divider;
+                    y += (int)(Math.Cos(x + dx) * moveConst) / divider;
                     break;
 
                 case 4:
-                    X += (int)(Math.Sin(Y + dx) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X + dy) * moveConst) / divider;
+                    x += (int)(Math.Sin(y + dx) * moveConst) / divider;
+                    y += (int)(Math.Sin(x + dy) * moveConst) / divider;
                     break;
 
                 case 5:
-                    X += (int)(Math.Sin(Y + dx) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X + dy) * moveConst) / divider;
+                    x += (int)(Math.Sin(y + dx) * moveConst) / divider;
+                    y += (int)(Math.Cos(x + dy) * moveConst) / divider;
                     break;
 
                 case 6:
-                    X += (int)(Math.Sin(Y + dx) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X + dx) * moveConst) / divider;
+                    x += (int)(Math.Sin(y + dx) * moveConst) / divider;
+                    y += (int)(Math.Sin(x + dx) * moveConst) / divider;
                     break;
 
                 case 7:
-                    X += (int)(Math.Sin(Y + dx) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X + dx) * moveConst) / divider;
+                    x += (int)(Math.Sin(y + dx) * moveConst) / divider;
+                    y += (int)(Math.Cos(x + dx) * moveConst) / divider;
                     break;
 
                 case 8:
-                    X += (int)(Math.Sin(Y + dy) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X + dy) * moveConst) / divider;
+                    x += (int)(Math.Sin(y + dy) * moveConst) / divider;
+                    y += (int)(Math.Sin(x + dy) * moveConst) / divider;
                     break;
 
                 case 9:
-                    X += (int)(Math.Sin(Y + dy) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X + dy) * moveConst) / divider;
+                    x += (int)(Math.Sin(y + dy) * moveConst) / divider;
+                    y += (int)(Math.Cos(x + dy) * moveConst) / divider;
                     break;
 
                 case 10:
-                    X += (int)(Math.Sin(Y * dy) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X * dx) * moveConst) / divider;
+                    x += (int)(Math.Sin(y * dy) * moveConst) / divider;
+                    y += (int)(Math.Sin(x * dx) * moveConst) / divider;
                     break;
 
                 case 11:
-                    X += (int)(Math.Sin(Y * dy) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X * dx) * moveConst) / divider;
+                    x += (int)(Math.Sin(y * dy) * moveConst) / divider;
+                    y += (int)(Math.Cos(x * dx) * moveConst) / divider;
                     break;
 
                 case 12:
-                    X += (int)(Math.Sin(Y * dx) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X * dy) * moveConst) / divider;
+                    x += (int)(Math.Sin(y * dx) * moveConst) / divider;
+                    y += (int)(Math.Sin(x * dy) * moveConst) / divider;
                     break;
 
                 case 13:
-                    X += (int)(Math.Sin(Y * dx) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X * dy) * moveConst) / divider;
+                    x += (int)(Math.Sin(y * dx) * moveConst) / divider;
+                    y += (int)(Math.Cos(x * dy) * moveConst) / divider;
                     break;
 
                 case 14:
-                    X += (int)(Math.Sin(Y * dx) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X * dx) * moveConst) / divider;
+                    x += (int)(Math.Sin(y * dx) * moveConst) / divider;
+                    y += (int)(Math.Sin(x * dx) * moveConst) / divider;
                     break;
 
                 case 15:
-                    X += (int)(Math.Sin(Y * dx) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X * dx) * moveConst) / divider;
+                    x += (int)(Math.Sin(y * dx) * moveConst) / divider;
+                    y += (int)(Math.Cos(x * dx) * moveConst) / divider;
                     break;
 
                 case 16:
-                    X += (int)(Math.Sin(Y * dy) * moveConst) / divider;
-                    Y += (int)(Math.Sin(X * dy) * moveConst) / divider;
+                    x += (int)(Math.Sin(y * dy) * moveConst) / divider;
+                    y += (int)(Math.Sin(x * dy) * moveConst) / divider;
                     break;
 
                 case 17:
-                    X += (int)(Math.Sin(Y * dy) * moveConst) / divider;
-                    Y += (int)(Math.Cos(X * dy) * moveConst) / divider;
+                    x += (int)(Math.Sin(y * dy) * moveConst) / divider;
+                    y += (int)(Math.Cos(x * dy) * moveConst) / divider;
                     break;
-                    /*
-                                    case 995:
-                                        X += (int)(Math.Sin(Y * Math.Tan(time)) * 3);
-                                        Y += (int)(Math.Sin(X * Math.Tan(time)) * 3);
-                                        break;
 
-                                    case 994:
-                                        X += (int)(Math.Sin(Y * Math.Sin(time)) * 3);
-                                        Y += (int)(Math.Sin(X * Math.Cos(time)) * 3);
-                                        break;
+/*
+                case 995:
+                    X += (int)(Math.Sin(Y * Math.Tan(time)) * 3);
+                    Y += (int)(Math.Sin(X * Math.Tan(time)) * 3);
+                    break;
 
-                                    case 993:
-                                        X += (int)(Math.Sin(Y * Math.Sin(time)) * 3);
-                                        Y += (int)(Math.Sin(X * Math.Sin(time)) * 3);
-                                        break;
+                case 994:
+                    X += (int)(Math.Sin(Y * Math.Sin(time)) * 3);
+                    Y += (int)(Math.Sin(X * Math.Cos(time)) * 3);
+                    break;
 
-                                    case 992:
-                                        X += (int)(Math.Sin(Y * time) * 3);
-                                        Y += (int)(Math.Sin(X * time) * 3);
-                                        break;
+                case 993:
+                    X += (int)(Math.Sin(Y * Math.Sin(time)) * 3);
+                    Y += (int)(Math.Sin(X * Math.Sin(time)) * 3);
+                    break;
 
-                                    case 991:
-                                        X += (int)(Math.Sin(Y * time) * 3);
-                                        Y += (int)(Math.Cos(X * time) * 3);
-                                        break;
-                    */
+                case 992:
+                    X += (int)(Math.Sin(Y * time) * 3);
+                    Y += (int)(Math.Sin(X * time) * 3);
+                    break;
+
+                case 991:
+                    X += (int)(Math.Sin(Y * time) * 3);
+                    Y += (int)(Math.Cos(X * time) * 3);
+                    break;
+*/
             }
 
             if (!isStatic)
             {
                 // Find the shapes that are relatively small and static
                 // Set their opacity to random low values
-                if (X == oldx && Y == oldy && iterCounter < 1000)
+                if (x == oldx && y == oldy && iterCounter < 1000)
                 {
+#if false
+                    iterCounter = 0;
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    oldx = x;
+                    oldy = y;
+#else
                     isStatic = true;
-                    a = rand.Next(10) + 1;
+                    A = (float)rand.NextDouble()/10;
                     oldx = oldy = -12345;
+#endif
                 }
 
                 iterCounter++;
             }
-#endif
+
             return;
         }
 
@@ -316,8 +332,6 @@ renderDelay = 2;
 
         protected override void Show()
         {
-            int angle = 0;
-
             switch (shape)
             {
                 case 0:
@@ -327,7 +341,7 @@ renderDelay = 2;
                     rectInst.setInstanceColor(R, G, B, A);
                     rectInst.setInstanceAngle(angle);
                     break;
-/*
+
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
@@ -355,7 +369,6 @@ renderDelay = 2;
                     hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
-*/
             }
 
             return;
@@ -365,7 +378,7 @@ renderDelay = 2;
 
         protected override void Process(Window window)
         {
-            int cnt = 0, maxIter = 500 + rand.Next(1500);
+            int cnt = 0, maxIter = 3333 + rand.Next(3333);
             initShapes();
 
             glDrawBuffer(GL_FRONT_AND_BACK);
