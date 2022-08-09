@@ -10,7 +10,6 @@ using System.Collections.Generic;
 
 // todo:
 //  - reintegrate statics
-//  - divider must be less than moveConst
 //  - get rand color each iteration
 
 namespace my
@@ -21,7 +20,7 @@ namespace my
         private float size, A;
         private bool isStatic = false;
 
-        private static int N = 0, moveMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0;
+        private static int N = 0, moveMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
         private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, R = 1, G = 1, B = 1, dR, dG, dB;
         private static bool showStatics = false;
 
@@ -58,8 +57,8 @@ namespace my
             spd = (rand.Next(2) == 0) ? -1 : rand.Next(20) + 1;
             baseSize = (rand.Next(7))/3 + 1;
             shape = rand.Next(5);
-
-            moveMode = rand.Next(18);
+            divMax = 111 + rand.Next(3333);
+            moveMode = rand.Next(26);
 
             // Get moveConst as a Gaussian distribution [1 .. 10] skewed to the left
             {
@@ -85,10 +84,17 @@ namespace my
             {
                 divider = rand.Next(10) + 1;
                 divider = divider > 4 ? 1 : divider;
+
+                // In case the divider is less than moveConst, all the particles become static;
+                // Avoid that:
+                while (divider > moveConst)
+                    divider--;
             }
 
-            //moveConst = 4.01f;
-            //divider = 2;
+#if false
+    moveConst = 4.01f;
+    divider = 2;
+#endif
 
             showStatics = rand.Next(3) == 0;
             isStatic = false;
@@ -101,6 +107,11 @@ namespace my
 
         protected override void setNextMode()
         {
+            var oldShape = shape;
+
+            init();
+
+            shape = oldShape;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -114,6 +125,7 @@ namespace my
                             $"moveConst = {moveConst}\n" +
                             $"divider = {divider}\n" +
                             $"spd = {spd}\n" +
+                            $"divMax = {divMax}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
                             $"baseSize = {baseSize}\n" +
                             $"renderDelay = {renderDelay}\n"
@@ -177,12 +189,6 @@ namespace my
 
         protected override void Move()
         {
-            x += (int)(Math.Sin(y % 333) * moveConst) / divider;
-            y += (int)(Math.Cos(x % 333) * moveConst) / divider;
-
-            return;
-
-
             switch (moveMode)
             {
                 case 0:
@@ -275,7 +281,61 @@ namespace my
                     y += (int)(Math.Cos(x * dy) * moveConst) / divider;
                     break;
 
-/*
+                // --- % variations ---
+
+                case 18:
+                    divX = divY = rand.Next(divMax) + 1;
+                    x += (int)(Math.Sin(y % divY) * moveConst) / divider;
+                    y += (int)(Math.Sin(x % divX) * moveConst) / divider;
+                    break;
+
+                case 19:
+                    divX = 1 + rand.Next(divMax);
+                    divY = 1 + rand.Next(divMax);
+                    x += (int)(Math.Sin(y % divY) * moveConst) / divider;
+                    y += (int)(Math.Sin(x % divX) * moveConst) / divider;
+                    break;
+
+                case 20:
+                    divX = divY = rand.Next(divMax) + 1;
+                    x += (int)(Math.Sin(y % divY) * moveConst) / divider;
+                    y += (int)(Math.Cos(x % divX) * moveConst) / divider;
+                    break;
+
+                case 21:
+                    divX = 1 + rand.Next(divMax);
+                    divY = 1 + rand.Next(divMax);
+                    x += (int)(Math.Sin(y % divY) * moveConst) / divider;
+                    y += (int)(Math.Cos(x % divX) * moveConst) / divider;
+                    break;
+
+                case 22:
+                    x += (int)(Math.Sin(y % divMax) * moveConst) / divider;
+                    y += (int)(Math.Sin(x % divMax) * moveConst) / divider;
+                    break;
+
+                case 23:
+                    x += (int)(Math.Sin(y % divMax) * moveConst) / divider;
+                    y += (int)(Math.Cos(x % divMax) * moveConst) / divider;
+                    break;
+
+                case 24:
+                    x += (int)(Math.Sin(y % divMax + y) * moveConst) / divider;
+                    y += (int)(Math.Sin(x % divMax + x) * moveConst) / divider;
+                    break;
+
+                case 25:
+                    x += (int)(Math.Sin(y % divMax + y) * moveConst) / divider;
+                    y += (int)(Math.Cos(x % divMax + x) * moveConst) / divider;
+                    break;
+
+                case 199:
+                    break;
+
+
+                    // --- % variations ---
+
+#if false
                 case 995:
                     X += (int)(Math.Sin(Y * Math.Tan(time)) * 3);
                     Y += (int)(Math.Sin(X * Math.Tan(time)) * 3);
@@ -300,7 +360,7 @@ namespace my
                     X += (int)(Math.Sin(Y * time) * 3);
                     Y += (int)(Math.Cos(X * time) * 3);
                     break;
-*/
+#endif
             }
 
             if (!isStatic)
