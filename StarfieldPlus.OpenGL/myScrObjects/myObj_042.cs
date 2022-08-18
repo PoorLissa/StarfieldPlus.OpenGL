@@ -9,7 +9,6 @@ using System.Collections.Generic;
 */
 
 // todo:
-//  - reintegrate statics
 //  - get rand color each iteration
 
 namespace my
@@ -17,12 +16,12 @@ namespace my
     public class myObj_042 : myObject
     {
         private int x, y, dx, dy, oldx, oldy, iterCounter;
-        private float size, A;
+        private float size, A, R, G, B;
         private bool isStatic = false;
 
-        private static int N = 0, moveMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
-        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, R = 1, G = 1, B = 1, dR, dG, dB;
-        private static bool showStatics = false;
+        private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
+        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, dR, dG, dB;
+        private static bool showStatics = false, reuseStatics = false;
 
         private static myInstancedPrimitive inst = null;
 
@@ -59,6 +58,9 @@ namespace my
             shape = rand.Next(5);
             divMax = 111 + rand.Next(3333);
             moveMode = rand.Next(26);
+            colorMode = rand.Next(3);
+            showStatics = myUtils.randomChance(rand, 1, 2);
+            reuseStatics = showStatics && myUtils.randomChance(rand, 1, 2);
 
             // Get moveConst as a Gaussian distribution [1 .. 10] skewed to the left
             {
@@ -96,10 +98,6 @@ namespace my
     divider = 2;
 #endif
 
-            showStatics = rand.Next(3) == 0;
-            isStatic = false;
-            iterCounter = 0;
-
             return;
         }
 
@@ -122,15 +120,17 @@ namespace my
                             $"N = {N}\n" +
                             $"shape = {shape}\n" +
                             $"moveMode = {moveMode}\n" +
+                            $"colorMode = {colorMode}\n" +
                             $"moveConst = {moveConst}\n" +
                             $"divider = {divider}\n" +
                             $"spd = {spd}\n" +
                             $"divMax = {divMax}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
                             $"baseSize = {baseSize}\n" +
-                            $"renderDelay = {renderDelay}\n"
-                            ;
-        }
+                            $"showStatics = {showStatics}\n" +
+                            $"reuseStatics = {reuseStatics}\n" +
+                            $"renderDelay = {renderDelay}";
+            }
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -138,8 +138,14 @@ namespace my
         {
             dx = 0;
             dy = 0;
+            R = 1;
+            G = 1;
+            B = 1;
             A = maxA;
             size = baseSize;
+
+            isStatic = false;
+            iterCounter = 0;
 
 #if true
 
@@ -189,6 +195,27 @@ namespace my
 
         protected override void Move()
         {
+            switch (colorMode)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    if (myUtils.randomChance(rand, 1, 10001))
+                    {
+                        R = (float)rand.NextDouble();
+                        G = (float)rand.NextDouble();
+                        B = (float)rand.NextDouble();
+                    }
+                    break;
+
+                case 2:
+                    R = (float)rand.NextDouble();
+                    G = (float)rand.NextDouble();
+                    B = (float)rand.NextDouble();
+                    break;
+            }
+
             switch (moveMode)
             {
                 case 0:
@@ -369,17 +396,20 @@ namespace my
                 // Set their opacity to random low values
                 if (x == oldx && y == oldy && iterCounter < 1000)
                 {
-#if false
-                    iterCounter = 0;
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
-                    oldx = x;
-                    oldy = y;
-#else
-                    isStatic = true;
-                    A = (float)rand.NextDouble()/10;
-                    oldx = oldy = -12345;
-#endif
+                    if (reuseStatics)
+                    {
+                        iterCounter = 0;
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+                        oldx = x;
+                        oldy = y;
+                    }
+                    else
+                    {
+                        isStatic = true;
+                        A = (float)rand.NextDouble() / 10;
+                        oldx = oldy = -12345;
+                    }
                 }
 
                 iterCounter++;
@@ -392,43 +422,46 @@ namespace my
 
         protected override void Show()
         {
-            switch (shape)
+            if (!isStatic || showStatics)
             {
-                case 0:
-                    var rectInst = inst as myRectangleInst;
+                switch (shape)
+                {
+                    case 0:
+                        var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-                    break;
+                        rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
+                        rectInst.setInstanceColor(R, G, B, A);
+                        rectInst.setInstanceAngle(angle);
+                        break;
 
-                case 1:
-                    var triangleInst = inst as myTriangleInst;
+                    case 1:
+                        var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
-                    break;
+                        triangleInst.setInstanceCoords(x, y, size, angle);
+                        triangleInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                case 2:
-                    var ellipseInst = inst as myEllipseInst;
+                    case 2:
+                        var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
-                    break;
+                        ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                        ellipseInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                case 3:
-                    var pentagonInst = inst as myPentagonInst;
+                    case 3:
+                        var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
-                    break;
+                        pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                        pentagonInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                case 4:
-                    var hexagonInst = inst as myHexagonInst;
+                    case 4:
+                        var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
-                    break;
+                        hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                        hexagonInst.setInstanceColor(R, G, B, A);
+                        break;
+                }
             }
 
             return;
