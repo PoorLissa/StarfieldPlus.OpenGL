@@ -8,19 +8,17 @@ using System.Collections.Generic;
     - Lines 3: Patchwork / Micro Schematics
 */
 
-// todo:
-//  - get rand color each iteration
 
 namespace my
 {
     public class myObj_042 : myObject
     {
-        private int x, y, dx, dy, oldx, oldy, iterCounter;
-        private float size, A, R, G, B;
+        private int x, y, dx, dy, oldx, oldy, iterCounter, colorCounter;
+        private float size, A, R, G, B, dR, dG, dB;
         private bool isStatic = false;
 
         private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
-        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, dR, dG, dB;
+        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, dRstatic, dGstatic, dBstatic;
         private static bool showStatics = false, reuseStatics = false;
 
         private static myInstancedPrimitive inst = null;
@@ -58,7 +56,8 @@ namespace my
             shape = rand.Next(5);
             divMax = 111 + rand.Next(3333);
             moveMode = rand.Next(26);
-            colorMode = rand.Next(3);
+            colorMode = rand.Next(4);
+
             showStatics = myUtils.randomChance(rand, 1, 2);
             reuseStatics = showStatics && myUtils.randomChance(rand, 1, 2);
 
@@ -94,8 +93,8 @@ namespace my
             }
 
 #if false
-    moveConst = 4.01f;
-    divider = 2;
+            moveConst = 4.01f;
+            divider = 2;
 #endif
 
             return;
@@ -138,14 +137,17 @@ namespace my
         {
             dx = 0;
             dy = 0;
+
             R = 1;
             G = 1;
             B = 1;
+
             A = maxA;
             size = baseSize;
 
             isStatic = false;
             iterCounter = 0;
+            colorCounter = rand.Next(777) + 333;
 
 #if true
 
@@ -213,6 +215,56 @@ namespace my
                     R = (float)rand.NextDouble();
                     G = (float)rand.NextDouble();
                     B = (float)rand.NextDouble();
+                    break;
+
+                // Gradual change of color for each particle;
+                // In mode 4, the only difference is, all the particles use the same static dR, dG, dB
+                case 3:
+                case 4:
+
+                    if (colorCounter == 0)
+                    {
+                        // Current color life ends
+                        float targetR = (float)rand.NextDouble();
+                        float targetG = (float)rand.NextDouble();
+                        float targetB = (float)rand.NextDouble();
+
+                        colorCounter = rand.Next(333) + 111 - 1;
+                        colorCounter *= -1;
+
+                        dR = (R - targetR) / colorCounter;
+                        dG = (G - targetG) / colorCounter;
+                        dB = (B - targetB) / colorCounter;
+
+                        dRstatic = dR;
+                        dGstatic = dG;
+                        dBstatic = dB;
+                        break;
+                    }
+
+                    if (colorCounter == -1)
+                    {
+                        // Target color transition ends, current color life starts
+                        colorCounter = rand.Next(777) + 333;
+                        break;
+                    }
+
+                    if (colorCounter > 0)
+                    {
+                        // Current color life goes on
+                        colorCounter--;
+                        break;
+                    }
+
+                    if (colorCounter < 0)
+                    {
+                        // Transition to the target color in progress
+                        R += colorMode == 3 ? dR : dRstatic;
+                        G += colorMode == 3 ? dG : dGstatic;
+                        B += colorMode == 3 ? dB : dBstatic;
+                        colorCounter++;
+                        break;
+                    }
                     break;
             }
 
