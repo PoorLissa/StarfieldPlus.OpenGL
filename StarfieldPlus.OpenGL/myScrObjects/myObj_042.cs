@@ -15,7 +15,7 @@ namespace my
     {
         private int x, y, dx, dy, oldx, oldy, iterCounter, colorCounter;
         private float size, A, R, G, B, dR, dG, dB;
-        private bool isStatic = false;
+        private bool isStatic = false, doClearScreen = false;
 
         private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
         private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, dRstatic, dGstatic, dBstatic;
@@ -108,6 +108,7 @@ namespace my
 
             init();
 
+            doClearScreen = true;
             shape = oldShape;
         }
 
@@ -547,6 +548,12 @@ namespace my
 
                 dimScreen(useStrongerDimFactor: dimAlpha < 0.05f);
 
+                if (doClearScreen)
+                {
+                    doClearScreen = false;
+                    glClear(GL_COLOR_BUFFER_BIT);
+                }
+
                 inst.ResetBuffer();
 
                 for (int i = 0; i < list.Count; i++)
@@ -666,50 +673,5 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
-        // Get new random color and then gradually get closer to it with each iteration, until the color value is matched
-        // Update the brush with the current color on each iteration
-        public bool getNewColor(ref float R, ref float G, ref float B, bool doGenerate)
-        {
-/*
-            if (doGenerate)
-            {
-                dR = 0;
-                dG = 0;
-                dB = 0;
-
-                float gl_R = 0;
-                float gl_G = 0;
-                float gl_B = 0;
-
-                while (gl_R + gl_G + gl_B < 0.33f)
-                {
-                    gl_R = (float)rand.NextDouble();
-                    gl_G = (float)rand.NextDouble();
-                    gl_B = (float)rand.NextDouble();
-                }
-
-                dR = (R - gl_R) / 100;
-                dG = (G - gl_G) / 100;
-                dB = (B - gl_B) / 100;
-            }
-
-            int r = br.Color.R;
-            int g = br.Color.G;
-            int b = br.Color.B;
-
-            r += r == gl_R ? 0 : r > gl_R ? -1 : 1;
-            g += g == gl_G ? 0 : g > gl_G ? -1 : 1;
-            b += b == gl_B ? 0 : b > gl_B ? -1 : 1;
-
-            br.Color = Color.FromArgb(255, r, g, b);
-
-            return r == gl_R && g == gl_G && b == gl_B;
-*/
-
-            return false;
-        }
-
-        // -------------------------------------------------------------------------
     };
 };
