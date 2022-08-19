@@ -196,6 +196,20 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        float sinsin(float val, int cnt)
+        {
+            cnt--;
+            double d = Math.Sin(val);
+
+            while (cnt != 0)
+            {
+                d = Math.Sin(d);
+                cnt--;
+            }
+
+            return (float)d;
+        }
+
         protected override void Move()
         {
             switch (colorMode)
@@ -268,6 +282,42 @@ namespace my
                     }
                     break;
             }
+
+            // todo: experiment with this
+
+#if true
+            moveConst = 4.41f;
+            divider = 1;
+
+            int n = rand.Next(3) + 1;
+
+            n = 3;
+
+            int dx = (int)(sinsin(y, n) * moveConst) / divider;
+            int dy = (int)(sinsin(x, n) * moveConst) / divider;
+
+            x += (int)(sinsin(y * 333, n) * moveConst) / divider;
+            y += (int)(sinsin(x * 333, n) * moveConst) / divider;
+#endif
+
+#if false
+            moveConst = 4.41f;
+            divider = 1;
+
+            int n = rand.Next(3) + 1;
+            n = 2;
+
+            x += (int)(sinsin(y, n) * moveConst) / divider;
+            y += (int)(sinsin(x, n) * moveConst) / divider;
+#endif
+
+#if false
+            moveConst = 4.41f;
+            divider = 1;
+            x += (int)(Math.Sin(Math.Sin(y)) * moveConst) / divider;
+            y += (int)(Math.Sin(Math.Sin(x)) * moveConst) / divider;
+#endif
+            return;
 
             switch (moveMode)
             {
