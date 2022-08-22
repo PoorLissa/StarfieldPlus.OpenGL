@@ -17,7 +17,7 @@ namespace my
         private float size, A, R, G, B, dR, dG, dB;
         private bool isStatic = false, doClearScreen = false;
 
-        private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
+        private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1, sinRepeater = 1;
         private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, dRstatic, dGstatic, dBstatic;
         private static bool showStatics = false, reuseStatics = false;
 
@@ -57,6 +57,7 @@ namespace my
             divMax = 111 + rand.Next(3333);
             moveMode = rand.Next(26);
             colorMode = rand.Next(4);
+            sinRepeater = rand.Next(10) + 1;
 
             showStatics = myUtils.randomChance(rand, 1, 2);
             reuseStatics = showStatics && myUtils.randomChance(rand, 1, 2);
@@ -123,6 +124,7 @@ namespace my
                             $"colorMode = {colorMode}\n" +
                             $"moveConst = {moveConst}\n" +
                             $"divider = {divider}\n" +
+                            $"sinRepeater = {sinRepeater}\n" +
                             $"spd = {spd}\n" +
                             $"divMax = {divMax}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
@@ -195,20 +197,6 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
-        float sinsin(float val, int cnt)
-        {
-            cnt--;
-            double d = Math.Sin(val);
-
-            while (cnt != 0)
-            {
-                d = Math.Sin(d);
-                cnt--;
-            }
-
-            return (float)d;
-        }
 
         protected override void Move()
         {
@@ -283,41 +271,7 @@ namespace my
                     break;
             }
 
-            // todo: experiment with this
-
-#if true
-            moveConst = 4.41f;
-            divider = 1;
-
-            int n = rand.Next(3) + 1;
-
-            n = 3;
-
-            int dx = (int)(sinsin(y, n) * moveConst) / divider;
-            int dy = (int)(sinsin(x, n) * moveConst) / divider;
-
-            x += (int)(sinsin(y * 333, n) * moveConst) / divider;
-            y += (int)(sinsin(x * 333, n) * moveConst) / divider;
-#endif
-
-#if false
-            moveConst = 4.41f;
-            divider = 1;
-
-            int n = rand.Next(3) + 1;
-            n = 2;
-
-            x += (int)(sinsin(y, n) * moveConst) / divider;
-            y += (int)(sinsin(x, n) * moveConst) / divider;
-#endif
-
-#if false
-            moveConst = 4.41f;
-            divider = 1;
-            x += (int)(Math.Sin(Math.Sin(y)) * moveConst) / divider;
-            y += (int)(Math.Sin(Math.Sin(x)) * moveConst) / divider;
-#endif
-            return;
+            moveMode = 199;
 
             switch (moveMode)
             {
@@ -459,7 +413,64 @@ namespace my
                     y += (int)(Math.Cos(x % divMax + x) * moveConst) / divider;
                     break;
 
+                // --- Sin Repeater variations ---
+
+                case 26:
+                    x += (int)(Sin(y, sinRepeater) * moveConst) / divider;
+                    y += (int)(Sin(x, sinRepeater) * moveConst) / divider;
+                    break;
+
+                case 27:
+                    sinRepeater = rand.Next(3) + 1;
+                    x += (int)(Sin(y, sinRepeater) * moveConst) / divider;
+                    y += (int)(Sin(x, sinRepeater) * moveConst) / divider;
+                    break;
+
+                case 28:
+                    break;
+
+                case 29:
+                    break;
+
+                case 30:
+                    break;
+
                 case 199:
+
+#if true
+            //moveConst = 4.41f;
+            //divider = 1;
+
+            int n = rand.Next(3) + 1;
+
+            //n = 10;
+
+            int dx2 = (int)(Sin(y, n) * moveConst) / divider;
+            int dy2 = (int)(Sin(x, n) * moveConst) / divider;
+
+            x += (int)(Sin(y * 333, n) * moveConst) / divider;
+            y += (int)(Sin(x * 333, n) * moveConst) / divider;
+
+#endif
+
+#if false
+            //moveConst = 4.41f;
+            //divider = 1;
+
+            int n = rand.Next(3) + 1;
+            n = 1;
+
+            int dx2 = (int)(Sin(y, n) * moveConst) / divider;
+            int dy2 = (int)(Sin(x, n) * moveConst) / divider;
+
+            x += (int)(Sin(y * 333, n) * moveConst) / divider;
+            y += (int)(Sin(x * 333, n) * moveConst) / divider;
+
+            x += (int)(Sin(y * 33 + y % 33, n) * moveConst) / divider;
+            y += (int)(Sin(x * 33 + x % 33, n) * moveConst) / divider;
+
+#endif
+
                     break;
 
 
@@ -720,6 +731,22 @@ namespace my
             myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        float Sin(float val, int cnt)
+        {
+            cnt--;
+            double d = Math.Sin(val);
+
+            while (cnt != 0)
+            {
+                d = Math.Sin(d);
+                cnt--;
+            }
+
+            return (float)d;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
