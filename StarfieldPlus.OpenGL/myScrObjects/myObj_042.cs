@@ -17,9 +17,10 @@ namespace my
         private float size, A, R, G, B, dR, dG, dB;
         private bool isStatic = false, doClearScreen = false;
 
-        private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1, sinRepeater = 1;
-        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, dRstatic, dGstatic, dBstatic;
-        private static bool showStatics = false, reuseStatics = false;
+        private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
+        private static int sinRepeater = 1, sinConst1_i = 1, sinConst2 = 0, sinConstCnt = 0;
+        private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, sinConst1_f = 0, dRstatic, dGstatic, dBstatic;
+        private static bool showStatics = false, reuseStatics = false, doIncrementSinConst = false;
 
         private static myInstancedPrimitive inst = null;
 
@@ -58,6 +59,31 @@ namespace my
             moveMode = rand.Next(26);
             colorMode = rand.Next(4);
             sinRepeater = rand.Next(10) + 1;
+
+            doIncrementSinConst = myUtils.randomChance(rand, 1, 5);
+
+            if (doIncrementSinConst)
+            {
+                sinConst1_i = 0;
+                sinConst1_f = 0;
+            }
+            else
+            {
+                sinConst1_i = rand.Next(33333) + 1;
+                sinConst1_f = (float)rand.NextDouble();
+
+                // Pick sinConst out of some known 'good' values sometimes:
+                if (myUtils.randomChance(rand, 1, 2))
+                {
+                    int[] arr = { 111, 222, 33, 333 };
+                    sinConst1_i = arr[rand.Next(arr.Length)];
+                }
+
+                if (myUtils.randomChance(rand, 1, 2))
+                {
+                    sinConst1_f += sinConst1_i;
+                }
+            }
 
             showStatics = myUtils.randomChance(rand, 1, 2);
             reuseStatics = showStatics && myUtils.randomChance(rand, 1, 2);
@@ -125,6 +151,8 @@ namespace my
                             $"moveConst = {moveConst}\n" +
                             $"divider = {divider}\n" +
                             $"sinRepeater = {sinRepeater}\n" +
+                            $"sinConst1_i = {sinConst1_i} (doIncrement = {doIncrementSinConst})\n" +
+                            $"sinConst1_f = {sinConst1_f} (doIncrement = {doIncrementSinConst})\n" +
                             $"spd = {spd}\n" +
                             $"divMax = {divMax}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
@@ -416,65 +444,59 @@ namespace my
                 // --- Sin Repeater variations ---
 
                 case 26:
-                    x += (int)(Sin(y, sinRepeater) * moveConst) / divider;
-                    y += (int)(Sin(x, sinRepeater) * moveConst) / divider;
+                    x += (int)(SinRepeat(y, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x, sinRepeater) * moveConst) / divider;
                     break;
 
                 case 27:
                     sinRepeater = rand.Next(3) + 1;
-                    x += (int)(Sin(y, sinRepeater) * moveConst) / divider;
-                    y += (int)(Sin(x, sinRepeater) * moveConst) / divider;
+                    x += (int)(SinRepeat(y, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x, sinRepeater) * moveConst) / divider;
                     break;
 
                 case 28:
+                    x += (int)(SinRepeat(y * y, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x * x, sinRepeater) * moveConst) / divider;
                     break;
 
                 case 29:
+                    sinRepeater = rand.Next(3) + 1;
+                    x += (int)(SinRepeat(y * y, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x * x, sinRepeater) * moveConst) / divider;
                     break;
 
                 case 30:
+                    x += (int)(SinRepeat(y * sinConst1_i, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x * sinConst1_i, sinRepeater) * moveConst) / divider;
+                    break;
+
+                case 31:
+                    sinRepeater = rand.Next(3) + 1;
+                    x += (int)(SinRepeat(y * sinConst1_i, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x * sinConst1_i, sinRepeater) * moveConst) / divider;
+                    break;
+
+                case 32:
+                    sinConst2 = sinConst1_i >= 10 ? sinConst1_i / 10 : 3;
+
+                    x += (int)(SinRepeat(y * sinConst1_i, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x * sinConst1_i, sinRepeater) * moveConst) / divider;
+
+                    x += (int)(SinRepeat(y * sinConst2 + y % sinConst2, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x * sinConst2 + x % sinConst2, sinRepeater) * moveConst) / divider;
+                    break;
+
+                case 33:
+                    x += (int)(SinRepeat(y * sinConst1_f, sinRepeater) * moveConst) / divider;
+                    y += (int)(SinRepeat(x * sinConst1_f, sinRepeater) * moveConst) / divider;
                     break;
 
                 case 199:
 
-#if true
-            //moveConst = 4.41f;
-            //divider = 1;
-
-            int n = rand.Next(3) + 1;
-
-            //n = 10;
-
-            int dx2 = (int)(Sin(y, n) * moveConst) / divider;
-            int dy2 = (int)(Sin(x, n) * moveConst) / divider;
-
-            x += (int)(Sin(y * 333, n) * moveConst) / divider;
-            y += (int)(Sin(x * 333, n) * moveConst) / divider;
-
-#endif
-
-#if false
-            //moveConst = 4.41f;
-            //divider = 1;
-
-            int n = rand.Next(3) + 1;
-            n = 1;
-
-            int dx2 = (int)(Sin(y, n) * moveConst) / divider;
-            int dy2 = (int)(Sin(x, n) * moveConst) / divider;
-
-            x += (int)(Sin(y * 333, n) * moveConst) / divider;
-            y += (int)(Sin(x * 333, n) * moveConst) / divider;
-
-            x += (int)(Sin(y * 33 + y % 33, n) * moveConst) / divider;
-            y += (int)(Sin(x * 33 + x % 33, n) * moveConst) / divider;
-
-#endif
+                    x += (int)(Math.Sin(y + 100 * Math.Sin(time)) * 3);
+                    y += (int)(Math.Sin(x + 100 * Math.Sin(time)) * 3);
 
                     break;
-
-
-                    // --- % variations ---
 
 #if false
                 case 995:
@@ -638,27 +660,14 @@ namespace my
                     System.Threading.Thread.Sleep(renderDelay);
                 }
 
-                if (cnt > 1000)
+                if (doIncrementSinConst)
                 {
-                    ;
-                }
-
-                if (++cnt > maxIter)
-                {
-                    R = (float)rand.NextDouble();
-                    G = (float)rand.NextDouble();
-                    B = (float)rand.NextDouble();
-                    cnt = 0;
-
-/*
-                    bool gotNewBrush = colorPicker.getNewBrush(br, cnt == (maxIter + 1));
-
-                    if (gotNewBrush)
+                    if (++sinConstCnt > 666)
                     {
-                        g.FillRectangle(dimBrush, 0, 0, Width, Height);
-                        cnt = 0;
+                        sinConstCnt = 0;
+                        sinConst1_i++;
+                        sinConst1_f += (float)(rand.NextDouble() * 0.01);
                     }
-*/
                 }
             }
 
@@ -735,20 +744,42 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        float Sin(float val, int cnt)
+        float SinRepeat(float val, int cnt)
         {
-            cnt--;
             double d = Math.Sin(val);
 
-            while (cnt != 0)
-            {
+            while (--cnt != 0)
                 d = Math.Sin(d);
-                cnt--;
-            }
 
             return (float)d;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        float CosRepeat(float val, int cnt)
+        {
+            double d = Math.Cos(val);
+
+            while (--cnt != 0)
+                d = Math.Cos(d);
+
+            return (float)d;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        float SinCosRepeat(float val, int cnt)
+        {
+            int i = 0;
+            double d = Math.Sin(val);
+
+            while (--cnt != 0)
+                d = (++i % 2 == 0) ? Math.Sin(d) : Math.Cos(d);
+
+            return (float)d;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     };
 };
