@@ -56,7 +56,7 @@ namespace my
             baseSize = (rand.Next(7))/3 + 1;
             shape = rand.Next(5);
             divMax = 111 + rand.Next(3333);
-            moveMode = rand.Next(26);
+            moveMode = rand.Next(34);
             colorMode = rand.Next(4);
             sinRepeater = rand.Next(10) + 1;
 
@@ -299,8 +299,6 @@ namespace my
                     break;
             }
 
-            moveMode = 199;
-
             switch (moveMode)
             {
                 case 0:
@@ -493,8 +491,24 @@ namespace my
 
                 case 199:
 
-                    x += (int)(Math.Sin(y + 100 * Math.Sin(time)) * 3);
-                    y += (int)(Math.Sin(x + 100 * Math.Sin(time)) * 3);
+                    if (false)
+                    {
+                        x += (int)(Math.Sin(y + (int)(10 * Math.Sin(y))) * moveConst) / divider;
+                        y += (int)(Math.Sin(x + (int)(10 * Math.Sin(x))) * moveConst) / divider;
+                    }
+
+                    if (false)
+                    {
+                        int n = 10;
+
+                        int arg = (int)(n * Math.Sin(y) + n);
+                        arg = arg == 0 ? 900000 : arg;
+                        x += (int)(Math.Sin(y % arg) * moveConst) / divider;
+
+                        arg = (int)(n * Math.Sin(x) + n);
+                        arg = arg == 0 ? 900000 : arg;
+                        y += (int)(Math.Sin(x % arg) * moveConst) / divider;
+                    }
 
                     break;
 
