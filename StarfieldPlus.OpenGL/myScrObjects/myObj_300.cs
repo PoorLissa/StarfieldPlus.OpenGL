@@ -34,8 +34,6 @@ namespace my
         private static float const_f1 = 0, const_f2 = 0;
         private static int   const_i1 = 0, const_i2 = 0;
 
-        private static myInstancedPrimitive inst = null;
-
         private float x, y, R, G, B, A, lineTh;
         private int shape = 0, lifeCounter = 0, lifeMax = 0, objN = 0;
 
@@ -1026,41 +1024,8 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
-
             myPrimitive.init_LineInst(N * maxParticles);
-
-            switch (shapeType)
-            {
-                case 0:
-                    myPrimitive.init_RectangleInst(N * maxParticles);
-                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._RectangleInst;
-                    break;
-
-                case 1:
-                    myPrimitive.init_TriangleInst(N * maxParticles);
-                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._TriangleInst;
-                    break;
-
-                case 2:
-                    myPrimitive.init_EllipseInst(N * maxParticles);
-                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._EllipseInst;
-                    break;
-
-                case 3:
-                    myPrimitive.init_PentagonInst(N * maxParticles);
-                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._PentagonInst;
-                    break;
-
-                case 4:
-                    myPrimitive.init_HexagonInst(N * maxParticles);
-                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._HexagonInst;
-                    break;
-            }
+            base.initShapes(shapeType, N * maxParticles, rotationSubMode);
 
             return;
         }

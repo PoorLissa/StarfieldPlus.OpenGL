@@ -19,8 +19,6 @@ namespace my
         static float dimAlpha = 0.0f, R = 1, G = 1, B = 1;
         static int N = 0, x0 = 0, y0 = 0, moveMode = -1, shape = -1, speedMode = -1, t = -1, fillMode = 0, lineMode = 0, maxRnd = 0;
 
-        private static myInstancedPrimitive inst = null;
-
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_041()
@@ -440,45 +438,12 @@ namespace my
 
         private void initShapes()
         {
-            int lineN = N, shapeN = N;
+            int lineN = N;
 
             myPrimitive.init_Rectangle();
             myPrimitive.init_LineInst(lineN);
 
-            int rotationSubMode = 0;
-
-            switch (shape)
-            {
-                case 0:
-                    myPrimitive.init_RectangleInst(shapeN);
-                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._RectangleInst;
-                    break;
-
-                case 1:
-                    myPrimitive.init_TriangleInst(shapeN);
-                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._TriangleInst;
-                    break;
-
-                case 2:
-                    myPrimitive.init_EllipseInst(shapeN);
-                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._EllipseInst;
-                    break;
-
-                case 3:
-                    myPrimitive.init_PentagonInst(shapeN);
-                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._PentagonInst;
-                    break;
-
-                case 4:
-                    myPrimitive.init_HexagonInst(shapeN);
-                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._HexagonInst;
-                    break;
-            }
+            base.initShapes(shape, N, 0);
 
             return;
         }

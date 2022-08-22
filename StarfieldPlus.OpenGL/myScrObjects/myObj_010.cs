@@ -22,8 +22,6 @@ namespace my
         private static float dimAlpha = 0.25f;
         static float radius = gl_Height / 3;
 
-        private static myInstancedPrimitive inst = null;
-
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_010()
@@ -449,38 +447,7 @@ namespace my
                 myPrimitive.init_LineInst(totalLines);
             }
 
-            switch (shapeType)
-            {
-                case 0:
-                    myPrimitive.init_RectangleInst(N);
-                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._RectangleInst;
-                    break;
-
-                case 1:
-                    myPrimitive.init_TriangleInst(N);
-                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._TriangleInst;
-                    break;
-
-                case 2:
-                    myPrimitive.init_EllipseInst(N);
-                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._EllipseInst;
-                    break;
-
-                case 3:
-                    myPrimitive.init_PentagonInst(N);
-                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._PentagonInst;
-                    break;
-
-                case 4:
-                    myPrimitive.init_HexagonInst(N);
-                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._HexagonInst;
-                    break;
-            }
+            base.initShapes(shapeType, N, rotationSubMode);
 
             return;
         }

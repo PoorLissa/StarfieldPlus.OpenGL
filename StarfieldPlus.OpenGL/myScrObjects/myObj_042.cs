@@ -22,8 +22,6 @@ namespace my
         private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, sinConst1_f = 0, dRstatic, dGstatic, dBstatic;
         private static bool showStatics = false, reuseStatics = false, doIncrementSinConst = false;
 
-        private static myInstancedPrimitive inst = null;
-
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_042()
@@ -692,45 +690,10 @@ namespace my
 
         private void initShapes()
         {
-            int lineN = N, shapeN = N;
-
             myPrimitive.init_Rectangle();
-            myPrimitive.init_LineInst(lineN);
+            myPrimitive.init_LineInst(N);
 
-            int rotationSubMode = 0;
-
-            switch (shape)
-            {
-                case 0:
-                    myPrimitive.init_RectangleInst(shapeN);
-                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._RectangleInst;
-                    break;
-
-                case 1:
-                    myPrimitive.init_TriangleInst(shapeN);
-                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._TriangleInst;
-                    break;
-
-                case 2:
-                    myPrimitive.init_EllipseInst(shapeN);
-                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._EllipseInst;
-                    break;
-
-                case 3:
-                    myPrimitive.init_PentagonInst(shapeN);
-                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._PentagonInst;
-                    break;
-
-                case 4:
-                    myPrimitive.init_HexagonInst(shapeN);
-                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._HexagonInst;
-                    break;
-            }
+            base.initShapes(shape, N, 0);
 
             return;
         }

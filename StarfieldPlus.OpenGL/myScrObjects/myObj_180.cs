@@ -26,8 +26,6 @@ namespace my
         private static float t = 0, R, G, B, A, dimAlpha = 0.1f, Speed = 1.0f, speedBase = 1.0f, 
                                             dispersionConst = 0, heightRatio = 1.0f, xOffset = 0, dSize = 0;
 
-        private static myInstancedPrimitive inst = null;
-
         private int     lifeCnt = 0, shape = 0;
         private bool    isLive = false;
         private float   x, y, r, g, b, a, dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f;
@@ -642,38 +640,7 @@ namespace my
             if (connectionMode > 2)
                 myPrimitive.init_LineInst(N);
 
-            switch (shapeType)
-            {
-                case 0:
-                    myPrimitive.init_RectangleInst(N);
-                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._RectangleInst;
-                    break;
-
-                case 1:
-                    myPrimitive.init_TriangleInst(N);
-                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._TriangleInst;
-                    break;
-
-                case 2:
-                    myPrimitive.init_EllipseInst(N);
-                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._EllipseInst;
-                    break;
-
-                case 3:
-                    myPrimitive.init_PentagonInst(N);
-                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._PentagonInst;
-                    break;
-
-                case 4:
-                    myPrimitive.init_HexagonInst(N);
-                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._HexagonInst;
-                    break;
-            }
+            base.initShapes(shapeType, N, rotationSubMode);
 
             return;
         }

@@ -18,8 +18,6 @@ namespace my
         private static int x0, y0, N = 1000, objN = 0;
         private static int shapeType = 0, drawMode = 0, maxSteps = 0, gridMode = 0;
 
-        private static myInstancedPrimitive inst = null;
-
         private float x, y, dx, dy, sizex, sizey, R, G, B, A;
         private int cnt = 0, stepx = 0, stepy = 0, steps = 0;
 
@@ -370,14 +368,7 @@ objN = 1;
             myPrimitive.init_Rectangle();
             myPrimitive.init_LineInst(N);
 
-            switch (shapeType)
-            {
-                case 0:
-                    myPrimitive.init_RectangleInst(N);
-                    myPrimitive._RectangleInst.setRotationMode(0);
-                    inst = myPrimitive._RectangleInst;
-                    break;
-            }
+            base.initShapes(shapeType, N, 0);
 
             return;
         }

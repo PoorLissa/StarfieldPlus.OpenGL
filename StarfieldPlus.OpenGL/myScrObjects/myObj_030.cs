@@ -22,8 +22,6 @@ namespace my
         private static bool doClearBuffer = true, doFillShapes = false;
         private static int N = 1, shapeType = 0, rotationMode = 0, rotationSubMode = 0, connectionMode = 0, moveMode = 0;
 
-        private static myInstancedPrimitive inst = null;
-
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_030()
@@ -382,38 +380,7 @@ namespace my
 
             myPrimitive.init_LineInst(lineN);
 
-            switch (shapeType)
-            {
-                case 0:
-                    myPrimitive.init_RectangleInst(shapeN);
-                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._RectangleInst;
-                    break;
-
-                case 1:
-                    myPrimitive.init_TriangleInst(shapeN);
-                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._TriangleInst;
-                    break;
-
-                case 2:
-                    myPrimitive.init_EllipseInst(shapeN);
-                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._EllipseInst;
-                    break;
-
-                case 3:
-                    myPrimitive.init_PentagonInst(shapeN);
-                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._PentagonInst;
-                    break;
-
-                case 4:
-                    myPrimitive.init_HexagonInst(shapeN);
-                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
-                    inst = myPrimitive._HexagonInst;
-                    break;
-            }
+            base.initShapes(shapeType, shapeN, rotationSubMode);
 
             return;
         }

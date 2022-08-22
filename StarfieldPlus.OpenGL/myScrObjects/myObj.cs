@@ -19,6 +19,7 @@ namespace my
         protected static Random rand = new Random((int)DateTime.Now.Ticks);
         protected static List<myObject> list = null;
         protected static myColorPicker colorPicker = null;
+        protected static myInstancedPrimitive inst = null;
 
         // -------------------------------------------------------------------------
 
@@ -229,6 +230,47 @@ namespace my
                 MessageBox.Show(ex.Message, "Log Exception", MessageBoxButtons.OK);
             }
 #endif
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Instantiate instanced primitive
+        protected void initShapes(int shape, int cnt, int rotationSubMode)
+        {
+            switch (shape)
+            {
+                case 0:
+                    myPrimitive.init_RectangleInst(cnt);
+                    myPrimitive._RectangleInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._RectangleInst;
+                    break;
+
+                case 1:
+                    myPrimitive.init_TriangleInst(cnt);
+                    myPrimitive._TriangleInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._TriangleInst;
+                    break;
+
+                case 2:
+                    myPrimitive.init_EllipseInst(cnt);
+                    myPrimitive._EllipseInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._EllipseInst;
+                    break;
+
+                case 3:
+                    myPrimitive.init_PentagonInst(cnt);
+                    myPrimitive._PentagonInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._PentagonInst;
+                    break;
+
+                case 4:
+                    myPrimitive.init_HexagonInst(cnt);
+                    myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
+                    inst = myPrimitive._HexagonInst;
+                    break;
+            }
+
+            return;
         }
 
         // -------------------------------------------------------------------------
