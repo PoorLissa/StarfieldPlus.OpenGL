@@ -42,12 +42,14 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            N = (N == 0) ? 333 + rand.Next(111) : N;
+            N = (N == 0) ? 3333 + rand.Next(111) : N;
 
             doFillShapes = myUtils.randomChance(rand, 1, 3);
 
             shape = rand.Next(5);
             rotationMode = rand.Next(3);
+
+            //renderDelay = 10;
 
             return;
         }
@@ -59,7 +61,7 @@ namespace my
             height = 800;
 
             string str = $"Obj = myObj_131\n\n" +
-                            $"N = {N}\n" +
+                            $"N = {N} ({list.Count})\n" +
                             $""
                 ;
             return str;
@@ -193,6 +195,8 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0, 0, 0, 1);
             }
+
+            //Glfw.SwapInterval(0);
 
             while (!Glfw.WindowShouldClose(window))
             {
