@@ -104,8 +104,8 @@ namespace my
             y = rand.Next(gl_Height);
 
             size = 0;
-            maxSize = rand.Next(333) + 33;
-            dSize = 0.1f * (rand.Next(11) + 1);
+            maxSize = rand.Next(333) + 111;
+            dSize = 0.01f * (rand.Next(111) + 1);
 
             angle = 0;
 
