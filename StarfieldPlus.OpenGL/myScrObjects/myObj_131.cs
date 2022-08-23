@@ -13,8 +13,8 @@ namespace my
 {
     public class myObj_131 : myObject
     {
-        private int x, y, dx, dy, maxSize, dSize;
-        private float size, A, R, G, B, angle, dA;
+        private int x, y, dx, dy, maxSize;
+        private float size, dSize, A, R, G, B, angle, dA, dAngle;
 
         private static int N = 0, shape = 0;
         private static bool doClearBuffer = true, doFillShapes = false;
@@ -42,7 +42,11 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            N = (N == 0) ? 10 + rand.Next(10) : N;
+            N = (N == 0) ? 333 + rand.Next(111) : N;
+
+            doFillShapes = myUtils.randomChance(rand, 1, 3);
+
+            shape = rand.Next(5);
 
             return;
         }
@@ -77,14 +81,14 @@ namespace my
 
             size = 0;
             maxSize = rand.Next(333) + 33;
-            dSize = rand.Next(10) + 1;
+            dSize = 0.1f * (rand.Next(11) + 1);
+            angle = (float)rand.NextDouble();
+            dAngle = (float)rand.NextDouble() / 11 * myUtils.randomSign(rand);
 
+            colorPicker.getColor(x, y, ref R, ref B, ref G);
+            A = 0.85f + (float)rand.NextDouble() / 4;
             dA = 0.01f * (rand.Next(11) + 1);
-
-            A = 0.95f;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
+            //dA = 0.001f * (rand.Next(111) + 1);
 
             return;
         }
@@ -97,7 +101,9 @@ namespace my
 
             // Increase disappearing speed when max size is reached
             if (size > maxSize)
-                dA += 0.1f;
+            {
+                dA *= 1.1f;
+            }
 
             // Decrease opacity until fully invisible
             A -= dA;
@@ -106,6 +112,8 @@ namespace my
             {
                 generateNew();
             }
+
+            angle += dAngle;
 
             return;
         }
