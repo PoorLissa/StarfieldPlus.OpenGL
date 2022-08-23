@@ -46,7 +46,24 @@ namespace my
             dX = (float)rand.NextDouble();
             dY = (float)rand.NextDouble();
 
-            N = (N == 0) ? 333 + rand.Next(111) : N;
+            if (N == 0)
+            {
+                switch (rand.Next(7))
+                {
+                    case 0:
+                        N = 1111 + rand.Next(3333);
+                        break;
+
+                    case 1:
+                    case 2:
+                        N = 777 + rand.Next(1111);
+                        break;
+
+                    default:
+                        N = 333 + rand.Next(111);
+                        break;
+                }
+            }
 
             doFillShapes = myUtils.randomChance(rand, 1, 3);
             moveMode = rand.Next(7);
