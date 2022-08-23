@@ -16,7 +16,7 @@ namespace my
         private int x, y, dx, dy, maxSize;
         private float size, dSize, A, R, G, B, angle, dA, dAngle;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, rotationMode = 0;
         private static bool doClearBuffer = true, doFillShapes = false;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -47,6 +47,7 @@ namespace my
             doFillShapes = myUtils.randomChance(rand, 1, 3);
 
             shape = rand.Next(5);
+            rotationMode = rand.Next(3);
 
             return;
         }
@@ -82,8 +83,14 @@ namespace my
             size = 0;
             maxSize = rand.Next(333) + 33;
             dSize = 0.1f * (rand.Next(11) + 1);
-            angle = (float)rand.NextDouble();
-            dAngle = (float)rand.NextDouble() / 11 * myUtils.randomSign(rand);
+
+            angle = 0;
+
+            if (rotationMode > 0)
+                angle = (float)rand.NextDouble();
+
+            if (rotationMode > 1)
+                dAngle = (float)rand.NextDouble() / 11 * myUtils.randomSign(rand);
 
             colorPicker.getColor(x, y, ref R, ref B, ref G);
             A = 0.85f + (float)rand.NextDouble() / 4;
@@ -97,6 +104,11 @@ namespace my
 
         protected override void Move()
         {
+/*
+            x += rand.Next(3) - 1;
+            y += rand.Next(3) - 1;
+*/
+
             size += dSize;
 
             // Increase disappearing speed when max size is reached
