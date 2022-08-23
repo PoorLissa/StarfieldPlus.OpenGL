@@ -74,7 +74,7 @@
     <Compile Include="myScrObjects\myObj_030.cs" />
     <Compile Include="myScrObjects\myObj_010.cs" />
     <Compile Include="myScrObjects\myObj_102.cs" />
-    <Compile Include="myScrObjects\myObj_empty.cs" />
+    <Compile Include="myScrObjects\myObj__empty.cs" />
     <Compile Include="myScrObjects\myObj_131.cs" />
     <Compile Include="myScrObjects\myObj_220.cs" />
     <Compile Include="myScrObjects\myObj_180.cs" />

@@ -54,7 +54,7 @@ namespace my
             height = 800;
 
             string str = $"Obj = myObj_empty\n\n" +
-                            $"N = {N}\n" +
+                            $"N = {N} ({list.Count})\n" +
                             $""
                 ;
             return str;
@@ -149,6 +149,9 @@ namespace my
         {
             uint cnt = 0;
             initShapes();
+
+            // Disable VSYNC if needed
+            // Glfw.SwapInterval(0);
 
             if (doClearBuffer)
             {

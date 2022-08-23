@@ -13,10 +13,11 @@ namespace my
 {
     public class myObj_131 : myObject
     {
-        private int x, y, dx, dy, maxSize;
-        private float size, dSize, A, R, G, B, angle, dA, dAngle;
+        private int maxSize;
+        private float x, y, dx, dy, size, dSize, A, R, G, B, angle, dA, dAngle;
 
-        private static int N = 0, shape = 0, rotationMode = 0;
+        private static float dX = 0, dY = 0;
+        private static int N = 0, shape = 0, rotationMode = 0, moveMode = 0, dxdyMode = 0, dxdyFactor = 1, daMode = 0;
         private static bool doClearBuffer = true, doFillShapes = false;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -42,14 +43,31 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            N = (N == 0) ? 3333 + rand.Next(111) : N;
+            dX = (float)rand.NextDouble();
+            dY = (float)rand.NextDouble();
+
+            N = (N == 0) ? 333 + rand.Next(111) : N;
 
             doFillShapes = myUtils.randomChance(rand, 1, 3);
+            moveMode = rand.Next(7);
+            dxdyMode = rand.Next(3);
 
-            shape = rand.Next(5);
+            dxdyFactor = rand.Next(7) + 1;
+
+            shape = rand.Next(6) - 1;
+            shape = (shape < 0) ? 2 : shape;
+
             rotationMode = rand.Next(3);
 
+            daMode = rand.Next(3);
+
             //renderDelay = 10;
+
+            if (false)
+            {
+                shape = 2;
+                rotationMode = 0;
+            }
 
             return;
         }
@@ -58,10 +76,13 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            height = 800;
-
             string str = $"Obj = myObj_131\n\n" +
                             $"N = {N} ({list.Count})\n" +
+                            $"shape = {shape}\n" +
+                            $"moveMode = {moveMode}\n" +
+                            $"daMode = {daMode}\n" +
+                            $"dxdyMode = {dxdyMode}\n" +
+                            $"dxdyFactor = {dxdyFactor}\n" +
                             $""
                 ;
             return str;
@@ -96,8 +117,42 @@ namespace my
 
             colorPicker.getColor(x, y, ref R, ref B, ref G);
             A = 0.85f + (float)rand.NextDouble() / 4;
-            dA = 0.01f * (rand.Next(11) + 1);
-            //dA = 0.001f * (rand.Next(111) + 1);
+
+            // dA affects the life expectancy of the particle (and its final size as well)
+            switch (daMode)
+            {
+                case 0:
+                    dA = 0.01f * (rand.Next(10) + 1);
+                    break;
+
+                case 1:
+                    dA = 0.005f * (rand.Next(50) + 1);
+                    break;
+
+                case 2:
+                    dA = 0.001f * (rand.Next(100) + 1);
+                    break;
+            }
+
+            switch (dxdyMode)
+            {
+                case 0:
+                    dx = dy = (dX + dY) / 2;
+                    break;
+
+                case 1:
+                    dx = dX;
+                    dy = dY;
+                    break;
+
+                case 2:
+                    dx = (float)rand.NextDouble();
+                    dy = (float)rand.NextDouble();
+                    break;
+            }
+
+            dx *= dxdyFactor;
+            dy *= dxdyFactor;
 
             return;
         }
@@ -106,10 +161,23 @@ namespace my
 
         protected override void Move()
         {
-/*
-            x += rand.Next(3) - 1;
-            y += rand.Next(3) - 1;
-*/
+            switch (moveMode)
+            {
+                case 2:
+                    x += dx * myUtils.randomSign(rand);
+                    y += dy * myUtils.randomSign(rand);
+                    break;
+
+                case 3:
+                case 4:
+                    x += (moveMode == 2) ? dx : -dx;
+                    break;
+
+                case 5:
+                case 6:
+                    y += (moveMode == 4) ? dy : -dy;
+                    break;
+            }
 
             size += dSize;
 
@@ -190,13 +258,13 @@ namespace my
             uint cnt = 0;
             initShapes();
 
+            //Glfw.SwapInterval(0);
+
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0, 0, 0, 1);
             }
-
-            //Glfw.SwapInterval(0);
 
             while (!Glfw.WindowShouldClose(window))
             {
