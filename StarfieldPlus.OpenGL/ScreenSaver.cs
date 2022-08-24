@@ -100,7 +100,7 @@ public class ScreenSaver
                 _obj = new my.myObj_102();
                 break;
 
-            // Growing shapes -- rain drops alike
+            // Growing shapes -- Rain circles alike
             case ids.myObj_131:
                 _obj = new my.myObj_131();
                 break;

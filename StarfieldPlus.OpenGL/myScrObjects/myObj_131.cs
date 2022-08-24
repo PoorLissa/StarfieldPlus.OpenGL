@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Growing shapes -- Rain drops alike
+    - Growing shapes -- Rain circles alike
 */
 
 
@@ -66,7 +66,7 @@ namespace my
             }
 
             doFillShapes = myUtils.randomChance(rand, 1, 3);
-            moveMode = rand.Next(7);
+            moveMode = rand.Next(8);
             dxdyMode = rand.Next(3);
 
             dxdyFactor = rand.Next(7) + 1;
@@ -172,8 +172,11 @@ namespace my
                     break;
             }
 
-            dx *= dxdyFactor;
-            dy *= dxdyFactor;
+            if (moveMode > 0)
+            {
+                dx *= dxdyFactor;
+                dy *= dxdyFactor;
+            }
 
             return;
         }
@@ -184,19 +187,33 @@ namespace my
         {
             switch (moveMode)
             {
-                case 2:
+                case 0:
                     x += dx * myUtils.randomSign(rand);
                     y += dy * myUtils.randomSign(rand);
                     break;
 
-                case 3:
-                case 4:
+                case 1:
+                case 2:
                     x += (moveMode == 2) ? dx : -dx;
                     break;
 
-                case 5:
-                case 6:
+                case 3:
+                case 4:
                     y += (moveMode == 4) ? dy : -dy;
+                    break;
+
+                case 5:
+                    if (x < gl_Width / 4)
+                        y += dy;
+
+                    if (x > 3 * gl_Width / 4)
+                        y -= dy;
+
+                    if (y < gl_Height / 4)
+                        x -= dx;
+
+                    if (y > 3* gl_Height / 4)
+                        x += dx;
                     break;
             }
 
@@ -248,7 +265,7 @@ namespace my
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                    ellipseInst.setInstanceCoords(x, y, 2 * size, 0);
                     ellipseInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -343,8 +360,6 @@ namespace my
         {
             myPrimitive.init_Rectangle();
             base.initShapes(shape, N, 0);
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
