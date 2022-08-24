@@ -110,7 +110,11 @@ namespace my
         // 
         protected override void setNextMode()
         {
+            var oldShape = shape;
+
             init();
+
+            shape = oldShape;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
