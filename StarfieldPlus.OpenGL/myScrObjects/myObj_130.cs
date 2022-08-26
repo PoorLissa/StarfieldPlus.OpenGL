@@ -17,7 +17,7 @@ namespace my
         private int maxSize = 0, mult = 0, counter = 0;
         private float size, dSize, A, R, G, B, dA, angle, dAngle;
 
-        private static int N = 0, shape = 0, moveMode = 0, rotationMode = 0;
+        private static int N = 0, shape = 0, moveMode = 0, growMode = 0, rotationMode = 0;
         private static bool doClearBuffer = false, doFillShapes = false;
         private static float dimAlpha = 0.0f, aFill = 0, bgrR = -1, bgrG = -1, bgrB = -1;
 
@@ -52,6 +52,7 @@ namespace my
             shape = rand.Next(5);
             rotationMode = rand.Next(3);
             moveMode = rand.Next(5);
+            growMode = rand.Next(2);
             doFillShapes = myUtils.randomChance(rand, 1, 3);
 
             if (bgrR < 0 && bgrG < 0 && bgrB < 0)
@@ -92,6 +93,7 @@ namespace my
                             $"shape = {shape}\n" +
                             $"rotationMode = {rotationMode}\n" +
                             $"moveMode = {moveMode}\n" +
+                            $"growMode = {growMode}\n" +
                             $"bgr = [{bgrR}, {bgrG}, {bgrB}]\n" +
                             $"dimAlpha = {dimAlpha}\n" +
                             $"aFill = {aFill}\n" +
@@ -120,7 +122,13 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            size = 0;
+            maxSize = rand.Next(333) + 33;
+            dSize = 0.1f * (rand.Next(33) + 1);
+            dA = 0.0001f * (rand.Next(1000) + 1);
+            mult = rand.Next(3) + 1;
+            counter = 0;
+
+            size = (growMode == 0) ? 0 : maxSize;
             angle = 0;
             dAngle = 0;
 
@@ -130,13 +138,7 @@ namespace my
             if (rotationMode > 1)
                 dAngle = (float)rand.NextDouble() / 11 * myUtils.randomSign(rand);
 
-            maxSize = rand.Next(333) + 33;
-            dSize = 0.1f * (rand.Next(33) + 1);
-            dA = 0.0001f * (rand.Next(1000) + 1);
-            mult = rand.Next(3) + 1;
-            counter = 0;
-
-            A = 1;
+            A = (growMode == 0) ? 1 : (float)rand.NextDouble() / 100;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -166,19 +168,33 @@ namespace my
             }
 
             counter++;
-            size += dSize;
             angle += dAngle;
 
-            // Increase disappearing speed when max size is reached
-            if (size > maxSize)
-                dA *= 1.05f;
-
-            // Decrease opacity until fully invisible
-            A -= dA;
-
-            if (A < 0)
+            if (growMode == 0)
             {
-                generateNew();
+                size += dSize;
+
+                // Increase disappearing speed when max size is reached
+                if (size > maxSize)
+                    dA *= 1.05f;
+
+                // Decrease opacity until fully invisible
+                A -= dA;
+
+                if (A < 0)
+                {
+                    generateNew();
+                }
+            }
+            else
+            {
+                size -= dSize;
+                A += dA;
+
+                if (size < 0)
+                {
+                    generateNew();
+                }
             }
 
             return;
