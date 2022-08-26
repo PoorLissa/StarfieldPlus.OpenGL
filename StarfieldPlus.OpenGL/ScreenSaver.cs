@@ -38,7 +38,7 @@ public class ScreenSaver
     // - point moves along the rectangle right or left. Rectangle is a perimeter of the screen. Lots of such points.
 
     private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_040_d,
-                       myObj_102, myObj_131, myObj_180, myObj_200, myObj_210, myObj_220,
+                       myObj_102, myObj_130, myObj_131, myObj_180, myObj_200, myObj_210, myObj_220,
                        myObj_300, myObj_310, myObj_320,
                        myObj_300_test, myObj_999a
     };
@@ -46,7 +46,7 @@ public class ScreenSaver
     public void selectObject()
     {
         ids id = (ids)0;
-        id = ids.myObj_200;
+        id = ids.myObj_130;
 
         switch (id)
         {
@@ -98,6 +98,11 @@ public class ScreenSaver
             // Desktop 2
             case ids.myObj_102:
                 _obj = new my.myObj_102();
+                break;
+
+            // Growing shapes -- Rain circles alike -- no buffer clearing
+            case ids.myObj_130:
+                _obj = new my.myObj_130();
                 break;
 
             // Growing shapes -- Rain circles alike
