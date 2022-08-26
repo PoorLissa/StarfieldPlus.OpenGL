@@ -17,7 +17,8 @@ namespace my
         private int maxSize = 0, mult = 0, counter = 0;
         private float size, dSize, A, R, G, B, dA, angle, dAngle;
 
-        private static int N = 0, shape = 0, moveMode = 0, growMode = 0, rotationMode = 0;
+        private static int N = 0, shape = 0, moveMode = 0, growMode = 0, rotationMode = 0, renderDelayOld = -1;
+        private static int globalCounter = 0, moveSetUp = 0, moveParam1 = 0, moveParam2 = 0, moveParam3 = 0, moveParam4 = 0, moveParam5 = 0;
         private static bool doClearBuffer = false, doFillShapes = false;
         private static float dimAlpha = 0.0f, aFill = 0, bgrR = -1, bgrG = -1, bgrB = -1;
 
@@ -30,6 +31,8 @@ namespace my
                 colorPicker = new myColorPicker(gl_Width, gl_Height);
                 list = new List<myObject>();
 
+                renderDelayOld = renderDelay;
+
                 init();
             }
 
@@ -41,17 +44,35 @@ namespace my
         // One-time initialization
         private void init()
         {
+            renderDelay = renderDelayOld;
+
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            N = (N == 0) ? 10 + rand.Next(33) : N;
+            if (N == 0)
+            {
+                switch (rand.Next(3))
+                {
+                    case 0:
+                        N = 10 + rand.Next(33);
+                        break;
+
+                    case 1:
+                        N = 33 + rand.Next(100);
+                        break;
+
+                    case 2:
+                        N = 100 + rand.Next(1000);
+                        break;
+                }
+            }
 
             dimAlpha = 0.001f * (rand.Next(100) + 1);
-            aFill = (float)rand.NextDouble() / 3;
+            aFill = (float)rand.NextDouble() / 13;
 
             shape = rand.Next(5);
             rotationMode = rand.Next(3);
-            moveMode = rand.Next(5);
+            moveMode = rand.Next(10);
             growMode = rand.Next(2);
             doFillShapes = myUtils.randomChance(rand, 1, 3);
 
@@ -155,15 +176,13 @@ namespace my
                 case 2: move2(); break;
                 case 3: move3(); break;
                 case 4: move4(); break;
-/*
-                case 4: move4(); break;
                 case 5: move5(); break;
                 case 6: move6(); break;
                 case 7: move7(); break;
                 case 8: move8(); break;
-*/
+
                 default:
-                    //move_test();
+                    move_test();
                     break;
             }
 
@@ -243,6 +262,138 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private void move5()
+        {
+            dimAlpha = 0.01f;
+
+            if (moveSetUp == 0)
+            {
+                moveSetUp = 1;
+                moveParam1 = rand.Next(9) + 2;
+                moveParam2 = rand.Next(2) + 1;
+                moveParam3 = rand.Next(6) + 1;
+                moveParam4 = rand.Next(3);
+            }
+
+            if (dSize > 2)
+            {
+                if (moveParam4 > 0)
+                    dx = (rand.Next(moveParam1) + moveParam3) / moveParam2;
+
+                if (moveParam4 > 1)
+                    dx /= 2;
+
+                dy = (rand.Next(moveParam1) + moveParam3) / moveParam2;
+            }
+            else
+            {
+                if (moveParam4 > 0)
+                    dx = rand.Next(moveParam1) + moveParam3;
+
+                if (moveParam4 > 1)
+                    dx /= 2;
+
+                dy = rand.Next(moveParam1) + moveParam3;
+            }
+
+            x += dx;
+            y += dy;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move6()
+        {
+            if (moveSetUp == 0)
+            {
+                switch (rand.Next(4))
+                {
+                    case 0:
+                        moveParam1 = rand.Next(50) + 1;
+                        break;
+
+                    case 1:
+                        moveParam1 = rand.Next(100) + 1;
+                        break;
+
+                    case 2:
+                        moveParam1 = rand.Next(300) + 1;
+                        break;
+
+                    case 3:
+                        moveParam1 = rand.Next(600) + 1;
+                        break;
+                }
+
+                moveParam2 = rand.Next(3);
+                moveSetUp = 1;
+            }
+
+            if (moveParam2 == 0)
+                dSize = 0.15f;
+
+            if (moveParam2 == 0)
+                dSize = 0.25f;
+
+            x += (int)(Math.Sin(size) * moveParam1);
+            y += (int)(Math.Cos(size) * moveParam1);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move7()
+        {
+            if (moveSetUp == 0)
+            {
+                moveParam1 = rand.Next(66) + 3;     // sin-cos multiply factor
+                moveParam2 = rand.Next(500) + 33;   // size
+                moveParam3 = rand.Next(2);          // global vs local counter
+                moveSetUp = 1;
+                growMode = 0;
+                renderDelay += rand.Next(25);
+            }
+
+            size = moveParam2;
+
+            if (moveParam3 == 0)
+            {
+                x += (int)(Math.Sin(globalCounter) * moveParam1);
+                y += (int)(Math.Cos(globalCounter) * moveParam1);
+            }
+            else
+            {
+                x += (int)(Math.Sin(counter) * moveParam1);
+                y += (int)(Math.Cos(counter) * moveParam1);
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move8()
+        {
+            if (moveSetUp == 0)
+            {
+                moveParam1 = rand.Next(66) + 3;
+                moveParam2 = rand.Next(66) + 15;
+                moveParam3 = rand.Next(11);
+                moveParam4 = rand.Next(11);
+                moveSetUp = 1;
+                growMode = 0;
+                renderDelay += rand.Next(25);
+            }
+
+            size = moveParam2;
+            A += dA / 2;
+
+            x += (int)(Math.Sin(globalCounter) * moveParam1);
+            y += (int)(Math.Cos(globalCounter) * moveParam1);
+
+            x += (int)(Math.Sin(counter + moveParam3) * moveParam1);
+            y += (int)(Math.Cos(counter + moveParam4) * moveParam1);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         protected override void Show()
         {
             switch (shape)
@@ -296,7 +447,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
             // Disable VSYNC if needed
@@ -306,7 +456,7 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
-                cnt++;
+                globalCounter++;
 
                 processInput(window);
 
@@ -391,5 +541,157 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private void move_test()
+        {
+            int num = 1;
+
+            if (moveSetUp == 0)
+            {
+                moveParam1 = rand.Next(33) + 1;
+                moveParam2 = rand.Next(11) + 1;
+                moveParam3 = rand.Next(3) + 1;
+                moveParam4 = rand.Next(3) + 1;
+                moveParam5 = (rand.Next(50) + 75);
+                moveSetUp = 1;
+                growMode = 0;
+            }
+
+            switch (num)
+            {
+                case 0:
+                    x += (int)(Math.Sin(y) * 10);
+                    y += (int)(Math.Cos(x) * 10);
+                    break;
+
+                case 1:
+                    //X += moveParam3;
+                    //Y += moveParam4;
+
+                    double val1 = Math.Tan(dSize);
+                    double val2 = Math.Sin(dSize);
+                    double val3 = Math.Cos(dSize);
+
+                    double val4 = Math.Tan(counter);
+                    double val5 = Math.Sin(counter);
+                    double val6 = Math.Cos(counter);
+
+                    double val7 = Math.Tan(size);
+                    double val8 = Math.Sin(size);
+                    double val9 = Math.Cos(size);
+
+                    //dSize += (int)(Math.Sin(counter) * Math.Tan(dSize) * moveParam1);
+                    //dSize += (int)(Math.Tan(counter * dSize) * moveParam1);
+
+                    //dSize += (int)(Math.Sin(counter) * Math.Tan(dSize) * 5);
+
+                    //dSize += (int)(Math.Tan(counter) * 5);
+
+                    //dSize += (int)((val2 / (val4 + 0.001)) / moveParam5);
+
+                    double vvv = Math.Sin(globalCounter);
+                    double zzz = Math.Cos(globalCounter);
+
+                    //X += 2 * (int)(vvv * 15);
+                    //Y += 2 * (int)(zzz * 15);
+
+                    size = 2;
+
+                    if (val5 < 0) val5 = -val5;
+                    if (val6 < 0) val6 = -val6;
+
+                    x += (int)(val5 * 10);
+                    y += (int)(val6 * 10);
+
+                    A += dA / 2;
+
+                    //dSize = 1;
+                    //Size = (int)((val4) * 1);
+                    break;
+
+                case 2:
+                    x += (int)(Math.Sin(x) * Math.Sin(x) * 10);
+                    y += (int)(Math.Cos(y) * Math.Cos(y) * 10);
+                    break;
+
+                case 3:
+                    x += (int)(Math.Sin(x) * Math.Cos(x) * 10);
+                    y += (int)(Math.Sin(y) * Math.Cos(y) * 10);
+                    break;
+
+                case 4:
+                    x += (int)(Math.Sin(x) * Math.Cos(x) * 10);
+                    y += (int)(Math.Sin(y) * Math.Cos(y) * 10);
+                    x += (int)(Math.Tan(x) * 10);
+                    break;
+
+                case 5:
+                    x += (int)(Math.Sin(x) * Math.Cos(x) * 10);
+                    y += (int)(Math.Sin(y) * Math.Cos(y) * 10);
+                    x += (int)(Math.Tan(x) * 10);
+                    y += (int)(Math.Tan(y) * 10);
+                    break;
+
+                // Ok
+                case 6:
+                    x += (int)(Math.Sin(x) * Math.Cos(x) * moveParam1);
+                    y += (int)(Math.Sin(y) * Math.Cos(y) * moveParam1);
+                    break;
+
+                // OK
+                case 7:
+                    dSize += (int)(Math.Sin(counter * dSize) * moveParam1);
+                    break;
+
+                // Ok
+                case 8:
+                    dSize += (int)(Math.Tan(counter * dSize) * moveParam1);
+                    break;
+
+                case 9:
+                    dSize += (int)(Math.Sin(counter) * Math.Tan(dSize) * moveParam1);
+                    break;
+
+                // Ok
+                case 10:
+                    dSize += (int)(Math.Sin(counter) * Math.Sin(dSize) * moveParam1);
+                    x += (int)(Math.Sin(y) * moveParam2);
+                    y += (int)(Math.Cos(x) * moveParam2);
+                    break;
+
+                // Ok
+                case 11:
+                    x += moveParam3;
+                    y += moveParam4;
+                    dSize += (int)(Math.Sin(counter) * Math.Sin(dSize) * moveParam1);
+                    break;
+
+                // Ok
+                case 12:
+                    x += moveParam3;
+                    y += moveParam4;
+                    dSize += (int)(Math.Sin(counter) * Math.Cos(dSize) * moveParam1);
+                    break;
+
+                // Ok
+                case 13:
+                    dSize += (int)((Math.Tan(dSize) / (Math.Tan(counter) + 0.001)) / moveParam5);
+                    break;
+
+                case 14:
+                    x += 10 * (int)(Math.Sin(globalCounter) * 5);
+                    y += 10 * (int)(Math.Cos(globalCounter) * 5);
+
+                    dSize = 1;
+                    size = (int)(Math.Tan(counter));
+                    break;
+
+                case 15:
+                    x += (int)(Math.Sin(maxSize) * 11);
+                    y += (int)(Math.Cos(maxSize) * 11);
+                    break;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
     }
 };
