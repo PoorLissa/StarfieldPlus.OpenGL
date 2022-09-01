@@ -16,11 +16,12 @@ namespace my
 {
     public class myObj_043 : myObject
     {
-        private int x, y, dx, dy;
-        private float size, A, R, G, B, angle;
+        private float x, y, dx, dy;
+        private float mass, size, A, R, G, B, angle;
 
         private static int N = 0, shape = 0;
-        private static bool doClearBuffer = true, doFillShapes = false;
+        private static bool doClearBuffer = false, doFillShapes = true;
+        private static float dimAlpha = 0.5f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -45,7 +46,9 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            N = (N == 0) ? 10 + rand.Next(10) : N;
+            N = (N == 0) ? 100 + rand.Next(100) : N;
+
+            N = 1000;
 
             return;
         }
@@ -54,8 +57,6 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            height = 800;
-
             string str = $"Obj = myObj_043\n\n" +
                             $"N = {N} ({list.Count})\n" +
                             $""
@@ -78,8 +79,21 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            size = rand.Next(11) + 3;
+            dx = dy = 0;
 
+            mass = rand.Next(3333) + 10;
+            size = mass / 333;
+
+            if (size == 0)
+                size = 1;
+
+/*
+            if (list.Count == 11)
+            {
+                mass = 0000;
+                size = 23;
+            }
+*/
             A = 1;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
@@ -92,6 +106,31 @@ namespace my
 
         protected override void Move()
         {
+            float factor = 1.0f;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var obj = list[i] as myObj_043;
+
+                if (obj != this)
+                {
+                    double dist2 = (x - obj.x) * (x - obj.x) + (y - obj.y) * (y - obj.y);
+
+                    float ddx, ddy, sqrt = (float)Math.Sqrt(dist2);
+
+                    ddx = (obj.x - x) / (float)(dist2 * mass);
+                    ddy = (obj.y - y) / (float)(dist2 * mass);
+                    dx += obj.mass * factor * ddx;
+                    dy += obj.mass * factor * ddy;
+                }
+            }
+
+            x += dx;
+            y += dy;
+/*
+            For 2 points, the center of masses MC lies somewhere on the line between them.
+            The distance from pt1 to MC, d = DIST / (m1/m2 + 1);
+ */
             return;
         }
 
@@ -154,12 +193,17 @@ namespace my
             initShapes();
 
             // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
+            Glfw.SwapInterval(0);
 
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0, 0, 0, 1);
+            }
+
+            while (list.Count < N)
+            {
+                list.Add(new myObj_043());
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -175,6 +219,10 @@ namespace my
                 if (doClearBuffer)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
+                }
+                else
+                {
+                    dimScreen(false);
                 }
 
                 // Render Frame
@@ -201,11 +249,6 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (list.Count < N)
-                {
-                    list.Add(new myObj_043());
-                }
-
                 System.Threading.Thread.Sleep(renderDelay);
             }
 
@@ -218,6 +261,27 @@ namespace my
         {
             myPrimitive.init_Rectangle();
             base.initShapes(shape, N, 0);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Dim the screen constantly
+        private void dimScreen(bool useStrongerDimFactor = false)
+        {
+            int rnd = rand.Next(101), dimFactor = 1;
+
+            if (useStrongerDimFactor && rnd < 11)
+            {
+                dimFactor = (rnd == 0) ? 5 : 2;
+            }
+
+            myPrimitive._Rectangle.SetAngle(0);
+
+            // Shift background color just a bit, to hide long lasting traces of shapes
+            myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
+            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
 
             return;
         }
