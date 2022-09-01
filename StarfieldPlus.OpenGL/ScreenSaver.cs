@@ -37,7 +37,7 @@ public class ScreenSaver
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
     // - point moves along the rectangle right or left. Rectangle is a perimeter of the screen. Lots of such points.
 
-    private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_040_d,
+    private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
                        myObj_102, myObj_130, myObj_131, myObj_180, myObj_200, myObj_210, myObj_220,
                        myObj_300, myObj_310, myObj_320,
                        myObj_300_test, myObj_999a
@@ -91,8 +91,8 @@ public class ScreenSaver
                 break;
 
             // Various shapes growing out from a single starting point
-            case ids.myObj_040_d:
-                //_obj = new my.myObj_004_d();
+            case ids.myObj_043:
+                _obj = new my.myObj_043();
                 break;
 
             // Desktop 2
