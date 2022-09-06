@@ -16,13 +16,16 @@ namespace my
 {
     public class myObj_043 : myObject
     {
+        private enum ParticleType { One, Two, Three };
+
         private float x, y, dx, dy;
         private float mass, size, A, R, G, B, angle;
         private bool doCalc;
+        private ParticleType type;
 
         private static int N = 0, shape = 0;
         private static bool doClearBuffer = false, doFillShapes = true;
-        private static float dimAlpha = 0.5f;
+        private static float dimAlpha = 0.25f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -49,7 +52,7 @@ namespace my
 
             N = (N == 0) ? 100 + rand.Next(100) : N;
 
-            N = 100;
+            N = 999;
 
             return;
         }
@@ -101,6 +104,37 @@ namespace my
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
 
+/*
+            type = ParticleType.Two;
+
+            if (rand.Next(2) == 0)
+            {
+                type = ParticleType.One;
+            }
+*/
+            type = (ParticleType)rand.Next(3);
+
+            if (type == ParticleType.One)
+            {
+                R = 0.5f;
+                G = 0.1f;
+                B = 0.1f;
+            }
+
+            if (type == ParticleType.Two)
+            {
+                R = 0.1f;
+                G = 0.5f;
+                B = 0.1f;
+            }
+
+            if (type == ParticleType.Three)
+            {
+                R = 0.1f;
+                G = 0.1f;
+                B = 0.5f;
+            }
+
             doCalc = true;
 
             return;
@@ -125,16 +159,22 @@ namespace my
                     if (obj != this)
                     {
                         factor = 0.000001f;
+                        factor = 0.000001f;
 
-                        double distSquared = (x - obj.x) * (x - obj.x) + (y - obj.y) * (y - obj.y);
+                        float DX = x - obj.x;
+                        float DY = y - obj.y;
 
                         float ddx = 0, ddy = 0;
+
+                        double distSquared = DX * DX + DY * DY;
                         float dist = (float)Math.Sqrt(distSquared);
 
                         if (dist > 0)
                         {
-                            ddx = obj.mass * (obj.x - x) / dist;
-                            ddy = obj.mass * (obj.y - y) / dist;
+                            float F = -obj.mass / dist;
+
+                            ddx = F * DX;
+                            ddy = F * DY;
 /*
                             // Some distance factor here:
                             // The farther away are the 2 objects, the lesser is the force between them
@@ -146,12 +186,74 @@ namespace my
                                 factor = 0;
                             }
 */
-
-                            if (dist >= 200)
+                            if (dist >= 100)
                             {
-                                factor /= (dist/10);
-                                factor  = 0;
+                                factor = 0;
+                                factor /= (float)(distSquared);
                             }
+                            else
+                            {
+                                //factor *= dist/10;
+                            }
+
+                            //factor *= 99;
+                        }
+
+                        if (type == obj.type)
+                        {
+                            switch (type)
+                            {
+                                case ParticleType.One:
+                                    factor *= 5;
+                                    break;
+
+                                case ParticleType.Two:
+                                    factor *= 100;
+                                    break;
+
+                                case ParticleType.Three:
+                                    factor *= 15;
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            if ((type == ParticleType.One && obj.type == ParticleType.Two) ||
+                                (type == ParticleType.Two && obj.type == ParticleType.One)
+                            )
+                            {
+                                factor *= -33;
+                                dx += factor * ddx;
+                                dy += factor * ddy;
+                            }
+
+                            if ((type == ParticleType.Two   && obj.type == ParticleType.Three) ||
+                                (type == ParticleType.Three && obj.type == ParticleType.Two)
+                            )
+                            {
+                                factor *= -22;
+                                dx += factor * ddx;
+                                dy += factor * ddy;
+                            }
+
+                            if ((type == ParticleType.One   && obj.type == ParticleType.Three) ||
+                                (type == ParticleType.Three && obj.type == ParticleType.One)
+                            )
+                            {
+                                factor *= -11;
+                                dx += factor * ddx;
+                                dy += factor * ddy;
+                            }
+                        }
+
+                        if (x < 0 || x > gl_Width)
+                        {
+                            dx *= -1;
+                        }
+
+                        if (y < 0 || y > gl_Height)
+                        {
+                            dy *= -1;
                         }
 
                         dx += factor * ddx;
