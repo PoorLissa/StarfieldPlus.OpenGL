@@ -18,6 +18,7 @@ namespace my
     {
         private float x, y, dx, dy;
         private float mass, size, A, R, G, B, angle;
+        private bool doCalc;
 
         private static int N = 0, shape = 0;
         private static bool doClearBuffer = false, doFillShapes = true;
@@ -48,7 +49,7 @@ namespace my
 
             N = (N == 0) ? 100 + rand.Next(100) : N;
 
-            N = 1000;
+            N = 100;
 
             return;
         }
@@ -87,46 +88,85 @@ namespace my
             if (size == 0)
                 size = 1;
 
-/*
+#if false
             if (list.Count == 11)
             {
-                mass = 0000;
+                mass = 5000000;
                 size = 23;
             }
-*/
+#endif
+
             A = 1;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
+
+            doCalc = true;
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // https://www.youtube.com/watch?v=0Kx4Y9TVMGg&ab_channel=Brainxyz
+
         protected override void Move()
         {
-            float factor = 1.0f;
-
-            for (int i = 0; i < list.Count; i++)
+            if (doCalc)
             {
-                var obj = list[i] as myObj_043;
+                float factor = 0.0015f;
 
-                if (obj != this)
+                factor = 0.000001f;
+
+                for (int i = 0; i < list.Count; i++)
                 {
-                    double dist2 = (x - obj.x) * (x - obj.x) + (y - obj.y) * (y - obj.y);
+                    var obj = list[i] as myObj_043;
 
-                    float ddx, ddy, sqrt = (float)Math.Sqrt(dist2);
+                    if (obj != this)
+                    {
+                        factor = 0.000001f;
 
-                    ddx = (obj.x - x) / (float)(dist2 * mass);
-                    ddy = (obj.y - y) / (float)(dist2 * mass);
-                    dx += obj.mass * factor * ddx;
-                    dy += obj.mass * factor * ddy;
+                        double distSquared = (x - obj.x) * (x - obj.x) + (y - obj.y) * (y - obj.y);
+
+                        float ddx = 0, ddy = 0;
+                        float dist = (float)Math.Sqrt(distSquared);
+
+                        if (dist > 0)
+                        {
+                            ddx = obj.mass * (obj.x - x) / dist;
+                            ddy = obj.mass * (obj.y - y) / dist;
+/*
+                            // Some distance factor here:
+                            // The farther away are the 2 objects, the lesser is the force between them
+                            factor /= dist;
+                            factor *= 100;
+
+                            if (dist > 123)
+                            {
+                                factor = 0;
+                            }
+*/
+
+                            if (dist >= 200)
+                            {
+                                factor /= (dist/10);
+                                factor  = 0;
+                            }
+                        }
+
+                        dx += factor * ddx;
+                        dy += factor * ddy;
+                    }
                 }
-            }
 
-            x += dx;
-            y += dy;
+                doCalc = false;
+            }
+            else
+            {
+                doCalc = true;
+                x += dx;
+                y += dy;
+            }
 /*
             For 2 points, the center of masses MC lies somewhere on the line between them.
             The distance from pt1 to MC, d = DIST / (m1/m2 + 1);
@@ -234,6 +274,12 @@ namespace my
                         var obj = list[i] as myObj_043;
 
                         obj.Show();
+                        obj.Move();
+                    }
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_043;
                         obj.Move();
                     }
 
