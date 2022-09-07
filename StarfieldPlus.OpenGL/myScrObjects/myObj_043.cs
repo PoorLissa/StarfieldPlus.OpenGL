@@ -25,7 +25,7 @@ namespace my
 
         private static int N = 0, shape = 0;
         private static bool doClearBuffer = false, doFillShapes = true;
-        private static float dimAlpha = 0.25f;
+        private static float dimAlpha = 0.5f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ namespace my
 
             N = (N == 0) ? 100 + rand.Next(100) : N;
 
-            N = 999;
+            N = 3333;
 
             return;
         }
@@ -86,7 +86,10 @@ namespace my
             dx = dy = 0;
 
             mass = rand.Next(3333) + 10;
-            size = mass / 333;
+
+            //mass = rand.Next(100) == 0 ? 10000 : 500;
+            mass = 500;
+            size = mass / 500;
 
             if (size == 0)
                 size = 1;
@@ -112,13 +115,13 @@ namespace my
                 type = ParticleType.One;
             }
 */
-            type = (ParticleType)rand.Next(3);
+            type = (ParticleType)rand.Next(2);
 
             if (type == ParticleType.One)
             {
-                R = 0.5f;
-                G = 0.1f;
-                B = 0.1f;
+                R = 0.75f;
+                G = 0.25f;
+                B = 0.15f;
             }
 
             if (type == ParticleType.Two)
@@ -130,9 +133,9 @@ namespace my
 
             if (type == ParticleType.Three)
             {
-                R = 0.1f;
-                G = 0.1f;
-                B = 0.5f;
+                R = 0.15f;
+                G = 0.45f;
+                B = 0.66f;
             }
 
             doCalc = true;
@@ -186,7 +189,8 @@ namespace my
                                 factor = 0;
                             }
 */
-                            if (dist >= 100)
+/*
+                            if (dist >= 50)
                             {
                                 factor = 0;
                                 factor /= (float)(distSquared);
@@ -195,34 +199,46 @@ namespace my
                             {
                                 //factor *= dist/10;
                             }
-
-                            //factor *= 99;
+*/
                         }
 
                         if (type == obj.type)
                         {
+                            if (dist >= 50)
+                            {
+                                factor = 0;
+                            }
+
                             switch (type)
                             {
                                 case ParticleType.One:
-                                    factor *= 5;
+                                    factor *= 500;
                                     break;
 
                                 case ParticleType.Two:
-                                    factor *= 100;
+                                    factor *= -100;
                                     break;
 
                                 case ParticleType.Three:
-                                    factor *= 15;
+                                    factor *= -50;
                                     break;
                             }
+
+                            dx *= 0.999999f;
+                            dy *= 0.999999f;
                         }
                         else
                         {
+                            if (dist >= 50)
+                            {
+                                factor = 0;
+                            }
+
                             if ((type == ParticleType.One && obj.type == ParticleType.Two) ||
                                 (type == ParticleType.Two && obj.type == ParticleType.One)
                             )
                             {
-                                factor *= -33;
+                                factor *= -200;
                                 dx += factor * ddx;
                                 dy += factor * ddy;
                             }
@@ -231,7 +247,7 @@ namespace my
                                 (type == ParticleType.Three && obj.type == ParticleType.Two)
                             )
                             {
-                                factor *= -22;
+                                factor *= -100;
                                 dx += factor * ddx;
                                 dy += factor * ddy;
                             }
@@ -240,24 +256,36 @@ namespace my
                                 (type == ParticleType.Three && obj.type == ParticleType.One)
                             )
                             {
-                                factor *= -11;
+                                factor *= -100;
                                 dx += factor * ddx;
                                 dy += factor * ddy;
                             }
                         }
 
-                        if (x < 0 || x > gl_Width)
+                        dx += factor * ddx;
+                        dy += factor * ddy;
+
+                        int border = 33;
+
+                        if (x < border && dx < 0)
                         {
                             dx *= -1;
                         }
 
-                        if (y < 0 || y > gl_Height)
+                        if (x > gl_Width - border && dx > 0)
+                        {
+                            dx *= -1;
+                        }
+
+                        if (y < border && dy < 0)
                         {
                             dy *= -1;
                         }
 
-                        dx += factor * ddx;
-                        dy += factor * ddy;
+                        if (y > gl_Height - border && dy > 0)
+                        {
+                            dy *= -1;
+                        }
                     }
                 }
 
@@ -348,6 +376,8 @@ namespace my
                 list.Add(new myObj_043());
             }
 
+            var taskList = new List<System.Threading.Tasks.Task>();
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -371,10 +401,43 @@ namespace my
                 {
                     inst.ResetBuffer();
 
+#if true
+                    int n = 10;
+
+                    for (int taskNo = 0; taskNo < n; taskNo++)
+                    {
+                        int start = (taskNo+0) * list.Count / n;
+                        int end   = (taskNo+1) * list.Count / n;
+
+                        var task = new System.Threading.Tasks.Task(() => {
+
+                            for (int i = start; i < end; i++)
+                            {
+                                var obj = list[i] as myObj_043;
+                                obj.Move();
+                            }
+                        });
+
+                        task.Start();
+                        taskList.Add(task);
+                    }
+
+                    System.Threading.Tasks.Task.WaitAll(taskList.ToArray());
+
                     for (int i = 0; i < list.Count; i++)
                     {
                         var obj = list[i] as myObj_043;
 
+                        obj.Show();
+                        obj.Move();
+                    }
+
+                    taskList.Clear();
+#else
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_043;
                         obj.Show();
                         obj.Move();
                     }
@@ -385,6 +448,7 @@ namespace my
                         obj.Move();
                     }
 
+#endif
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
@@ -397,7 +461,7 @@ namespace my
                     inst.Draw(false);
                 }
 
-                System.Threading.Thread.Sleep(renderDelay);
+                //System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
