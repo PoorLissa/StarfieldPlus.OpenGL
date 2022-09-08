@@ -16,11 +16,10 @@ namespace my
 {
     public class myObj_043 : myObject
     {
-        private enum ParticleType { One, Two, Three };
+        private enum ParticleType { One, Two, Three, Four };
 
         private float x, y, dx, dy;
         private float mass, size, A, R, G, B, angle;
-        private bool doCalc;
         private ParticleType type;
 
         private static int N = 0, shape = 0;
@@ -52,7 +51,7 @@ namespace my
 
             N = (N == 0) ? 100 + rand.Next(100) : N;
 
-            N = 3333;
+            N = 9999;
 
             return;
         }
@@ -85,41 +84,45 @@ namespace my
 
             dx = dy = 0;
 
-            mass = rand.Next(3333) + 10;
+            dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+            dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
 
             //mass = rand.Next(100) == 0 ? 10000 : 500;
+            mass = rand.Next(3333) + 10;
             mass = 500;
+
             size = mass / 500;
 
             if (size == 0)
                 size = 1;
 
-#if false
-            if (list.Count == 11)
-            {
-                mass = 5000000;
-                size = 23;
-            }
-#endif
-
-            A = 1;
+            A = 0.5f;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
 
-/*
             type = ParticleType.Two;
-
-            if (rand.Next(2) == 0)
-            {
+/*
+            if (rand.Next(666) == 0)
                 type = ParticleType.One;
-            }
 */
-            type = (ParticleType)rand.Next(2);
+            type = ParticleType.Three;
+            type = (ParticleType)rand.Next(4);
+
+#if false
+            if (list.Count == 11 /*|| list.Count == 12 || list.Count == 13*/)
+            {
+                type = ParticleType.Four;
+                mass = 5000000;
+                size = 7;
+                dx = 0;
+                dy = 0;
+            }
+#endif
 
             if (type == ParticleType.One)
             {
-                R = 0.75f;
+                R = 0.50f + (float)(rand.NextDouble() * 0.5);
                 G = 0.25f;
                 B = 0.15f;
             }
@@ -127,7 +130,7 @@ namespace my
             if (type == ParticleType.Two)
             {
                 R = 0.1f;
-                G = 0.5f;
+                G = 0.50f + (float)(rand.NextDouble() * 0.25);
                 B = 0.1f;
             }
 
@@ -135,10 +138,15 @@ namespace my
             {
                 R = 0.15f;
                 G = 0.45f;
-                B = 0.66f;
+                B = 0.50f + (float)(rand.NextDouble() * 0.33);
             }
 
-            doCalc = true;
+            if (type == ParticleType.Four)
+            {
+                R = 1.0f / 250 * 245;
+                G = 1.0f / 250 * 180;
+                B = 1.0f / 250 *  40;
+            }
 
             return;
         }
@@ -149,154 +157,130 @@ namespace my
 
         protected override void Move()
         {
-            if (doCalc)
+            double distSquared;
+            float DX = 0, DY = 0, ddx = 0, ddy = 0, dist = 0, F = 0, factor = 0;
+
+            for (int i = 0; i < list.Count; i++)
             {
-                float factor = 0.0015f;
+                var obj = list[i] as myObj_043;
 
-                factor = 0.000001f;
-
-                for (int i = 0; i < list.Count; i++)
+                if (obj != this)
                 {
-                    var obj = list[i] as myObj_043;
+                    factor = 0.000001f;
 
-                    if (obj != this)
+                    DX = x - obj.x;
+                    DY = y - obj.y;
+
+                    dist = (float)Math.Sqrt(DX * DX + DY * DY);
+
+                    if (dist > 0 && dist < 1000)
                     {
-                        factor = 0.000001f;
-                        factor = 0.000001f;
+                        F = -obj.mass / dist;
 
-                        float DX = x - obj.x;
-                        float DY = y - obj.y;
-
-                        float ddx = 0, ddy = 0;
-
-                        double distSquared = DX * DX + DY * DY;
-                        float dist = (float)Math.Sqrt(distSquared);
-
-                        if (dist > 0)
-                        {
-                            float F = -obj.mass / dist;
-
-                            ddx = F * DX;
-                            ddy = F * DY;
-/*
-                            // Some distance factor here:
-                            // The farther away are the 2 objects, the lesser is the force between them
-                            factor /= dist;
-                            factor *= 100;
-
-                            if (dist > 123)
-                            {
-                                factor = 0;
-                            }
-*/
-/*
-                            if (dist >= 50)
-                            {
-                                factor = 0;
-                                factor /= (float)(distSquared);
-                            }
-                            else
-                            {
-                                //factor *= dist/10;
-                            }
-*/
-                        }
+                        ddx = F * DX;
+                        ddy = F * DY;
 
                         if (type == obj.type)
                         {
-                            if (dist >= 50)
-                            {
-                                factor = 0;
-                            }
-
                             switch (type)
                             {
                                 case ParticleType.One:
-                                    factor *= 500;
+
+                                    if (dist >= 1000)
+                                        factor = 0;
+
+                                    factor *= 5;
                                     break;
 
                                 case ParticleType.Two:
-                                    factor *= -100;
+                                    if (dist >= 1000)
+                                        factor = 0;
+
+                                    factor *= 3;
                                     break;
 
                                 case ParticleType.Three:
-                                    factor *= -50;
+                                    if (dist >= 1000)
+                                        factor = 0;
+
+                                    factor *= 2;
+                                    break;
+
+                                case ParticleType.Four:
+                                    if (dist >= 1000)
+                                        factor = 0;
+
+                                    factor *= 1;
                                     break;
                             }
 
-                            dx *= 0.999999f;
-                            dy *= 0.999999f;
+                            if (false)
+                            {
+                                dx *= 0.999999f;
+                                dy *= 0.999999f;
+                            }
                         }
                         else
                         {
-                            if (dist >= 50)
+                            if (dist >= 100)
                             {
                                 factor = 0;
                             }
-
-                            if ((type == ParticleType.One && obj.type == ParticleType.Two) ||
-                                (type == ParticleType.Two && obj.type == ParticleType.One)
-                            )
+                            else
                             {
-                                factor *= -200;
-                                dx += factor * ddx;
-                                dy += factor * ddy;
-                            }
+                                factor *= -1000;
 
-                            if ((type == ParticleType.Two   && obj.type == ParticleType.Three) ||
-                                (type == ParticleType.Three && obj.type == ParticleType.Two)
-                            )
-                            {
-                                factor *= -100;
-                                dx += factor * ddx;
-                                dy += factor * ddy;
-                            }
+                                switch (type)
+                                {
+                                    case ParticleType.One:
+                                        break;
 
-                            if ((type == ParticleType.One   && obj.type == ParticleType.Three) ||
-                                (type == ParticleType.Three && obj.type == ParticleType.One)
-                            )
-                            {
-                                factor *= -100;
-                                dx += factor * ddx;
-                                dy += factor * ddy;
+                                    case ParticleType.Two:
+                                        break;
+
+                                    case ParticleType.Three:
+                                        break;
+
+                                    case ParticleType.Four:
+                                        break;
+                                }
                             }
                         }
 
                         dx += factor * ddx;
                         dy += factor * ddy;
-
-                        int border = 33;
-
-                        if (x < border && dx < 0)
-                        {
-                            dx *= -1;
-                        }
-
-                        if (x > gl_Width - border && dx > 0)
-                        {
-                            dx *= -1;
-                        }
-
-                        if (y < border && dy < 0)
-                        {
-                            dy *= -1;
-                        }
-
-                        if (y > gl_Height - border && dy > 0)
-                        {
-                            dy *= -1;
-                        }
                     }
-                }
+#if true
+                    int border = 11;
+                    float reverseFactor = 0.99999f;
 
-                doCalc = false;
+                    if (x < border && dx < 0)
+                    {
+                        //dx *= -1;
+                        dx *= reverseFactor;
+                    }
+
+                    if (x > gl_Width - border && dx > 0)
+                    {
+                        //dx *= -1;
+                        dx *= reverseFactor;
+                    }
+
+                    if (y < border && dy < 0)
+                    {
+                        //dy *= -1;
+                        dy *= reverseFactor;
+                    }
+
+                    if (y > gl_Height - border && dy > 0)
+                    {
+                        //dy *= -1;
+                        dy *= reverseFactor;
+                    }
+#endif
+                }
             }
-            else
-            {
-                doCalc = true;
-                x += dx;
-                y += dy;
-            }
+
 /*
             For 2 points, the center of masses MC lies somewhere on the line between them.
             The distance from pt1 to MC, d = DIST / (m1/m2 + 1);
@@ -308,6 +292,9 @@ namespace my
 
         protected override void Show()
         {
+            x += dx;
+            y += dy;
+
             switch (shape)
             {
                 // Instanced squares
@@ -376,7 +363,8 @@ namespace my
                 list.Add(new myObj_043());
             }
 
-            var taskList = new List<System.Threading.Tasks.Task>();
+            int nTaskCount = Environment.ProcessorCount;
+            var taskList = new System.Threading.Tasks.Task[nTaskCount];
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -401,54 +389,28 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-#if true
-                    int n = 10;
-
-                    for (int taskNo = 0; taskNo < n; taskNo++)
+                    for (int k = 0; k < nTaskCount; k++)
                     {
-                        int start = (taskNo+0) * list.Count / n;
-                        int end   = (taskNo+1) * list.Count / n;
+                        int start = (k + 0) * list.Count / nTaskCount;
+                        int end   = (k + 1) * list.Count / nTaskCount;
 
                         var task = new System.Threading.Tasks.Task(() => {
 
                             for (int i = start; i < end; i++)
-                            {
-                                var obj = list[i] as myObj_043;
-                                obj.Move();
-                            }
+                                (list[i] as myObj_043).Move();
                         });
 
                         task.Start();
-                        taskList.Add(task);
+                        taskList[k] = task;
                     }
 
-                    System.Threading.Tasks.Task.WaitAll(taskList.ToArray());
+                    System.Threading.Tasks.Task.WaitAll(taskList);
 
                     for (int i = 0; i < list.Count; i++)
                     {
-                        var obj = list[i] as myObj_043;
-
-                        obj.Show();
-                        obj.Move();
+                        (list[i] as myObj_043).Show();
                     }
 
-                    taskList.Clear();
-#else
-
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        var obj = list[i] as myObj_043;
-                        obj.Show();
-                        obj.Move();
-                    }
-
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        var obj = list[i] as myObj_043;
-                        obj.Move();
-                    }
-
-#endif
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
