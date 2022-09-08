@@ -91,10 +91,7 @@ namespace my
             mass = rand.Next(3333) + 10;
             mass = 500;
 
-            size = mass / 500;
-
-            if (size == 0)
-                size = 1;
+            size = mass < 500 ? 1 : mass / 500;
 
             A = 0.5f;
             R = (float)rand.NextDouble();
@@ -158,7 +155,7 @@ namespace my
         protected override void Move()
         {
             double distSquared;
-            float DX = 0, DY = 0, ddx = 0, ddy = 0, dist = 0, F = 0, factor = 0;
+            float DX = 0, DY = 0, dist = 0, F = 0, factor = 0;
 
             for (int i = 0; i < list.Count; i++)
             {
@@ -173,13 +170,8 @@ namespace my
 
                     dist = (float)Math.Sqrt(DX * DX + DY * DY);
 
-                    if (dist > 0 && dist < 1000)
+                    if (dist > 0)
                     {
-                        F = -obj.mass / dist;
-
-                        ddx = F * DX;
-                        ddy = F * DY;
-
                         if (type == obj.type)
                         {
                             switch (type)
@@ -187,37 +179,31 @@ namespace my
                                 case ParticleType.One:
 
                                     if (dist >= 1000)
-                                        factor = 0;
+                                        factor *= 0.1f;
 
                                     factor *= 5;
                                     break;
 
                                 case ParticleType.Two:
                                     if (dist >= 1000)
-                                        factor = 0;
+                                        factor *= 0.1f;
 
                                     factor *= 3;
                                     break;
 
                                 case ParticleType.Three:
                                     if (dist >= 1000)
-                                        factor = 0;
+                                        factor *= 0.1f;
 
                                     factor *= 2;
                                     break;
 
                                 case ParticleType.Four:
                                     if (dist >= 1000)
-                                        factor = 0;
+                                        factor *= 0.1f;
 
                                     factor *= 1;
                                     break;
-                            }
-
-                            if (false)
-                            {
-                                dx *= 0.999999f;
-                                dy *= 0.999999f;
                             }
                         }
                         else
@@ -247,8 +233,22 @@ namespace my
                             }
                         }
 
-                        dx += factor * ddx;
-                        dy += factor * ddy;
+                        if (factor != 0)
+                        {
+                            F = -obj.mass / dist;
+
+                            dx += factor * F * DX;
+                            dy += factor * F * DY;
+                        }
+
+                        // Optional resisting force
+                        if (true)
+                        {
+                            float resistFactor = 0.99999f;
+
+                            dx *= resistFactor;
+                            dy *= resistFactor;
+                        }
                     }
 #if true
                     int border = 11;
@@ -366,6 +366,20 @@ namespace my
             int nTaskCount = Environment.ProcessorCount;
             var taskList = new System.Threading.Tasks.Task[nTaskCount];
 
+            // Define a delegate that prints and returns the system tick count
+            Func<object, int> action = (object obj) =>
+            {
+                int k = (int)obj;
+
+                int beg = (k + 0) * list.Count / nTaskCount;
+                int end = (k + 1) * list.Count / nTaskCount;
+
+                for (int i = beg; i < end; i++)
+                    (list[i] as myObj_043).Move();
+
+                return 0;
+            };
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -389,21 +403,30 @@ namespace my
                 {
                     inst.ResetBuffer();
 
+#if false
                     for (int k = 0; k < nTaskCount; k++)
                     {
-                        int start = (k + 0) * list.Count / nTaskCount;
-                        int end   = (k + 1) * list.Count / nTaskCount;
+                        int K = k;
 
                         var task = new System.Threading.Tasks.Task(() => {
 
-                            for (int i = start; i < end; i++)
+                            int beg = (K + 0) * list.Count / nTaskCount;
+                            int end = (K + 1) * list.Count / nTaskCount;
+
+                            for (int i = beg; i < end; i++)
                                 (list[i] as myObj_043).Move();
                         });
 
                         task.Start();
                         taskList[k] = task;
                     }
-
+#else
+                    for (int k = 0; k < nTaskCount; k++)
+                    {
+                        var task = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
+                        taskList[k] = task;
+                    }
+#endif
                     System.Threading.Tasks.Task.WaitAll(taskList);
 
                     for (int i = 0; i < list.Count; i++)
