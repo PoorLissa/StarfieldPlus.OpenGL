@@ -26,6 +26,10 @@ namespace my
         private static bool doClearBuffer = false, doFillShapes = true;
         private static float dimAlpha = 0.5f;
 
+        private static int border = 3;
+        private static float reverseFactor = 0.99999f;
+        private static float resistFactor  = 0.99999f;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_043()
@@ -243,16 +247,12 @@ namespace my
                         // Optional resisting force
                         if (true)
                         {
-                            float resistFactor = 0.99999f;
-
                             dx *= resistFactor;
                             dy *= resistFactor;
                         }
                     }
-#if true
-                    int border = 3;
-                    float reverseFactor = 0.99999f;
 
+#if false
                     if (x < border && dx < 0)
                     {
                         //dx *= -1;
@@ -363,6 +363,7 @@ namespace my
             }
 
             int nTaskCount = Environment.ProcessorCount;
+            nTaskCount = 100;
             var taskList = new System.Threading.Tasks.Task[nTaskCount];
 
             // Define a delegate that prints and returns the system tick count
@@ -379,9 +380,25 @@ namespace my
                 return 0;
             };
 
+            for (int k = 0; k < nTaskCount; k++)
+            {
+                var task = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
+                taskList[k] = task;
+            }
+
+            var t1 = System.DateTime.Now.Ticks;
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
+
+                if (cnt == 100)
+                {
+                    var tDiff = (System.DateTime.Now.Ticks - t1);
+                    TimeSpan elapsedSpan = new TimeSpan(tDiff);
+                    System.Windows.Forms.MessageBox.Show($"{elapsedSpan.TotalMilliseconds}", "...", System.Windows.Forms.MessageBoxButtons.OK);
+                    break;
+                }
 
                 processInput(window);
 
@@ -402,35 +419,20 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-#if false
-                    for (int k = 0; k < nTaskCount; k++)
+                    // Wait untill all the tasks have finished
+                    System.Threading.Tasks.Task.WaitAll(taskList);
+
+                    // Draw everything to the Inst
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        int K = k;
-
-                        var task = new System.Threading.Tasks.Task(() => {
-
-                            int beg = (K + 0) * list.Count / nTaskCount;
-                            int end = (K + 1) * list.Count / nTaskCount;
-
-                            for (int i = beg; i < end; i++)
-                                (list[i] as myObj_043).Move();
-                        });
-
-                        task.Start();
-                        taskList[k] = task;
+                        (list[i] as myObj_043).Show();
                     }
-#else
+
+                    // Restart all the tasks
                     for (int k = 0; k < nTaskCount; k++)
                     {
                         var task = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
                         taskList[k] = task;
-                    }
-#endif
-                    System.Threading.Tasks.Task.WaitAll(taskList);
-
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        (list[i] as myObj_043).Show();
                     }
 
                     if (doFillShapes)
