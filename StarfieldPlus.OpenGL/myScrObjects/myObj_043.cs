@@ -154,12 +154,11 @@ namespace my
 
         protected override void Move()
         {
-            double distSquared;
             float DX = 0, DY = 0, dist = 0, F = 0, factor = 0;
 
             for (int i = 0; i < list.Count; i++)
             {
-                var obj = list[i] as myObj_043;
+                var obj = (myObj_043)(list[i]);
 
                 if (obj != this)
                 {
@@ -235,10 +234,10 @@ namespace my
 
                         if (factor != 0)
                         {
-                            F = -obj.mass / dist;
+                            F = factor * obj.mass / dist;
 
-                            dx += factor * F * DX;
-                            dy += factor * F * DY;
+                            dx -= F * DX;
+                            dy -= F * DY;
                         }
 
                         // Optional resisting force
@@ -251,7 +250,7 @@ namespace my
                         }
                     }
 #if true
-                    int border = 11;
+                    int border = 3;
                     float reverseFactor = 0.99999f;
 
                     if (x < border && dx < 0)
