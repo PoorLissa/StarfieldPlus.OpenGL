@@ -23,7 +23,7 @@ namespace my
         private ParticleType type;
 
         private static int N = 0, shape = 0;
-        private static bool doClearBuffer = false, doFillShapes = true;
+        private static bool doClearBuffer = false, doFillShapes = true, doUseRandomMass = false;
         private static float dimAlpha = 0.05f;
 
         private static int border = 3;
@@ -55,7 +55,9 @@ namespace my
 
             N = (N == 0) ? 100 + rand.Next(100) : N;
 
-            N = 4500;
+            N = 3333;
+
+            doUseRandomMass = myUtils.randomBool(rand);
 
             return;
         }
@@ -91,9 +93,15 @@ namespace my
             dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
             dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
 
-            //mass = rand.Next(100) == 0 ? 10000 : 500;
-            mass = rand.Next(3333) + 10;
-            //mass = 500;
+            if (doUseRandomMass)
+            {
+                mass = rand.Next(3333) + 10;
+                //mass *= rand.Next(100) == 0 ? 10 : 1;
+            }
+            else
+            {
+                mass = 500;
+            }
 
             size = mass < 500 ? 1 : mass / 500;
 
@@ -177,9 +185,9 @@ namespace my
                     {
                         if (type == obj.type)
                         {
-                            if (dist < 10)
+                            if (dist < 20)
                             {
-                                factor *= -1000;
+                                factor *= dist < 10 ? -1000 : -500;
                             }
                             else
                             {
@@ -239,20 +247,25 @@ namespace my
                             }
                             else
                             {
-                                factor *= -1000;
+                                //factor *= -1000;
+                                //factor *= aaa;
 
                                 switch (type)
                                 {
                                     case ParticleType.One:
+                                        factor *= 3;
                                         break;
 
                                     case ParticleType.Two:
+                                        factor *= 3;
                                         break;
 
                                     case ParticleType.Three:
+                                        factor *= 3;
                                         break;
 
                                     case ParticleType.Four:
+                                        factor *= 3;
                                         break;
                                 }
                             }
@@ -266,6 +279,11 @@ namespace my
                             dy -= F * DY;
                         }
 
+                        // Another resisting force
+                        dx *= (1.0f - 0.00001f);
+                        dy *= (1.0f - 0.00001f);
+
+#if false
                         // Optional resisting force
                         if (dist < 10)
                         {
@@ -277,6 +295,7 @@ namespace my
                             dx *= resistFactor * 1.00000001f;
                             dy *= resistFactor * 1.00000001f;
                         }
+#endif
                     }
 
 #if false
@@ -370,6 +389,8 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        static int aaa = 1;
+
         protected override void Process(Window window)
         {
             uint cnt = 0;
@@ -418,6 +439,18 @@ namespace my
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
+
+                if (cnt == 3000)
+                {
+                    aaa = -10000;
+                }
+
+                if (cnt == 3100)
+                {
+                    aaa = 1;
+                    cnt = 0;
+                }
+
 /*
                 if (cnt == 1000)
                 {
