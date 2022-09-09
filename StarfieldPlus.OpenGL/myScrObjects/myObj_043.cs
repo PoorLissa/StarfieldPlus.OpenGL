@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, shape = 0;
         private static bool doClearBuffer = false, doFillShapes = true;
-        private static float dimAlpha = 0.5f;
+        private static float dimAlpha = 0.05f;
 
         private static int border = 3;
         private static float reverseFactor = 0.99999f;
@@ -55,7 +55,7 @@ namespace my
 
             N = (N == 0) ? 100 + rand.Next(100) : N;
 
-            N = 9999;
+            N = 4500;
 
             return;
         }
@@ -93,7 +93,7 @@ namespace my
 
             //mass = rand.Next(100) == 0 ? 10000 : 500;
             mass = rand.Next(3333) + 10;
-            mass = 500;
+            //mass = 500;
 
             size = mass < 500 ? 1 : mass / 500;
 
@@ -123,30 +123,30 @@ namespace my
 
             if (type == ParticleType.One)
             {
-                R = 0.50f + (float)(rand.NextDouble() * 0.5);
-                G = 0.25f;
-                B = 0.15f;
+                R = 0.50f + (float)(rand.NextDouble() * 0.50);
+                G = 0.20f + (float)(rand.NextDouble() * 0.10);
+                B = 0.10f + (float)(rand.NextDouble() * 0.10);
             }
 
             if (type == ParticleType.Two)
             {
-                R = 0.1f;
+                R = 0.10f + (float)(rand.NextDouble() * 0.10);
                 G = 0.50f + (float)(rand.NextDouble() * 0.25);
-                B = 0.1f;
+                B = 0.10f + (float)(rand.NextDouble() * 0.10);
             }
 
             if (type == ParticleType.Three)
             {
-                R = 0.15f;
-                G = 0.45f;
+                R = 0.10f + (float)(rand.NextDouble() * 0.10);
+                G = 0.45f + (float)(rand.NextDouble() * 0.10);
                 B = 0.50f + (float)(rand.NextDouble() * 0.33);
             }
 
             if (type == ParticleType.Four)
             {
-                R = 1.0f / 250 * 245;
-                G = 1.0f / 250 * 180;
-                B = 1.0f / 250 *  40;
+                R = 1.0f / 250 * 245 + (float)(rand.NextDouble() * 0.10);
+                G = 1.0f / 250 * 180 + (float)(rand.NextDouble() * 0.10);
+                B = 1.0f / 250 *  40 + (float)(rand.NextDouble() * 0.10);
             }
 
             return;
@@ -177,36 +177,58 @@ namespace my
                     {
                         if (type == obj.type)
                         {
-                            switch (type)
+                            if (dist < 10)
                             {
-                                case ParticleType.One:
+                                factor *= -1000;
+                            }
+                            else
+                            {
+                                switch (type)
+                                {
+                                    case ParticleType.One:
 
-                                    if (dist >= 1000)
-                                        factor *= 0.1f;
+                                        if (dist >= 222)
+                                            factor *= 0.1f;
 
-                                    factor *= 5;
-                                    break;
+                                        if (dist > 333)
+                                            factor *= 0.05f;
 
-                                case ParticleType.Two:
-                                    if (dist >= 1000)
-                                        factor *= 0.1f;
+                                        factor *= 5;
+                                        break;
 
-                                    factor *= 3;
-                                    break;
+                                    case ParticleType.Two:
 
-                                case ParticleType.Three:
-                                    if (dist >= 1000)
-                                        factor *= 0.1f;
+                                        if (dist >= 222)
+                                            factor *= 0.1f;
 
-                                    factor *= 2;
-                                    break;
+                                        if (dist > 333)
+                                            factor *= 0.03f;
 
-                                case ParticleType.Four:
-                                    if (dist >= 1000)
-                                        factor *= 0.1f;
+                                        factor *= 3;
+                                        break;
 
-                                    factor *= 1;
-                                    break;
+                                    case ParticleType.Three:
+
+                                        if (dist >= 222)
+                                            factor *= 0.1f;
+
+                                        if (dist > 333)
+                                            factor *= 0.02f;
+
+                                        factor *= 2;
+                                        break;
+
+                                    case ParticleType.Four:
+
+                                        if (dist >= 222)
+                                            factor *= 0.1f;
+
+                                        if (dist > 333)
+                                            factor *= 0.01f;
+
+                                        factor *= 1;
+                                        break;
+                                }
                             }
                         }
                         else
@@ -245,10 +267,15 @@ namespace my
                         }
 
                         // Optional resisting force
-                        if (true)
+                        if (dist < 10)
                         {
                             dx *= resistFactor;
                             dy *= resistFactor;
+                        }
+                        else
+                        {
+                            dx *= resistFactor * 1.00000001f;
+                            dy *= resistFactor * 1.00000001f;
                         }
                     }
 
@@ -391,15 +418,15 @@ namespace my
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
-
-                if (cnt == 100)
+/*
+                if (cnt == 1000)
                 {
                     var tDiff = (System.DateTime.Now.Ticks - t1);
                     TimeSpan elapsedSpan = new TimeSpan(tDiff);
-                    System.Windows.Forms.MessageBox.Show($"{elapsedSpan.TotalMilliseconds}", "...", System.Windows.Forms.MessageBoxButtons.OK);
+                    System.Windows.Forms.MessageBox.Show($"{elapsedSpan.TotalMilliseconds}", $"fps = {1000 * cnt/ elapsedSpan.TotalMilliseconds}", System.Windows.Forms.MessageBoxButtons.OK);
                     break;
                 }
-
+*/
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
