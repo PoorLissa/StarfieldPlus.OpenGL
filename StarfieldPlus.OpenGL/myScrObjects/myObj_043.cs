@@ -24,14 +24,14 @@ namespace my
         private float dxf = 0, dyf = 0, x = 0, y = 0, time, A, size, dSize;
         private bool isActive = false;
 
-        static int x0 = 0, y0 = 0, moveMode = -1, drawMode = -1, speedMode = -1, colorMode = -1, maxA = 255, t = -1, shape = 0;
+        static int x0 = 0, y0 = 0, moveMode = -1, speedMode = -1, colorMode = -1, connectionMode = -1, maxA = 255, t = -1, shape = 0;
         static bool generationAllowed = false, isRandomMove = false, isBorderScared = false, isFirstIteration = true, doUpdateConstants = true;
         static bool doClearBuffer = false, doFillShapes = false;
         static float time_global = 0, dtGlobal = 0, dtCommon = 0;
 
         static int si1 = 0;
         static float sf2 = 0, sf3 = 0;
-        static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, da = 1.0f/256;
+        static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, da = 1.0f/256, lineA = 0.1f;
         static float dimAlpha = 0.05f;
 
         static trigonometricFunc trigFunc1 = null;
@@ -62,11 +62,11 @@ namespace my
             gl_y0 = y0 = gl_Height / 2;
 
             shape = rand.Next(5);
-            drawMode = rand.Next(7);
             moveMode = rand.Next(N);
 moveMode = 6;
 
             doFillShapes = myUtils.randomBool(rand);
+            connectionMode = rand.Next(9);
 
             speedMode = rand.Next(2);
             colorMode = rand.Next(2);
@@ -81,6 +81,8 @@ moveMode = 6;
 
             generationAllowed = true;
             isRandomMove = rand.Next(10) == 0;
+
+            lineA += (float)rand.NextDouble() / 8;
 
 #if false
                 // Override Move()
@@ -285,6 +287,37 @@ moveMode = 6;
 
         protected override void Show()
         {
+            switch (connectionMode)
+            {
+                // Only shapes, no lines at all
+                case 0:
+                    break;
+
+                // Small shapes of const size + white lines
+                case 1:
+                case 2:
+                case 3:
+                    size = connectionMode;
+                    myPrimitive._LineInst.setInstanceCoords(X, Y, oldX, oldY);
+                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, lineA);
+                    break;
+
+                // Normal shapes + white lines
+                case 4:
+                case 5:
+                case 6:
+                    myPrimitive._LineInst.setInstanceCoords(X, Y, oldX, oldY);
+                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, lineA);
+                    break;
+
+                // Only ARGB lines
+                case 7:
+                case 8:
+                    myPrimitive._LineInst.setInstanceCoords(X, Y, oldX, oldY);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A*2);
+                    return;
+            }
+
             switch (shape)
             {
                 // Instanced squares
@@ -380,6 +413,7 @@ moveMode = 6;
                 // Render frame
                 {
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i < list.Count; i++)
                     {
@@ -389,6 +423,11 @@ moveMode = 6;
                         obj.Move();
 
                         cntActive += obj.isActive ? 1 : 0;
+                    }
+
+                    if (connectionMode > 0)
+                    {
+                        myPrimitive._LineInst.Draw();
                     }
 
                     if (doFillShapes)
@@ -445,6 +484,8 @@ moveMode = 6;
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
+            myPrimitive.init_LineInst(N);
+
             base.initShapes(shape, N, 0);
 
             return;
