@@ -188,6 +188,11 @@ namespace my
                             if (dist < 20)
                             {
                                 factor *= dist < 10 ? -1000 : -500;
+
+                                if (!doUseRandomMass)
+                                {
+                                    factor *= 10;
+                                }
                             }
                             else
                             {
