@@ -624,7 +624,7 @@ namespace my
 
             glDrawBuffer(GL_FRONT_AND_BACK);
 
-            // Disable VSYNC, as we nee to draw fast in this mode
+            // Disable VSYNC, as we need to draw fast in this mode
             Glfw.SwapInterval(0);
 
             for (int i = 0; i < N; i++)
