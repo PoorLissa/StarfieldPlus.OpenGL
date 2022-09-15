@@ -24,12 +24,12 @@ namespace my
         private float dxf = 0, dyf = 0, x = 0, y = 0, time, A, size, dSize;
         private bool isActive = false;
 
-        static int x0 = 0, y0 = 0, moveMode = -1, speedMode = -1, colorMode = -1, connectionMode = -1, maxA = 255, t = -1, shape = 0;
+        static int x0 = 0, y0 = 0, moveMode = -1, speedMode = -1, colorMode = -1, connectionMode = -1, t = -1, shape = 0;
         static bool generationAllowed = false, isRandomMove = false, isBorderScared = false, isFirstIteration = true, doUpdateConstants = true;
         static bool doClearBuffer = false, doFillShapes = false;
         static float time_global = 0, dtGlobal = 0, dtCommon = 0;
 
-        static int si1 = 0;
+        static int si1 = 0, si2 = 0, moveModeCnt = 114;
         static float sf2 = 0, sf3 = 0;
         static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, da = 1.0f/256, lineA = 0.1f;
         static float dimAlpha = 0.05f;
@@ -62,35 +62,33 @@ namespace my
             gl_y0 = y0 = gl_Height / 2;
 
             shape = rand.Next(5);
-            moveMode = rand.Next(N);
-moveMode = 6;
-
+            moveMode = rand.Next(moveModeCnt + 1);
+//moveMode = 114;
             doFillShapes = myUtils.randomBool(rand);
             connectionMode = rand.Next(9);
 
             speedMode = rand.Next(2);
             colorMode = rand.Next(2);
-            maxA = rand.Next(100) + 100;
             t = rand.Next(15) + 10;
             dtGlobal = 0.15f;
 
-            colorPicker.getColorRand(ref R, ref G, ref B);
+            getNewColor();
             updateConstants();
 
             dtCommon = 0;
 
             generationAllowed = true;
-            isRandomMove = rand.Next(10) == 0;
+            isRandomMove = myUtils.randomChance(rand, 1, 10);
 
             lineA += (float)rand.NextDouble() / 8;
 
 #if false
-                // Override Move()
-                moveMode = 106;
-                drawMode = 2;
-                t = 1;
-                isRandomMove = false;
-                updateConstants();
+            // Override Move()
+            moveMode = 106;
+            drawMode = 2;
+            t = 1;
+            isRandomMove = false;
+            updateConstants();
 #endif
 
             return;
@@ -102,8 +100,12 @@ moveMode = 6;
         {
             string str = $"Obj = myObj_043\n\n" +
                             $"N = {N} ({list.Count})\n" +
-                            $""
-                ;
+                            $"shape = {shape}\n" +
+                            $"colorMode = {colorMode}\n" +
+                            $"moveMode = {moveMode}\n" +
+                            $"connectionMode = {connectionMode}\n" +
+                            $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}\n sf2 = {sf2}\n sf3 = {sf3}"
+;
             return str;
         }
 
@@ -177,6 +179,8 @@ moveMode = 6;
             oldX = X;
             oldY = Y;
 
+            // Every option that uses constants will have them changed in updateConstants()
+
             switch (moveMode)
             {
                 // --- option 1 ---
@@ -202,21 +206,648 @@ moveMode = 6;
                     y += dyf;
                     break;
 
-                // experimental yet:
+                // --- option 3 ---
                 case 6:
+                    time += (float)(rand.Next(999) / 1000.0f);
+
+                    x += dxf + (float)(Math.Sin(time) * sf2);
+                    y += dyf + (float)(Math.Cos(time) * sf2);
+                    break;
+
+                // --- option 4 ---
+                case 7:
+                    time += 0.1f;
+
+                    x += dxf + (float)(Math.Sin(time) * sf2);
+                    y += dyf + (float)(Math.Cos(time) * sf2);
+                    break;
+
+                // --- option 5 ---
+                case 8:
+                    time += 0.001f + (rand.Next(10)) * 0.005f;
+
+                    x += dxf + (float)(Math.Sin(time) * sf2);
+                    y += dyf + (float)(Math.Cos(time) * sf2);
+                    break;
+
+                // --- option 6 --- Hair like 
+                case 9:
+                case 10:
+                case 11:
+                case 12:
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                    time += dtCommon;
+
+                    x += dxf + (float)(Math.Sin(time * dxf) * sf2);
+                    y += dyf + (float)(Math.Sin(time * dyf) * sf2);
+                    break;
+
+                // --- option 7 --- Spiraling Wheels
+                case 17:
+                case 18:
+                case 19:
+                case 20:
+                case 21:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time + dyf) * time * sf2;
+                    y += (float)Math.Cos(time + dyf) * time * sf2;
+                    break;
+
+                // --- option 8 --- Stars with Spiraling Rays
+                case 22:
+                case 23:
+                    time += dtCommon;
+
+                    x += (float)(Math.Sin(time + dyf) * sf2) * time;
+                    y += (float)(Math.Cos(time + dyf) * sf2) * time;
+                    break;
+
+                // --- option 9 --- Spiraling Squares
+                case 24:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time + dyf) * time * sf2;
+                    y += (float)Math.Cos(time + dxf) * time * sf2;
+                    break;
+
+                // --- option 10 --- Spiraling Eights
+                case 25:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time * 1) * time * sf2;
+                    y += (float)Math.Cos(time * 2) * time * sf2;
+                    break;
+
+                // --- option 11 --- Balls of Strings
+                case 26:
+                case 27:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time * dyf) * time * sf2;
+                    y += (float)Math.Cos(time * dyf) * time * sf2;
+                    break;
+
+                // --- option 12 --- Spiraling Wheels, ver2
+                case 28:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time + dxf) * time * dyf * sf2;
+                    y += (float)Math.Cos(time + dxf) * time * dyf * sf2;
+                    break;
+
+                // --- option 13 --- Zigzagging Rays
+                case 29:
+                case 30:
+                case 31:
+                case 32:
+                    time += dtCommon;
+                    time += (float)(Math.Sin(time) * sf3);
+
+                    x += (float)Math.Sin(time + dxf) * time * dyf * sf2;
+                    y += (float)Math.Cos(time + dxf) * time * dyf * sf2;
+                    break;
+
+                // --- option 14 --- Straight rays from spiralling center
+                case 33:
+                    time += dtCommon;
+                    time += (float)(Math.Sin(time) * sf3);
+
+                    x += (float)Math.Sin(time + dxf) * time * dyf * sf2;
+                    y += (float)Math.Cos(time + dxf) * time * dyf * sf2;
+                    break;
+
+                // --- option 15 --- Stars with straight rays
+                case 34:
+                case 35:
+                case 36:
+                    time += dtCommon;
+                    time += (float)(Math.Sin(time) * sf3);
+
+                    x += (float)Math.Sin(time + dxf) * time * dyf * sf2;
+                    y += (float)Math.Cos(time + dxf) * time * dyf * sf2;
+                    break;
+
+                // --- option 16 --- Curled fishing line
+                case 37:
+                case 38:
+                case 39:
+                    time += dtCommon;
+                    time += (float)Math.Tan(time) / sf3;
+
+                    x += (float)Math.Sin(time + dxf) * dyf * time * sf2;
+                    y += (float)Math.Cos(time + dxf) * dyf * time * sf2;
+                    break;
+
+                // --- option 17 --- Various shapes with ever increasing dtCommon
+                case 40:
+                case 41:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time + dxf) * dyf * time * sf2;
+                    y += (float)Math.Cos(time + dxf) * dyf * time * sf2;
+                    break;
+
+                // --- option 18 --- Various shapes with ever increasing dtCommon
+                case 42:
+                    time += dtCommon;
+                    time += (float)(Math.Sin(time)) / sf3;
+
+                    x += (float)Math.Sin(time + dxf) * dyf * time * sf2;
+                    y += (float)Math.Cos(time + dxf) * dyf * time * sf2;
+                    break;
+
+                // --- option 19 --- Waves of Spirals
+                case 43:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time + dxf) * time * time * sf2;
+                    y += (float)Math.Cos(time + dxf) * time * time * sf2;
+                    break;
+
+                // --- option 20 --- Shifting Spirals Family
+                case 44:
+                case 45:
+                case 46:
+                case 47:
+                    time += dtCommon;
+
+                    x += dxf * c;
+                    y += dyf * c;
+
+                    x += (float)Math.Sin(a * time + b * dxf) * time_global * sf2;
+                    y += (float)Math.Cos(a * time + b * dxf) * time_global * sf2;
+                    break;
+
+                // --- option 21 --- Circles -- do I have it already?..
+                case 48:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time + dyf * sf3) * time * sf2;
+                    y += (float)Math.Cos(time + dyf * sf3) * time * sf2;
+                    break;
+
+                // --- option 22 --- Square stuff
+                case 49:
+                    time += dtCommon;
+
+                    x += (float)Math.Sin(time) * dxf * time * sf2;
+                    y += (float)Math.Cos(time) * dyf * time * sf2;
+                    break;
+
+                // --- option 23 ---
+                case 50:
+                    time += dtCommon;
+
+                    x += dxf;
+                    y += dyf * (float)Math.Cos(time) * sf2;
+                    break;
+
+                // --- option 24 ---
+                case 51:
+                    time += dtCommon;
+
+                    x += dxf;
+                    y += dyf * (float)Math.Sin(time) * sf2;
+                    break;
+
+                // --- option 25 ---
+                case 52:
+                    time += dtCommon;
+
+                    x += dxf;
+                    y += dyf * (float)Math.Tan(time) * sf2;
+                    break;
+
+                // --- option 26 ---
+                case 53:
+                    time += dtCommon;
+
+                    x += dxf * (float)Math.Sin(time) * sf2;
+                    y += dyf / sf3;
+                    break;
+
+                // --- option 27 ---
+                case 54:
+                    time += dtCommon;
+
+                    x += (int)(Math.Sin(time * dyf) * sf2 + time * sf3);
+                    y += (int)(Math.Cos(time * dxf) * sf2 + time * sf3);
+                    break;
+
+                // --- option 26 --- Scepter Jellyfishes
+                case 55:
+                    time += dtCommon;
+
+                    x += (float)(Math.Sin(time + dyf) * a + time * si1) * sf2;
+                    y += (float)(Math.Cos(time + dxf) * a + time * si1) * sf2;
+                    break;
+
+                // --- option 27 --- Metro Maps
+                case 56:
+                case 57:
+                    time += dtCommon;
+
+                    x += (int)(Math.Sin(time * a + dyf * b) * sf3 + time * sf2);
+                    y += (int)(Math.Cos(time * a + dxf * b) * sf3 + time * sf2);
+                    break;
+
+                // --- option 28 ---
+                case 58:
+                    time += dtCommon;
+
+                    x += dxf * sf3;
+                    y += dyf * sf3;
+
+                    x += (int)(Math.Sin(time) * sf2) * a;
+                    y += (int)(Math.Cos(time) * sf2) * a;
+                    break;
+
+                // --- option 29 ---
+                case 59:
+                    time += dtCommon;
+
+                    x += dxf + (int)(Math.Sin(time * dxf) * sf2) * sf3;
+                    y += dyf + (int)(Math.Sin(time * dyf) * sf2) * sf3;
+                    break;
+
+                // --- option 30 --- Pasta Monsters - 1
+                case 60:
+                case 61:
+                    time += dtCommon;
+                    c = (float)(trigFunc3(time_global));    // This turns spirals into random tentacles
+
+                    x += dxf * c * sf3;
+                    y += dyf * c * sf3;
+
+                    x += (float)(trigFunc1(a * time + b * dxf)) * sf2 * time_global;
+                    y += (float)(trigFunc2(a * time + b * dxf)) * sf2 * time_global;
+                    break;
+
+                // --- option 31 --- Pasta Monsters - 2
+                case 62:
+                case 63:
+                case 64:
+                    time += dtCommon;
+
+                    switch (moveMode)
+                    {
+                        case 62:
+                            sf3 = (float)(Math.Sin(time_global)); // <------ + play with dt
+                            break;
+
+                        case 63:
+                            sf3 = (float)(Math.Sin(time_global * dyf * dxf));   // This produces Alien Tail Shapes
+                            break;
+
+                        case 64:
+                            a = 0.25f * (rand.Next(3) - 1);
+                            sf3 = 1.55f;
+                            c = 0.10f;
+                            break;
+                    }
+
+                    x += dxf * c;
+                    y += dyf * c;
+
+                    x += (float)(Math.Sin(a * time + sf3 * dxf)) * sf2 * time_global;
+                    y += (float)(Math.Cos(a * time + sf3 * dxf)) * sf2 * time_global;
+                    break;
+
+                // --- option 32 --- Fractal-like Flowers - 1
+                case 65:
+                case 66:
+                case 67:
+                    time += dtCommon;
+
+                    // This is what makes it fractal-like
+                    sf3 = b * time_global * time;
+
+                    x += dxf * c;
+                    y += dyf * c;
+
+                    if (moveMode != 67)
+                    {
+                        x += (float)Math.Sin(a * time + sf3 * dxf) * sf2 * time_global;
+                        y += (float)Math.Cos(a * time + sf3 * dxf) * sf2 * time_global;
+                    }
+                    else
+                    {
+                        // todo: mostly everything with sin/cos can be turned square this way
+                        x += (int)(Math.Sin(a * time + sf3 * dxf) * 1.25f) * sf2 * time_global;
+                        y += (int)(Math.Cos(a * time + sf3 * dxf) * 1.25f) * sf2 * time_global;
+                    }
+                    break;
+
+                // --- option 33 --- Fractal-like Flowers - 2
+                case 68:
+                case 69:
+                case 70:
+                case 71:
+                    time += dtCommon;
+
+                    sf3 = time_global * time * b;
+
+                    x += (float)Math.Sin(a * time + sf3) * sf2;
+                    y += (float)Math.Cos(a * time + sf3) * sf2;
+                    break;
+
+                // --- option 34 --- Fractal-like Flowers - 3 -- to int
+                case 72:
+                case 73:
+                    time += dtCommon;
+
+                    sf3 = time_global * time * b;
+
+                    x += (int)(Math.Sin(a * time_global + sf3) * c) * sf2;
+                    y += (int)(Math.Cos(a * time_global + sf3) * c) * sf2;
+                    break;
+
+                // --- option 35 ---
+                case 74:
+                case 75:
+                case 76:
+                case 77:
+                    time += dtCommon;
+
+                    sf3 = time_global * time;
+
+                    x += (float)Math.Sin(a * time + sf3) * (float)Math.Sin(sf3) * sf2;
+                    y += (float)Math.Cos(a * time + sf3) * (float)Math.Sin(sf3) * sf2;
+                    break;
+
+                // --- option 36 --- Diagonal Strangeness
+                case 78:
+                case 79:
+                case 80:
+                    sf2 = dxf;  // tmp to swap
+                    dxf = dyf;
+                    dyf = sf2;
+
+                    x += (dxf * a);
+                    y += (dyf * b / sf3);
+                    break;
+
+                // --- option 37 ---
+                case 81:
+                    dxf *= (float)Math.Sin(dxf);
+                    dyf *= (float)Math.Cos(dyf);
+                    x += (int)(dxf * a);
+                    y += (int)(dyf * b);
+                    break;
+
+                // --- option 38 ---
+                case 82:
+                    dxf += (float)Math.Sin(dxf);
+                    dyf += (float)Math.Sin(dyf);
+                    x += (dxf * a);
+                    y += (dyf * b);
+                    break;
+
+                case 83:
+                    dxf += (float)Math.Sin(dxf);
+                    dyf += (float)Math.Sin(dyf);
+                    x += (int)(dxf * a);
+                    y += (int)(dyf * b);
+                    break;
+
+                // --- option 39 ---
+                case 84:
+                    dxf += dxf > 0 ? a : -a;
+                    dyf += dyf > 0 ? b : -b;
+
+                    x += dxf / c;
+                    y += dyf / c;
+                    break;
+
+                // --- option 40 ---
+                case 85:
+                    x += (float)Math.Sin(X * dxf) * c;
+                    y += (float)Math.Cos(Y * dyf) * c;
+                    break;
+
+                case 86:
+                    x += (int)(Math.Sin(X * dxf) * 2.0f) * c;
+                    y += (int)(Math.Cos(Y * dyf) * 2.0f) * c;
+                    break;
+
+                // --- option 41 ---
+                case 87:
+                    x += (float)Math.Tan(X * dxf) * c;
+                    y += (float)Math.Tan(Y * dyf) * c;
+                    break;
+
+                case 88:
+                    x += (int)Math.Tan(X * dxf) * c;
+                    y += (int)Math.Tan(Y * dyf) * c;
+                    break;
+
+                // --- option 42 ---
+                case 89:
+                    x += (int)(Math.Sin(x + dxf) * c);
+                    y += (int)(Math.Sin(y + dyf) * c);
+                    break;
+
+                // --- option 43 ---
+                case 90:
+                    x += (int)(Math.Sin(x + dxf / 5000) * c);
+                    y += (int)(Math.Cos(y + dyf / 5000) * c);
+                    break;
+
+                // --- option 44 ---
+                case 91:
+                    x += (int)(Math.Sin(x + dxf / si1) * c);
+                    y += (int)(Math.Cos(y + dyf / si1) * c);
+                    break;
+
+                // --- option 45 ---
+                case 92:
+                    // 9: hair like and also with less dt is a better distributed metro maps
+                    time += dtCommon;
+                    x += (int)(Math.Sin(time + dyf) * sf2 + dxf * time) / si1;
+                    y += (int)(Math.Cos(time + dxf) * sf2 + dyf * time) / si1;
+                    break;
+
+                // --- option 46 ---
+                case 93:
+                case 94:
+                case 95:
+                case 96:
+                case 97:
+                    time += dtCommon;
+
+                    x += (int)(Math.Sin(Y + time * dxf) * sf2 * time) * si1;
+                    y += (int)(Math.Cos(X + time * dyf) * sf2 * time) * si1;
+                    break;
+
+                case 98:
+                    x += (int)(Math.Sin(x + dxf) * c) * 3;
+                    y += (float)(Math.Sin(y + dyf) * c) * 3;
+                    break;
+
+                case 99:
+                    time += dtCommon;
+
+                    x += dxf * (int)(Math.Sin(time) * 1.33f) * sf2;
+                    y += dyf * (float)(Math.Sin(time) * 1.33f) * sf2;
+                    break;
+
+                // --- option 47 ---
+                case 100:
+                    a = rand.Next(si1) + 2;
+                    b = rand.Next(si1) + 2;
+
+                    x += (int)(dxf / a) * a * sf2;
+                    y += (int)(dyf / b) * b * sf2;
+                    break;
+
+                // --- option 48 --- Swasticas
+                case 101:
+                case 102:
+                    time += dtCommon;
+
+                    x += (int)(Math.Sin(time + dxf * dyf) * a) * sf2 * time / 5;
+                    y += (int)(Math.Cos(time + dxf * dyf) * b) * sf2 * time / 5;
+                    break;
+
+                case 103:
+                    time += dtCommon;
+
+                    x += (float)(Math.Sin(time * dxf) * a);
+                    y += (float)(Math.Sin(time * dyf) * b);
+
+                    x += (int)(Math.Sin(time + dxf * dyf) * a) * sf2 * time / 5;
+                    y += (int)(Math.Cos(time + dxf * dyf) * b) * sf2 * time / 5;
+                    break;
+
+                // --- option 49 ---
+                case 104:
+                    time += dtCommon;
+                    x += (int)(Math.Sin(time * dxf) * a);
+                    y += (int)(Math.Sin(time * dyf) * b);
+                    break;
+
+                // --- option 50 ---
+                case 105:
+                    time += dtCommon;
+
+                    sf2 = (float)(Math.Sin(time_global * time) * a);
+
+                    if (sf2 != 0)
+                    {
+                        x += 5 * dxf / (sf2);
+                        y += 5 * dyf / (sf2);
+                    }
+                    break;
+
+                // --- option 51 --- Submarine Blueprints
+                case 106:
+                    time += dtCommon;
+
+                    sf2 = (float)(Math.Sin(time_global * time) * a + 0.0001f);
+                    sf3 = (float)(Math.Cos(time_global * time) * a + 0.0001f);
+
+                    x += 5 * dxf / (sf2);
+                    y += 5 * dyf / (sf3);
+                    break;
+
+                // --- option 52 ---
+                case 107:
+                case 108:
                     x += dxf;
                     y += dyf;
 
-                    x += (int)(Math.Sin(dxf) * 3);
-                    y += (int)(Math.Sin(dyf) * 3);
+                    x += (int)(Math.Sin(dxf) * si1);
+                    y += (int)(Math.Sin(dyf) * si1);
 
-                    dxf *= 0.975f;
-                    dyf *= 0.975f;
-
-                    sf2 = 2.0f;
+                    dxf *= sf3;
+                    dyf *= sf3;
 
                     dxf *= (float)rand.NextDouble() * sf2;
                     dyf *= (float)rand.NextDouble() * sf2;
+                    break;
+
+                // --- option 53 ---
+                case 109:
+                    if (rand.Next(2) == 0)
+                    {
+                        x += (dyf / dxf) * myUtils.randomSign(rand) * sf2;
+                        y += (dxf / dyf) * myUtils.randomSign(rand) * sf2;
+                    }
+                    else
+                    {
+                        y += (dyf / dxf) * myUtils.randomSign(rand) * sf2;
+                        x += (dxf / dyf) * myUtils.randomSign(rand) * sf2;
+                    }
+                    break;
+
+                // --- option 54 ---
+                case 110:
+                    x += myUtils.randomSign(rand) * sf2;
+                    y += myUtils.randomSign(rand) * sf2;
+                    sf2 += sf3;
+                    break;
+
+                case 111:
+                    x += myUtils.random101(rand) * sf2;
+                    y += myUtils.random101(rand) * sf2;
+                    sf2 += sf3;
+                    break;
+
+                case 112:
+                    if (rand.Next(2) == 0)
+                        x += myUtils.random101(rand) * sf2;
+                    else
+                        y += myUtils.random101(rand) * sf2;
+                    sf2 += sf3;
+                    break;
+
+                case 113:
+                    if (myUtils.randomChance(rand, si1, si2))
+                        x += dxf * 5;
+                    else
+                        x -= dxf * 5;
+
+                    if (myUtils.randomChance(rand, si1, si2))
+                        y += dyf * 5;
+                    else
+                        y -= dyf * 5;
+
+                    dxf *= (1.0f + sf3);
+                    dyf *= (1.0f + sf3);
+                    break;
+
+                case 114:
+                    if (myUtils.randomChance(rand, 1, 2))
+                    {
+                        if (myUtils.randomChance(rand, si1, si2))
+                            x += dxf * 5;
+                        else
+                            x -= dxf * 5;
+                    }
+                    else
+                    {
+                        if (myUtils.randomChance(rand, si1, si2))
+                            y += dyf * 5;
+                        else
+                            y -= dyf * 5;
+                    }
+
+                    dxf *= (1.01f + sf3);
+                    dyf *= (1.01f + sf3);
+                    break;
+
+                default:
+
+                    //x += (dyf / dxf);
+                    //y += (dxf / dyf);
+
+                    //x += (dyf / dxf) + (float)(Math.Sin(time_global - time) * 2);
+                    //y += (dxf / dyf) + (float)(Math.Sin(time_global + time) * 2);
+
                     break;
             }
 
@@ -369,7 +1000,7 @@ moveMode = 6;
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
+            uint cnt = 0, sleepCnt = 0;
             int threshold = 200;
             initShapes();
 
@@ -401,13 +1032,20 @@ moveMode = 6;
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
+                if (sleepCnt > 0)
+                {
+                    sleepCnt--;
+                    System.Threading.Thread.Sleep(rand.Next(10));
+                    continue;
+                }
+
                 if (doClearBuffer)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
                 else
                 {
-                    //dimScreen(false);
+                    dimScreen(dimAlpha/10, false);
                 }
 
                 // Render frame
@@ -449,27 +1087,26 @@ moveMode = 6;
                 {
                     generationAllowed = false;
 
-                    threshold = rand.Next(100) + 50;
-
                     if (cntActive == 0)
                     {
                         x0 = rand.Next(gl_Width);
                         y0 = rand.Next(gl_Height);
 
-                        // todo -- restore it later
-                        //moveMode = isRandomMove ? rand.Next(N) : moveMode;  // N here is a number of modes in move function. nned another name
+                        moveMode = isRandomMove ? rand.Next(moveModeCnt + 1) : moveMode;
 
                         updateConstants();
-                        colorPicker.getColorRand(ref R, ref G, ref B);
+                        getNewColor();
 
                         time_global = 0.0f;
 
                         cnt = 0;
                         generationAllowed = true;
-                        System.Threading.Thread.Sleep(rand.Next(500));
 
                         // Dim traces constantly
-                        dimScreen(false);
+                        dimScreen(dimAlpha/3, false);
+
+                        threshold = rand.Next(100) + 50;
+                        sleepCnt = 66 + (uint)rand.Next(166);
                     }
                 }
 
@@ -494,7 +1131,7 @@ moveMode = 6;
         // ---------------------------------------------------------------------------------------------------------------
 
         // Dim the screen constantly
-        private void dimScreen(bool useStrongerDimFactor = false)
+        private void dimScreen(float dimAlpha, bool useStrongerDimFactor = false)
         {
             int rnd = rand.Next(101), dimFactor = 1;
 
@@ -1324,11 +1961,71 @@ moveMode = 6;
                         a = 13.5f;
                         break;
 
+                    // --- option 52 ---
+                    case 107:
+                        si1 = 3;
+                        sf2 = 2.0f;
+                        sf3 = 0.975f;
+                        break;
+
+                    case 108:
+                        if (isFirstIteration)
+                        {
+                            isFirstIteration = false;
+                            si1 = rand.Next(50) + 1;
+                            sf2 = (float)rand.NextDouble() * 5;
+                            sf3 = 0.9f + (float)rand.NextDouble() / 10;
+                        }
+                        break;
+
+                    // --- option 53 ---
+                    case 109:
+                        if (isFirstIteration)
+                        {
+                            isFirstIteration = false;
+                            sf2 = 0.25f + (float)rand.NextDouble() / 3;
+                        }
+                        break;
+
+                    // --- option 54 ---
+                    case 110:
+                    case 111:
+                    case 112:
+                    case 113:
+                    case 114:
+                        sf2 = 1.0f;
+                        sf3 = 0.001f * rand.Next(23);
+
+                        if (isFirstIteration)
+                        {
+                            si2 = rand.Next(26) + 3;
+
+                            do {
+                                si1 = rand.Next(25) + 1;
+                            } while (si1 >= si2);
+                        }
+                        break;
+
                     default:
                         isBorderScared = false;
-
                         break;
                 }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getNewColor()
+        {
+            if (colorMode == 0)
+            {
+                colorPicker.getColorRand(ref R, ref G, ref B);
+            }
+            else
+            {
+                colorPicker.getColor(x0, y0, ref R, ref G, ref B);
             }
 
             return;
