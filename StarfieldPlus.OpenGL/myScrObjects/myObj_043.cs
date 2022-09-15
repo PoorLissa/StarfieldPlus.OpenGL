@@ -104,7 +104,8 @@ namespace my
                             $"colorMode = {colorMode}\n" +
                             $"moveMode = {moveMode}\n" +
                             $"connectionMode = {connectionMode}\n" +
-                            $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}\n sf2 = {sf2}\n sf3 = {sf3}"
+                            $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}\n sf2 = {sf2}\n sf3 = {sf3}\n" +
+                            $"renderDelay = {renderDelay}\n"
 ;
             return str;
         }
@@ -114,7 +115,11 @@ namespace my
         // 
         protected override void setNextMode()
         {
+            var oldShape = shape;
+
             init();
+
+            shape = oldShape;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -1005,7 +1010,7 @@ namespace my
             initShapes();
 
             // Disable VSYNC if needed
-            Glfw.SwapInterval(0);
+            //Glfw.SwapInterval(0);
 
             if (doClearBuffer)
             {
@@ -1110,7 +1115,7 @@ namespace my
                     }
                 }
 
-                //System.Threading.Thread.Sleep(renderDelay);
+                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
