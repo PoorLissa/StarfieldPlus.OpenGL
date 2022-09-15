@@ -29,7 +29,7 @@ namespace my
         static bool doClearBuffer = false, doFillShapes = false;
         static float time_global = 0, dtGlobal = 0, dtCommon = 0;
 
-        static int si1 = 0, si2 = 0, moveModeCnt = 114;
+        static int si1 = 0, si2 = 0, moveModeCnt = 116;
         static float sf2 = 0, sf3 = 0;
         static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, da = 1.0f/256, lineA = 0.1f;
         static float dimAlpha = 0.05f;
@@ -63,7 +63,7 @@ namespace my
 
             shape = rand.Next(5);
             moveMode = rand.Next(moveModeCnt + 1);
-//moveMode = 114;
+//moveMode = 116;
             doFillShapes = myUtils.randomBool(rand);
             connectionMode = rand.Next(9);
 
@@ -843,6 +843,39 @@ namespace my
 
                     dxf *= (1.01f + sf3);
                     dyf *= (1.01f + sf3);
+                    break;
+
+                case 115:
+
+                    x += dxf;
+                    y += dyf;
+
+                    if (myUtils.randomChance(rand, 1, 2))
+                    {
+                        x += dxf;
+                        dyf *= (float)rand.NextDouble() * 2;
+                    }
+                    else
+                    {
+                        y += dyf;
+                        dxf *= (float)rand.NextDouble() * 2;
+                    }
+
+                    dyf *= 0.999f;
+                    dxf *= 0.999f;
+
+                    break;
+
+                case 116:
+                    x += dxf * (float)rand.NextDouble() * 2;
+                    y += dyf * (float)rand.NextDouble() * 2;
+
+                    if (myUtils.randomChance(rand, 1, si2))
+                        dxf *= -1.12f;
+
+                    if (myUtils.randomChance(rand, 1, si2))
+                        dyf *= -1.12f;
+
                     break;
 
                 default:
@@ -1998,6 +2031,8 @@ namespace my
                     case 112:
                     case 113:
                     case 114:
+                    case 115:
+                    case 116:
                         sf2 = 1.0f;
                         sf3 = 0.001f * rand.Next(23);
 
