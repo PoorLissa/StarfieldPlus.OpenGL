@@ -26,13 +26,13 @@ namespace my
 
         static int x0 = 0, y0 = 0, moveMode = -1, speedMode = -1, colorMode = -1, connectionMode = -1, t = -1, shape = 0;
         static bool generationAllowed = false, isRandomMove = false, isBorderScared = false, isFirstIteration = true, doUpdateConstants = true;
-        static bool doClearBuffer = false, doFillShapes = false;
+        static bool doClearBuffer = false, doFillShapes = false, doUseOffCenterStart = false;
         static float time_global = 0, dtGlobal = 0, dtCommon = 0;
 
-        static int si1 = 0, si2 = 0, moveModeCnt = 122;
+        static int si1 = 0, si2 = 0, moveModeCnt = 124;
         static float sf2 = 0, sf3 = 0;
         static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, da = 1.0f/256, lineA = 0.1f;
-        static float dimAlpha = 0.05f;
+        static float dimAlpha = 0.05f, dimAlphaOld = 0;
 
         static trigonometricFunc trigFunc1 = null;
         static trigonometricFunc trigFunc2 = null;
@@ -46,6 +46,8 @@ namespace my
             {
                 colorPicker = new myColorPicker(gl_Width, gl_Height);
                 list = new List<myObject>();
+
+                dimAlphaOld = dimAlpha;
 
                 init();
             }
@@ -103,10 +105,12 @@ namespace my
                             $"N = {N} ({list.Count})\n" +
                             $"shape = {shape}\n" +
                             $"colorMode = {colorMode}\n" +
+                            $"RGB = {R}, {G}, {B}\n" +
                             $"moveMode = {moveMode}\n" +
                             $"connectionMode = {connectionMode}\n" +
                             $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}; si2 = {si2}\n sf2 = {sf2}\n sf3 = {sf3}\n" +
-                            $"renderDelay = {renderDelay}\n"
+                            $"renderDelay = {renderDelay}\n" +
+                            $"dimAlpha = {dimAlpha}\n"
 ;
             return str;
         }
@@ -141,6 +145,17 @@ namespace my
                 x = X = oldX = x0;
                 y = Y = oldY = y0;
                 time = 0;
+
+                if (doUseOffCenterStart)
+                {
+                    double dist = Math.Sqrt(dxf * dxf + dyf * dyf);
+
+                    x += (float)(222 * dxf / dist);
+                    y += (float)(222 * dyf / dist);
+
+                    oldX = (int)x;
+                    oldY = (int)y;
+                }
 
                 isActive = true;
             }
@@ -928,8 +943,46 @@ namespace my
                     dyf *= -sf2;
                     break;
 
-                default:
+                // --- option 60 ---
+                case 123:
+                    if (rand.Next(3) == 0)
+                        x += (float)(dxf * si1 * Math.Sin(time));
 
+                    if (rand.Next(3) == 0)
+                        y += (float)(dyf * si1 * Math.Cos(time));
+
+                    time += dtCommon;
+                    break;
+
+                // --- option 61 ---
+                case 124:
+                    if (x == x0 && y == y0)
+                    {
+                        double dist = Math.Sqrt(dxf*dxf + dyf*dyf);
+
+                        x += (float)(si1 * dxf / dist);
+                        y += (float)(si1 * dyf / dist);
+
+                        oldX = (int)x;
+                        oldY = (int)y;
+                    }
+                    else
+                    {
+                        if (rand.Next(si2) == 0)
+                        {
+                            x += dxf;
+                            dxf *= sf2;
+                        }
+
+                        if (rand.Next(si2) == 0)
+                        {
+                            y += dyf;
+                            dyf *= sf2;
+                        }
+                    }
+                    break;
+
+                default:
                     break;
             }
 
@@ -1212,6 +1265,9 @@ namespace my
                 // But some of the shapes will have objects that rotate around its center -
                 // - and we don't want to stop those, as they still might return back to screen
                 isBorderScared = true;
+
+                // Restore dim rate to its original value
+                dimAlpha = dimAlphaOld;
 
                 switch (moveMode)
                 {
@@ -2108,6 +2164,25 @@ namespace my
                         }
                         break;
 
+                    // --- option 60 ---
+                    case 123:
+                        if (isFirstIteration)
+                        {
+                            isFirstIteration = false;
+                            si1 = 10 + rand.Next(23);
+                            dtCommon = 0.1f;
+                            sf2 = dimAlpha = 0.15f + (float)rand.NextDouble() / 8;
+                        }
+                        dimAlpha = sf2;
+                        break;
+
+                    // --- option 61 ---
+                    case 124:
+                        si1 = 20 + rand.Next(333);
+                        si2 = 1 + rand.Next(6);
+                        sf2 = 1.0f + (float)rand.NextDouble() / 5;
+                        break;
+
                     default:
                         isBorderScared = false;
                         break;
@@ -2123,7 +2198,10 @@ namespace my
         {
             if (colorMode == 0)
             {
-                colorPicker.getColorRand(ref R, ref G, ref B);
+                do {
+                    colorPicker.getColorRand(ref R, ref G, ref B);
+                }
+                while (R + G + B < 0.25f);
             }
             else
             {
