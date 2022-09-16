@@ -63,7 +63,7 @@ namespace my
 
             shape = rand.Next(5);
             moveMode = rand.Next(moveModeCnt + 1);
-//moveMode = 116;
+moveMode = 117;
             doFillShapes = myUtils.randomBool(rand);
             connectionMode = rand.Next(9);
 
@@ -875,10 +875,26 @@ namespace my
 
                     if (myUtils.randomChance(rand, 1, si2))
                         dyf *= -1.12f;
+                    break;
+
+                case 117:
+
+                    x += (float)(Math.Sin((float)Math.Sin(x % 13)) * 3) * 17;
+                    y += (float)(Math.Sin((float)Math.Sin(y % 13)) * 3) * 17;
 
                     break;
 
                 default:
+
+                    x += dxf * (int)(Math.Sin((float)Math.Sin(x)) * 3) * 3;
+                    y += dyf * (int)(Math.Sin((float)Math.Sin(y)) * 3) * 3;
+
+                    x += dxf * (int)(Math.Sin((float)Math.Sin(x * time_global)) * 3) * 3;
+                    y += dyf * (int)(Math.Sin((float)Math.Sin(y * time_global)) * 3) * 3;
+
+                    x += (int)(Math.Sin((float)Math.Sin(x * time_global)) * 3) * 7;
+                    y += (int)(Math.Sin((float)Math.Sin(y * time_global)) * 3) * 7;
+
 
                     //x += (dyf / dxf);
                     //y += (dxf / dyf);
