@@ -63,7 +63,7 @@ namespace my
 
             shape = rand.Next(5);
             moveMode = rand.Next(moveModeCnt + 1);
-moveMode = 117;
+
             doFillShapes = myUtils.randomBool(rand);
             connectionMode = rand.Next(9);
 
@@ -82,12 +82,14 @@ moveMode = 117;
 
             lineA += (float)rand.NextDouble() / 8;
 
-#if false
+#if true
             // Override Move()
-            moveMode = 106;
-            drawMode = 2;
+            moveMode = 120;
+            colorMode = 1;
+            //drawMode = 2;
             t = 1;
             isRandomMove = false;
+            renderDelay = 0;
             updateConstants();
 #endif
 
@@ -104,7 +106,7 @@ moveMode = 117;
                             $"colorMode = {colorMode}\n" +
                             $"moveMode = {moveMode}\n" +
                             $"connectionMode = {connectionMode}\n" +
-                            $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}\n sf2 = {sf2}\n sf3 = {sf3}\n" +
+                            $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}; si2 = {si2}\n sf2 = {sf2}\n sf3 = {sf3}\n" +
                             $"renderDelay = {renderDelay}\n"
 ;
             return str;
@@ -877,30 +879,38 @@ moveMode = 117;
                         dyf *= -1.12f;
                     break;
 
+                // --- option 55 ---
                 case 117:
-
-                    x += (float)(Math.Sin((float)Math.Sin(x % 13)) * 3) * 17;
-                    y += (float)(Math.Sin((float)Math.Sin(y % 13)) * 3) * 17;
-
+                    x += (int)(Math.Sin((float)Math.Sin(x * time_global)) * sf2) * si1;
+                    y += (int)(Math.Sin((float)Math.Sin(y * time_global)) * sf2) * si1;
                     break;
 
+                case 118:
+                    x += dxf * (int)(Math.Sin((float)Math.Sin(x)) * sf2) * 3;
+                    y += dyf * (int)(Math.Sin((float)Math.Sin(y)) * sf2) * 3;
+                    break;
+
+                // --- option 56 ---
+                case 119:
+
+                    if (si2 > 5 && rand.Next(si2) == 0)
+                    {
+                        x += si1 * (dyf / dxf);
+                        y += si1 * (dxf / dyf);
+                    }
+
+                    x += (int)(dyf / dxf);
+                    y += (int)(dxf / dyf);
+                    break;
+
+                // --- option 57 ---
+                case 120:
+                    x += (int)(dyf / trigFunc1(x));
+                    y += (int)(dxf / trigFunc2(y));
+                    break;
+
+
                 default:
-
-                    x += dxf * (int)(Math.Sin((float)Math.Sin(x)) * 3) * 3;
-                    y += dyf * (int)(Math.Sin((float)Math.Sin(y)) * 3) * 3;
-
-                    x += dxf * (int)(Math.Sin((float)Math.Sin(x * time_global)) * 3) * 3;
-                    y += dyf * (int)(Math.Sin((float)Math.Sin(y * time_global)) * 3) * 3;
-
-                    x += (int)(Math.Sin((float)Math.Sin(x * time_global)) * 3) * 7;
-                    y += (int)(Math.Sin((float)Math.Sin(y * time_global)) * 3) * 7;
-
-
-                    //x += (dyf / dxf);
-                    //y += (dxf / dyf);
-
-                    //x += (dyf / dxf) + (float)(Math.Sin(time_global - time) * 2);
-                    //y += (dxf / dyf) + (float)(Math.Sin(time_global + time) * 2);
 
                     break;
             }
@@ -2060,6 +2070,38 @@ moveMode = 117;
                                 si1 = rand.Next(25) + 1;
                             } while (si1 >= si2);
                         }
+                        break;
+
+                    // --- option 55 ---
+                    case 117:
+                    case 118:
+                        si1 = 5 + rand.Next(15);
+                        sf2 = 1.0f + (float)rand.NextDouble() + rand.Next(7);
+                        break;
+
+                    // --- option 56 ---
+                    case 119:
+                        if (isFirstIteration)
+                        {
+                            isFirstIteration = false;
+                            si1 = 1 + rand.Next(200);
+                            si2 = rand.Next(100);
+                            sf2 = 1.0f + (float)rand.NextDouble() + rand.Next(7);
+                        }
+                        break;
+
+                    // --- option 57 ---
+                    case 120:
+
+                        if (rand.Next(2) == 0)
+                            trigFunc1 = Math.Sin;
+                        else
+                            trigFunc1 = Math.Cos;
+
+                        if (rand.Next(2) == 0)
+                            trigFunc2 = Math.Sin;
+                        else
+                            trigFunc2 = Math.Cos;
                         break;
 
                     default:
