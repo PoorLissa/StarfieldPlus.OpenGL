@@ -29,7 +29,7 @@ namespace my
         static bool doClearBuffer = false, doFillShapes = false;
         static float time_global = 0, dtGlobal = 0, dtCommon = 0;
 
-        static int si1 = 0, si2 = 0, moveModeCnt = 116;
+        static int si1 = 0, si2 = 0, moveModeCnt = 122;
         static float sf2 = 0, sf3 = 0;
         static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, da = 1.0f/256, lineA = 0.1f;
         static float dimAlpha = 0.05f;
@@ -71,20 +71,19 @@ namespace my
             colorMode = rand.Next(2);
             t = rand.Next(15) + 10;
             dtGlobal = 0.15f;
+            dtCommon = 0;
 
             getNewColor();
             updateConstants();
-
-            dtCommon = 0;
 
             generationAllowed = true;
             isRandomMove = myUtils.randomChance(rand, 1, 10);
 
             lineA += (float)rand.NextDouble() / 8;
 
-#if true
+#if false
             // Override Move()
-            moveMode = 120;
+            moveMode = 122;
             colorMode = 1;
             //drawMode = 2;
             t = 1;
@@ -909,41 +908,30 @@ namespace my
                     y += (int)(dxf / trigFunc2(y));
                     break;
 
+                // --- option 58 ---
+                case 121:
+                    dxf += (float)(Math.Sin(time * dxf) * si1);
+                    dyf += (float)(Math.Sin(time * dyf) * si1);
+
+                    x += dxf * sf2;
+                    y += dyf * sf2;
+
+                    time += dtCommon;
+                    break;
+
+                // --- option 59 ---
+                case 122:
+                    x += (int)dxf;
+                    y += (int)dyf;
+
+                    dxf *= -sf2;
+                    dyf *= -sf2;
+                    break;
 
                 default:
 
                     break;
             }
-
-#if false
-                    // 1
-                    dxf += (float)(Math.Sin(time * dxf) * a);
-                    dyf += (float)(Math.Sin(time * dyf) * b);
-
-                    x += dxf * 0.1f;
-                    y += dyf * 0.1f;
-
-                    // 2
-                    dxf += (float)(Math.Sin(time * dxf) * a);
-                    dyf += (float)(Math.Cos(time * dyf) * b);
-
-                    x += dxf * 0.1f;
-                    y += dyf * 0.1f;
-
-                    // 3
-                    dtCommon = 0.1f;
-
-                    a = 13.0f;
-                    b = 13.0f;
-
-                    time += dtCommon;
-
-                    x += (float)(Math.Sin(time_global) * a) + (float)(Math.Sin(time) * b);
-                    y += (float)(Math.Cos(time_global) * a) + (float)(Math.Cos(time) * b);
-
-                    // 4
-
-#endif
 
             if (isActive)
             {
@@ -2102,6 +2090,22 @@ namespace my
                             trigFunc2 = Math.Sin;
                         else
                             trigFunc2 = Math.Cos;
+                        break;
+
+                    // --- option 58 ---
+                    case 121:
+                        si1 = 1 + rand.Next(123);
+                        sf2 = (float)rand.NextDouble() / 5;
+                        dtCommon = 0.1f;
+                        break;
+
+                    // --- option 59 ---
+                    case 122:
+                        if (isFirstIteration)
+                        {
+                            isFirstIteration = false;
+                            sf2 = 1.1f + (float)rand.NextDouble() / 3;
+                        }
                         break;
 
                     default:
