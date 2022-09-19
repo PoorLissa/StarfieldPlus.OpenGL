@@ -9,6 +9,7 @@ using System.Collections.Generic;
     - Based initially on the starfield class -- where all the stars are generated at a center point
 
     -- case 100 x drawMode 5
+    -- move 93 looks different from the original
 */
 
 
@@ -83,9 +84,9 @@ namespace my
 
             lineA += (float)rand.NextDouble() / 8;
 
-#if false
+#if true
             // Override Move()
-            moveMode = 122;
+            moveMode = 93;
             colorMode = 1;
             //drawMode = 2;
             t = 1;
@@ -1147,7 +1148,7 @@ namespace my
                 }
 
                 // **********************************************************************************************
-
+/*
                 for (int i = 0; i < 10; i++)
                 {
                     int x = rand.Next(gl_Width);
@@ -1160,7 +1161,7 @@ namespace my
                 }
 
                 continue;
-
+*/
                 // **********************************************************************************************
 
                 if (doClearBuffer)
