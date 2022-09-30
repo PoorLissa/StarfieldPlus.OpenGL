@@ -39,7 +39,7 @@ public class ScreenSaver
 
     private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
                        myObj_102, myObj_130, myObj_131, myObj_180, myObj_200, myObj_210, myObj_220, myObj_230,
-                       myObj_300, myObj_310, myObj_320,
+                       myObj_300, myObj_310, myObj_320, myObj_330,
                        myObj_300_test, myObj_999a
     };
 
@@ -48,6 +48,7 @@ public class ScreenSaver
         ids id = (ids)0;
         id = ids.myObj_130;
         id = ids.myObj_043;
+        id = ids.myObj_330;
 
         switch (id)
         {
@@ -148,6 +149,10 @@ public class ScreenSaver
 
             case ids.myObj_320:
                 _obj = new my.myObj_320();
+                break;
+
+            case ids.myObj_330:
+                _obj = new my.myObj_330();
                 break;
 
             case ids.myObj_300_test:

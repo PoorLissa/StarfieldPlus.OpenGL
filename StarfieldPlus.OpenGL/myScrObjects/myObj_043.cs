@@ -45,7 +45,7 @@ namespace my
         {
             if (colorPicker == null)
             {
-                colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT);
+                colorPicker = new myColorPicker(gl_Width, gl_Height);
                 list = new List<myObject>();
 
                 dimAlphaOld = dimAlpha;
@@ -1142,8 +1142,6 @@ namespace my
                 list.Add(new myObj_043());
             }
 
-            myTex tex1 = new myTex(colorPicker.getImg());
-
             while (!Glfw.WindowShouldClose(window))
             {
                 int cntActive = 0;
@@ -1160,23 +1158,6 @@ namespace my
                     System.Threading.Thread.Sleep(rand.Next(10));
                     continue;
                 }
-
-                // **********************************************************************************************
-/*
-                for (int i = 0; i < 10; i++)
-                {
-                    int x = rand.Next(gl_Width);
-                    int y = rand.Next(gl_Height);
-                    int w = rand.Next(33) + 1;
-                    int h = rand.Next(3) + 1;
-
-                    tex1.Draw(x, y, w, h, x, y, w, h);
-                    //tex1.Draw(0, 0, gl_Width, gl_Height, 0, 0, 0, 0);
-                }
-
-                continue;
-*/
-                // **********************************************************************************************
 
                 if (doClearBuffer)
                 {

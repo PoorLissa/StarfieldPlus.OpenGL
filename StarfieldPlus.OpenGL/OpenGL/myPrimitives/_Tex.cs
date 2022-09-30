@@ -159,6 +159,13 @@ public class myTex : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    public void setAngle(float a)
+    {
+        _angle = a;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     private void CreateProgram()
     {
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
