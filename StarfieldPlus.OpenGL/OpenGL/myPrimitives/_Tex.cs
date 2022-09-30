@@ -191,6 +191,7 @@ public class myTex : myPrimitive
         // result = texture(myTexture, fragTxCoord) * vec4(1, 1, 1, 0.9) -- for a transparency effect;
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
             "out vec4 result; in vec3 fragColor; in vec2 fragTxCoord; uniform sampler2D myTexture;",
+                //main: "result = texture(myTexture, fragTxCoord) * vec4(1, 1, 1, 0.25);"
                 main: "result = texture(myTexture, fragTxCoord);"
         );
 

@@ -41,7 +41,7 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            doClearBuffer = myUtils.randomBool(rand);
+            //doClearBuffer = myUtils.randomBool(rand);
 
             return;
         }
@@ -77,6 +77,7 @@ namespace my
         {
             int maxCnt = 333;
             int cnt = rand.Next(maxCnt) + 11;
+            int mode = rand.Next(2);
 
             initShapes();
 
@@ -118,20 +119,31 @@ namespace my
                 {
                     int x = rand.Next(gl_Width);
                     int y = rand.Next(gl_Height);
-                    int w = rand.Next(33) + 1;
-                    int h = rand.Next(33) + 1;
+                    int w = rand.Next(133) + 1;
+                    int h = rand.Next(133) + 1;
 
-                    int W = (rand.Next(10) == 0) ? 2 : 1;
-
-                    if (rand.Next(2) == 0)
+                    if (mode == 0)
                     {
-                        w = rand.Next(333) + 1;
-                        h = W;
+                        int rndx = rand.Next(7) - 3;
+                        int rndy = rand.Next(7) - 3;
+                        x += rndx;
+                        y += rndy;
                     }
-                    else
+
+                    if (mode == 1)
                     {
-                        h = rand.Next(333) + 1;
-                        w = W;
+                        int W = (rand.Next(10) == 0) ? 2 : 1;
+
+                        if (rand.Next(2) == 0)
+                        {
+                            w = rand.Next(333) + 1;
+                            h = W;
+                        }
+                        else
+                        {
+                            h = rand.Next(333) + 1;
+                            w = W;
+                        }
                     }
 
                     tex1.Draw(x, y, w, h, x, y, w, h);
