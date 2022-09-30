@@ -32,7 +32,7 @@ namespace my
 
         static int si1 = 0, si2 = 0, moveModeCnt = 124;
         static float sf2 = 0, sf3 = 0;
-        static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, da = 1.0f/256, lineA = 0.1f;
+        static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, daBase = 1.0f/256, da = 0.01f, lineA = 0.1f;
         static float dimAlpha = 0.05f, dimAlphaOld = 0;
 
         static trigonometricFunc trigFunc1 = null;
@@ -71,7 +71,7 @@ namespace my
             connectionMode = rand.Next(9);
 
             speedMode = rand.Next(2);
-            colorMode = rand.Next(2);
+            colorMode = rand.Next(3);
             t = rand.Next(15) + 10;
             dtGlobal = 0.15f;
             dtCommon = 0;
@@ -83,15 +83,25 @@ namespace my
             isRandomMove = myUtils.randomChance(rand, 1, 10);
 
             lineA += (float)rand.NextDouble() / 8;
+            da = daBase;
 
-#if true
+            if (myUtils.randomChance(rand, 1, 10))
+            {
+                if (myUtils.randomChance(rand, 1, 10))
+                    da /= (rand.Next(111) + 1);
+                else
+                    da /= (rand.Next(11) + 1);
+            }
+
+#if false
             // Override Move()
             moveMode = 93;
-            colorMode = 1;
-            //drawMode = 2;
+            //colorMode = 2;
+            //connectionMode = 1;
             t = 1;
             isRandomMove = false;
             renderDelay = 0;
+            getNewColor();
             updateConstants();
 #endif
 
@@ -107,6 +117,7 @@ namespace my
                             $"shape = {shape}\n" +
                             $"colorMode = {colorMode}\n" +
                             $"RGB = {R}, {G}, {B}\n" +
+                            $"da = {da}\n" +
                             $"moveMode = {moveMode}\n" +
                             $"connectionMode = {connectionMode}\n" +
                             $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}; si2 = {si2}\n sf2 = {sf2}\n sf3 = {sf3}\n" +
@@ -700,6 +711,9 @@ namespace my
                 case 96:
                 case 97:
                     time += dtCommon;
+
+                    // In 93, daBase is too big, so we don't see much branching
+                    da = (da == daBase) ? (daBase / (rand.Next(4) + 1)) : da;
 
                     x += (int)(Math.Sin(Y + time * dxf) * sf2 * time) * si1;
                     y += (int)(Math.Cos(X + time * dyf) * sf2 * time) * si1;
@@ -2223,9 +2237,21 @@ namespace my
                 }
                 while (R + G + B < 0.25f);
             }
-            else
+
+            if (colorMode == 1)
             {
                 colorPicker.getColor(x0, y0, ref R, ref G, ref B);
+            }
+
+            if (colorMode == 2)
+            {
+                do
+                {
+                    R = (float)rand.NextDouble();
+                    G = (float)rand.NextDouble();
+                    B = (float)rand.NextDouble();
+                }
+                while (R + G + B < 0.25f);
             }
 
             return;
