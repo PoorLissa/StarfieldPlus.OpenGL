@@ -48,13 +48,13 @@ public class ScreenSaver
         ids id = (ids)0;
         id = ids.myObj_130;
         id = ids.myObj_043;
-        id = ids.myObj_330;
+        id = ids.myObj_000;
 
         switch (id)
         {
             // Stars: todo later
             case ids.myObj_000:
-                //_obj = new my.myObj_000();
+                _obj = new my.myObj_000();
                 break;
 
             // Randomly Roaming Squares (Snow Like)
