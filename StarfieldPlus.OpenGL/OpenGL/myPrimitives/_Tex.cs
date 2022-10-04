@@ -57,9 +57,36 @@ public class myTex2 : myPrimitive
 
     public myTex2(System.Drawing.Bitmap bmp)
     {
-        //initArrays();
-        //myOGL.loadTexture(_tex, bmp);
-        //initTheRest();
+        if (vertices == null)
+        {
+            vertices = new float[] {
+                // positions          // colors           // texture coords
+                +0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,   // top right
+                +0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,   // bottom right
+                -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,   // bottom left
+                -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f    // top left 
+            };
+
+            dx = 1.0f / Width;
+            dy = 1.0f / Height;
+
+            CreateProgram();
+            glUseProgram(shaderProgram);
+            locationColor = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter = glGetUniformLocation(shaderProgram, "myCenter");
+
+            locationPart = glGetUniformLocation(shaderProgram, "myPart");
+            locationScrSize = glGetUniformLocation(shaderProgram, "myScrDxDy");
+
+            vbo = glGenBuffer();
+            ebo = glGenBuffer();
+            tex = glGenTexture();
+
+            myOGL.loadTexture(tex, bmp);
+
+            updateIndices();
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------

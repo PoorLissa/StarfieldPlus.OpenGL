@@ -151,11 +151,7 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            //myTex bgrTex = new myTex(buildGalaxy());
-            var bgrTex = new myTex2("C:\\_maxx\\pix\\__asd2.bmp");
-
-            var rect = new myRectangle();
-            rect.SetColor(1, 1, 1, 1);
+            var bgrTex = new myTex2(buildGalaxy());
 
             // Disable VSYNC if needed
             //Glfw.SwapInterval(0);
@@ -165,8 +161,6 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0, 0, 0, 1);
             }
-
-            var tBefore = System.DateTime.Now.Ticks;
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -182,14 +176,7 @@ namespace my
 
                 // Render Frame
                 {
-                    // The texture doesn't wok properly: it disappears when we draw anything else -- fix it
-
-                    int x = rand.Next(gl_Width);
-                    int y = rand.Next(gl_Height);
-
-                    bgrTex.Draw(x, y, 222, 222, x, y, 222, 222);
-
-                    rect.Draw(x - 11, y - 11, 222 + 22, 222 + 22);
+                    bgrTex.Draw(0, 0, gl_Width, gl_Height);
 
                     inst.ResetBuffer();
 
@@ -211,17 +198,8 @@ namespace my
                     list.Add(new myObj_000());
                 }
 
-                //System.Threading.Thread.Sleep(renderDelay);
-
-                if (cnt == 333)
-                    break;
+                System.Threading.Thread.Sleep(renderDelay);
             }
-
-            var tDiff = (System.DateTime.Now.Ticks - tBefore);
-            System.TimeSpan elapsedSpan = new System.TimeSpan(tDiff);
-
-            // 5574
-            System.Windows.Forms.MessageBox.Show(elapsedSpan.TotalMilliseconds.ToString(), "time", System.Windows.Forms.MessageBoxButtons.OK);
 
             return;
         }
