@@ -91,7 +91,7 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
-            myTex tex1 = new myTex(colorPicker.getImg());
+            myTexRectangle tex1 = new myTexRectangle(colorPicker.getImg());
 
             while (!Glfw.WindowShouldClose(window))
             {

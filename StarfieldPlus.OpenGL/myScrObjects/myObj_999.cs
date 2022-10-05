@@ -80,7 +80,7 @@ namespace my
             }
 
             // it's static and not loading the second time
-            myTex tex1 = new myTex(colorPicker.getImg());
+            myTexRectangle tex1 = new myTexRectangle(colorPicker.getImg());
             //myTex tex2 = new myTex(@"C:\_maxx\tex_star.png");
 
             int x1 = 666;

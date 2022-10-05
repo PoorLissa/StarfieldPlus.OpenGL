@@ -151,7 +151,8 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            var bgrTex = new myTex2(buildGalaxy());
+            var bgrTex = new myTexRectangle(buildGalaxy());
+            //var bgrTex = new myTexRectangle("C:\\_maxx\\pix\\__asd2.bmp");
 
             // Disable VSYNC if needed
             //Glfw.SwapInterval(0);
