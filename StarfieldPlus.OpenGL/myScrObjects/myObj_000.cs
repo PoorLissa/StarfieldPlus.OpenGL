@@ -14,9 +14,11 @@ namespace my
 {
     public class myObj_000 : myObject
     {
-        private int x, y, dx, dy;
-        private float size, A, R, G, B, angle;
+        protected float size, A, R, G, B, angle;
+        protected float x, y, dx, dy, acceleration = 1.0f;
+        protected int cnt = 0, max = 0, color = 0;
 
+        protected static int drawMode = 0;
         private static int N = 0, shape = 0;
         private static bool doClearBuffer = false, doFillShapes = false;
 
@@ -43,7 +45,7 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            N = (N == 0) ? 10 + rand.Next(10) : N;
+            N = (N == 0) ? 100 + rand.Next(100) : N;
 
             return;
         }
@@ -54,7 +56,7 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_000\n\n" +
+            string str = $"Obj = myObj_000 (Starfield)\n\n" +
                             $"N = {N} ({list.Count})\n" +
                             $""
                 ;
@@ -66,23 +68,13 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            init();
+            //init();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
-
-            size = rand.Next(11) + 3;
-
-            A = 1;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
-
             return;
         }
 
@@ -196,7 +188,7 @@ namespace my
 
                 if (list.Count < N)
                 {
-                    list.Add(new myObj_000());
+                    list.Add(new myObj_000_Star());
                 }
 
                 System.Threading.Thread.Sleep(renderDelay);
@@ -294,4 +286,103 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
     }
+
+
+    // ===========================================================================================================
+    // ===========================================================================================================
+
+
+    // Moving stars
+    class myObj_000_Star : myObj_000
+    {
+        protected override void generateNew()
+        {
+            A = (float)rand.NextDouble();
+            R = (float)rand.NextDouble();
+            G = (float)rand.NextDouble();
+            B = (float)rand.NextDouble();
+
+            int speed = rand.Next(10) + 1;
+
+            max = rand.Next(75) + 20;
+            cnt = 0;
+            color = rand.Next(50);
+            acceleration = 1.005f + (rand.Next(100) * 0.0005f);
+
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Width);
+
+            double dist = Math.Sqrt((x - gl_x0) * (x- gl_x0) + (y - gl_x0) * (y - gl_x0));
+            double sp_dist = speed / dist;
+
+            dx = (float)((x - gl_x0) * sp_dist);
+            dy = (float)((y - gl_x0) * sp_dist);
+
+            y = (y - (gl_Width - gl_Height) / 2);
+
+            size = 0;
+        }
+
+        // -------------------------------------------------------------------------
+
+        protected override void Show()
+        {
+            base.Show();
+/*
+            switch (drawMode)
+            {
+                case 0:
+                    g.FillRectangle(br, X, Y, Size, Size);
+                    break;
+
+                case 1:
+                    if (Size == 1)
+                    {
+                        g.FillRectangle(br, X, Y, 1, 1);
+                    }
+                    else
+                    {
+                        p.Color = br.Color;
+                        g.DrawRectangle(p, X, Y, Size - 1, Size - 1);
+                    }
+                    break;
+            }
+*/
+            return;
+        }
+
+        // -------------------------------------------------------------------------
+
+        protected override void Move()
+        {
+            x += dx;
+            y += dy;
+
+            size += 0.01f;
+
+            if (cnt++ > max)
+            {
+                cnt = 0;
+                //size++;
+
+                // Accelerate acceleration rate
+                acceleration *= (1.0f + (size * 0.001f));
+            }
+
+            // Accelerate our moving stars
+            dx *= acceleration;
+            dy *= acceleration;
+
+            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+            {
+                generateNew();
+            }
+
+            return;
+        }
+    };
+
+
+    // ===========================================================================================================
+    // ===========================================================================================================
 };
