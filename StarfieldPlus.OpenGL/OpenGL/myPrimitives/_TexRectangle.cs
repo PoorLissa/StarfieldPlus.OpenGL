@@ -183,10 +183,6 @@ public class myTexRectangle : myPrimitive
                         }"
         );
 
-        // fragColor is not used now, but we could use it like that, for example:
-        // result = texture(ourTexture, texCoord) * vec4(fragColor, 1.0) -- for some color effect
-        // OR
-        // result = texture(myTexture, fragTxCoord) * vec4(1, 1, 1, 0.9) -- for a transparency effect;
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
             "out vec4 result;" +
                 "in vec4 fragColor;" +

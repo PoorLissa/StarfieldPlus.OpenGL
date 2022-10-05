@@ -72,6 +72,11 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+        struct Obj
+        {
+            public float x, y, dx, dy;
+            public int w;
+        };
 
         protected override void Process(Window window)
         {
@@ -93,6 +98,33 @@ namespace my
 
             myTexRectangle tex1 = new myTexRectangle(colorPicker.getImg());
 
+            const int n = 1000;
+
+            Obj[] arr = new Obj[n];
+            tex1.setOpacity(0.23f);
+            for (int i = 0; i < n; i++)
+            {
+                arr[i].w = rand.Next(33) + 5;
+                arr[i].x = rand.Next(gl_Width);
+                arr[i].y = rand.Next(gl_Height);
+                arr[i].dx = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
+                arr[i].dy = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
+
+                continue;
+
+                if (rand.Next(2) == 0)
+                {
+                    arr[i].dx = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
+                    arr[i].dy = 0;
+                }
+                else
+                {
+                    arr[i].dx = 0;
+                    arr[i].dy = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
+                }
+            }
+
+
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
@@ -113,6 +145,26 @@ namespace my
                 else
                 {
                     dimScreen(dimAlpha / 10, false);
+                }
+
+                {
+                    glClear(GL_COLOR_BUFFER_BIT);
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        tex1.Draw((int)arr[i].x - arr[i].w, (int)arr[i].y - arr[i].w, 2*arr[i].w, 2*arr[i].w, (int)arr[i].x - arr[i].w, (int)arr[i].y - arr[i].w, 2*arr[i].w, 2*arr[i].w);
+
+                        arr[i].x += arr[i].dx;
+                        arr[i].y += arr[i].dy;
+
+                        if (arr[i].x < 0 || arr[i].x > gl_Width)
+                            arr[i].dx *= -1;
+
+                        if (arr[i].y < 0 || arr[i].y > gl_Height)
+                            arr[i].dy *= -1;
+                    }
+
+                    continue;
                 }
 
                 for (int i = 0; i < 10; i++)

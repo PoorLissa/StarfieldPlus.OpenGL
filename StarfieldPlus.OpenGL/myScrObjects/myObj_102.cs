@@ -229,7 +229,6 @@ randShape:
                         myPrimitive._Pentagon.SetColor(r, g, b, 0.5f);
                         myPrimitive._Pentagon.Draw(x, y, size, false);
                         break;
-
                 }
             }
 
