@@ -49,6 +49,7 @@ public class ScreenSaver
         id = ids.myObj_130;
         id = ids.myObj_043;
         id = ids.myObj_000;
+        id = ids.myObj_330;
 
         switch (id)
         {

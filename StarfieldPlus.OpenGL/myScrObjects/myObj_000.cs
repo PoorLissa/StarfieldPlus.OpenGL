@@ -19,7 +19,7 @@ namespace my
         protected int cnt = 0, max = 0, color = 0;
 
         protected static int drawMode = 0;
-        private static int N = 0, shape = 0;
+        private static int N = 0, staticStarsN = 0, shape = 0;
         private static bool doClearBuffer = false, doFillShapes = false;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -46,6 +46,10 @@ namespace my
             gl_y0 = gl_Height / 2;
 
             N = (N == 0) ? 100 + rand.Next(100) : N;
+            staticStarsN = rand.Next(333) + 333;
+            N += staticStarsN;
+
+            shape = rand.Next(5);
 
             return;
         }
@@ -155,6 +159,11 @@ namespace my
                 glClearColor(0, 0, 0, 1);
             }
 
+            for (int i = 0; i < staticStarsN; i++)
+            {
+                list.Add(new myObj_000_StaticStar());
+            }
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -169,6 +178,17 @@ namespace my
 
                 // Render Frame
                 {
+#if false
+                    for (int i = 0; i < 333; i++)
+                    {
+                        int x = rand.Next(gl_Width);
+                        int y = rand.Next(gl_Width);
+                        int w = rand.Next(11) + 3;
+
+                        bgrTex.Draw(x, y, w, w, rand.Next(gl_Width), rand.Next(gl_Width), w, w);
+                    }
+                    continue;
+#endif
                     bgrTex.Draw(0, 0, gl_Width, gl_Height);
 
                     inst.ResetBuffer();
@@ -288,8 +308,8 @@ namespace my
     }
 
 
-    // ===========================================================================================================
-    // ===========================================================================================================
+    // ===================================================================================================================
+    // ===================================================================================================================
 
 
     // Moving stars
@@ -323,8 +343,6 @@ namespace my
             size = 0;
         }
 
-        // -------------------------------------------------------------------------
-
         protected override void Show()
         {
             base.Show();
@@ -351,14 +369,15 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
-
         protected override void Move()
         {
             x += dx;
             y += dy;
 
+            // todo: 
             size += 0.01f;
+
+            acceleration *= (1.0f + (size * 0.0001f));
 
             if (cnt++ > max)
             {
@@ -366,7 +385,7 @@ namespace my
                 //size++;
 
                 // Accelerate acceleration rate
-                acceleration *= (1.0f + (size * 0.001f));
+                //acceleration *= (1.0f + (size * 0.001f));
             }
 
             // Accelerate our moving stars
@@ -383,6 +402,103 @@ namespace my
     };
 
 
-    // ===========================================================================================================
-    // ===========================================================================================================
+    // ===================================================================================================================
+    // ===================================================================================================================
+
+
+    class myObj_000_StaticStar : myObj_000
+    {
+        private int lifeCounter = 0;
+        protected int alpha = 0, bgrAlpha = 0;
+        private static int factor = 1;
+        private static bool doMove = true;
+
+        protected override void generateNew()
+        {
+            lifeCounter = (rand.Next(500) + 500) * factor;
+
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
+            color = rand.Next(50);
+            alpha = rand.Next(50) + 175;
+
+            bgrAlpha = 1;
+
+            if (rand.Next(11) == 0)
+                bgrAlpha = 2;
+
+            max = (rand.Next(200) + 100) * factor;
+            cnt = 0;
+            size = 0;
+
+            A = (float)rand.NextDouble() / 2;
+            R = (float)rand.NextDouble();
+            G = (float)rand.NextDouble();
+            B = (float)rand.NextDouble();
+
+            // Make our static stars not so static
+            if (doMove)
+            {
+                // Linear speed outwards:
+                double dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0));
+                double sp_dist = 0.1f / dist;
+
+                dx = (float)((x - gl_x0) * sp_dist);
+                dy = (float)((y - gl_y0) * sp_dist);
+            }
+        }
+
+        protected override void Show()
+        {
+            base.Show();
+        }
+
+        protected override void Move()
+        {
+            if (doMove)
+            {
+                x += dx;
+                y += dy;
+            }
+
+            if (lifeCounter-- == 0)
+            {
+                factor = 3;
+                generateNew();
+            }
+            else
+            {
+                if (cnt++ > max)
+                {
+                    cnt = 0;
+                    size = rand.Next(5) + 1;
+                }
+            }
+        }
+    };
+
+
+    // ===================================================================================================================
+    // ===================================================================================================================
+
+
+    class myObj_000_Comet : myObj_000
+    {
+        protected override void generateNew()
+        {
+        }
+
+        protected override void Show()
+        {
+            base.Show();
+        }
+
+        protected override void Move()
+        {
+        }
+    };
+
+
+    // ===================================================================================================================
+    // ===================================================================================================================
 };

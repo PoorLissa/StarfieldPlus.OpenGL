@@ -128,21 +128,29 @@ namespace my
                         int rndy = rand.Next(7) - 3;
                         x += rndx;
                         y += rndy;
+
+                        tex1.setOpacity(133.0f / w / h);
                     }
 
                     if (mode == 1)
                     {
                         int W = (rand.Next(10) == 0) ? 2 : 1;
 
+                        int max = 666;
+
                         if (rand.Next(2) == 0)
                         {
-                            w = rand.Next(333) + 1;
+                            w = rand.Next(max) + 1;
                             h = W;
+
+                            tex1.setOpacity(0.1f * max / w);
                         }
                         else
                         {
-                            h = rand.Next(333) + 1;
+                            h = rand.Next(max) + 1;
                             w = W;
+
+                            tex1.setOpacity(0.1f * max / h);
                         }
                     }
 
