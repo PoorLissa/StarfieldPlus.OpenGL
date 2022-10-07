@@ -93,7 +93,8 @@ namespace my
             }
             else
             {
-                glDrawBuffer(GL_FRONT_AND_BACK);
+                //glDrawBuffer(GL_FRONT_AND_BACK);
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
             }
 
             myTexRectangle tex1 = new myTexRectangle(colorPicker.getImg());
