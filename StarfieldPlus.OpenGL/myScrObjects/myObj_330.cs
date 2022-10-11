@@ -148,8 +148,10 @@ namespace my
                     dimScreen(dimAlpha / 10, false);
                 }
 
+                if (false)
                 {
-                    glClear(GL_COLOR_BUFFER_BIT);
+                    //glClear(GL_COLOR_BUFFER_BIT);
+                    dimScreen(dimAlpha*3, false);
 
                     for (int i = 0; i < n; i++)
                     {
