@@ -36,6 +36,7 @@ public class ScreenSaver
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
     // - point moves along the rectangle right or left. Rectangle is a perimeter of the screen. Lots of such points.
+    // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
 
     private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
                        myObj_102, myObj_130, myObj_131, myObj_180, myObj_200, myObj_210, myObj_220, myObj_230,
