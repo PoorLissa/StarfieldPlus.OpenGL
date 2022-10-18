@@ -17,7 +17,8 @@ namespace my
         public float x, y, X, Y, dx, dy, a, da;
         public int width, height, cnt;
 
-        private static int N = 1, max1 = 1, max2 = 1, si1 = 0, si2 = 0, opacityFactor = 1;
+        private static int N = 1, max1 = 1, max2 = 1, opacityFactor = 1;
+        private static int[] param = new int[2];
         private static int mode = 0;
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
@@ -47,6 +48,10 @@ namespace my
         {
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
+
+            // Default params
+            for(int i = 0; i < 2; i++)
+                param[i] = 0;
 
             mode = rand.Next(20);
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
@@ -166,13 +171,13 @@ namespace my
                     N = 1000 + rand.Next(333);
                     max1 = rand.Next(666) + 125;
                     max2 = rand.Next( 33) +  12;
-                    si1 = rand.Next(7);
+                    param[0] = rand.Next(7);
                     break;
 
                 case 18:
                     N = rand.Next(1111) + 100;
-                    si1 = rand.Next(3);
-                    si2 = rand.Next(4);
+                    param[0] = rand.Next(3);
+                    param[1] = rand.Next(4);
                     max1 = rand.Next(33) + 25;
                     max2 = rand.Next(333) + 25;
                     break;
@@ -181,7 +186,7 @@ namespace my
                 case 19:
                     N = rand.Next(1111) + 111;
                     max1 = rand.Next(111) + 25;
-                    si1 = rand.Next(2);
+                    param[0] = rand.Next(2);
                     break;
             }
 
@@ -328,10 +333,10 @@ namespace my
                     width  = (myUtils.randomChance(rand, 1, 33) ? rand.Next(3*max1) : rand.Next(max1)) + 100;
                     height = rand.Next(max2) + 3;
 
-                    switch (si1)
+                    switch (param[0])
                     {
                         case 0: case 1: case 2:
-                            height = si1 + 1;
+                            height = param[0] + 1;
                             break;
 
                         case 3:
@@ -357,7 +362,7 @@ namespace my
 
                 case 18:
 
-                    switch (si1)
+                    switch (param[0])
                     {
                         case 0:
                             width = height = max1;
@@ -378,7 +383,7 @@ namespace my
 
                     dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(5)+1);
 
-                    switch (si2)
+                    switch (param[1])
                     {
                         case 0:
                             dy = 0;
@@ -404,7 +409,7 @@ namespace my
                     break;
 
                 case 19:
-                    switch (si1)
+                    switch (param[0])
                     {
                         case 0:
                             width = height = max1;
@@ -623,7 +628,7 @@ namespace my
                     {
                         cnt = rand.Next(max2) + 1;
 
-                        if (si2 == 3)
+                        if (param[1] == 3)
                         {
                             dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(5) + 1);
                             dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(5) + 1);
@@ -651,6 +656,8 @@ namespace my
                     {
                         dx *= -1;
                         y -= height + 1;
+
+                        a *= (dx > 0) ? 2.0f : 0.5f;
                     }
                     break;
             }
