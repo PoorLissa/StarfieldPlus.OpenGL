@@ -17,7 +17,7 @@ namespace my
         public float x, y, X, Y, dx, dy, a, da;
         public int width, height;
 
-        private static int N = 1, max1 = 1, max2 = 1, opacityFactor = 1;
+        private static int N = 1, max1 = 1, max2 = 1, si1 = 0, opacityFactor = 1;
         private static int mode = 0;
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
@@ -57,7 +57,7 @@ namespace my
             doSampleOnce   = false;
             doDrawSrcImg   = false;
 
-            //mode = 12;
+            mode = 15;
 
             switch (mode)
             {
@@ -153,6 +153,20 @@ namespace my
                     N = 2000 + rand.Next(3333);
                     max1 = rand.Next(333) + 125;
                     break;
+
+                case 13:
+                case 14:
+                    N = 2000 + rand.Next(1111);
+                    max1 = rand.Next(333) + 125;
+                    break;
+
+                case 15:
+                    N = 1000 + rand.Next(333);
+                    max1 = rand.Next(666) + 125;
+                    max2 = rand.Next( 33) +  12;
+                    si1 = rand.Next(7);
+                    break;
+
             }
 
             return;
@@ -287,6 +301,39 @@ namespace my
                     break;
 
                 case 12:
+                case 13:
+                case 14:
+                    break;
+
+                case 15:
+                    width  = (myUtils.randomChance(rand, 1, 33) ? rand.Next(3*max1) : rand.Next(max1)) + 100;
+                    height = rand.Next(max2) + 3;
+
+                    switch (si1)
+                    {
+                        case 0: case 1: case 2:
+                            height = si1 + 1;
+                            break;
+
+                        case 3:
+                            height = rand.Next(3) + 1;
+                            break;
+                    }
+
+                    a = (float)rand.NextDouble();
+                    a /= doClearBuffer ? 1 : (rand.Next(3)+1);
+                    y = Y = rand.Next(gl_Height);
+
+                    if (rand.Next(2) == 0)
+                    {
+                        x = X = 0 - width - rand.Next(width);
+                        dx = rand.Next(5) * (float)rand.NextDouble() + 0.1f;
+                    }
+                    else
+                    {
+                        x = X = gl_Width + width + rand.Next(width);
+                        dx = rand.Next(5) * -(float)rand.NextDouble() - 0.1f;
+                    }
                     break;
             }
 
@@ -451,6 +498,34 @@ namespace my
                         height += rand.Next(max1);
                     }
                     break;
+
+                case 13:
+                    tex.setOpacity(rand.NextDouble());
+                    height = 1;
+                    x = rand.Next(gl_Width+max1)-max1;
+                    y = rand.Next(gl_Height);
+
+                    if (rand.Next(9) == 0)
+                        height++;
+                    width = rand.Next(max1);
+                    break;
+
+                case 14:
+                    tex.setOpacity(rand.NextDouble());
+                    width = 1;
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height + max1) - max1;
+
+                    if (rand.Next(9) == 0)
+                        width++;
+                    height = rand.Next(max1);
+                    break;
+
+                case 15:
+                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -width))
+                        generateNew();
+                    x += dx;
+                    break;
             }
 
             if (a <= 0)
@@ -504,6 +579,13 @@ namespace my
 
                 case 11:
                 case 12:
+                case 13:
+                case 14:
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 15:
+                    tex.setOpacity(a);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
             }
