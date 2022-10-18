@@ -160,6 +160,13 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    public void setOpacity(double val)
+    {
+        _opacity = (float)val;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     // Create a shader program
     private void CreateProgram()
     {

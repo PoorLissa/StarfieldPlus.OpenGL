@@ -57,7 +57,7 @@ namespace my
             doSampleOnce   = false;
             doDrawSrcImg   = false;
 
-            //mode = 11;
+            //mode = 12;
 
             switch (mode)
             {
@@ -147,6 +147,11 @@ namespace my
                     doClearBuffer = false;
                     N = (999 + rand.Next(111)) / (rand.Next(11) + 1);
                     max1 = rand.Next(150) + 25;
+                    break;
+
+                case 12:
+                    N = 2000 + rand.Next(3333);
+                    max1 = rand.Next(333) + 125;
                     break;
             }
 
@@ -279,6 +284,9 @@ namespace my
                     dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 5;
                     dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 5;
                     da = (float)rand.NextDouble() / 33;
+                    break;
+
+                case 12:
                     break;
             }
 
@@ -423,6 +431,26 @@ namespace my
                         return;
                     }
                     break;
+
+                case 12:
+                    tex.setOpacity(rand.NextDouble());
+                    width = height = 1;
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    if (rand.Next(2) == 0)
+                    {
+                        if (rand.Next(9) == 0)
+                            height++;
+                        width += rand.Next(max1);
+                    }
+                    else
+                    {
+                        if (rand.Next(9) == 0)
+                            width++;
+                        height += rand.Next(max1);
+                    }
+                    break;
             }
 
             if (a <= 0)
@@ -475,6 +503,7 @@ namespace my
                     break;
 
                 case 11:
+                case 12:
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
             }
@@ -489,8 +518,6 @@ namespace my
             int maxCnt = 333;
             int cnt = rand.Next(maxCnt) + 11;
             int mode = rand.Next(2);
-
-            tex = new myTexRectangle(colorPicker.getImg());
 
             initShapes();
 
@@ -571,6 +598,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
+            tex = new myTexRectangle(colorPicker.getImg());
         }
 
         // ---------------------------------------------------------------------------------------------------------------
