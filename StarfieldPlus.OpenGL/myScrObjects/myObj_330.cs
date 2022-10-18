@@ -15,9 +15,9 @@ namespace my
     public class myObj_330 : myObject
     {
         public float x, y, X, Y, dx, dy, a, da;
-        public int width, height;
+        public int width, height, cnt;
 
-        private static int N = 1, max1 = 1, max2 = 1, si1 = 0, opacityFactor = 1;
+        private static int N = 1, max1 = 1, max2 = 1, si1 = 0, si2 = 0, opacityFactor = 1;
         private static int mode = 0;
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
@@ -48,7 +48,7 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            mode = rand.Next(4);
+            mode = rand.Next(20);
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
             doCreateAtOnce = myUtils.randomBool(rand);
@@ -57,7 +57,7 @@ namespace my
             doSampleOnce   = false;
             doDrawSrcImg   = false;
 
-            mode = 15;
+            mode = 19;
 
             switch (mode)
             {
@@ -161,12 +161,28 @@ namespace my
                     break;
 
                 case 15:
+                case 16:
+                case 17:
                     N = 1000 + rand.Next(333);
                     max1 = rand.Next(666) + 125;
                     max2 = rand.Next( 33) +  12;
                     si1 = rand.Next(7);
                     break;
 
+                case 18:
+                    N = rand.Next(1111) + 100;
+                    si1 = rand.Next(3);
+                    si2 = rand.Next(4);
+                    max1 = rand.Next(33) + 25;
+                    max2 = rand.Next(333) + 25;
+                    break;
+
+                // Snake-alike
+                case 19:
+                    N = rand.Next(1111) + 111;
+                    max1 = rand.Next(111) + 25;
+                    si1 = rand.Next(2);
+                    break;
             }
 
             return;
@@ -200,6 +216,7 @@ namespace my
         protected override void generateNew()
         {
             a = (float)rand.NextDouble() / opacityFactor;
+            cnt = 0;
 
             switch (mode)
             {
@@ -306,6 +323,8 @@ namespace my
                     break;
 
                 case 15:
+                case 16:
+                case 17:
                     width  = (myUtils.randomChance(rand, 1, 33) ? rand.Next(3*max1) : rand.Next(max1)) + 100;
                     height = rand.Next(max2) + 3;
 
@@ -334,6 +353,73 @@ namespace my
                         x = X = gl_Width + width + rand.Next(width);
                         dx = rand.Next(5) * -(float)rand.NextDouble() - 0.1f;
                     }
+                    break;
+
+                case 18:
+
+                    switch (si1)
+                    {
+                        case 0:
+                            width = height = max1;
+                            break;
+
+                        case 1:
+                            width = height = rand.Next(max1 * 2) + 15;
+                            break;
+
+                        case 2:
+                            width = height = rand.Next(max1 * 3) + 10;
+                            break;
+                    }
+
+                    a = (float)rand.NextDouble();
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(5)+1);
+
+                    switch (si2)
+                    {
+                        case 0:
+                            dy = 0;
+                            break;
+
+                        case 1:
+                            dy = dx * myUtils.randomSign(rand) * 0.1f;
+                            break;
+
+                        case 2:
+                            dy = dx * myUtils.randomSign(rand) / (rand.Next(23) + 1);
+                            break;
+
+                        case 3:
+                            dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(5)+1);
+                            break;
+                    }
+
+                    if (rand.Next(2) == 0)
+                    {
+                        float tmp = dx; dx = dy; dy = tmp;
+                    }
+                    break;
+
+                case 19:
+                    switch (si1)
+                    {
+                        case 0:
+                            width = height = max1;
+                            break;
+
+                        case 1:
+                            width = height = rand.Next(max1) + 11;
+                            break;
+                    }
+
+                    a = (float)rand.NextDouble();
+                    x = X = 0 - rand.Next(5*width) - width;
+                    y = Y = gl_Height - height;
+
+                    dx = (float)rand.NextDouble() * (rand.Next(111) + 1) + 0.01f;
                     break;
             }
 
@@ -522,9 +608,50 @@ namespace my
                     break;
 
                 case 15:
+                case 16:
+                case 17:
                     if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -width))
                         generateNew();
                     x += dx;
+                    break;
+
+                case 18:
+                    if (x < -100 || x > gl_Width + 100 || y < -100 || y > gl_Height + 100)
+                        generateNew();
+
+                    if (--cnt <= 0)
+                    {
+                        cnt = rand.Next(max2) + 1;
+
+                        if (si2 == 3)
+                        {
+                            dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(5) + 1);
+                            dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(5) + 1);
+                        }
+                        else
+                        {
+                            float tmp = dx; dx = dy; dy = tmp;  // swap dx-dy
+
+                            dx *= rand.Next(2) == 0 ? -1 : 1;
+                            dy *= rand.Next(2) == 0 ? -1 : 1;
+                        }
+                    }
+
+                    x += dx;
+                    y += dy;
+                    break;
+
+                case 19:
+                    if (y < -height)
+                        generateNew();
+
+                    x += dx;
+
+                    if ((dx > 0 && x > gl_Width - width) || (dx < 0 && x < width))
+                    {
+                        dx *= -1;
+                        y -= height + 1;
+                    }
                     break;
             }
 
@@ -585,6 +712,10 @@ namespace my
                     break;
 
                 case 15:
+                case 16:
+                case 17:
+                case 18:
+                case 19:
                     tex.setOpacity(a);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
