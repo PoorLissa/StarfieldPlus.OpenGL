@@ -4,6 +4,10 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 
+// todo:
+// need 2 types of rotation:
+//  - rotating the shape, but the texture stays
+//  -- rotating the shape, the texture rotates as well
 
 public class myTexRectangle : myPrimitive
 {
