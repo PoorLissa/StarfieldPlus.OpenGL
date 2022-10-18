@@ -49,8 +49,8 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
-            // Default params
-            for(int i = 0; i < 2; i++)
+            // Set default params
+            for (int i = 0; i < param.Length; i++)
                 param[i] = 0;
 
             mode = rand.Next(20);
