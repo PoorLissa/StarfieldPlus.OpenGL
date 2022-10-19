@@ -18,7 +18,7 @@ namespace my
         public int width, height, cnt;
 
         private static int N = 1, max1 = 1, max2 = 1, opacityFactor = 1;
-        private static int[] param = new int[2];
+        private static int[] param = new int[5];
         private static int mode = 0;
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
@@ -53,7 +53,7 @@ namespace my
             for (int i = 0; i < param.Length; i++)
                 param[i] = 0;
 
-            mode = rand.Next(20);
+            mode = rand.Next(23);
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
             doCreateAtOnce = myUtils.randomBool(rand);
@@ -62,16 +62,19 @@ namespace my
             doSampleOnce   = false;
             doDrawSrcImg   = false;
 
-            mode = 19;
+            //mode = 22;
 
             switch (mode)
             {
+                // Random rectangles appear at random locations each iteration
+                // The narrower the rectangle, the higher is its opacity
                 case 0:
                     doClearBuffer = false;
                     dimAlpha /= 10;
                     N = 10;
                     break;
 
+                // Random very narrow rectangles (1 or 2 px) appear at random locations each iteration
                 case 1:
                     doClearBuffer = false;
                     dimAlpha /= 10;
@@ -79,6 +82,7 @@ namespace my
                     N = 10;
                     break;
 
+                // Random squares moving through the screen using various movement patterns
                 case 2:
                 case 3:
                 case 4:
@@ -87,6 +91,8 @@ namespace my
                     N = 999 + rand.Next(666);
                     break;
 
+                // 5; Pieces appear on the central line and then move up or down
+                // 6; Pieces appear at the top part of the screen and then move down
                 case 5:
                 case 6:
                     dimAlpha /= 3;
@@ -94,6 +100,8 @@ namespace my
                     N = 999 + rand.Next(666);
                     break;
 
+                // Random pieces of the image constantly appearing at their own locations
+                // Each piece's opacity grows, then fades away
                 case 7:
                     dimAlpha /= 3;
                     doClearBuffer = true;
@@ -101,12 +109,16 @@ namespace my
                     max1 = N > 450 ? 99 : 125;
                     break;
 
+                // Random pieces of the image constantly appearing at their own locations
+                // The screen IS cleared between frames
                 case 8:
                     doClearBuffer = true;
                     N = 999 + rand.Next(111);
                     max1 = 50;
                     break;
 
+                // Random pieces of the image constantly appearing at their own locations (with or without some offset)
+                // The screen is NOT cleared between frames
                 case 9:
                     if (rand.Next(3) == 0)
                     {
@@ -133,6 +145,7 @@ namespace my
                     }
                     break;
 
+                // Random pieces of the image constantly appearing at random locations
                 case 10:
                     if (rand.Next(3) == 0)
                     {
@@ -148,23 +161,28 @@ namespace my
                     max1 = rand.Next(50) + 25;
                     break;
 
+                // Squares moving on the screen, while decreasing in size
                 case 11:
                     doClearBuffer = false;
                     N = (999 + rand.Next(111)) / (rand.Next(11) + 1);
                     max1 = rand.Next(150) + 25;
                     break;
 
+                // Long thin lines randomly flickering on the screen (both horizontal and vertical)
                 case 12:
                     N = 2000 + rand.Next(3333);
                     max1 = rand.Next(333) + 125;
                     break;
 
+                // Long thin lines randomly flickering on the screen (horizontal, vertical)
                 case 13:
                 case 14:
                     N = 2000 + rand.Next(1111);
                     max1 = rand.Next(333) + 125;
                     break;
 
+                // Long parallel lines slowly moving into the view from the outside of the screen
+                // todo: 16 and 17 to be implemented yet (vertical and cross movement) 
                 case 15:
                 case 16:
                 case 17:
@@ -174,6 +192,8 @@ namespace my
                     param[0] = rand.Next(7);
                     break;
 
+                // Squares moving around, changing direction of movement occasionally
+                // The moving pattern is based on 90-degrees turns
                 case 18:
                     N = rand.Next(1111) + 100;
                     param[0] = rand.Next(3);
@@ -182,11 +202,36 @@ namespace my
                     max2 = rand.Next(333) + 25;
                     break;
 
-                // Snake-alike
+                // Snake-alike chain of squares
                 case 19:
                     N = rand.Next(1111) + 111;
                     max1 = rand.Next(111) + 25;
                     param[0] = rand.Next(2);
+                    break;
+
+                // Squares moving sideways, bouncing off the walls
+                case 20:
+                    N = rand.Next(3333) + 333;
+                    max1 = rand.Next(50) + 1;
+                    param[0] = rand.Next(2);
+                    param[1] = rand.Next(2);
+                    break;
+
+                // Random pieces of the image constantly appear at their own locations
+                // Each piece then fades away
+                // 21; Grid alignment: NO
+                // 22; Grid alignment: YES
+                case 21:
+                case 22:
+                    N = rand.Next(500) + 111;
+                    max1 = rand.Next(200) + 13;                                             // Max size
+                    param[0] = rand.Next(2);                                                // Random size
+                    param[1] = rand.Next(2) == 0 ? rand.Next(33) : rand.Next(333);          // Number of iterations before the fading begins
+                    param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
+                    param[3] = rand.Next(2);                                                // Instead of centering smaller squares, randomly move them within the cell
+                    param[4] = rand.Next(2) == 0 ? 0 : rand.Next(7);                        // Forcefully make every square smaller then its cell -- to enchance param[3]'s effect
+                    doClearBuffer = false;
+                    dimAlpha /= (rand.Next(3) + 1);
                     break;
             }
 
@@ -197,13 +242,22 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
+            string str_params = "";
+
+            for (int i = 0; i < param.Length; i++)
+            {
+                str_params += i == 0 ? $"{param[i]}" : $", {param[i]}";
+            }
+
             string str = $"Obj = myObj_330\n\n" +
                             $"N = {N} ({list.Count})\n" +
                             $"mode = {mode}\n" +
+                            $"dimAlpha = {dimAlpha}\n" +
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"doSampleOnce  = {doSampleOnce}\n" +
                             $"opacityFactor = {opacityFactor}\n" +
-                            $"doUseRandDxy  = {doUseRandDxy}\n"
+                            $"doUseRandDxy  = {doUseRandDxy}\n" +
+                            $"param: [{str_params}]"
             ;
             return str;
         }
@@ -425,6 +479,93 @@ namespace my
                     y = Y = gl_Height - height;
 
                     dx = (float)rand.NextDouble() * (rand.Next(111) + 1) + 0.01f;
+                    break;
+
+                case 20:
+                    switch (param[0])
+                    {
+                        case 0: width = max1;                break;
+                        case 1: width = rand.Next(max1) + 1; break;
+                    }
+
+                    a = (float)rand.NextDouble();
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+                    height = width;
+
+                    switch (param[1])
+                    {
+                        case 1: y = Y = Y - Y % height; break;
+                    }
+
+                    dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(33) + 1) + 0.01f;
+                    break;
+
+                case 21:
+                case 22:
+                    switch (param[0])
+                    {
+                        case 0: width = height = max1; break;
+                        case 1: width = height = rand.Next(max1) + 1; break;
+                    }
+
+                    a = (float)rand.NextDouble();
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    // Align squares to grid
+                    if (mode == 22)
+                    {
+                        // 
+                        if (param[4] > 0 && param[0] == 1 && width > param[4])
+                        {
+                            width  -= param[4];
+                            height -= param[4];
+                        }
+
+                        // Align to grid
+                        x -= x % (max1 + param[2]);
+                        y -= y % (max1 + param[2]);
+
+                        // Center smaller squares in the grid cell
+                        if (width < max1)
+                        {
+                            x += (max1 - width) / 2;
+                            y += (max1 - width) / 2;
+
+                            // Or randomly move the squares within the bounds of the cell
+                            if (param[3] != 0)
+                            {
+                                int n = (max1 - width) / 2;
+
+                                x += myUtils.randomSign(rand) * rand.Next(n);
+                                y += myUtils.randomSign(rand) * rand.Next(n);
+                            }
+                        }
+
+                        // Offset grid cells, so the pattern is symmetrical on the screen
+                        {
+                            int w = max1 + param[2];
+                            int n = (gl_Height + param[2]) % w;
+
+                            if (n != 0)
+                            {
+                                n = (gl_Height) % w;
+                                y -= (max1 - (max1 + n)/2);
+                            }
+
+                            n = (gl_Width + param[2]) % w;
+
+                            if (n != 0)
+                            {
+                                n = (gl_Width) % w;
+                                x -= (max1 - (max1 + n)/2);
+                            }
+                        }
+                    }
+
+                    da = -1 * (0.01f + (float)rand.NextDouble() / 10);
+                    cnt = 0;
                     break;
             }
 
@@ -660,6 +801,21 @@ namespace my
                         a *= (dx > 0) ? 2.0f : 0.5f;
                     }
                     break;
+
+                case 20:
+                    x += dx;
+
+                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -width))
+                    {
+                        dx *= -1;
+                    }
+                    break;
+
+                case 21:
+                case 22:
+                    a += da;
+                    cnt++;
+                    break;
             }
 
             if (a <= 0)
@@ -723,9 +879,20 @@ namespace my
                 case 17:
                 case 18:
                 case 19:
+                case 20:
                     tex.setOpacity(a);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
+
+                case 21:
+                case 22:
+                    if (cnt <= param[1])
+                    {
+                        tex.setOpacity(a);
+                        tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    }
+                    break;
+
             }
 
             return;
@@ -770,6 +937,16 @@ namespace my
 
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
+
+                if (false)
+                {
+                    glClear(GL_COLOR_BUFFER_BIT);
+
+                    myPrimitive._Rectangle.SetColor(0.5f, 0.1f, 0.1f, 1.0f);
+                    myPrimitive._Rectangle.Draw(100, 100, 666, 666, true);
+
+                    continue;
+                }
 
                 if (doClearBuffer)
                 {
