@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 
@@ -252,6 +253,27 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        // Select a random image file from a list of directories
+        private string getRandomFile(System.Collections.Generic.List<string> list)
+        {
+            string res = "";
+
+            int len = list.Count;
+            Random r = new Random();
+
+            foreach (int i in Enumerable.Range(0, len).OrderBy(x => r.Next()))
+            {
+                res = getRandomFile(list[i]);
+
+                if (res.Length > 0)
+                    break;
+            }
+
+            return res;
+        }
+
+        // -------------------------------------------------------------------------
+
         // Select a random image file from a certain directory
         private string getRandomFile(string dir)
         {
@@ -334,8 +356,14 @@ namespace my
         {
             try
             {
+                var list = new System.Collections.Generic.List<string>();
+
+                list.Add(@"C:\_maxx\pix");
+                list.Add(@"E:\iNet\pix");
+                list.Add(@"E:\iNet\pix\wallpapers_3840x1600");
+
                 //string image = getRandomFile(StarfieldPlus.Program._imgPath);
-                string image = getRandomFile(@"C:\_maxx\pix");
+                string image = getRandomFile(list);
 
                 if (image != null && image != string.Empty)
                 {
