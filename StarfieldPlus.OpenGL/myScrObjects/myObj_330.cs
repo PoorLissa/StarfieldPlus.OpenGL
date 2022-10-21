@@ -62,6 +62,8 @@ namespace my
             doSampleOnce   = false;
             doDrawSrcImg   = false;
 
+            // another mode. like 24, but the waves are wider and are going maybe in radial direction.
+            // the objects are generated with sin or cos or smth
             mode = 24;
 
             switch (mode)
