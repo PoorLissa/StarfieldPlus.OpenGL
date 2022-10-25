@@ -53,7 +53,9 @@ namespace my
             for (int i = 0; i < param.Length; i++)
                 param[i] = 0;
 
-            mode = rand.Next(23);
+            mode = rand.Next(27);
+            mode = 27;
+
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
             doCreateAtOnce = myUtils.randomBool(rand);
@@ -61,8 +63,6 @@ namespace my
             doUseRandDxy   = myUtils.randomBool(rand);
             doSampleOnce   = false;
             doDrawSrcImg   = false;
-
-            mode = 24;
 
             switch (mode)
             {
@@ -226,7 +226,7 @@ namespace my
                 case 21:
                 case 22:
                     N = rand.Next(500) + 111;
-                    max1 = rand.Next(200) + 13;                                             // Max size
+                    max1 = rand.Next(200) + 13;                                             // Max size of a cell
                     param[0] = rand.Next(2);                                                // Random size
                     param[1] = rand.Next(2) == 0 ? rand.Next(33) : rand.Next(333);          // Number of iterations before the fading begins
                     param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
@@ -245,7 +245,7 @@ namespace my
                     break;
 
                 // Drawing horizontal rows or vertical columns using 1px thick lines;
-                // The lines are drawn with some interval
+                // The lines are drawn with some interval between them
                 case 24:
                     N = rand.Next(500) + 33;
                     max1 = myUtils.randomChance(rand, 1, 10) ? (rand.Next(3333) + 111) : (rand.Next(222) + 111);
@@ -255,7 +255,28 @@ namespace my
                     param[3] = rand.Next(2) * rand.Next(11);                                // Multiplier for sin/cos
                     param[4] = rand.Next(2) * rand.Next(11);                                // Multiplier for sin/cos
                     doClearBuffer = myUtils.randomChance(rand, 1, 11);                      // In case the buffer is cleared, line thickness is going to be more than 1
+                    N += doClearBuffer ? rand.Next(333) : 0;
                     dimAlpha /= (rand.Next(5) + 1);
+                    break;
+
+                // Moving in increasing squares
+                case 25:
+                    N = rand.Next(333) + 666;
+                    max1 = rand.Next(66) + 1;
+                    doClearBuffer = myUtils.randomChance(rand, 1, 2);
+                    dimAlpha /= (rand.Next(5) + 1);
+                    break;
+
+                // 'Gravitational pull' towards the center axes of the screen
+                case 26:
+                    N = rand.Next(333) + 666;
+                    max1 = rand.Next(50) + 3;
+                    param[0] = rand.Next(6);                                                // x-axis, y-axis, both axes
+                    break;
+
+                case 27:
+                    N = 1;
+                    doClearBuffer = true;
                     break;
             }
 
@@ -670,6 +691,37 @@ namespace my
 
                     cnt = 0;
                     break;
+
+                case 25:
+                    a = (float)rand.NextDouble();
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    width = height = rand.Next(max1) + 10;
+
+                    dx = (float)rand.NextDouble() * (rand.Next(111) + 1) * 0.1f + 0.001f;
+                    dy = 0;
+                    cnt = 0;
+                    X = 2;
+                    break;
+
+                case 26:
+                    a = (float)rand.NextDouble();
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    width = height = rand.Next(max1) + 3;
+
+                    dx = 0;
+                    dy = 0;
+                    X = (float)rand.NextDouble() * (x < gl_Width /2 ? 1 : -1);
+                    Y = (float)rand.NextDouble() * (y < gl_Height/2 ? 1 : -1);
+                    break;
+
+                case 27:
+                    x = gl_x0;
+                    y = gl_y0;
+                    a = 0.66f;
+                    width = height = 333;
+                    break;
             }
 
             return;
@@ -947,6 +999,89 @@ namespace my
                     x += (float)Math.Cos(y) * param[3];
                     y += (float)Math.Sin(x) * param[4];
                     break;
+
+                case 25:
+                    if (x > gl_Width || x < 0 || y > gl_Height || y < 0)
+                        generateNew();
+
+                    cnt++;
+                    x += dx;
+                    y += dy;
+
+                    if (cnt > X)
+                    {
+                        cnt = 0;
+                        X += (float)rand.NextDouble();
+
+                        if (dx == 0)
+                        {
+                            dx = dy > 0 ? -dy : -dy;
+                            dy = 0;
+                        }
+                        else
+                        {
+                            dy = dx > 0 ? dx : dx;
+                            dx = 0;
+                        }
+                    }
+                    break;
+
+                case 26:
+
+                    switch (param[0])
+                    {
+                        case 0:
+                            x += dx;
+                            break;
+
+                        case 1:
+                            x += dx;
+                            y += dy * 0.01f;
+                            break;
+
+                        case 2:
+                            y += dy;
+                            break;
+
+                        case 3:
+                            x += dx * 0.01f;
+                            y += dy;
+                            break;
+
+                        default:
+                            x += dx;
+                            y += dy;
+                            break;
+                    }
+
+                    if (Y > 0)
+                    {
+                        dy += y < gl_Height/2 ? Y : -Y;
+                    }
+                    else
+                    {
+                        dy += y > gl_Height/2 ? Y : -Y;
+                    }
+
+                    if (X > 0)
+                    {
+                        dx += x < gl_Width/2 ? X : -X;
+                    }
+                    else
+                    {
+                        dx += x > gl_Width/2 ? X : -X;
+                    }
+
+                    // Damping the oscillation
+                    X *= 0.9975f;
+                    Y *= 0.9975f;
+
+                    if (x < -123 || x > gl_Width + 123 || y < -123 || y > gl_Height + 123)
+                    {
+                        generateNew();
+                        return;
+                    }
+                    break;
             }
 
             if (a <= 0)
@@ -1060,19 +1195,48 @@ namespace my
                     break;
 
                 case 24:
-                    tex.setOpacity(a);
-
-                    if (doUseRandDxy)
                     {
-                        int rx = rand.Next(11) - 5;
-                        int ry = rand.Next(11) - 5;
+                        int rx = doUseRandDxy ? rand.Next(11) - 5 : 0;
+                        int ry = doUseRandDxy ? rand.Next(11) - 5 : 0;
 
+                        // Draw the whole line with half opacity
+                        tex.setOpacity(a / 2);
                         tex.Draw((int)x, (int)y, width, height, (int)x + rx, (int)y + ry, width, height);
+
+                        int part = rand.Next(11) + 3;
+
+                        // Draw the part of the line with half opacity
+                        if (width > height)
+                        {
+                            int w1 = width / part;
+                            int w2 = (part-2) * width / part;
+
+                            tex.Draw((int)x + w1, (int)y, w2, height, (int)x + rx + w1, (int)y + ry, w2, height);
+                        }
+                        else
+                        {
+                            int h1 = height / part;
+                            int h2 = (part-2) * height / part;
+
+                            tex.Draw((int)x, (int)y + h1, width, h2, (int)x + rx, (int)y + ry + h1, width, h2);
+                        }
                     }
-                    else
-                    {
-                        tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
-                    }
+                    break;
+
+                case 25:
+                    tex.setOpacity(a);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 26:
+                    tex.setOpacity(a);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 27:
+                    tex.setOpacity(a);
+                    tex.SetAngle(cnt++*0.01);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
             }
 

@@ -17,7 +17,7 @@ public class myTexRectangle : myPrimitive
     private static uint vbo = 0, ebo = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static float _angle = 0, dx = 0, dy = 0;
-    private static int locationColor = 0, locationAngle = 0, locationOpacity = 0, locationScrSize = 0, locationPart = 0;
+    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationOpacity = 0, locationScrSize = 0, locationPart = 0;
 
     private uint tex = 0;
     private float _opacity = 1.0f;
@@ -37,6 +37,7 @@ public class myTexRectangle : myPrimitive
             glUseProgram(shaderProgram);
             locationColor   = glGetUniformLocation(shaderProgram, "myColor");
             locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationOpacity = glGetUniformLocation(shaderProgram, "myOpacity");
 
             locationPart    = glGetUniformLocation(shaderProgram, "myPart");
@@ -67,6 +68,7 @@ public class myTexRectangle : myPrimitive
             glUseProgram(shaderProgram);
             locationColor   = glGetUniformLocation(shaderProgram, "myColor");
             locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationOpacity = glGetUniformLocation(shaderProgram, "myOpacity");
 
             locationPart    = glGetUniformLocation(shaderProgram, "myPart");
@@ -97,6 +99,7 @@ public class myTexRectangle : myPrimitive
             glBindTexture(GL_TEXTURE_2D, tex);
 
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
         }
@@ -128,18 +131,18 @@ public class myTexRectangle : myPrimitive
             // Leave coordinates as they are, and recalc them in the shader
             fx = x;
             fy = y;
-            vertices[06] = fx;
-            vertices[09] = fx;
+            vertices[24] = fx;
+            vertices[25] = fy;
+            vertices[16] = fx;
             vertices[01] = fy;
-            vertices[10] = fy;
 
             fx = x + w;
-            vertices[0] = fx;
-            vertices[3] = fx;
+            vertices[00] = fx;
+            vertices[08] = fx;
 
             fy = y + h;
-            vertices[4] = fy;
-            vertices[7] = fy;
+            vertices[09] = fy;
+            vertices[17] = fy;
         }
 
         updateVertices();
@@ -149,6 +152,13 @@ public class myTexRectangle : myPrimitive
         glUniform4f(locationPart, ptx, pty, ptw, pth);
         glUniform2f(locationScrSize, dx, dy);
         glUniform1f(locationOpacity, _opacity);
+        glUniform1f(locationAngle, _angle);
+
+        // Set the center of rotation
+        if (_angle != 0.0f)
+        {
+            glUniform2f(locationCenter, x + w/2, y + h/2);
+        }
 
         __draw();
 
@@ -171,6 +181,20 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    public void SetAngle(float angle)
+    {
+        _angle = angle;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void SetAngle(double angle)
+    {
+        _angle = (float)angle;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     // Create a shader program
     private void CreateProgram()
     {
@@ -179,9 +203,27 @@ public class myTexRectangle : myPrimitive
               layout (location = 1) in vec3 color;
               layout (location = 2) in vec2 txCoord;
                 out vec4 fragColor; out vec2 fragTxCoord;
-                uniform vec4 myPart; uniform vec2 myScrDxDy; uniform float myOpacity;",
+                uniform vec4 myPart; uniform vec2 myScrDxDy; uniform float myOpacity; uniform float myAngle; uniform vec2 myCenter;",
 
-                main: @"gl_Position = vec4(pos, 1.0); fragColor = vec4(color, myOpacity);
+                main: @"fragColor = vec4(color, myOpacity);
+
+                        if (myAngle == 0)
+                        {
+                            gl_Position = vec4(pos, 1.0);
+                        }
+                        else
+                        {
+                            float X = pos.x - myCenter.x;
+                            float Y = pos.y - myCenter.y;
+
+                            gl_Position = vec4(X * cos(myAngle) - Y * sin(myAngle), Y * cos(myAngle) + X * sin(myAngle), pos.z, 1.0);
+                    
+                            gl_Position.x += myCenter.x;
+                            gl_Position.y += myCenter.y;
+
+                            gl_Position.x = 2.0f * gl_Position.x * myScrDxDy.x - 1.0f;
+                            gl_Position.y = 1.0f - 2.0f * gl_Position.y * myScrDxDy.y;
+                        }
 
                         if (myPart.z == 0)
                         {
