@@ -17,9 +17,9 @@ namespace my
         public float x, y, X, Y, dx, dy, a, da;
         public int width, height, cnt;
 
-        private static int N = 1, max1 = 1, max2 = 1, opacityFactor = 1;
-        private static int[] param = new int[5];
-        private static int mode = 0;
+        static int N = 1, max1 = 1, max2 = 1, opacityFactor = 1;
+        static int[] param = new int[6];
+        static int mode = 0;
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
         static float dimAlpha = 0.05f;
@@ -53,8 +53,9 @@ namespace my
             for (int i = 0; i < param.Length; i++)
                 param[i] = 0;
 
-            mode = rand.Next(27);
-            mode = 27;
+            // todo: another mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
+            mode = rand.Next(32);
+            mode = 31;
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -232,6 +233,7 @@ namespace my
                     param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
                     param[3] = rand.Next(2);                                                // Instead of centering smaller squares, randomly move them within the cell
                     param[4] = rand.Next(2) == 0 ? 0 : rand.Next(7);                        // Forcefully make every square smaller then its cell -- to enchance param[3]'s effect
+                    param[5] = rand.Next(9);                                                // Cell rotation mode
                     doClearBuffer = false;
                     dimAlpha /= (rand.Next(3) + 1);
                     break;
@@ -274,9 +276,43 @@ namespace my
                     param[0] = rand.Next(6);                                                // x-axis, y-axis, both axes
                     break;
 
+                // Lots of static rotating textures
                 case 27:
-                    N = 1;
-                    doClearBuffer = true;
+                    N = rand.Next(666) + 3333;
+                    doClearBuffer = myUtils.randomChance(rand, 1, 5);
+                    param[0] = rand.Next(222) + 1;
+                    dimAlpha /= (rand.Next(11) + 1);
+                    break;
+
+                // Lots of static slightly rocking textures
+                case 28:
+                    N = rand.Next(666) + 3333;
+                    doClearBuffer = myUtils.randomChance(rand, 1, 5);
+                    param[0] = rand.Next(222) + 1;
+                    dimAlpha /= (rand.Next(11) + 1);
+                    break;
+
+                // Draw cells, where each cell is rotated (once or several times)
+                // 29: grid-aligned
+                // 30: not aligned
+                case 29:
+                case 30:
+                    N = rand.Next(666) + 333;
+                    doClearBuffer = myUtils.randomChance(rand, 1, 5);
+                    dimAlpha /= (rand.Next(11) + 1);
+                    max1 = rand.Next(200) + 13;                                             // Max size of a cell
+                    param[0] = rand.Next(4);                                                // Drawing mode
+                    param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
+                    break;
+
+                // 
+                case 31:
+                    N = rand.Next(666) + 333;
+                    doClearBuffer = myUtils.randomChance(rand, 1, 5);
+                    dimAlpha /= (rand.Next(11) + 1);
+                    max1 = rand.Next(200) + 13;                                             // Max size of a cell
+                    param[0] = rand.Next(2);                                                // Drawing mode
+                    param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
                     break;
             }
 
@@ -717,10 +753,70 @@ namespace my
                     break;
 
                 case 27:
-                    x = gl_x0;
-                    y = gl_y0;
-                    a = 0.66f;
-                    width = height = 333;
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    a = (float)rand.NextDouble() / 3;
+                    X = 0;
+                    cnt = rand.Next(500) + 33;
+                    dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(33) + 1);
+                    width  = rand.Next(123) + 33;
+                    height = rand.Next(param[0]) + 1;
+                    break;
+
+                case 28:
+                    x = rand.Next(gl_Width + 400) - 200;
+                    y = rand.Next(gl_Height);
+                    a = (float)rand.NextDouble()/7;
+                    width = rand.Next(1111) + 111;
+                    height = rand.Next(21) + 1;
+                    X = 0;
+                    cnt = rand.Next(500) + 33;
+                    dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(33) + 1);
+                    cnt = 0;
+                    break;
+
+                case 29:
+                case 30:
+                case 31:
+                    a = (float)rand.NextDouble();
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    X = Y = -1111;
+                    width = height = max1;
+
+                    // Align to grid
+                    if (mode == 29 || mode == 31)
+                    {
+                        x -= x % (max1 + param[2]);
+                        y -= y % (max1 + param[2]);
+
+                        // Offset grid cells, so the pattern is symmetrical on the screen
+                        {
+                            int w = max1 + param[2];
+                            int n = (gl_Height + param[2]) % w;
+
+                            if (n != 0)
+                            {
+                                n = (gl_Height) % w;
+                                y -= (max1 - (max1 + n) / 2);
+                            }
+
+                            n = (gl_Width + param[2]) % w;
+
+                            if (n != 0)
+                            {
+                                n = (gl_Width) % w;
+                                x -= (max1 - (max1 + n) / 2);
+                            }
+                        }
+                    }
+
+                    da = -1 * (0.01f + (float)rand.NextDouble() / 10);
+
+                    // Different cnt for different modes
+                    cnt = mode == 31 ? 333: 111;
+                    cnt = rand.Next(cnt) + 11;
                     break;
             }
 
@@ -1082,6 +1178,27 @@ namespace my
                         return;
                     }
                     break;
+
+                case 27:
+                    if (--cnt < 0)
+                        a -= 0.01f;
+
+                    X += dx;
+                    break;
+
+                case 28:
+                    if (--cnt < 0)
+                        a -= 0.01f;
+
+                    X += dx;
+                    break;
+
+                case 29:
+                case 30:
+                case 31:
+                    if (--cnt <= 0)
+                        generateNew();
+                    break;
             }
 
             if (a <= 0)
@@ -1154,6 +1271,26 @@ namespace my
                 case 22:
                     if (cnt <= param[1])
                     {
+                        // Add some rotation
+                        switch (param[5])
+                        {
+                            case 0:
+                                tex.SetAngle(Math.PI/2);
+                                break;
+
+                            case 1:
+                                tex.SetAngle(Math.PI);
+                                break;
+
+                            case 2:
+                                tex.SetAngle(3 * Math.PI/2);
+                                break;
+
+                            case 3:
+                                tex.SetAngle(rand.Next(4) * Math.PI/2);
+                                break;
+                        }
+
                         tex.setOpacity(a);
                         tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     }
@@ -1235,8 +1372,69 @@ namespace my
 
                 case 27:
                     tex.setOpacity(a);
-                    tex.SetAngle(cnt++*0.01);
+                    tex.SetAngle(X);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 28:
+                    tex.setOpacity(a);
+                    tex.SetAngle(Math.Sin(dx * cnt / 250) / 17);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 29:
+                case 30:
+                    switch (param[0])
+                    {
+                        case 0:
+                            tex.setOpacity(a);
+                            tex.SetAngle(Math.PI);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                            break;
+
+                        case 1:
+                            tex.setOpacity(a/2);
+
+                            tex.SetAngle(0);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+
+                            tex.SetAngle(Math.PI);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                            break;
+
+                        case 2:
+                            tex.setOpacity(a/4);
+
+                            tex.SetAngle(0);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+
+                            tex.SetAngle(Math.PI);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+
+                            tex.SetAngle(Math.PI / 2);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+
+                            tex.SetAngle(3 * Math.PI / 2);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                            break;
+
+                        // Mirror the cell left-to-right / right-to-left
+                        case 3:
+                            tex.setOpacity(a);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, -width, height);
+                            break;
+
+                        // Not to be used. Just for testing purposes
+                        default:
+                            tex.setOpacity(a);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, 2*width, 2*height);
+                            break;
+                    }
+                    break;
+
+                case 31:
+                    tex.setOpacity(a);
+                    showCase31(param[0]);
                     break;
             }
 
@@ -1360,6 +1558,134 @@ namespace my
             // Shift background color just a bit, to hide long lasting traces of shapes
             myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
             myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void showCase31(int mode)
+        {
+            int x1 = (int)x, y1 = (int)y, x2 = x1, y2 = y1;
+            int w1 = width, h1 = height, w2 = w1, h2 = h1;
+
+            bool isFirst = (X == -1111 && Y == -1111);
+            int offset = 0;
+
+            mode = 4;
+
+            switch (mode)
+            {
+                // Each cell is scrolled sideways
+                case 0:
+                    if (isFirst)
+                    {
+                        X = (rand.Next(5) + 1) * myUtils.randomSign(rand);
+                        Y = rand.Next(67) - 33;
+                    }
+
+                    x2 += (int)Y + cnt / (int)X;
+                    break;
+
+                // Each cell is displayed with x-offset
+                case 1:
+                    if (isFirst)
+                        Y = rand.Next(67) - 33;
+
+                    x2 += (int)Y;
+                    break;
+
+                // Each cell is zoomed out
+                case 2:
+                    if (isFirst)
+                        Y = 0;
+
+                    x2 -= 1*(int)Y;
+                    y2 -= 1*(int)Y;
+                    w2 += 2*(int)Y;
+                    h2 += 2*(int)Y;
+
+                    Y += (float)rand.NextDouble();
+                    break;
+
+                // Each cell is zoomed in
+                case 3:
+                    if (isFirst)
+                        Y = 0;
+
+                    x2 -= 1*(int)Y;
+                    y2 -= 1*(int)Y;
+                    w2 += 2*(int)Y;
+                    h2 += 2*(int)Y;
+
+                    Y -= (Y > (-width / 2 + 1)) ? (float)rand.NextDouble() : 0;
+                    break;
+
+                // Each cell is zoomed in with overflow into zooming out
+                case 4:
+                    if (isFirst)
+                        Y = 0;
+
+                    x2 -= 1*(int)Y;
+                    y2 -= 1*(int)Y;
+                    w2 += 2*(int)Y;
+                    h2 += 2*(int)Y;
+
+                    Y -= (float)rand.NextDouble();
+                    break;
+
+                case 5:
+                    break;
+
+
+
+
+                case 11:
+                    offset = -width/2;
+                    x2 -= offset;
+                    y2 -= offset;
+                    w2 += offset;
+                    h2 += offset;
+                    break;
+
+                case 21:
+                    x2 -= offset;
+                    y2 -= offset;
+                    w2 += offset;
+                    h2 += offset;
+
+                    X = Y;
+
+                    if (Y == 0)
+                    {
+                        Y = myUtils.random101(rand) * 0.25f;
+                    }
+                    else
+                    {
+                        int sign = (Y > 0)
+                            ? myUtils.randomChance(rand, 1, 3) ? -1 : +1
+                            : myUtils.randomChance(rand, 1, 3) ? +1 : -1;
+
+                        Y += sign * 0.25f;
+                    }
+                    break;
+
+                case 31:
+                    x2 -= offset;
+                    y2 -= offset;
+                    w2 += offset;
+                    h2 += offset;
+
+                    X += (float)Math.Sin(cnt/10) * 1.0001f;
+                    break;
+
+                case 41:
+                    w2 = w1 * 2;
+                    h2 = h1 * 2;
+                    break;
+            }
+
+            tex.Draw(x1, y1, w1, h1, x2, y2, w2, h2);
 
             return;
         }

@@ -89,17 +89,18 @@ public class myTexRectangle : myPrimitive
     // Render the texture on the screen.
     //  x, y, w, h          -- rectangle on the screen to fill with texture
     //  ptx, pty, ptw, pth  -- optional rectangle to sample pixels from
-    // In case ptw is '0', the whole texture is rendered
-    // In case ptw is not '0', only part of the texture is rendered
+    // - In case ptw is '0', the whole texture is rendered
+    // - In case ptw is not '0', only part of the texture is rendered
+    // - Using negative ptw/pth, it is possible to flip/rotate/mirror the texture
     public void Draw(int x, int y, int w, int h, int ptx = 0, int pty = 0, int ptw = 0, int pth = 0)
     {
         unsafe void __draw()
         {
             // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
             glBindTexture(GL_TEXTURE_2D, tex);
-
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
         }
@@ -113,6 +114,7 @@ public class myTexRectangle : myPrimitive
             // Recalc screen coordinates into Normalized Device Coordinates (NDC)
             fx = 2.0f * x / Width - 1.0f;
             fy = 1.0f - 2.0f * y / Height;
+
             vertices[24] = fx;          // top left x
             vertices[25] = fy;          // top left y
             vertices[16] = fx;          // bottom left x
