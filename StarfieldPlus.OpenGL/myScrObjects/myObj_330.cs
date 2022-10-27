@@ -23,6 +23,7 @@ namespace my
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
         static float dimAlpha = 0.05f;
+        static float[] paramf = new float[1];
 
         static myTexRectangle tex = null;
 
@@ -50,12 +51,17 @@ namespace my
             gl_y0 = gl_Height / 2;
 
             // Set default params
-            for (int i = 0; i < param.Length; i++)
-                param[i] = 0;
+            {
+                for (int i = 0; i < param.Length; i++)
+                    param[i] = 0;
+
+                for (int i = 0; i < paramf.Length; i++)
+                    paramf[i] = 0.0f;
+            }
 
             // todo: another mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
             mode = rand.Next(32);
-            mode = 31;
+            //mode = 31;
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -311,8 +317,10 @@ namespace my
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
                     dimAlpha /= (rand.Next(11) + 1);
                     max1 = rand.Next(200) + 13;                                             // Max size of a cell
-                    param[0] = rand.Next(2);                                                // Drawing mode
+                    param[0] = rand.Next(13);                                               // Drawing mode
+                    param[1] = rand.Next(7) + 1;                                            // Various int [1...7]
                     param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
+                    paramf[0] = (float)rand.NextDouble();
                     break;
             }
 
@@ -1572,8 +1580,6 @@ namespace my
             bool isFirst = (X == -1111 && Y == -1111);
             int offset = 0;
 
-            mode = 4;
-
             switch (mode)
             {
                 // Each cell is scrolled sideways
@@ -1634,40 +1640,111 @@ namespace my
                     Y -= (float)rand.NextDouble();
                     break;
 
+                // Each cell is rotated around its center
                 case 5:
-                    break;
-
-
-
-
-                case 11:
-                    offset = -width/2;
-                    x2 -= offset;
-                    y2 -= offset;
-                    w2 += offset;
-                    h2 += offset;
-                    break;
-
-                case 21:
-                    x2 -= offset;
-                    y2 -= offset;
-                    w2 += offset;
-                    h2 += offset;
-
-                    X = Y;
-
-                    if (Y == 0)
+                    if (isFirst)
                     {
-                        Y = myUtils.random101(rand) * 0.25f;
+                        X = myUtils.randomSign(rand) * (float)rand.NextDouble();
+                        Y = 0;
+                    }
+
+                    x1 -= 1 * (int)Y/2;
+                    y1 -= 1 * (int)Y/2;
+                    w1 += 2 * (int)Y/2;
+                    h1 += 2 * (int)Y/2;
+
+                    tex.setOpacity(0.1f);
+                    tex.SetAngle(Y);
+
+                    Y += X;
+                    break;
+
+                // Each cell displays slightly larger area than itself (offset larger than width, constant)
+                case 6:
+                    offset = width * param[1];
+                    x2 -= 1 * offset;
+                    y2 -= 1 * offset;
+                    w2 += 2 * offset;
+                    h2 += 2 * offset;
+                    break;
+
+                // Each cell displays slightly larger area than itself (offset larger than width, various)
+                case 7:
+                    if (isFirst)
+                        X = (float)rand.NextDouble();
+
+                    offset = (int)(width * (param[1] + X));
+                    x2 -= 1 * offset;
+                    y2 -= 1 * offset;
+                    w2 += 2 * offset;
+                    h2 += 2 * offset;
+                    break;
+
+                // Each cell displays slightly larger area than itself (offset lesser than width, various)
+                case 8:
+                    if (isFirst)
+                        X = (float)rand.NextDouble();
+
+                    offset = (int)(width * X);
+                    x2 -= 1 * offset;
+                    y2 -= 1 * offset;
+                    w2 += 2 * offset;
+                    h2 += 2 * offset;
+                    break;
+
+                // Each cell displays slightly larger area than itself (offset lesser than width, constant)
+                case 9:
+                    offset = (int)(width * paramf[0]);
+                    x2 -= 1 * offset;
+                    y2 -= 1 * offset;
+                    w2 += 2 * offset;
+                    h2 += 2 * offset;
+                    break;
+
+                // Each cell displays slightly less area than itself (constant offset)
+                case 10:
+                    offset = (int)(width * paramf[0]/2);
+                    x2 += 1 * offset;
+                    y2 += 1 * offset;
+                    w2 -= 2 * offset;
+                    h2 -= 2 * offset;
+                    break;
+
+                // Each cell displays slightly less area than itself (various offset)
+                case 11:
+                    if (isFirst)
+                        X = (float)rand.NextDouble()/2;
+
+                    offset = (int)(width * X);
+                    x2 += 1 * offset;
+                    y2 += 1 * offset;
+                    w2 -= 2 * offset;
+                    h2 -= 2 * offset;
+                    break;
+
+                // Cell's zoom level fluctuate
+                case 12:
+                    if (isFirst)
+                    {
+                        X = 0;
+                        Y = myUtils.random101(rand) * 0.1f;
                     }
                     else
                     {
                         int sign = (Y > 0)
-                            ? myUtils.randomChance(rand, 1, 3) ? -1 : +1
-                            : myUtils.randomChance(rand, 1, 3) ? +1 : -1;
+                            ? myUtils.randomChance(rand, 1, 23) ? -1 : +1
+                            : myUtils.randomChance(rand, 1, 23) ? +1 : -1;
 
-                        Y += sign * 0.25f;
+                        Y = sign * width * 0.005f;
                     }
+
+                    X += Y;
+                    offset = (int)X;
+
+                    x2 -= 1 * offset;
+                    y2 -= 1 * offset;
+                    w2 += 2 * offset;
+                    h2 += 2 * offset;
                     break;
 
                 case 31:
