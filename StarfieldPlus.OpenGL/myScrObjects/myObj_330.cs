@@ -59,9 +59,11 @@ namespace my
                     paramf[i] = 0.0f;
             }
 
-            // todo: another mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(33);
-            //mode = 20;
+            // todo:
+            // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
+            // mode. divide image in thin lines and shift each line to the sides a bit
+            mode = rand.Next(34);
+            //mode = 33;
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -324,6 +326,7 @@ namespace my
                     paramf[0] = (float)rand.NextDouble();
                     break;
 
+                // Square-angleed snake-style movements
                 case 32:
                     N = rand.Next(111) + 11;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
@@ -341,6 +344,19 @@ namespace my
 
                     max1 += myUtils.randomChance(rand, 1, 5)                                // Possibly change the max length of a line
                         ? myUtils.randomSign(rand) * rand.Next(33) : 0;
+                    break;
+
+                // Matrix-style falling pieces
+                case 33:
+                    N = rand.Next(666) + 333;
+                    doClearBuffer = myUtils.randomChance(rand, 1, 5);
+                    max1 = rand.Next(33) + 11;                                              // Max particle size
+                    param[0] = rand.Next(2);                                                // Const/Random size
+                    param[1] = rand.Next(2);                                                // Rotation mode
+                    param[2] = rand.Next(2);                                                // y-axis original position (in-screen, out-of-screen)
+                    param[3] = rand.Next(11);                                               // y-axis acceleration
+                    param[4] = rand.Next(2) == 0 ? 0 : rand.Next(11);                       // Decrease opacity mode
+                    param[5] = rand.Next(2);                                                // Random size for each frame
                     break;
             }
 
@@ -900,6 +916,44 @@ namespace my
                         cnt = rand.Next(param[3]) + 1;
                     }
                     break;
+
+                case 33:
+                    a = (float)rand.NextDouble();
+                    da = 0;
+                    x = rand.Next(gl_Width);
+
+                    if (param[2] == 0)
+                    {
+                        y = -max1 - 11;
+                    }
+                    else
+                    {
+                        y = rand.Next(gl_Height) - max1 - 11;
+                    }
+
+                    X = dx = 0;
+                    dy = ((float)rand.NextDouble() + 0.01f) * (rand.Next(23) + 1);
+
+                    if (param[0] == 0)
+                        width = height = max1;
+                    else
+                        width = height = rand.Next(max1) + 2;
+
+                    // Rotation angle setup
+                    if (param[1] == 1)
+                    {
+                        dx = myUtils.randomSign(rand) * (float)rand.NextDouble();
+
+                        // Slowly falling pieces should not rotate very fast
+                        if (dy < 1 && myUtils.randomChance(rand, 4, 5))
+                            dx /= (rand.Next(11) + 10);
+                    }
+
+                    if (param[4] > 0)
+                    {
+                        da = -(float)rand.NextDouble() / param[4];
+                    }
+                    break;
             }
 
             return;
@@ -1364,6 +1418,26 @@ namespace my
                         }
                     }
                     break;
+
+                case 33:
+                    y += dy;
+                    a += da;
+
+                    // Rotation angle
+                    if (param[1] == 1)
+                    {
+                        X += dx;
+                    }
+
+                    // y-axis acceleration
+                    if (param[3] > 0)
+                    {
+                        dy += (float)rand.NextDouble() / param[3];
+                    }
+
+                    if (y > gl_Height + 111)
+                        a = 0;
+                    break;
             }
 
             if (a <= 0)
@@ -1605,6 +1679,22 @@ namespace my
                 case 32:
                     tex.setOpacity(a);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 33:
+                    tex.setOpacity(a);
+                    tex.SetAngle(X);
+
+                    if (param[5] == 0)
+                    {
+                        tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    }
+                    else
+                    {
+                        int A = rand.Next(5) * myUtils.randomSign(rand);
+
+                        tex.Draw((int)x - A, (int)y - A, width + 2 * A, height + 2 * A, (int)x - A, (int)y - A, width + 2 * A, height + 2 * A);
+                    }
                     break;
             }
 
