@@ -60,8 +60,8 @@ namespace my
             }
 
             // todo: another mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(32);
-            //mode = 31;
+            mode = rand.Next(33);
+            //mode = 20;
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -224,6 +224,7 @@ namespace my
                     max1 = rand.Next(50) + 1;
                     param[0] = rand.Next(2);
                     param[1] = rand.Next(2);
+                    param[2] = rand.Next(7);                                                // Movement pattern
                     break;
 
                 // Random pieces of the image constantly appear at their own locations
@@ -322,6 +323,25 @@ namespace my
                     param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
                     paramf[0] = (float)rand.NextDouble();
                     break;
+
+                case 32:
+                    N = rand.Next(111) + 11;
+                    doClearBuffer = myUtils.randomChance(rand, 1, 5);
+                    dimAlpha /= (rand.Next(11) + 1);
+                    max1 = 50;                                                              // Max length of a line
+                    param[0] = rand.Next(25) + 1;                                           // Width of a line
+                    param[1] = rand.Next(5);                                                // Randomly vary max length of a line
+                    param[2] = rand.Next(5);                                                // Randomly vary width of a line
+                    param[3] = myUtils.randomChance(rand, 1, 7)                             // Progress delay
+                        ? rand.Next(7) + 1 : 0;
+
+                    N += param[0] < 5 ? rand.Next(222) : 0;                                 // Possibly increase the number of N for lesser line widths
+                    N += param[0] < 3 ? rand.Next(333) : 0;
+                    N += doClearBuffer ? rand.Next(1234) + 666 : 0;                         // Possibly increase the number of N if the buffer is cleared each iteration
+
+                    max1 += myUtils.randomChance(rand, 1, 5)                                // Possibly change the max length of a line
+                        ? myUtils.randomSign(rand) * rand.Next(33) : 0;
+                    break;
             }
 
             return;
@@ -342,6 +362,7 @@ namespace my
                             $"N = {N} ({list.Count})\n" +
                             $"mode = {mode}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
+                            $"max1 = {max1}\n" +
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"doSampleOnce  = {doSampleOnce}\n" +
                             $"opacityFactor = {opacityFactor}\n" +
@@ -587,7 +608,23 @@ namespace my
                         case 1: y = Y = Y - Y % height; break;
                     }
 
-                    dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(33) + 1) + 0.01f;
+                    // Moving direction
+                    switch (param[2])
+                    {
+                        case 0:
+                            dx = (float)rand.NextDouble() * (rand.Next(33) + 1) + 0.01f;
+                            break;
+
+                        case 1:
+                            dx = -(float)rand.NextDouble() * (rand.Next(33) + 1) - 0.01f;
+                            break;
+
+                        // Both ways
+                        default:
+                            dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * (rand.Next(33) + 1) + 0.01f;
+                            break;
+                    }
+
                     break;
 
                 case 21:
@@ -825,6 +862,43 @@ namespace my
                     // Different cnt for different modes
                     cnt = mode == 31 ? 333: 111;
                     cnt = rand.Next(cnt) + 11;
+                    break;
+
+                case 32:
+                    a = (float)rand.NextDouble();
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    X = Y = 0;
+                    cnt = 0;
+
+                    // Vary max1 parameter
+                    if (param[1] == 0)
+                    {
+                        max1 += myUtils.random101(rand);
+
+                        if (max1 < 20)
+                            max1 = 20;
+
+                        if (max1 > 99)
+                            max1 = 99;
+                    }
+
+                    // Vary param[0] parameter (line width)
+                    if (param[2] == 0)
+                    {
+                        param[0] += myUtils.random101(rand);
+
+                        if (param[0] < 1)
+                            param[0] = 1;
+
+                        if (param[0] > 33)
+                            param[0] = 33;
+                    }
+
+                    if (param[3] != 0)
+                    {
+                        cnt = rand.Next(param[3]) + 1;
+                    }
                     break;
             }
 
@@ -1075,9 +1149,30 @@ namespace my
                 case 20:
                     x += dx;
 
-                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -width))
+                    switch (param[2])
                     {
-                        dx *= -1;
+                        case 0:
+                        case 2:
+                            if (dx > 0 && x > gl_Width)
+                                x = -rand.Next(50) - 11;
+                            else
+                                if (dx < 0 && x < -width)
+                                    dx *= -1;
+                            break;
+
+                        case 1:
+                        case 3:
+                            if (dx < 0 && x < -width)
+                                x = gl_Width + rand.Next(50);
+                            else
+                                if (dx > 0 && x > gl_Width)
+                                    dx *= -1;
+                            break;
+
+                        default:
+                            if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -width))
+                                dx *= -1;
+                            break;
                     }
                     break;
 
@@ -1206,6 +1301,68 @@ namespace my
                 case 31:
                     if (--cnt <= 0)
                         generateNew();
+                    break;
+
+                case 32:
+
+                    if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+                    {
+                        generateNew();
+                    }
+
+                    // Slow down every particle
+                    if (param[3] > 0)
+                    {
+                        if (cnt-- > 0)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            cnt = rand.Next(param[3]) + 1;
+                        }
+                    }
+
+                    x += X;
+                    y += Y;
+                    X = Y = 0;
+
+                    if (rand.Next(2) == 0)
+                    {
+                        // vertical line
+                        width = param[0];
+                        Y = (rand.Next(max1) + width + 1);
+                        height = (int)(Y);
+
+                        if (rand.Next(2) == 0)
+                        {
+                            // go down
+                        }
+                        else
+                        {
+                            // go up
+                            y -= Y;
+                            Y = 0;
+                        }
+                    }
+                    else
+                    {
+                        // horizontal line
+                        height = param[0];
+                        X = (rand.Next(max1) + height + 1);
+                        width = (int)(X);
+
+                        if (rand.Next(2) == 0)
+                        {
+                            // go right
+                        }
+                        else
+                        {
+                            // go left
+                            x -= X;
+                            X = 0;
+                        }
+                    }
                     break;
             }
 
@@ -1444,6 +1601,11 @@ namespace my
                     tex.setOpacity(a);
                     showCase31(param[0]);
                     break;
+
+                case 32:
+                    tex.setOpacity(a);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
             }
 
             return;
@@ -1488,16 +1650,6 @@ namespace my
 
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
-
-                if (false)
-                {
-                    glClear(GL_COLOR_BUFFER_BIT);
-
-                    myPrimitive._Rectangle.SetColor(0.5f, 0.1f, 0.1f, 1.0f);
-                    myPrimitive._Rectangle.Draw(100, 100, 666, 666, true);
-
-                    continue;
-                }
 
                 if (doClearBuffer)
                 {
