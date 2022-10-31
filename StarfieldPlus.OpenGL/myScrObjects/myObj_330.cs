@@ -63,7 +63,7 @@ namespace my
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
             // mode. divide image in thin lines and shift each line to the sides a bit
             mode = rand.Next(34);
-            //mode = 33;
+            mode = 20;
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -224,7 +224,7 @@ namespace my
                 case 20:
                     N = rand.Next(3333) + 333;
                     max1 = rand.Next(50) + 1;
-                    param[0] = rand.Next(2);
+                    param[0] = rand.Next(3);                                                // Size/opacity option
                     param[1] = rand.Next(2);
                     param[2] = rand.Next(7);                                                // Movement pattern
                     break;
@@ -608,13 +608,19 @@ namespace my
                     break;
 
                 case 20:
+                    a = (float)rand.NextDouble();
+
                     switch (param[0])
                     {
                         case 0: width = max1;                break;
                         case 1: width = rand.Next(max1) + 1; break;
+                        case 2:
+                            width = rand.Next(max1) + 1;
+                            a = width > 150 ? 10.0f : 5.0f;
+                            a /= width;
+                            break;
                     }
 
-                    a = (float)rand.NextDouble();
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
                     height = width;
