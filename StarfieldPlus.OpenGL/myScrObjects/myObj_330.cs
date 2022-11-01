@@ -62,8 +62,8 @@ namespace my
             // todo:
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
             // mode. divide image in thin lines and shift each line to the sides a bit
-            mode = rand.Next(34);
-            mode = 20;
+            mode = rand.Next(35);
+            mode = 34;
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -357,6 +357,15 @@ namespace my
                     param[3] = rand.Next(11);                                               // y-axis acceleration
                     param[4] = rand.Next(2) == 0 ? 0 : rand.Next(11);                       // Decrease opacity mode
                     param[5] = rand.Next(2);                                                // Random size for each frame
+                    break;
+
+                // Horizontal lines that are shifted sideways
+                case 34:
+                    doCreateAtOnce = true;
+                    N = rand.Next(3) < 2 ? gl_Height : gl_Height / (rand.Next(10) + 1);
+                    param[0] = rand.Next(9);                                                // Move mode
+                    param[1] = rand.Next(2);                                                // Draw mode
+                    param[2] = rand.Next(2);                                                // Opacity mode
                     break;
             }
 
@@ -960,6 +969,14 @@ namespace my
                         da = -(float)rand.NextDouble() / param[4];
                     }
                     break;
+
+                case 34:
+                    a = 1.0f;
+                    width = gl_Width;
+                    height = gl_Height / N;
+                    x = X = 0;
+                    y = Y = (list.Count - 1) * height;
+                    break;
             }
 
             return;
@@ -1444,6 +1461,68 @@ namespace my
                     if (y > gl_Height + 111)
                         a = 0;
                     break;
+
+                case 34:
+                    switch (param[0])
+                    {
+                        case 0:
+                            x += (float)(Math.Sin(35 * cnt / (y + 30)));
+                            break;
+
+                        case 1:
+                            x += (float)(Math.Sin(35 * cnt / (y/33 + 30)));
+                            break;
+
+                        case 2:
+                            x += (float)(Math.Sin(35 * cnt / (y + 30)));
+                            x += (float)(Math.Sin(35 * cnt / (y / 33 + (float)rand.NextDouble())));
+                            break;
+
+                        case 3:
+                            x += (float)(Math.Sin(cnt / 3 + gl_Height / 2 - y)) + 3 * (float)(Math.Cos(cnt / 33 + y * 0.01f));
+                            break;
+
+                        case 4:
+                            x += (float)(Math.Sin(cnt/30) * (1.0f + y * 0.001f));
+                            x += (float)(Math.Sin(cnt/30 + y * 0.1f) * 11);
+                            break;
+
+                        case 5:
+                            x += (float)rand.NextDouble() * myUtils.randomSign(rand);
+                            break;
+
+                        case 6:
+                            x += (float)(Math.Sin(cnt / 30 + Y / 111) * (1.0f + y * 0.001f));
+                            x += (float)(Math.Sin(cnt / 123 + Y / 23) * (y * 0.0001f));
+                            break;
+
+                        case 7:
+                            x += (float)(Math.Sin(cnt / 3 + Y / (cnt + 1)) * 0.25f);
+                            break;
+
+                        case 8:
+                            x += (float)(Math.Sin(cnt / 30 + Y / 66 + (Y % 33) / 11) * 1.0f);
+                            break;
+                    }
+
+                    cnt++;
+
+                    if (param[2] == 0)
+                    {
+                        a = 0.9f;
+                    }
+                    else
+                    {
+                        if (x == X)
+                        {
+                            a = 1.0f;
+                        }
+                        else
+                        {
+                            a = 0.25f + 13.0f / (float)(Math.Abs(X - x));
+                        }
+                    }
+                    break;
             }
 
             if (a <= 0)
@@ -1700,6 +1779,21 @@ namespace my
                         int A = rand.Next(5) * myUtils.randomSign(rand);
 
                         tex.Draw((int)x - A, (int)y - A, width + 2 * A, height + 2 * A, (int)x - A, (int)y - A, width + 2 * A, height + 2 * A);
+                    }
+                    break;
+
+                case 34:
+                    tex.setOpacity(a);
+
+                    switch (param[1])
+                    {
+                        case 0:
+                            tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
+                            break;
+
+                        case 1:
+                            tex.Draw((int)(x / 10), (int)Y, (int)(width), height, (int)(X), (int)(Y), (int)(width), (int)(height + x));
+                            break;
                     }
                     break;
             }
