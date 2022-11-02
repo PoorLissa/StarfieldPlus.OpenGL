@@ -64,7 +64,10 @@ namespace my
             // todo:
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
             mode = rand.Next(40);
-            mode = 39;
+
+#if DEBUG //&& false
+            mode = 10;
+#endif
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -159,15 +162,10 @@ namespace my
 
                 // Random pieces of the image constantly appearing at random locations
                 case 10:
-                    if (rand.Next(3) == 0)
-                    {
-                        dimAlpha /= (rand.Next(11) + 1);
-                    }
-                    else
-                    {
-                        dimAlpha /= 5;
-                    }
-
+                    param[0] = rand.Next(4);                                                // Random Rectangle vs Random Square vs Const Square vs Const Rectangle
+                    param[1] = rand.Next(111);                                              // Speed factor
+                    param[2] = rand.Next(2) == 0 ? 0 : 100 + rand.Next(500);                // Vingette factor
+                    dimAlpha /= (rand.Next(3) == 0) ? (rand.Next(11) + 1) : (5);
                     doClearBuffer = false;
                     N = (999 + rand.Next(111)) / (rand.Next(11) + 1);
                     max1 = rand.Next(50) + 25;
@@ -554,6 +552,7 @@ namespace my
 
                 case 9:
                 case 10:
+                    cnt = rand.Next(param[1]) + 1;
                     break;
 
                 case 11:
@@ -1261,12 +1260,42 @@ namespace my
                     break;
 
                 case 10:
-                    width = rand.Next(max1) + 1;
-                    height = rand.Next(max1) + 1;
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
-                    X = rand.Next(gl_Width);
-                    Y = rand.Next(gl_Height);
+                    if (--cnt <= 0)
+                    {
+                        switch (param[0])
+                        {
+                            case 0:
+                                width = rand.Next(max1) + 1;
+                                height = rand.Next(max1) + 1;
+                                break;
+
+                            case 1:
+                                width = height = rand.Next(max1) + 1;
+                                break;
+
+                            case 2:
+                                width = height = max1;
+                                break;
+
+                            case 3:
+                                height = param[1] % 23;
+                                width = 2*max1;
+                                break;
+                        }
+
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+                        X = rand.Next(gl_Width);
+                        Y = rand.Next(gl_Height);
+
+                        a = (float)rand.NextDouble();
+                        cnt = rand.Next(param[1]) + 1;
+
+                        if (param[2] != 0 && (X < param[2] || Y < param[2] || X > gl_Width - param[2] || Y > gl_Height - param[2]))
+                        {
+                            a /= rand.Next(100) + 23;
+                        }
+                    }
                     break;
 
                 case 11:
@@ -1863,7 +1892,11 @@ namespace my
                     break;
 
                 case 9:
+                    tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
+                    break;
+
                 case 10:
+                    tex.setOpacity(a);
                     tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
                     break;
 
@@ -2137,16 +2170,17 @@ namespace my
 
         protected override void Process(Window window)
         {
-            int maxCnt = 333;
-            int cnt = rand.Next(maxCnt) + 11;
-            int mode = rand.Next(2);
-
             initShapes();
 
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
+
+                float r = (float)rand.NextDouble()/11;
+                float g = (float)rand.NextDouble()/11;
+                float b = (float)rand.NextDouble()/11;
+
+                glClearColor(r, g, b, 1.0f);
             }
             else
             {
@@ -2180,17 +2214,6 @@ namespace my
                 else
                 {
                     dimScreen(dimAlpha, false);
-
-                    if (false)
-                    {
-                        if (cnt > 0)
-                            cnt--;
-                        else
-                        {
-                            cnt = rand.Next(maxCnt) + 11;
-                            glClear(GL_COLOR_BUFFER_BIT);
-                        }
-                    }
                 }
 
                 // Render Frame
