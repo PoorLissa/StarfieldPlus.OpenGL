@@ -419,6 +419,10 @@ namespace my
                     param[0] = rand.Next(2);                                                // Offset for y-axis (to get some bluring effect)
                     param[1] = rand.Next(2);                                                // Squares vs Rectangles
                     break;
+
+                // Random squares appearing at their own locations, but with a probability of a random offset (the larger the offset, the lesser the probability)
+                case 40:
+                    break;
             }
 
             return;
@@ -1291,6 +1295,7 @@ namespace my
                         a = (float)rand.NextDouble();
                         cnt = rand.Next(param[1]) + 1;
 
+                        // Vingette
                         if (param[2] != 0 && (X < param[2] || Y < param[2] || X > gl_Width - param[2] || Y > gl_Height - param[2]))
                         {
                             a /= rand.Next(100) + 23;
