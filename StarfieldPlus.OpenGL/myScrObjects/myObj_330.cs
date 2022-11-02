@@ -22,7 +22,7 @@ namespace my
         static int mode = 0;
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
-        static float dimAlpha = 0.05f;
+        static float dimAlpha = 0.05f, t = 0, dt = 0;
         static float[] paramf = new float[1];
 
         static myTexRectangle tex = null;
@@ -50,6 +50,8 @@ namespace my
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
 
+            t = 0;
+
             // Set default params
             {
                 for (int i = 0; i < param.Length; i++)
@@ -61,9 +63,8 @@ namespace my
 
             // todo:
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            // mode. divide image in thin lines and shift each line to the sides a bit
-            mode = rand.Next(35);
-            mode = 34;
+            mode = rand.Next(40);
+            mode = 39;
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -213,7 +214,7 @@ namespace my
                     max2 = rand.Next(333) + 25;
                     break;
 
-                // Snake-alike chain of squares
+                // Snake-alike chain of squares running from side to side, bottom to top
                 case 19:
                     N = rand.Next(1111) + 111;
                     max1 = rand.Next(111) + 25;
@@ -366,6 +367,59 @@ namespace my
                     param[0] = rand.Next(9);                                                // Move mode
                     param[1] = rand.Next(2);                                                // Draw mode
                     param[2] = rand.Next(2);                                                // Opacity mode
+                    break;
+
+                // Random squares rotated by +/-45 degrees
+                case 35:
+                    N = rand.Next(666) + 333;
+                    max1 = rand.Next(33) + 11;                                              // Max particle size
+                    param[0] = rand.Next(2);                                                // Size option
+                    break;
+
+                // Random squares of pulsating size
+                case 36:
+                    N = rand.Next(666) + 666;
+                    max1 = rand.Next(33) + 11;                                              // Max particle size
+                    param[0] = rand.Next(2);                                                // Size option
+                    break;
+
+                // Rectangles of pulsating height
+                case 37:
+                    N = rand.Next(666) + 666;
+                    max1 = rand.Next(25) + 3;                                               // Max particle size
+                    param[0] = rand.Next(3);                                                // Size option (rand, const, 1)
+                    param[1] = rand.Next(4);                                                // Center line option
+                    param[2] = rand.Next(500) + 50;                                         // 
+                    param[3] = rand.Next( 20) + 1;                                          // 
+                    param[4] = rand.Next(333) + 50;                                         // 
+                    dt = 0.01f;
+                    break;
+
+                // Snake-like 'roots' growing into the screen from the sides
+                case 38:
+                    N = rand.Next(666) + 666;
+                    max1 = rand.Next(23) + 3;                                               // Max particle size
+                    param[0] = rand.Next(3);                                                // Move mode
+                    param[1] = rand.Next(11) + 1;                                           // Speed factor
+                    param[2] = rand.Next(11) + 3;                                           // Probability of a side turn in move mode 2
+
+                    if (param[0] == 2)
+                    {
+                        max1 = rand.Next(5) + 1;
+                        param[1] = 33;
+                    }
+
+                    doClearBuffer = myUtils.randomChance(rand, 1, 11);
+                    dimAlpha /= (rand.Next(5) + 1);
+                    break;
+
+                // High-opacity smaller particles and low-opacity larger particles flow in opposite directions
+                case 39:
+                    N = rand.Next(666) + 666;
+                    max1 = rand.Next(333) + 33;                                             // Max particle size
+                    dimAlpha /= (rand.Next(3) + 1);
+                    param[0] = rand.Next(2);                                                // Offset for y-axis (to get some bluring effect)
+                    param[1] = rand.Next(2);                                                // Squares vs Rectangles
                     break;
             }
 
@@ -977,6 +1031,107 @@ namespace my
                     x = X = 0;
                     y = Y = (list.Count - 1) * height;
                     break;
+
+                case 35:
+                    a = (float)rand.NextDouble();
+                    width = height = param[0] == 0 ? max1 : rand.Next(max1) + 3;
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    X = rand.Next(2) == 0
+                        ? +(float)(Math.PI / 4)
+                        : -(float)(Math.PI / 4);
+                    cnt = rand.Next(111) + 11;
+                    break;
+
+                case 36:
+                    a = (float)rand.NextDouble()/2;
+                    width = height = (param[0] == 0) ? (max1) : (rand.Next(max1) + 3);
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    cnt = rand.Next(777) + 123;
+                    X = Y = 0;
+                    dx = (float)rand.NextDouble()/5  + 1.0f;                                // Pulsating speed factor
+                    dy = (float)rand.NextDouble()/10 + 0.005f;                              // Pulsating speed
+                    break;
+
+                case 37:
+                    a = (float)rand.NextDouble()/2;
+
+                    switch (param[0])
+                    {
+                        case 0: width = 1;                     break;
+                        case 1: width = max1;                  break;
+                        case 2: width = (rand.Next(max1) + 1); break;
+                    }
+
+                    height = 0;
+                    x = rand.Next(gl_Width);
+                    y = gl_Height/2;
+                    cnt = rand.Next(777) + 123;
+                    X = Y = 0;
+                    dx = (float)rand.NextDouble() + rand.Next(9);                        // Pulsating speed factor
+                    dy = (float)rand.NextDouble() + 0.01f;                               // Pulsating speed
+                    break;
+
+                case 38:
+                    a = (float)rand.NextDouble()/2;
+                    da = 0;
+                    cnt = rand.Next(1111) + 111;
+
+                    height = width = max1;
+
+                    if (rand.Next(2) == 0)
+                    {
+                        x = rand.Next(gl_Width);
+                        X = x + width;
+                        y = Y = rand.Next(2) == 0 ? 0 : gl_Height;
+                        dx = 0;
+                        dy = (y == 0 ? 1 : -1) * (float)rand.NextDouble();
+                    }
+                    else
+                    {
+                        x = X = rand.Next(2) == 0 ? 0 : gl_Width;
+                        y = Y = rand.Next(gl_Height);
+                        dy = 0;
+                        dx = (x == 0 ? 1 : -1) * (float)rand.NextDouble();
+                    }
+
+                    // Apply speed factor
+                    dx *= (rand.Next(param[1]) + 1);
+                    dy *= (rand.Next(param[1]) + 1);
+                    break;
+
+                case 39:
+                    a = (float)rand.NextDouble();
+
+                    y = Y = rand.Next(gl_Height);
+
+                    if (myUtils.randomChance(rand, 1, 3))
+                    {
+                        height = width = rand.Next(max1 * 2) + max1/2;
+                        x = X = -111;
+                        a /= 13;
+                    }
+                    else
+                    {
+                        height = width = rand.Next(max1 / 2) + 1;
+                        x = X = gl_Width + 111;
+                    }
+
+                    // Use rectangles
+                    if (param[1] == 1)
+                    {
+                        width = (int)(width * (1.0 + rand.NextDouble() + rand.NextDouble()));
+                    }
+
+                    dx = (x > 0) ? -(float)rand.NextDouble() : (float)rand.NextDouble();
+                    dy = param[0] == 0 ? 0 : myUtils.randomSign(rand) * rand.Next(11);
+
+                    if (x > 0)
+                        dy /= 2;
+
+                    dx *= (rand.Next(11) + 1);
+                    break;
             }
 
             return;
@@ -986,6 +1141,8 @@ namespace my
 
         protected override void Move()
         {
+            bool b1 = false;
+
             switch (mode)
             {
                 case 0:
@@ -1523,6 +1680,142 @@ namespace my
                         }
                     }
                     break;
+
+                case 35:
+                    if (--cnt == 0)
+                        a = -1.0f;
+                    break;
+
+                case 36:
+                    Y += dy;
+                    X = (float)Math.Sin(Y) * dx;
+                    a += (X > 0) ? -0.0005f : +0.0005f;
+
+                    x -= (int)X;
+                    y -= (int)X;
+                    width  += 2*(int)X;
+                    height += 2*(int)X;
+
+                    if (--cnt <= 0)
+                        a -= 0.035f;
+                    break;
+
+                case 37:
+                    Y += dy;
+                    X = (float)Math.Sin(Y) * dx;
+
+                    height += (int)(X * 1.75f);
+                    a += (X > 0) ? -0.0005f : +0.0005f;
+
+                    switch (param[1])
+                    {
+                        case 0:
+                            break;
+
+                        case 1:
+                            y = gl_y0 + 50 * (float)Math.Sin(x/66);
+                            break;
+
+                        case 2:
+                            y = gl_y0 + param[4] * (float)(Math.Sin(param[3]*t + x / param[2]));
+                            break;
+
+                        case 3:
+                            y = gl_y0 + param[4] * (float)(Math.Sin(param[3]*t + x / (100.0 + 333 * Math.Sin(t))));
+                            break;
+                    }
+
+                    if (--cnt <= 0)
+                        a -= 0.035f;
+                    break;
+
+                case 38:
+                    b1 = da == 0 && rand.Next(param[2]) == 0;         // Side move -- used in case 2
+
+                    switch (param[0])
+                    {
+                        case 0:
+                            x += dx;
+                            y += dy;
+                            break;
+
+                        case 1:
+                            if (dx == 0)
+                            {
+                                if (b1)
+                                {
+                                    x += myUtils.randomSign(rand) * rand.Next(2 * param[1] / 3);
+                                }
+                                else
+                                {
+                                    y += (dy > 0 ? 1 : -1) * rand.Next(param[1]);
+                                }
+                            }
+                            else
+                            {
+                                if (b1)
+                                {
+                                    y += myUtils.randomSign(rand) * rand.Next(2 * param[1] / 3);
+                                }
+                                else
+                                {
+                                    x += (dx > 0 ? 1 : -1) * rand.Next(param[1]);
+                                }
+                            }
+                            break;
+
+                        case 2:
+                            if (dx == 0)
+                            {
+                                if (b1)
+                                {
+                                    X = x;
+                                    x += myUtils.randomSign(rand) * rand.Next(param[1]);
+                                    Y = y - width;
+                                    da = 1;
+                                }
+                                else
+                                {
+                                    Y = y;
+                                    X = x + width;
+                                    height = rand.Next(param[1]);
+                                    y += (dy > 0) ? height : -height;
+                                    da = 0;
+                                }
+                            }
+                            else
+                            {
+                                if (b1)
+                                {
+                                    Y = y;
+                                    y += myUtils.randomSign(rand) * rand.Next(param[1]);
+                                    X = x - width;
+                                    da = 1;
+                                }
+                                else
+                                {
+                                    // Here, width is actually a height, and height is a width
+                                    X = x;
+                                    Y = y + width;
+                                    height = rand.Next(param[1]);
+                                    x += (dx > 0) ? height : -height;
+                                    da = 0;
+                                }
+                            }
+                            break;
+                    }
+
+                    if (--cnt <= 0)
+                        a -= 0.035f;
+                    break;
+
+                case 39:
+                    x += dx;
+                    //y += dy;
+
+                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -111))
+                        a = -1;
+                    break;
             }
 
             if (a <= 0)
@@ -1796,6 +2089,45 @@ namespace my
                             break;
                     }
                     break;
+
+                case 35:
+                    tex.setOpacity(a);
+                    tex.SetAngle(X);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 36:
+                    tex.setOpacity(a);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 37:
+                    tex.setOpacity(a);
+                    tex.Draw((int)x, (int)(y - height), width, 2*height, (int)x, (int)(y - height), width, 2*height);
+                    break;
+
+                case 38:
+                    tex.setOpacity(a);
+
+                    if (param[0] != 2)
+                    {
+                        tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    }
+                    else
+                    {
+                        int _x = (int)(x > X ?   X : x);
+                        int _w = (int)(x > X ? x-X : X-x);
+                        int _y = (int)(y > Y ?   Y : y);
+                        int _h = (int)(y > Y ? y-Y : Y-y);
+
+                        tex.Draw(_x, _y, _w, _h, _x, _y, _w, _h);
+                    }
+                    break;
+
+                case 39:
+                    tex.setOpacity(a);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)(y + dy), width, height);
+                    break;
             }
 
             return;
@@ -1878,6 +2210,7 @@ namespace my
                 }
 
                 System.Threading.Thread.Sleep(renderDelay);
+                t += dt;
             }
 
             return;

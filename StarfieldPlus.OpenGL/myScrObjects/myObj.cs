@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 
 
-#pragma warning disable CS0162
+#pragma warning disable CS0162                      // Unreachable code warnings
 
 
 namespace my
