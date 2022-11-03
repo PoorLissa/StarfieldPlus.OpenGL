@@ -556,7 +556,7 @@ namespace my
 
                 case 9:
                 case 10:
-                    cnt = rand.Next(param[1]) + 1;
+                    cnt = rand.Next(33) + 1;
                     break;
 
                 case 11:
@@ -1264,7 +1264,7 @@ namespace my
                     break;
 
                 case 10:
-                    if (--cnt <= 0)
+                    if (--cnt < 0)
                     {
                         switch (param[0])
                         {
@@ -1296,9 +1296,23 @@ namespace my
                         cnt = rand.Next(param[1]) + 1;
 
                         // Vingette
-                        if (param[2] != 0 && (X < param[2] || Y < param[2] || X > gl_Width - param[2] || Y > gl_Height - param[2]))
+                        if (param[2] != 0)
                         {
-                            a /= rand.Next(100) + 23;
+                            float dist = 0;
+
+                            if (X < param[2] || Y < param[2])
+                            {
+                                dist = X > Y ? Y : X;
+                            }
+                            else if (X > (gl_Width - param[2]) || Y > (gl_Height - param[2]))
+                            {
+                                dist = (gl_Width - X) > (gl_Height - Y) ? gl_Height - Y : gl_Width - X;
+                            }
+
+                            if (dist > 0)
+                            {
+                                a *= (dist / param[2]);
+                            }
                         }
                     }
                     break;
@@ -1901,8 +1915,11 @@ namespace my
                     break;
 
                 case 10:
-                    tex.setOpacity(a);
-                    tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
+                    if (cnt == 0)
+                    {
+                        tex.setOpacity(a);
+                        tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
+                    }
                     break;
 
                 case 11:
