@@ -66,7 +66,7 @@ namespace my
             mode = rand.Next(40);
 
 #if DEBUG //&& false
-            mode = 10;
+            mode = 41;
 #endif
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
@@ -125,39 +125,25 @@ namespace my
                 // Random pieces of the image constantly appearing at their own locations
                 // The screen IS cleared between frames
                 case 8:
+                    param[0] = rand.Next(2) == 0 ? 0 : rand.Next(50);
                     doClearBuffer = true;
                     N = 999 + rand.Next(111);
                     max1 = 50;
                     break;
 
-                // Random pieces of the image constantly appearing at their own locations (with or without some offset)
+                // Random pieces of the image constantly appearing at their own locations (with or without some offset, i.e. blurring)
                 // The screen is NOT cleared between frames
                 case 9:
-                    if (rand.Next(3) == 0)
-                    {
-                        dimAlpha /= (rand.Next(11) + 1);
-                    }
-                    else
-                    {
-                        dimAlpha /= 5;
-                    }
-
+                    param[0] = rand.Next(5);                                                // Random Rect vs Random Square vs Const Square vs Const Rect vs Very Wide Rect
+                    param[1] = rand.Next(3) == 0 ? (rand.Next(23)+1) : (rand.Next(5)+1);    // Blurring effect strength
+                    param[2] = rand.Next(111);                                              // Speed factor
+                    param[3] = rand.Next(4);                                                // Opacity mode
+                    dimAlpha /= (rand.Next(3) == 0 ? (rand.Next(11) + 1) : (5));
                     doClearBuffer = false;
                     doUseRandDxy = myUtils.randomChance(rand, 2, 3);
                     N = 999 + rand.Next(111);
                     max1 = rand.Next(50) + 25;
-
-                    param[0] = rand.Next(2);
-
-                    // Bluring effect strength
-                    if (rand.Next(3) == 0)
-                    {
-                        max2 = rand.Next(23) + 1;
-                    }
-                    else
-                    {
-                        max2 = rand.Next(5) + 1;
-                    }
+                    dt = 0.023f;
                     break;
 
                 // Random pieces of the image constantly appearing at random locations
@@ -165,10 +151,12 @@ namespace my
                     param[0] = rand.Next(4);                                                // Random Rectangle vs Random Square vs Const Square vs Const Rectangle
                     param[1] = rand.Next(111);                                              // Speed factor
                     param[2] = rand.Next(2) == 0 ? 0 : 100 + rand.Next(500);                // Vingette factor
+                    param[3] = rand.Next(4);                                                // Opacity mode
                     dimAlpha /= (rand.Next(3) == 0) ? (rand.Next(11) + 1) : (5);
                     doClearBuffer = false;
                     N = (999 + rand.Next(111)) / (rand.Next(11) + 1);
                     max1 = rand.Next(50) + 25;
+                    dt = 0.01f;
                     break;
 
                 // Squares moving on the screen, while decreasing in size
@@ -423,6 +411,10 @@ namespace my
                 // Random squares appearing at their own locations, but with a probability of a random offset (the larger the offset, the lesser the probability)
                 case 40:
                     break;
+
+                // Grid made of thin lines that are continuously moving up/down or left/right
+                case 41:
+                    break;
             }
 
             return;
@@ -557,6 +549,7 @@ namespace my
                 case 9:
                 case 10:
                     cnt = rand.Next(33) + 1;
+                    a = 0.25f;
                     break;
 
                 case 11:
@@ -1231,45 +1224,83 @@ namespace my
                 case 8:
                     if (--X <= 0)
                     {
-                        width = rand.Next(max1) + 1;
+                        width  = rand.Next(max1) + 1;
                         height = rand.Next(max1) + 1;
                         x = rand.Next(gl_Width);
                         y = rand.Next(gl_Height);
                         X = rand.Next(66) + 1;
+
+                        if (param[0] != 0)
+                        {
+                            x -= x % (max1 + param[0]);
+                            y -= y % (max1 + param[0]);
+                        }
                     }
                     break;
 
                 case 9:
-                    x = X = rand.Next(gl_Width);
-                    y = Y = rand.Next(gl_Height);
-
-                    doUseRandDxy = true;
-                    param[0] = 1;
-
-                    if (param[0] == 0)
+                    if (--cnt < 0)
                     {
-                        width = rand.Next(max1) + 1;
-                        height = rand.Next(max1) + 1;
-                    }
-                    else
-                    {
-                        width = height = rand.Next(max1) + 1;
-                    }
+                        // Shape
+                        switch (param[0])
+                        {
+                            case 0:
+                                width  = rand.Next(max1) + 1;
+                                height = rand.Next(max1) + 1;
+                                break;
 
-                    if (doUseRandDxy)
-                    {
-                        X += myUtils.randomSign(rand) * (rand.Next(2*max2+1) - max2);
-                        Y += myUtils.randomSign(rand) * (rand.Next(2*max2+1) - max2);
+                            case 1:
+                                width = height = rand.Next(max1) + 1;
+                                break;
+
+                            case 2:
+                                width = height = max1;
+                                break;
+
+                            case 3:
+                                height = param[1] % 23;
+                                width = 2 * max1;
+                                break;
+
+                            case 4:
+                                height = param[1] % 23;
+                                width  = max1 * (rand.Next(23) + 2);
+                                break;
+                        }
+
+                        // Coordinates
+                        x = X = rand.Next(gl_Width);
+                        y = Y = rand.Next(gl_Height);
+
+                        // Overall speed factor
+                        cnt = rand.Next(param[2]) + 1;
+
+                        // Opacity
+                        switch (param[3])
+                        {
+                            case 0: a = (float)rand.NextDouble() * 1;   break;
+                            case 1: a = (float)rand.NextDouble() * 2;   break;
+                            case 2: a = (float)Math.Sin((Y+100*t)/100); break;
+                            case 3: a = 0.85f;                          break;
+                        }
+
+                        // Blurring offset
+                        if (doUseRandDxy)
+                        {
+                            X += myUtils.randomSign(rand) * (rand.Next(2 * param[1] + 1) - param[1]);
+                            Y += myUtils.randomSign(rand) * (rand.Next(2 * param[1] + 1) - param[1]);
+                        }
                     }
                     break;
 
                 case 10:
                     if (--cnt < 0)
                     {
+                        // Shape
                         switch (param[0])
                         {
                             case 0:
-                                width = rand.Next(max1) + 1;
+                                width  = rand.Next(max1) + 1;
                                 height = rand.Next(max1) + 1;
                                 break;
 
@@ -1287,12 +1318,22 @@ namespace my
                                 break;
                         }
 
+                        // Coordinates
                         x = rand.Next(gl_Width);
                         y = rand.Next(gl_Height);
                         X = rand.Next(gl_Width);
                         Y = rand.Next(gl_Height);
 
-                        a = (float)rand.NextDouble();
+                        // Opacity
+                        switch (param[3])
+                        {
+                            case 0: a = (float)rand.NextDouble() * 1;   break;
+                            case 1: a = (float)rand.NextDouble() * 2;   break;
+                            case 2: a = (float)Math.Sin((Y+100*t)/100); break;
+                            case 3: a = 0.85f;                          break;
+                        }
+
+                        // Overall speed factor
                         cnt = rand.Next(param[1]) + 1;
 
                         // Vingette
@@ -1306,7 +1347,7 @@ namespace my
                             }
                             else if (X > (gl_Width - param[2]) || Y > (gl_Height - param[2]))
                             {
-                                dist = (gl_Width - X) > (gl_Height - Y) ? gl_Height - Y : gl_Width - X;
+                                dist = (gl_Width - X) > (gl_Height - Y) ? (gl_Height - Y) : (gl_Width - X);
                             }
 
                             if (dist > 0)
@@ -1911,15 +1952,9 @@ namespace my
                     break;
 
                 case 9:
-                    tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
-                    break;
-
                 case 10:
                     if (cnt == 0)
-                    {
-                        tex.setOpacity(a);
                         tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
-                    }
                     break;
 
                 case 11:
