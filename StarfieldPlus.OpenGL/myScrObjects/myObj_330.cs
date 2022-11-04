@@ -419,7 +419,7 @@ namespace my
                     max1 = rand.Next(111) + 7;
                     param[0] = rand.Next(3);                                                // Mode: vertical vs horizontal vs vertical + horizontal
                     param[1] = rand.Next(max1 / 3) + 5;                                     // line width
-                    param[2] = rand.Next(4);                                                // const speed vs varied speed vs const/var vs var/const
+                    param[2] = rand.Next(4);                                                // speed: const/const vs vs const/var vs var/const vs var/var
 
                     switch (param[0])
                     {
@@ -2134,19 +2134,19 @@ namespace my
                         switch (param[5])
                         {
                             case 0:
-                                tex.SetAngle(Math.PI/2);
+                                tex.setAngle(Math.PI/2);
                                 break;
 
                             case 1:
-                                tex.SetAngle(Math.PI);
+                                tex.setAngle(Math.PI);
                                 break;
 
                             case 2:
-                                tex.SetAngle(3 * Math.PI/2);
+                                tex.setAngle(3 * Math.PI/2);
                                 break;
 
                             case 3:
-                                tex.SetAngle(rand.Next(4) * Math.PI/2);
+                                tex.setAngle(rand.Next(4) * Math.PI/2);
                                 break;
                         }
 
@@ -2231,13 +2231,13 @@ namespace my
 
                 case 27:
                     tex.setOpacity(a);
-                    tex.SetAngle(X);
+                    tex.setAngle(X);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
 
                 case 28:
                     tex.setOpacity(a);
-                    tex.SetAngle(Math.Sin(dx * cnt / 250) / 17);
+                    tex.setAngle(Math.Sin(dx * cnt / 250) / 17);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
 
@@ -2247,33 +2247,33 @@ namespace my
                     {
                         case 0:
                             tex.setOpacity(a);
-                            tex.SetAngle(Math.PI);
+                            tex.setAngle(Math.PI);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                             break;
 
                         case 1:
                             tex.setOpacity(a/2);
 
-                            tex.SetAngle(0);
+                            tex.setAngle(0);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
 
-                            tex.SetAngle(Math.PI);
+                            tex.setAngle(Math.PI);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                             break;
 
                         case 2:
                             tex.setOpacity(a/4);
 
-                            tex.SetAngle(0);
+                            tex.setAngle(0);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
 
-                            tex.SetAngle(Math.PI);
+                            tex.setAngle(Math.PI);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
 
-                            tex.SetAngle(Math.PI / 2);
+                            tex.setAngle(Math.PI / 2);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
 
-                            tex.SetAngle(3 * Math.PI / 2);
+                            tex.setAngle(3 * Math.PI / 2);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                             break;
 
@@ -2303,7 +2303,7 @@ namespace my
 
                 case 33:
                     tex.setOpacity(a);
-                    tex.SetAngle(X);
+                    tex.setAngle(X);
 
                     if (param[5] == 0)
                     {
@@ -2334,7 +2334,7 @@ namespace my
 
                 case 35:
                     tex.setOpacity(a);
-                    tex.SetAngle(X);
+                    tex.setAngle(X);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
 
@@ -2376,6 +2376,7 @@ namespace my
 
                 case 41:
                     tex.setOpacity(a);
+                    //tex.setColor(r, g, b);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)(y), width, height);
                     break;
             }
@@ -2569,7 +2570,7 @@ namespace my
                     h1 += 2 * (int)Y/2;
 
                     tex.setOpacity(0.1f);
-                    tex.SetAngle(Y);
+                    tex.setAngle(Y);
 
                     Y += X;
                     break;

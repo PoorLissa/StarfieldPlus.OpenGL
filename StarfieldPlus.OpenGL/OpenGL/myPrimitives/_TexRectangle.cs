@@ -183,16 +183,25 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void SetAngle(float angle)
+    public void setAngle(float angle)
     {
         _angle = angle;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void SetAngle(double angle)
+    public void setAngle(double angle)
     {
         _angle = (float)angle;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void setColor(float r, float g, float b)
+    {
+        vertices[3] = vertices[11] = vertices[19] = vertices[27] = r;
+        vertices[4] = vertices[12] = vertices[20] = vertices[28] = g;
+        vertices[5] = vertices[13] = vertices[21] = vertices[29] = b;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
