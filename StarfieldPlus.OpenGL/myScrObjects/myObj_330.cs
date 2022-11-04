@@ -23,7 +23,7 @@ namespace my
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
         static float dimAlpha = 0.05f, t = 0, dt = 0;
-        static float[] paramf = new float[1];
+        static float[] paramf = new float[2];
 
         static myTexRectangle tex = null;
 
@@ -408,12 +408,37 @@ namespace my
                     param[1] = rand.Next(2);                                                // Squares vs Rectangles
                     break;
 
-                // Random squares appearing at their own locations, but with a probability of a random offset (the larger the offset, the lesser the probability)
+                // Random squares appearing at their own locations, but with a probability of getting a random offset (the larger the offset, the lesser the probability)
                 case 40:
                     break;
 
                 // Grid made of thin lines that are continuously moving up/down or left/right
                 case 41:
+                    doClearBuffer = myUtils.randomChance(rand, 4, 5);
+                    doCreateAtOnce = myUtils.randomChance(rand, 4, 5);
+                    max1 = rand.Next(111) + 7;
+                    param[0] = rand.Next(3);                                                // Mode: vertical vs horizontal vs vertical + horizontal
+                    param[1] = rand.Next(max1 / 3) + 5;                                     // line width
+                    param[2] = rand.Next(4);                                                // const speed vs varied speed vs const/var vs var/const
+
+                    switch (param[0])
+                    {
+                        case 0:
+                            N = (gl_Width / max1) + 1;
+                            break;
+
+                        case 1:
+                            N = (gl_Height / max1) + 1;
+                            break;
+
+                        case 2:
+                            N  = (gl_Width  / max1) + 1;
+                            N += (gl_Height / max1) + 1;
+                            break;
+                    }
+
+                    paramf[0] = (float)(rand.NextDouble() + rand.Next(7));                  // dx for every particle
+                    paramf[1] = (float)(rand.NextDouble() + rand.Next(7));                  // dy for every particle
                     break;
             }
 
@@ -1127,6 +1152,103 @@ namespace my
                         dy /= 2;
 
                     dx *= (rand.Next(11) + 1);
+                    break;
+
+                case 40:
+                    break;
+
+                case 41:
+                    if (list.Count < N)
+                    {
+                        a = 0.66f;
+
+                        switch (param[0])
+                        {
+                            case 0:
+                                x = max1 * list.Count;
+                                y = 0;
+                                dx = (param[2] == 0 || param[2] == 1) ? paramf[0] : (float)(rand.NextDouble() + rand.Next(7));
+                                dy = 0;
+                                width = param[1];
+                                height = gl_Height;
+                                break;
+
+                            case 1:
+                                x = 0;
+                                y = max1 * list.Count;
+                                dx = 0;
+                                dy = (param[2] == 0 || param[2] == 2) ? paramf[1] : (float)(rand.NextDouble() + rand.Next(7));
+                                width = gl_Width;
+                                height = param[1];
+                                break;
+
+                            case 2:
+                                if (list.Count < ((gl_Width / max1) + 1))
+                                {
+                                    x = max1 * list.Count;
+                                    y = 0;
+                                    dx = (param[2] == 0 || param[2] == 1) ? paramf[0] : (float)(rand.NextDouble() + rand.Next(7));
+                                    dy = 0;
+                                    width = param[1];
+                                    height = gl_Height;
+                                }
+                                else
+                                {
+                                    x = 0;
+                                    y = max1 * (list.Count - (gl_Width / max1) - 1);
+                                    dx = 0;
+                                    dy = (param[2] == 0 || param[2] == 2) ? paramf[1] : (float)(rand.NextDouble() + rand.Next(7));
+                                    width = gl_Width;
+                                    height = param[1];
+                                }
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        a = 0.5f + (float)rand.NextDouble();
+
+                        // New vertical line moving to the right
+                        if (dx > 0)
+                        {
+                            float min = gl_Width;
+
+                            foreach (myObj_330 obj in list)
+                                if (obj.dx != 0 && obj.x < min)
+                                    min = obj.x;
+
+                            x = min - max1;
+                        }
+
+                        // New horizontal line moving down
+                        if (dy > 0)
+                        {
+                            float min = gl_Height;
+
+                            foreach (myObj_330 obj in list)
+                                if (obj.dy != 0 && obj.y < min)
+                                    min = obj.y;
+
+                            y = min - max1;
+                        }
+#if false
+                        if (dx > 0 && rand.Next(11) == 0)
+                        {
+                            dx += myUtils.randomSign(rand) * (float)rand.NextDouble();
+
+                            if (dx <= 0)
+                                dx = 0.1f;
+                        }
+
+                        if (dy > 0 && rand.Next(11) == 0)
+                        {
+                            dy += myUtils.randomSign(rand) * (float)rand.NextDouble();
+
+                            if (dy <= 0)
+                                dy = 0.1f;
+                        }
+#endif
+                    }
                     break;
             }
 
@@ -1905,6 +2027,20 @@ namespace my
                     if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -111))
                         a = -1;
                     break;
+
+                case 40:
+                    break;
+
+                case 41:
+                    x += dx;
+                    y += dy;
+
+                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < 0))
+                        a = -1;
+
+                    if ((dy > 0 && y > gl_Height) || (dy < 0 && y < 0))
+                        a = -1;
+                    break;
             }
 
             if (a <= 0)
@@ -2217,6 +2353,14 @@ namespace my
                 case 39:
                     tex.setOpacity(a);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)(y + dy), width, height);
+                    break;
+
+                case 40:
+                    break;
+
+                case 41:
+                    tex.setOpacity(a);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)(y), width, height);
                     break;
             }
 
