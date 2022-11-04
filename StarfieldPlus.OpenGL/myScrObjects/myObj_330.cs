@@ -1211,25 +1211,41 @@ namespace my
                         // New vertical line moving to the right
                         if (dx > 0)
                         {
-                            float min = gl_Width;
+                            if (param[2] == 0 || param[2] == 1)
+                            {
+                                float min = gl_Width;
 
-                            foreach (myObj_330 obj in list)
-                                if (obj.dx != 0 && obj.x < min)
-                                    min = obj.x;
+                                foreach (myObj_330 obj in list)
+                                    if (obj.dx != 0 && obj.x < min)
+                                        min = obj.x;
 
-                            x = min - max1;
+                                x = min - max1;
+                            }
+                            else
+                            {
+                                // With varying speed, it is possible the last line will be already far from zero point, so put the new one just before zero
+                                x = -7 - rand.Next(max1);
+                            }
                         }
 
                         // New horizontal line moving down
                         if (dy > 0)
                         {
-                            float min = gl_Height;
+                            if (param[2] == 0 || param[2] == 2)
+                            {
+                                float min = gl_Height;
 
-                            foreach (myObj_330 obj in list)
-                                if (obj.dy != 0 && obj.y < min)
-                                    min = obj.y;
+                                foreach (myObj_330 obj in list)
+                                    if (obj.dy != 0 && obj.y < min)
+                                        min = obj.y;
 
-                            y = min - max1;
+                                y = min - max1;
+                            }
+                            else
+                            {
+                                // With varying speed, it is possible the last line will be already far from zero point, so put the new one just before zero
+                                y = -7 - rand.Next(max1);
+                            }
                         }
 #if false
                         if (dx > 0 && rand.Next(11) == 0)
