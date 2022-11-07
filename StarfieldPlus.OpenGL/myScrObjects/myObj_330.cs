@@ -65,11 +65,12 @@ namespace my
             }
 
             // todo:
+            // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(42);
+            mode = rand.Next(43);
 
-#if DEBUG && false
-            mode = 40;
+#if DEBUG //&& false
+            mode = 42;
 #endif
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
@@ -304,7 +305,7 @@ namespace my
                     param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
                     break;
 
-                // 
+                // Grid-based squares, with different zoom (in or out) factors
                 case 31:
                     N = rand.Next(666) + 333;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
@@ -446,6 +447,26 @@ namespace my
 
                     paramf[0] = (float)(rand.NextDouble() + rand.Next(7));                  // dx for every particle
                     paramf[1] = (float)(rand.NextDouble() + rand.Next(7));                  // dy for every particle
+                    break;
+
+                // Horizontally or vertically moving pieces, aligned to grid
+                case 42:
+                    switch (rand.Next(4))
+                    {
+                        case 0: N = rand.Next(111) + 111; break;
+                        case 1: N = rand.Next(333) + 111; break;
+                        case 2: N = rand.Next(666) + 333; break;
+                        case 3: N = rand.Next(999) + 666; break;
+                    }
+
+                    max1 = rand.Next(99) + 7;                                               // Grid cell width/height
+                    param[0] = rand.Next(7) + 1;                                            // Interval between the grid cells
+                    param[1] = rand.Next(6);                                                // Opacity factor (0 means const opacity)
+                    param[2] = rand.Next(11);                                               // Movement mode: left, right, left+right, up, down, up+down, left+right+up+down
+                    param[3] = rand.Next(5);                                                // Grid align: FALSE (0), TRUE (1-4)
+                    param[4] = rand.Next(3);                                                // Acceleration
+
+                    doClearBuffer = (N < 333) ? false : myUtils.randomChance(rand, 1, 3);
                     break;
             }
 
@@ -1301,6 +1322,75 @@ namespace my
 #endif
                     }
                     break;
+
+                case 42:
+                    {
+                        void generateX(int mode)
+                        {
+                            dx = (float)rand.NextDouble() + 0.001f;
+
+                            y = rand.Next(gl_Height);
+                            dy = 0;
+
+                            if (mode == 0)
+                            {
+                                x = myUtils.randomChance(rand, 1, 2) ? -111 : gl_Width + 111;
+                            }
+                            else
+                            {
+                                x = (mode == 1) ? -111 : gl_Width + 111;
+                            }
+
+                            dx *= myUtils.signOf(x, reversed: true);
+                        }
+
+                        void generateY(int mode)
+                        {
+                            dy = (float)rand.NextDouble() + 0.001f;
+
+                            x = rand.Next(gl_Width);
+                            dx = 0;
+
+                            if (mode == 0)
+                            {
+                                y = myUtils.randomChance(rand, 1, 2) ? -111 : gl_Height + 111;
+                            }
+                            else
+                            {
+                                y = (mode == 1) ? -111 : gl_Height + 111;
+                            }
+
+                            dy *= myUtils.signOf(y, reversed: true);
+                        }
+
+                        void generateXY()
+                        {
+                            if (myUtils.randomChance(rand, 1, 2))
+                                generateX(0);
+                            else
+                                generateY(0);
+                        }
+
+                        a = param[1] == 0 ? 0.5f : (float)(rand.NextDouble() / param[1]);
+                        width = height = max1;
+
+                        switch (param[2])
+                        {
+                            case 0: generateX(1); break;
+                            case 1: generateX(2); break;
+                            case 2: case 3: generateX(0); break;
+
+                            case 4: generateY(1); break;
+                            case 5: generateY(2); break;
+                            case 6: case 7: generateY(0); break;
+
+                            default: generateXY(); break;
+                        }
+
+                        dx *= (rand.Next(11) + 1);
+                        dy *= (rand.Next(11) + 1);
+                    }
+                    break;
             }
 
             return;
@@ -2094,6 +2184,43 @@ namespace my
                     if ((dy > 0 && y > gl_Height) || (dy < 0 && y < 0))
                         a = -1;
                     break;
+
+                case 42:
+                    x += dx;
+                    y += dy;
+
+                    // Align to grid
+                    if (param[3] > 0)
+                    {
+                        float oldx = X, oldy = Y;
+
+                        X = (int)(x - x % (max1 + param[0]));
+                        Y = (int)(y - y % (max1 + param[0]));
+
+                        param[4] = 0;
+
+                        // Apply acceleration
+                        if (param[4] == 0)
+                        {
+                            if (X != oldx)
+                                dx *= 1.025f;
+
+                            if (Y != oldy)
+                                dy *= 1.025f;
+                        }
+                    }
+                    else
+                    {
+                        X = x;
+                        Y = y;
+                    }
+
+                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -111))
+                        a = -1;
+
+                    if ((dy > 0 && y > gl_Height) || (dy < 0 && y < -111))
+                        a = -1;
+                    break;
             }
 
             if (a <= 0)
@@ -2420,6 +2547,11 @@ namespace my
                     tex.setOpacity(a);
                     //tex.setColor(r, g, b);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 42:
+                    tex.setOpacity(a);
+                    tex.Draw((int)X, (int)Y, width, height, (int)X, (int)Y, width, height);
                     break;
             }
 

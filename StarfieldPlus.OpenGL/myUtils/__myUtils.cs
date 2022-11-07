@@ -16,6 +16,26 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        // Return +1 or -1, depending on the argument sign
+        public static int signOf(int arg, bool reversed = false)
+        {
+            return reversed
+                ? arg >= 0 ? -1 : +1
+                : arg >= 0 ? +1 : -1;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Return +1 or -1, depending on the argument sign
+        public static float signOf(float arg, bool reversed = false)
+        {
+            return reversed
+                ? arg >= 0 ? -1 : +1
+                : arg >= 0 ? +1 : -1;
+        }
+
+        // -------------------------------------------------------------------------
+
         // Randomly return -1, 0 or +1
         public static int random101(Random r)
         {
