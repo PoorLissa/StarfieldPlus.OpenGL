@@ -463,11 +463,11 @@ namespace my
                     param[0] = rand.Next(7) + 1;                                            // Interval between the grid cells
                     param[1] = rand.Next(6);                                                // Opacity factor (0 means const opacity)
                     param[2] = rand.Next(11);                                               // Movement mode: left, right, left+right, up, down, up+down, left+right+up+down
-                    param[3] = rand.Next(5);                                                // Grid align: FALSE (0), TRUE (1-4)
+                    param[3] = rand.Next(9);                                                // Grid align: FALSE (0), TRUE (1-8)
                     param[4] = rand.Next(3);                                                // Acceleration
                     param[5] = myUtils.randomChance(rand, 2, 3) ? 0 : rand.Next(5) + 1;     // Slight offset along non-movable axis
 
-                    doClearBuffer = (N < 333) ? false : myUtils.randomChance(rand, 1, 3);
+                    doClearBuffer = (N < 333) ? false : myUtils.randomChance(rand, 1, 5);
                     break;
             }
 
