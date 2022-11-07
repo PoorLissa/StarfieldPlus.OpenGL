@@ -1326,7 +1326,7 @@ namespace my
 
                 case 42:
                     {
-                        void generateX(int mode)
+                        void generateX(byte mode)
                         {
                             dx = (float)rand.NextDouble() + 0.001f;
 
@@ -1344,7 +1344,7 @@ namespace my
                             dx *= myUtils.signOf(-x);
                         }
 
-                        void generateY(int mode)
+                        void generateY(byte mode)
                         {
                             dy = (float)rand.NextDouble() + 0.001f;
 
