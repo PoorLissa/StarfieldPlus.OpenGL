@@ -2190,10 +2190,8 @@ namespace my
                     {
                         float oldx = X, oldy = Y;
 
-                        X = (int)(x - x % (max1 + param[0]));
-                        Y = (int)(y - y % (max1 + param[0]));
-
-                        param[4] = 0;
+                        X = (int)(x - x % (width + param[0]));
+                        Y = (int)(y - y % (width + param[0]));
 
                         // Apply acceleration
                         if (param[4] == 0)
@@ -2211,7 +2209,7 @@ namespace my
                         Y = y;
                     }
 
-                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -111))
+                    if ((dx > 0 && x > gl_Width ) || (dx < 0 && x < -111))
                         a = -1;
 
                     if ((dy > 0 && y > gl_Height) || (dy < 0 && y < -111))
