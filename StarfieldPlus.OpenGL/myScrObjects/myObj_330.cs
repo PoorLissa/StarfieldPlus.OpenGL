@@ -17,7 +17,7 @@ namespace my
         public float x, y, X, Y, dx, dy, a, da;
         public int width, height, cnt;
 
-        static int N = 1, max1 = 1, max2 = 1, opacityFactor = 1;
+        static int N = 1, max = 1, opacityFactor = 1;
         static int[] param = new int[6];
         static int mode = 0;
 
@@ -65,6 +65,7 @@ namespace my
             }
 
             // todo:
+            // mode 16 and 17: to be implemented yet (vertical and cross movement)
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
             mode = rand.Next(43);
@@ -95,7 +96,7 @@ namespace my
                 case 1:
                     doClearBuffer = false;
                     dimAlpha /= 10;
-                    max1 = 333 + rand.Next(666);
+                    max = 333 + rand.Next(666);
                     N = 10;
                     break;
 
@@ -113,7 +114,7 @@ namespace my
                 case 5:
                 case 6:
                     dimAlpha /= 3;
-                    max1 = rand.Next(45) + 3;
+                    max = rand.Next(45) + 3;
                     N = 999 + rand.Next(666);
                     break;
 
@@ -123,7 +124,7 @@ namespace my
                     dimAlpha /= 3;
                     doClearBuffer = true;
                     N = 111 + rand.Next(666);
-                    max1 = N > 450 ? 99 : 125;
+                    max = N > 450 ? 99 : 125;
                     break;
 
                 // Random pieces of the image constantly appearing at their own locations
@@ -132,7 +133,7 @@ namespace my
                     param[0] = rand.Next(2) == 0 ? 0 : rand.Next(50);
                     doClearBuffer = true;
                     N = 999 + rand.Next(111);
-                    max1 = 50;
+                    max = 50;
                     break;
 
                 // Random pieces of the image constantly appearing at their own locations (with or without some offset, i.e. blurring)
@@ -146,7 +147,7 @@ namespace my
                     doClearBuffer = false;
                     doUseRandDxy = myUtils.randomChance(rand, 2, 3);
                     N = 999 + rand.Next(111);
-                    max1 = rand.Next(50) + 25;
+                    max = rand.Next(50) + 25;
                     dt = 0.023f;
                     break;
 
@@ -159,7 +160,7 @@ namespace my
                     dimAlpha /= (rand.Next(3) == 0) ? (rand.Next(11) + 1) : (5);
                     doClearBuffer = false;
                     N = (999 + rand.Next(111)) / (rand.Next(11) + 1);
-                    max1 = rand.Next(50) + 25;
+                    max = rand.Next(50) + 25;
                     dt = 0.01f;
                     break;
 
@@ -167,31 +168,30 @@ namespace my
                 case 11:
                     doClearBuffer = false;
                     N = (999 + rand.Next(111)) / (rand.Next(11) + 1);
-                    max1 = rand.Next(150) + 25;
+                    max = rand.Next(150) + 25;
                     break;
 
                 // Long thin lines randomly flickering on the screen (both horizontal and vertical)
                 case 12:
                     N = 2000 + rand.Next(3333);
-                    max1 = rand.Next(333) + 125;
+                    max = rand.Next(333) + 125;
                     break;
 
                 // Long thin lines randomly flickering on the screen (horizontal, vertical)
                 case 13:
                 case 14:
                     N = 2000 + rand.Next(1111);
-                    max1 = rand.Next(333) + 125;
+                    max = rand.Next(333) + 125;
                     break;
 
                 // Long parallel lines slowly moving into the view from the outside of the screen
-                // todo: 16 and 17 to be implemented yet (vertical and cross movement) 
                 case 15:
                 case 16:
                 case 17:
                     N = 1000 + rand.Next(333);
-                    max1 = rand.Next(666) + 125;
-                    max2 = rand.Next( 33) +  12;
+                    max = rand.Next(666) + 125;
                     param[0] = rand.Next(7);
+                    param[1] = rand.Next(33) + 12;
                     break;
 
                 // Squares moving around, changing direction of movement occasionally
@@ -200,21 +200,21 @@ namespace my
                     N = rand.Next(1111) + 100;
                     param[0] = rand.Next(3);
                     param[1] = rand.Next(4);
-                    max1 = rand.Next(33) + 25;
-                    max2 = rand.Next(333) + 25;
+                    param[2] = rand.Next(333) + 25;
+                    max = rand.Next(33) + 25;
                     break;
 
                 // Snake-alike chain of squares running from side to side, bottom to top
                 case 19:
                     N = rand.Next(1111) + 111;
-                    max1 = rand.Next(111) + 25;
+                    max = rand.Next(111) + 25;
                     param[0] = rand.Next(2);
                     break;
 
                 // Squares moving sideways, bouncing off the walls
                 case 20:
                     N = rand.Next(3333) + 333;
-                    max1 = rand.Next(50) + 1;
+                    max = rand.Next(50) + 1;
                     param[0] = rand.Next(3);                                                // Size/opacity option
                     param[1] = rand.Next(2);
                     param[2] = rand.Next(7);                                                // Movement pattern
@@ -227,7 +227,7 @@ namespace my
                 case 21:
                 case 22:
                     N = rand.Next(500) + 111;
-                    max1 = rand.Next(200) + 13;                                             // Max size of a cell
+                    max = rand.Next(200) + 13;                                              // Max size of a cell
                     param[0] = rand.Next(2);                                                // Random size
                     param[1] = rand.Next(2) == 0 ? rand.Next(33) : rand.Next(333);          // Number of iterations before the fading begins
                     param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
@@ -241,7 +241,7 @@ namespace my
                 // undeveloped yet -- drawing textures using lines with 1px empty intervals between the lines
                 case 23:
                     N = 111;
-                    max1 = rand.Next(200) + 13;                                             // Max size
+                    max = rand.Next(200) + 13;                                              // Max size
                     doClearBuffer = false;
                     dimAlpha /= (rand.Next(5) + 1);
                     break;
@@ -250,7 +250,7 @@ namespace my
                 // The lines are drawn with some interval between them
                 case 24:
                     N = rand.Next(500) + 33;
-                    max1 = myUtils.randomChance(rand, 1, 10) ? (rand.Next(3333) + 111) : (rand.Next(222) + 111);
+                    max = myUtils.randomChance(rand, 1, 10) ? (rand.Next(3333) + 111) : (rand.Next(222) + 111);
                     param[0] = rand.Next(11) + 1;                                           // Min interval between the lines
                     param[1] = rand.Next(111) + 11;                                         // Min width/height of a line
                     param[2] = rand.Next(7);                                                // Drawing mode: up, down, left, right, up+down, left+right, up+down+left+right
@@ -264,7 +264,7 @@ namespace my
                 // Moving in increasing squares
                 case 25:
                     N = rand.Next(333) + 666;
-                    max1 = rand.Next(66) + 1;
+                    max = rand.Next(66) + 1;
                     doClearBuffer = myUtils.randomChance(rand, 1, 2);
                     dimAlpha /= (rand.Next(5) + 1);
                     break;
@@ -272,7 +272,7 @@ namespace my
                 // 'Gravitational pull' towards the center axes of the screen
                 case 26:
                     N = rand.Next(333) + 666;
-                    max1 = rand.Next(50) + 3;
+                    max = rand.Next(50) + 3;
                     param[0] = rand.Next(6);                                                // x-axis, y-axis, both axes
                     break;
 
@@ -300,7 +300,7 @@ namespace my
                     N = rand.Next(666) + 333;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
                     dimAlpha /= (rand.Next(11) + 1);
-                    max1 = rand.Next(200) + 13;                                             // Max size of a cell
+                    max = rand.Next(200) + 13;                                              // Max size of a cell
                     param[0] = rand.Next(4);                                                // Drawing mode
                     param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
                     break;
@@ -310,7 +310,7 @@ namespace my
                     N = rand.Next(666) + 333;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
                     dimAlpha /= (rand.Next(11) + 1);
-                    max1 = rand.Next(200) + 13;                                             // Max size of a cell
+                    max = rand.Next(200) + 13;                                              // Max size of a cell
                     param[0] = rand.Next(13);                                               // Drawing mode
                     param[1] = rand.Next(7) + 1;                                            // Various int [1...7]
                     param[2] = rand.Next(10) + 1;                                           // Distance between the grid cells
@@ -322,7 +322,7 @@ namespace my
                     N = rand.Next(111) + 11;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
                     dimAlpha /= (rand.Next(11) + 1);
-                    max1 = 50;                                                              // Max length of a line
+                    max = 50;                                                               // Max length of a line
                     param[0] = rand.Next(25) + 1;                                           // Width of a line
                     param[1] = rand.Next(5);                                                // Randomly vary max length of a line
                     param[2] = rand.Next(5);                                                // Randomly vary width of a line
@@ -333,7 +333,7 @@ namespace my
                     N += param[0] < 3 ? rand.Next(333) : 0;
                     N += doClearBuffer ? rand.Next(1234) + 666 : 0;                         // Possibly increase the number of N if the buffer is cleared each iteration
 
-                    max1 += myUtils.randomChance(rand, 1, 5)                                // Possibly change the max length of a line
+                    max += myUtils.randomChance(rand, 1, 5)                                 // Possibly change the max length of a line
                         ? myUtils.randomSign(rand) * rand.Next(33) : 0;
                     break;
 
@@ -341,7 +341,7 @@ namespace my
                 case 33:
                     N = rand.Next(666) + 333;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
-                    max1 = rand.Next(33) + 11;                                              // Max particle size
+                    max = rand.Next(33) + 11;                                               // Max particle size
                     param[0] = rand.Next(2);                                                // Const/Random size
                     param[1] = rand.Next(2);                                                // Rotation mode
                     param[2] = rand.Next(2);                                                // y-axis original position (in-screen, out-of-screen)
@@ -362,21 +362,21 @@ namespace my
                 // Random squares rotated by +/-45 degrees
                 case 35:
                     N = rand.Next(666) + 333;
-                    max1 = rand.Next(33) + 11;                                              // Max particle size
+                    max = rand.Next(33) + 11;                                               // Max particle size
                     param[0] = rand.Next(2);                                                // Size option
                     break;
 
                 // Random squares of pulsating size
                 case 36:
                     N = rand.Next(666) + 666;
-                    max1 = rand.Next(33) + 11;                                              // Max particle size
+                    max = rand.Next(33) + 11;                                               // Max particle size
                     param[0] = rand.Next(2);                                                // Size option
                     break;
 
                 // Rectangles of pulsating height
                 case 37:
                     N = rand.Next(666) + 666;
-                    max1 = rand.Next(25) + 3;                                               // Max particle size
+                    max = rand.Next(25) + 3;                                                // Max particle size
                     param[0] = rand.Next(3);                                                // Size option (rand, const, 1)
                     param[1] = rand.Next(4);                                                // Center line option
                     param[2] = rand.Next(500) + 50;                                         // 
@@ -388,14 +388,14 @@ namespace my
                 // Snake-like 'roots' growing into the screen from the sides
                 case 38:
                     N = rand.Next(666) + 666;
-                    max1 = rand.Next(23) + 3;                                               // Max particle size
+                    max = rand.Next(23) + 3;                                                // Max particle size
                     param[0] = rand.Next(3);                                                // Move mode
                     param[1] = rand.Next(11) + 1;                                           // Speed factor
                     param[2] = rand.Next(11) + 3;                                           // Probability of a side turn in move mode 2
 
                     if (param[0] == 2)
                     {
-                        max1 = rand.Next(5) + 1;
+                        max = rand.Next(5) + 1;
                         param[1] = 33;
                     }
 
@@ -406,7 +406,7 @@ namespace my
                 // High-opacity smaller particles and low-opacity larger particles flow in opposite directions
                 case 39:
                     N = rand.Next(666) + 666;
-                    max1 = rand.Next(333) + 33;                                             // Max particle size
+                    max = rand.Next(333) + 33;                                              // Max particle size
                     dimAlpha /= (rand.Next(3) + 1);
                     param[0] = rand.Next(2);                                                // Offset for y-axis (to get some bluring effect)
                     param[1] = rand.Next(2);                                                // Squares vs Rectangles
@@ -416,7 +416,7 @@ namespace my
                 case 40:
                     doClearBuffer = false;
                     N = rand.Next(666) + 666;
-                    max1 = rand.Next(111) + 111;                                            // Max particle size
+                    max = rand.Next(111) + 111;                                             // Max particle size
                     dimAlpha /= 5;
                     break;
 
@@ -424,24 +424,24 @@ namespace my
                 case 41:
                     doClearBuffer = myUtils.randomChance(rand, 4, 5);
                     doCreateAtOnce = myUtils.randomChance(rand, 4, 5);
-                    max1 = rand.Next(111) + 7;
+                    max = rand.Next(111) + 7;
                     param[0] = rand.Next(3);                                                // Mode: vertical vs horizontal vs vertical + horizontal
-                    param[1] = rand.Next(max1 / 3) + 5;                                     // line width
+                    param[1] = rand.Next(max / 3) + 5;                                      // line width
                     param[2] = rand.Next(4);                                                // speed: const/const vs vs const/var vs var/const vs var/var
 
                     switch (param[0])
                     {
                         case 0:
-                            N = (gl_Width / max1) + 1;
+                            N = (gl_Width / max) + 1;
                             break;
 
                         case 1:
-                            N = (gl_Height / max1) + 1;
+                            N = (gl_Height / max) + 1;
                             break;
 
                         case 2:
-                            N  = (gl_Width  / max1) + 1;
-                            N += (gl_Height / max1) + 1;
+                            N  = (gl_Width  / max) + 1;
+                            N += (gl_Height / max) + 1;
                             break;
                     }
 
@@ -449,7 +449,7 @@ namespace my
                     paramf[1] = (float)(rand.NextDouble() + rand.Next(7));                  // dy for every particle
                     break;
 
-                // Horizontally or vertically moving pieces, aligned to grid
+                // Horizontally and/or vertically moving squares, aligned to grid
                 case 42:
                     switch (rand.Next(4))
                     {
@@ -459,12 +459,13 @@ namespace my
                         case 3: N = rand.Next(999) + 666; break;
                     }
 
-                    max1 = rand.Next(75) + 7;                                               // Grid cell's size
+                    max = rand.Next(75) + 7;                                                // Grid cell's size
                     param[0] = rand.Next(7) + 1;                                            // Interval between the grid cells
                     param[1] = rand.Next(6);                                                // Opacity factor (0 means const opacity)
                     param[2] = rand.Next(11);                                               // Movement mode: left, right, left+right, up, down, up+down, left+right+up+down
                     param[3] = rand.Next(5);                                                // Grid align: FALSE (0), TRUE (1-4)
                     param[4] = rand.Next(3);                                                // Acceleration
+                    param[5] = myUtils.randomChance(rand, 2, 3) ? 0 : rand.Next(5) + 1;     // Slight offset along non-movable axis
 
                     doClearBuffer = (N < 333) ? false : myUtils.randomChance(rand, 1, 3);
                     break;
@@ -488,7 +489,7 @@ namespace my
                             $"N = {N} ({list.Count})\n" +
                             $"mode = {mode}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
-                            $"max1 = {max1}\n" +
+                            $"max = {max}\n" +
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"doSampleOnce  = {doSampleOnce}\n" +
                             $"opacityFactor = {opacityFactor}\n" +
@@ -554,7 +555,7 @@ namespace my
                     break;
 
                 case 5:
-                    width = rand.Next(max1) + 1;
+                    width = rand.Next(max) + 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = gl_y0;
                     dx = 0;
@@ -563,7 +564,7 @@ namespace my
                     break;
 
                 case 6:
-                    width = rand.Next(max1) + 1;
+                    width = rand.Next(max) + 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height / 5);
                     dx = 0;
@@ -572,7 +573,7 @@ namespace my
                     break;
 
                 case 7:
-                    width = rand.Next(max1) + 1;
+                    width = rand.Next(max) + 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
                     dx = 0;
@@ -606,7 +607,7 @@ namespace my
                     break;
 
                 case 11:
-                    width = height = rand.Next(max1) + 1;
+                    width = height = rand.Next(max) + 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
                     dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 5;
@@ -622,8 +623,8 @@ namespace my
                 case 15:
                 case 16:
                 case 17:
-                    width  = (myUtils.randomChance(rand, 1, 33) ? rand.Next(3*max1) : rand.Next(max1)) + 100;
-                    height = rand.Next(max2) + 3;
+                    width  = (myUtils.randomChance(rand, 1, 33) ? rand.Next(3*max) : rand.Next(max)) + 100;
+                    height = rand.Next(param[1]) + 3;
 
                     switch (param[0])
                     {
@@ -657,15 +658,15 @@ namespace my
                     switch (param[0])
                     {
                         case 0:
-                            width = height = max1;
+                            width = height = max;
                             break;
 
                         case 1:
-                            width = height = rand.Next(max1 * 2) + 15;
+                            width = height = rand.Next(max * 2) + 15;
                             break;
 
                         case 2:
-                            width = height = rand.Next(max1 * 3) + 10;
+                            width = height = rand.Next(max * 3) + 10;
                             break;
                     }
 
@@ -704,11 +705,11 @@ namespace my
                     switch (param[0])
                     {
                         case 0:
-                            width = height = max1;
+                            width = height = max;
                             break;
 
                         case 1:
-                            width = height = rand.Next(max1) + 11;
+                            width = height = rand.Next(max) + 11;
                             break;
                     }
 
@@ -724,10 +725,10 @@ namespace my
 
                     switch (param[0])
                     {
-                        case 0: width = max1;                break;
-                        case 1: width = rand.Next(max1) + 1; break;
+                        case 0: width = max;                break;
+                        case 1: width = rand.Next(max) + 1; break;
                         case 2:
-                            width = rand.Next(max1) + 1;
+                            width = rand.Next(max) + 1;
                             a = width > 150 ? 10.0f : 5.0f;
                             a /= width;
                             break;
@@ -765,8 +766,8 @@ namespace my
                 case 22:
                     switch (param[0])
                     {
-                        case 0: width = height = max1; break;
-                        case 1: width = height = rand.Next(max1) + 1; break;
+                        case 0: width = height = max; break;
+                        case 1: width = height = rand.Next(max) + 1; break;
                     }
 
                     a = (float)rand.NextDouble();
@@ -784,19 +785,19 @@ namespace my
                         }
 
                         // Align to grid
-                        x -= x % (max1 + param[2]);
-                        y -= y % (max1 + param[2]);
+                        x -= x % (max + param[2]);
+                        y -= y % (max + param[2]);
 
                         // Center smaller squares in the grid cell
-                        if (width < max1)
+                        if (width < max)
                         {
-                            x += (max1 - width) / 2;
-                            y += (max1 - width) / 2;
+                            x += (max - width) / 2;
+                            y += (max - width) / 2;
 
                             // Or randomly move the squares within the bounds of the cell
                             if (param[3] != 0)
                             {
-                                int n = (max1 - width) / 2;
+                                int n = (max - width) / 2;
 
                                 x += myUtils.randomSign(rand) * rand.Next(n);
                                 y += myUtils.randomSign(rand) * rand.Next(n);
@@ -805,13 +806,13 @@ namespace my
 
                         // Offset grid cells, so the pattern is symmetrical on the screen
                         {
-                            int w = max1 + param[2];
+                            int w = max + param[2];
                             int n = (gl_Height + param[2]) % w;
 
                             if (n != 0)
                             {
                                 n = (gl_Height) % w;
-                                y -= (max1 - (max1 + n)/2);
+                                y -= (max - (max + n)/2);
                             }
 
                             n = (gl_Width + param[2]) % w;
@@ -819,7 +820,7 @@ namespace my
                             if (n != 0)
                             {
                                 n = (gl_Width) % w;
-                                x -= (max1 - (max1 + n)/2);
+                                x -= (max - (max + n)/2);
                             }
                         }
                     }
@@ -832,16 +833,16 @@ namespace my
                     a = (float)rand.NextDouble();
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
-                    height = rand.Next(max1) + 10;
+                    height = rand.Next(max) + 10;
                     width = height / 2;
-                    width = rand.Next(max1) + 10;
+                    width = rand.Next(max) + 10;
                     cnt = 0;
                     X = rand.Next(20) + 1;
                     break;
 
                 case 24:
                     a = (float)rand.NextDouble();
-                    width = height = rand.Next(max1) + param[1];
+                    width = height = rand.Next(max) + param[1];
 
                     bool isVertical = false, isRight = false, isDown = false;
 
@@ -911,7 +912,7 @@ namespace my
                     a = (float)rand.NextDouble();
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
-                    width = height = rand.Next(max1) + 10;
+                    width = height = rand.Next(max) + 10;
 
                     dx = (float)rand.NextDouble() * (rand.Next(111) + 1) * 0.1f + 0.001f;
                     dy = 0;
@@ -923,7 +924,7 @@ namespace my
                     a = (float)rand.NextDouble();
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
-                    width = height = rand.Next(max1) + 3;
+                    width = height = rand.Next(max) + 3;
 
                     dx = 0;
                     dy = 0;
@@ -962,23 +963,23 @@ namespace my
                     y = rand.Next(gl_Height);
 
                     X = Y = -1111;
-                    width = height = max1;
+                    width = height = max;
 
                     // Align to grid
                     if (mode == 29 || mode == 31)
                     {
-                        x -= x % (max1 + param[2]);
-                        y -= y % (max1 + param[2]);
+                        x -= x % (max + param[2]);
+                        y -= y % (max + param[2]);
 
                         // Offset grid cells, so the pattern is symmetrical on the screen
                         {
-                            int w = max1 + param[2];
+                            int w = max + param[2];
                             int n = (gl_Height + param[2]) % w;
 
                             if (n != 0)
                             {
                                 n = (gl_Height) % w;
-                                y -= (max1 - (max1 + n) / 2);
+                                y -= (max - (max + n) / 2);
                             }
 
                             n = (gl_Width + param[2]) % w;
@@ -986,7 +987,7 @@ namespace my
                             if (n != 0)
                             {
                                 n = (gl_Width) % w;
-                                x -= (max1 - (max1 + n) / 2);
+                                x -= (max - (max + n) / 2);
                             }
                         }
                     }
@@ -1005,16 +1006,16 @@ namespace my
                     X = Y = 0;
                     cnt = 0;
 
-                    // Vary max1 parameter
+                    // Vary max parameter
                     if (param[1] == 0)
                     {
-                        max1 += myUtils.random101(rand);
+                        max += myUtils.random101(rand);
 
-                        if (max1 < 20)
-                            max1 = 20;
+                        if (max < 20)
+                            max = 20;
 
-                        if (max1 > 99)
-                            max1 = 99;
+                        if (max > 99)
+                            max = 99;
                     }
 
                     // Vary param[0] parameter (line width)
@@ -1042,20 +1043,20 @@ namespace my
 
                     if (param[2] == 0)
                     {
-                        y = -max1 - 11;
+                        y = -max - 11;
                     }
                     else
                     {
-                        y = rand.Next(gl_Height) - max1 - 11;
+                        y = rand.Next(gl_Height) - max - 11;
                     }
 
                     X = dx = 0;
                     dy = ((float)rand.NextDouble() + 0.01f) * (rand.Next(23) + 1);
 
                     if (param[0] == 0)
-                        width = height = max1;
+                        width = height = max;
                     else
-                        width = height = rand.Next(max1) + 2;
+                        width = height = rand.Next(max) + 2;
 
                     // Rotation angle setup
                     if (param[1] == 1)
@@ -1083,7 +1084,7 @@ namespace my
 
                 case 35:
                     a = (float)rand.NextDouble();
-                    width = height = param[0] == 0 ? max1 : rand.Next(max1) + 3;
+                    width = height = param[0] == 0 ? max : rand.Next(max) + 3;
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
                     X = rand.Next(2) == 0
@@ -1094,7 +1095,7 @@ namespace my
 
                 case 36:
                     a = (float)rand.NextDouble()/2;
-                    width = height = (param[0] == 0) ? (max1) : (rand.Next(max1) + 3);
+                    width = height = (param[0] == 0) ? (max) : (rand.Next(max) + 3);
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
                     cnt = rand.Next(777) + 123;
@@ -1108,9 +1109,9 @@ namespace my
 
                     switch (param[0])
                     {
-                        case 0: width = 1;                     break;
-                        case 1: width = max1;                  break;
-                        case 2: width = (rand.Next(max1) + 1); break;
+                        case 0: width = 1;                    break;
+                        case 1: width = max;                  break;
+                        case 2: width = (rand.Next(max) + 1); break;
                     }
 
                     height = 0;
@@ -1127,7 +1128,7 @@ namespace my
                     da = 0;
                     cnt = rand.Next(1111) + 111;
 
-                    height = width = max1;
+                    height = width = max;
 
                     if (rand.Next(2) == 0)
                     {
@@ -1157,13 +1158,13 @@ namespace my
 
                     if (myUtils.randomChance(rand, 1, 3))
                     {
-                        height = width = rand.Next(max1 * 2) + max1/2;
+                        height = width = rand.Next(max * 2) + max/2;
                         x = X = -111;
                         a /= 13;
                     }
                     else
                     {
-                        height = width = rand.Next(max1 / 2) + 1;
+                        height = width = rand.Next(max/2) + 1;
                         x = X = gl_Width + 111;
                     }
 
@@ -1186,7 +1187,7 @@ namespace my
                     a = 0.5f + (float)rand.NextDouble()/3;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
-                    width = height = rand.Next(max1) + 3;
+                    width = height = rand.Next(max) + 3;
                     cnt = (cnt == -12345) ? rand.Next(11) + 3 : 22 + rand.Next(33);
 
                     if (myUtils.randomChance(rand, 1, 3))
@@ -1221,7 +1222,7 @@ namespace my
                         switch (param[0])
                         {
                             case 0:
-                                x = max1 * list.Count;
+                                x = max * list.Count;
                                 y = 0;
                                 dx = (param[2] == 0 || param[2] == 1) ? paramf[0] : (float)(rand.NextDouble() + rand.Next(7));
                                 dy = 0;
@@ -1231,7 +1232,7 @@ namespace my
 
                             case 1:
                                 x = 0;
-                                y = max1 * list.Count;
+                                y = max * list.Count;
                                 dx = 0;
                                 dy = (param[2] == 0 || param[2] == 2) ? paramf[1] : (float)(rand.NextDouble() + rand.Next(7));
                                 width = gl_Width;
@@ -1239,9 +1240,9 @@ namespace my
                                 break;
 
                             case 2:
-                                if (list.Count < ((gl_Width / max1) + 1))
+                                if (list.Count < ((gl_Width / max) + 1))
                                 {
-                                    x = max1 * list.Count;
+                                    x = max * list.Count;
                                     y = 0;
                                     dx = (param[2] == 0 || param[2] == 1) ? paramf[0] : (float)(rand.NextDouble() + rand.Next(7));
                                     dy = 0;
@@ -1251,7 +1252,7 @@ namespace my
                                 else
                                 {
                                     x = 0;
-                                    y = max1 * (list.Count - (gl_Width / max1) - 1);
+                                    y = max * (list.Count - (gl_Width / max) - 1);
                                     dx = 0;
                                     dy = (param[2] == 0 || param[2] == 2) ? paramf[1] : (float)(rand.NextDouble() + rand.Next(7));
                                     width = gl_Width;
@@ -1275,12 +1276,12 @@ namespace my
                                     if (obj.dx != 0 && obj.x < min)
                                         min = obj.x;
 
-                                x = min - max1;
+                                x = min - max;
                             }
                             else
                             {
                                 // With varying speed, it is possible the last line will be already far from zero point, so put the new one just before zero
-                                x = -7 - rand.Next(max1);
+                                x = -7 - rand.Next(max);
                             }
                         }
 
@@ -1295,12 +1296,12 @@ namespace my
                                     if (obj.dy != 0 && obj.y < min)
                                         min = obj.y;
 
-                                y = min - max1;
+                                y = min - max;
                             }
                             else
                             {
                                 // With varying speed, it is possible the last line will be already far from zero point, so put the new one just before zero
-                                y = -7 - rand.Next(max1);
+                                y = -7 - rand.Next(max);
                             }
                         }
 #if false
@@ -1334,11 +1335,12 @@ namespace my
 
                             switch (mode)
                             {
-                                case 0: x = myUtils.randomChance(rand, 1, 2) ? -111 : gl_Width + 111; break;
-                                case 1: x = -111; break;
-                                case 2: x = gl_Width + 111; break;
+                                case 0: x = myUtils.randomChance(rand, 1, 2) ? 0 : gl_Width; break;
+                                case 1: x = 0; break;
+                                case 2: x = gl_Width; break;
                             }
 
+                            x += x > 0 ? 111 : -111;
                             dx *= myUtils.signOf(-x);
                         }
 
@@ -1351,11 +1353,12 @@ namespace my
 
                             switch (mode)
                             {
-                                case 0: y = myUtils.randomChance(rand, 1, 2) ? -111 : gl_Height + 111; break;
-                                case 1: y = -111; break;
-                                case 2: y = gl_Height + 111; break;
+                                case 0: y = myUtils.randomChance(rand, 1, 2) ? 0 : gl_Height; break;
+                                case 1: y = 0; break;
+                                case 2: y = gl_Height; break;
                             }
 
+                            y += y > 0 ? 111 : -111;
                             dy *= myUtils.signOf(-y);
                         }
 
@@ -1368,7 +1371,7 @@ namespace my
                         }
 
                         a = param[1] == 0 ? 0.5f : (float)(rand.NextDouble() / param[1]);
-                        width = height = max1;
+                        width = height = max;
 
                         switch (param[2])
                         {
@@ -1382,6 +1385,9 @@ namespace my
 
                             default: generateXY(); break;
                         }
+
+                        X = x;
+                        Y = y;
 
                         dx *= (rand.Next(11) + 1);
                         dy *= (rand.Next(11) + 1);
@@ -1420,16 +1426,16 @@ namespace my
 
                     if (rand.Next(2) == 0)
                     {
-                        width = rand.Next(max1) + 1;
+                        width = rand.Next(max) + 1;
                         height = myUtils.randomChance(rand, 1, 11) ? 2 : 1;
-                        a = 0.1f * max1 / width;
+                        a = 0.1f * max / width;
                         //width = gl_Width;
                     }
                     else
                     {
-                        height = rand.Next(max1) + 1;
+                        height = rand.Next(max) + 1;
                         width = myUtils.randomChance(rand, 1, 11) ? 2 : 1;
-                        a = 0.1f * max1 / height;
+                        a = 0.1f * max / height;
                         //height = gl_Height;
                     }
 
@@ -1483,16 +1489,16 @@ namespace my
                 case 8:
                     if (--X <= 0)
                     {
-                        width  = rand.Next(max1) + 1;
-                        height = rand.Next(max1) + 1;
+                        width  = rand.Next(max) + 1;
+                        height = rand.Next(max) + 1;
                         x = rand.Next(gl_Width);
                         y = rand.Next(gl_Height);
                         X = rand.Next(66) + 1;
 
                         if (param[0] != 0)
                         {
-                            x -= x % (max1 + param[0]);
-                            y -= y % (max1 + param[0]);
+                            x -= x % (max + param[0]);
+                            y -= y % (max + param[0]);
                         }
                     }
                     break;
@@ -1504,26 +1510,26 @@ namespace my
                         switch (param[0])
                         {
                             case 0:
-                                width  = rand.Next(max1) + 1;
-                                height = rand.Next(max1) + 1;
+                                width  = rand.Next(max) + 1;
+                                height = rand.Next(max) + 1;
                                 break;
 
                             case 1:
-                                width = height = rand.Next(max1) + 1;
+                                width = height = rand.Next(max) + 1;
                                 break;
 
                             case 2:
-                                width = height = max1;
+                                width = height = max;
                                 break;
 
                             case 3:
                                 height = param[1] % 23;
-                                width = 2 * max1;
+                                width = 2 * max;
                                 break;
 
                             case 4:
                                 height = param[1] % 23;
-                                width  = max1 * (rand.Next(23) + 2);
+                                width  = max * (rand.Next(23) + 2);
                                 break;
                         }
 
@@ -1559,21 +1565,21 @@ namespace my
                         switch (param[0])
                         {
                             case 0:
-                                width  = rand.Next(max1) + 1;
-                                height = rand.Next(max1) + 1;
+                                width  = rand.Next(max) + 1;
+                                height = rand.Next(max) + 1;
                                 break;
 
                             case 1:
-                                width = height = rand.Next(max1) + 1;
+                                width = height = rand.Next(max) + 1;
                                 break;
 
                             case 2:
-                                width = height = max1;
+                                width = height = max;
                                 break;
 
                             case 3:
                                 height = param[1] % 23;
-                                width = 2*max1;
+                                width = 2*max;
                                 break;
                         }
 
@@ -1647,36 +1653,36 @@ namespace my
                     {
                         if (rand.Next(9) == 0)
                             height++;
-                        width += rand.Next(max1);
+                        width += rand.Next(max);
                     }
                     else
                     {
                         if (rand.Next(9) == 0)
                             width++;
-                        height += rand.Next(max1);
+                        height += rand.Next(max);
                     }
                     break;
 
                 case 13:
                     tex.setOpacity(rand.NextDouble());
                     height = 1;
-                    x = rand.Next(gl_Width+max1)-max1;
+                    x = rand.Next(gl_Width+max)-max;
                     y = rand.Next(gl_Height);
 
                     if (rand.Next(9) == 0)
                         height++;
-                    width = rand.Next(max1);
+                    width = rand.Next(max);
                     break;
 
                 case 14:
                     tex.setOpacity(rand.NextDouble());
                     width = 1;
                     x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height + max1) - max1;
+                    y = rand.Next(gl_Height + max) - max;
 
                     if (rand.Next(9) == 0)
                         width++;
-                    height = rand.Next(max1);
+                    height = rand.Next(max);
                     break;
 
                 case 15:
@@ -1693,7 +1699,7 @@ namespace my
 
                     if (--cnt <= 0)
                     {
-                        cnt = rand.Next(max2) + 1;
+                        cnt = rand.Next(param[2]) + 1;
 
                         if (param[1] == 3)
                         {
@@ -1913,7 +1919,7 @@ namespace my
                     {
                         // vertical line
                         width = param[0];
-                        Y = (rand.Next(max1) + width + 1);
+                        Y = (rand.Next(max) + width + 1);
                         height = (int)(Y);
 
                         if (rand.Next(2) == 0)
@@ -1931,7 +1937,7 @@ namespace my
                     {
                         // horizontal line
                         height = param[0];
-                        X = (rand.Next(max1) + height + 1);
+                        X = (rand.Next(max) + height + 1);
                         width = (int)(X);
 
                         if (rand.Next(2) == 0)
@@ -2192,6 +2198,13 @@ namespace my
 
                         X = (int)(x - x % (width + param[0]));
                         Y = (int)(y - y % (width + param[0]));
+
+                        // Add some slight random fluctuation along the non-moving axis
+                        if (param[5] != 0)
+                        {
+                            X += dx == 0 ? myUtils.randomSign(rand) * rand.Next(param[5]) : 0;
+                            Y += dy == 0 ? myUtils.randomSign(rand) * rand.Next(param[5]) : 0;
+                        }
 
                         // Apply acceleration
                         if (param[4] == 0)

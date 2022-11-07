@@ -6,6 +6,15 @@ namespace my
 {
     public class myUtils
     {
+        private static Random _rand = null;
+
+        // -------------------------------------------------------------------------
+
+        public static void setRand(Random r)
+        {
+            _rand = r;
+        }
+
         // -------------------------------------------------------------------------
 
         // Randomly return +1 or -1
