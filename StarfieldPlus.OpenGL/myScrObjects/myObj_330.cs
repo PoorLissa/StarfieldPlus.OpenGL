@@ -459,7 +459,7 @@ namespace my
                         case 3: N = rand.Next(999) + 666; break;
                     }
 
-                    max1 = rand.Next(99) + 7;                                               // Grid cell width/height
+                    max1 = rand.Next(75) + 7;                                               // Grid cell's size
                     param[0] = rand.Next(7) + 1;                                            // Interval between the grid cells
                     param[1] = rand.Next(6);                                                // Opacity factor (0 means const opacity)
                     param[2] = rand.Next(11);                                               // Movement mode: left, right, left+right, up, down, up+down, left+right+up+down
@@ -1332,16 +1332,14 @@ namespace my
                             y = rand.Next(gl_Height);
                             dy = 0;
 
-                            if (mode == 0)
+                            switch (mode)
                             {
-                                x = myUtils.randomChance(rand, 1, 2) ? -111 : gl_Width + 111;
-                            }
-                            else
-                            {
-                                x = (mode == 1) ? -111 : gl_Width + 111;
+                                case 0: x = myUtils.randomChance(rand, 1, 2) ? -111 : gl_Width + 111; break;
+                                case 1: x = -111; break;
+                                case 2: x = gl_Width + 111; break;
                             }
 
-                            dx *= myUtils.signOf(x, reversed: true);
+                            dx *= myUtils.signOf(-x);
                         }
 
                         void generateY(int mode)
@@ -1351,16 +1349,14 @@ namespace my
                             x = rand.Next(gl_Width);
                             dx = 0;
 
-                            if (mode == 0)
+                            switch (mode)
                             {
-                                y = myUtils.randomChance(rand, 1, 2) ? -111 : gl_Height + 111;
-                            }
-                            else
-                            {
-                                y = (mode == 1) ? -111 : gl_Height + 111;
+                                case 0: y = myUtils.randomChance(rand, 1, 2) ? -111 : gl_Height + 111; break;
+                                case 1: y = -111; break;
+                                case 2: y = gl_Height + 111; break;
                             }
 
-                            dy *= myUtils.signOf(y, reversed: true);
+                            dy *= myUtils.signOf(-y);
                         }
 
                         void generateXY()
