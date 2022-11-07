@@ -39,6 +39,9 @@ namespace my
                 init();
             }
 
+            // This value means, this is the first iteration ever for this object
+            cnt = -12345;
+
             generateNew();
         }
 
@@ -63,10 +66,10 @@ namespace my
 
             // todo:
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(40);
+            mode = rand.Next(42);
 
-#if DEBUG //&& false
-            mode = 41;
+#if DEBUG && false
+            mode = 40;
 #endif
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
@@ -410,6 +413,10 @@ namespace my
 
                 // Random squares appearing at their own locations, but with a probability of getting a random offset (the larger the offset, the lesser the probability)
                 case 40:
+                    doClearBuffer = false;
+                    N = rand.Next(666) + 666;
+                    max1 = rand.Next(111) + 111;                                            // Max particle size
+                    dimAlpha /= 5;
                     break;
 
                 // Grid made of thin lines that are continuously moving up/down or left/right
@@ -1155,6 +1162,34 @@ namespace my
                     break;
 
                 case 40:
+                    a = 0.5f + (float)rand.NextDouble()/3;
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+                    width = height = rand.Next(max1) + 3;
+                    cnt = (cnt == -12345) ? rand.Next(11) + 3 : 22 + rand.Next(33);
+
+                    if (myUtils.randomChance(rand, 1, 3))
+                    {
+                        int offset = 2;
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            for (int i = 0; i < 3; i++)
+                            {
+                                offset += rand.Next(offset);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < 5; i++)
+                            {
+                                offset += rand.Next(offset);
+                            }
+                        }
+
+                        X += myUtils.randomSign(rand) * rand.Next(offset/2);
+                        Y += myUtils.randomSign(rand) * rand.Next(offset/2);
+                    }
                     break;
 
                 case 41:
@@ -2045,6 +2080,8 @@ namespace my
                     break;
 
                 case 40:
+                    if (--cnt < 0)
+                        a = -1;
                     break;
 
                 case 41:
@@ -2372,12 +2409,17 @@ namespace my
                     break;
 
                 case 40:
+                    if (cnt == 0)
+                    {
+                        tex.setOpacity(a);
+                        tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
+                    }
                     break;
 
                 case 41:
                     tex.setOpacity(a);
                     //tex.setColor(r, g, b);
-                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)(y), width, height);
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
             }
 
