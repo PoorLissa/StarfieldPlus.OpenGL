@@ -70,7 +70,7 @@ namespace my
             mode = rand.Next(43);
 
 #if DEBUG && false
-            mode = 32;
+            mode = 33;
 #endif
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
@@ -341,7 +341,7 @@ namespace my
                     N = rand.Next(666) + 333;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
                     max = rand.Next(33) + 11;                                               // Max particle size
-                    param[0] = rand.Next(2);                                                // Const/Random size
+                    param[0] = rand.Next(4);                                                // Const size / Random size / Lines / Wide lines
                     param[1] = rand.Next(2);                                                // Rotation mode
                     param[2] = rand.Next(2);                                                // y-axis original position (in-screen, out-of-screen)
                     param[3] = rand.Next(11);                                               // y-axis acceleration
@@ -1076,10 +1076,26 @@ namespace my
                     X = dx = 0;
                     dy = ((float)rand.NextDouble() + 0.01f) * (rand.Next(23) + 1);
 
-                    if (param[0] == 0)
-                        width = height = max;
-                    else
-                        width = height = rand.Next(max) + 2;
+                    switch (param[0])
+                    {
+                        case 0:
+                            width = height = max;
+                            break;
+
+                        case 1:
+                            width = height = rand.Next(max) + 2;
+                            break;
+
+                        case 2:
+                            width = max;
+                            height = rand.Next(2) + 1;
+                            break;
+
+                        case 3:
+                            width = rand.Next(max) + 3;
+                            height = rand.Next(2) + 1;
+                            break;
+                    }
 
                     // Rotation angle setup
                     if (param[1] == 1)
