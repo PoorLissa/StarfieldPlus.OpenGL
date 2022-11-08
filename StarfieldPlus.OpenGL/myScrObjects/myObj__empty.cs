@@ -14,7 +14,7 @@ namespace my
     public class myObj_empty : myObject
     {
         private int x, y, dx, dy;
-        private float size, A, R, G, B, angle;
+        private float size, A, R, G, B, angle = 0;
 
         private static int N = 0, shape = 0;
         private static bool doClearBuffer = true, doFillShapes = false;

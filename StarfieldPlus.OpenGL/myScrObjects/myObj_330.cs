@@ -14,7 +14,7 @@ namespace my
 {
     public class myObj_330 : myObject
     {
-        public float x, y, X, Y, dx, dy, a, da;
+        public float x, y, X, Y, dx, dy, a, da, r, g, b;
         public int width, height, cnt;
 
         static int N = 1, max = 1, opacityFactor = 1;
@@ -65,13 +65,12 @@ namespace my
             }
 
             // todo:
-            // mode 16 and 17: to be implemented yet (vertical and cross movement)
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
             mode = rand.Next(43);
 
-#if DEBUG //&& false
-            mode = 42;
+#if DEBUG && false
+            mode = 32;
 #endif
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
@@ -464,10 +463,19 @@ namespace my
                     param[1] = rand.Next(6);                                                // Opacity factor (0 means const opacity)
                     param[2] = rand.Next(11);                                               // Movement mode: left, right, left+right, up, down, up+down, left+right+up+down
                     param[3] = rand.Next(9);                                                // Grid align: FALSE (0), TRUE (1-8)
-                    param[4] = rand.Next(3);                                                // Acceleration
+                    param[4] = rand.Next(7);                                                // Acceleration (in case of 0 or 1)
                     param[5] = myUtils.randomChance(rand, 2, 3) ? 0 : rand.Next(5) + 1;     // Slight offset along non-movable axis
 
                     doClearBuffer = (N < 333) ? false : myUtils.randomChance(rand, 1, 5);
+                    break;
+
+                // Unfinished, nothing particular about it
+                case 43:
+                    N = 666;
+                    max = 100;                                                              // Grid cell's size
+                    param[0] = rand.Next(7) + 1;                                            // Interval between the grid cells
+
+                    doClearBuffer = false;
                     break;
             }
 
@@ -639,18 +647,33 @@ namespace my
 
                     a = (float)rand.NextDouble();
                     a /= doClearBuffer ? 1 : (rand.Next(3)+1);
-                    y = Y = rand.Next(gl_Height);
 
-                    if (rand.Next(2) == 0)
+                    dx = (rand.Next(5) * (float)rand.NextDouble() + 0.1f) * myUtils.randomSign(rand);
+                    dy = 0;
+
+                    if (mode == 15 || mode == 17)
                     {
-                        x = X = 0 - width - rand.Next(width);
-                        dx = rand.Next(5) * (float)rand.NextDouble() + 0.1f;
+                        x = (dx > 0)
+                            ? (0 - width - rand.Next(width))
+                            : (gl_Width + rand.Next(width));
+
+                        y = rand.Next(gl_Height);
                     }
-                    else
+
+                    if (mode == 16 || (mode == 17 && myUtils.randomChance(rand, 1, 2)))
                     {
-                        x = X = gl_Width + width + rand.Next(width);
-                        dx = rand.Next(5) * -(float)rand.NextDouble() - 0.1f;
+                        myUtils.swap<float>(ref dx, ref dy);
+                        myUtils.swap<int>(ref width, ref height);
+
+                        y = (dy > 0)
+                            ? (0 - height - rand.Next(height))
+                            : (gl_Height + rand.Next(height));
+
+                        x = rand.Next(gl_Width);
                     }
+
+                    X = x;
+                    Y = y;
                     break;
 
                 case 18:
@@ -1393,6 +1416,21 @@ namespace my
                         dy *= (rand.Next(11) + 1);
                     }
                     break;
+
+                case 43:
+                    a = 0.66f;
+                    width = height = max;
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    X = (int)(x - x % (width + param[0]));
+                    Y = (int)(y - y % (width + param[0]));
+
+                    cnt = (cnt == -12345) ? rand.Next(11): rand.Next(66) + 33;
+
+                    colorPicker.getColor(x, y, ref r, ref g, ref b);
+                    break;
             }
 
             return;
@@ -1688,9 +1726,14 @@ namespace my
                 case 15:
                 case 16:
                 case 17:
-                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -width))
-                        generateNew();
+                    if ((dx > 0 && x > gl_Width ) || (dx < 0 && x < -width))
+                        a = -1;
+
+                    if ((dy > 0 && y > gl_Height) || (dy < 0 && y < -height))
+                        a = -1;
+
                     x += dx;
+                    y += dy;
                     break;
 
                 case 18:
@@ -2207,13 +2250,25 @@ namespace my
                         }
 
                         // Apply acceleration
-                        if (param[4] == 0)
+                        if (param[4] < 2)
                         {
-                            if (X != oldx)
-                                dx *= 1.025f;
+                            if (param[4] == 0)
+                            {
+                                if (X != oldx)
+                                    dx *= 1.01f;
 
-                            if (Y != oldy)
-                                dy *= 1.025f;
+                                if (Y != oldy)
+                                    dy *= 1.01f;
+                            }
+
+                            if (param[4] == 1)
+                            {
+                                if (X != oldx)
+                                    dx *= 1.025f;
+
+                                if (Y != oldy)
+                                    dy *= 1.025f;
+                            }
                         }
                     }
                     else
@@ -2226,6 +2281,11 @@ namespace my
                         a = -1;
 
                     if ((dy > 0 && y > gl_Height) || (dy < 0 && y < -111))
+                        a = -1;
+                    break;
+
+                case 43:
+                    if (--cnt < 0)
                         a = -1;
                     break;
             }
@@ -2559,6 +2619,16 @@ namespace my
                 case 42:
                     tex.setOpacity(a);
                     tex.Draw((int)X, (int)Y, width, height, (int)X, (int)Y, width, height);
+                    break;
+
+                case 43:
+                    if (cnt < 13)
+                    //if (cnt > 0)
+                    {
+                        //tex.setColor(r, g, b);
+                        tex.setOpacity(a);
+                        tex.Draw((int)X, (int)Y, width, height, (int)X, (int)Y, width, height);
+                    }
                     break;
             }
 
