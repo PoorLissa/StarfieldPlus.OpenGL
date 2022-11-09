@@ -67,10 +67,10 @@ namespace my
             // todo:
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(43);
+            mode = rand.Next(44);
 
-#if DEBUG && false
-            mode = 33;
+#if DEBUG //&& false
+            mode = 43;
 #endif
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
@@ -469,11 +469,19 @@ namespace my
                     doClearBuffer = (N < 333) ? false : myUtils.randomChance(rand, 1, 5);
                     break;
 
-                // Unfinished, nothing particular about it
+                // Drawing groups of grid cells, sometimes color them using the bgr color from that location
                 case 43:
-                    N = 666;
-                    max = 100;                                                              // Grid cell's size
+                    N = rand.Next(66) + 66;
+                    max = rand.Next(66) + 33;                                               // Grid cell's size
                     param[0] = rand.Next(7) + 1;                                            // Interval between the grid cells
+                    param[1] = rand.Next(15) + 1;                                           // Draw the particles when (cnt < param[1])
+                    param[2] = rand.Next(2);                                                // COnst opacity vs random opacity
+                    param[3] = rand.Next(5) + 1;                                            // Disappearing speed
+                    param[4] = rand.Next(6);                                                // Single-line, in case of 0-1-2
+                    param[5] = myUtils.randomChance(rand, 1, 2)                             // Zoom parameter
+                        ? (int)(max * rand.NextDouble() * (rand.Next(2) + 1))
+                        : max;
+                    dimAlpha /= param[3];
 
                     doClearBuffer = false;
                     break;
@@ -1434,18 +1442,35 @@ namespace my
                     break;
 
                 case 43:
-                    a = 0.66f;
-                    width = height = max;
+                    a = param[2] == 0 ? 0.66f : myUtils.randFloat(rand);
+                    r = g = b = 1.0f;
+
+                    width  = rand.Next(5 * max) + 13;
+                    height = rand.Next(3 * max) + 13;
+
+                    switch (param[4])
+                    {
+                        case 0: width  = 1; break;
+                        case 1: height = 1; break;
+                        case 2:
+                            if (myUtils.randomChance(rand, 1, 2))
+                                width = 1;
+                            else
+                                height = 1;
+                            break;
+                    }
 
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
 
-                    X = (int)(x - x % (width + param[0]));
-                    Y = (int)(y - y % (width + param[0]));
+                    X = (int)(x - x % (max + param[0]));
+                    Y = (int)(y - y % (max + param[0]));
 
                     cnt = (cnt == -12345) ? rand.Next(11): rand.Next(66) + 33;
 
-                    colorPicker.getColor(x, y, ref r, ref g, ref b);
+                    // Get additional color from the background
+                    if (myUtils.randomChance(rand, 1, 3))
+                        colorPicker.getColor(x + width/2, y + height/2, ref r, ref g, ref b);
                     break;
             }
 
@@ -2638,12 +2663,14 @@ namespace my
                     break;
 
                 case 43:
-                    if (cnt < 13)
-                    //if (cnt > 0)
+                    if (cnt < param[1])
                     {
-                        //tex.setColor(r, g, b);
+                        tex.setColor(r, g, b);
                         tex.setOpacity(a);
-                        tex.Draw((int)X, (int)Y, width, height, (int)X, (int)Y, width, height);
+
+                        for (int i = 0; i < width; i += (max + param[0]))
+                            for (int j = 0; j < height; j += (max + param[0]))
+                                tex.Draw((int)X + i, (int)Y + j, max, max, (int)X + i, (int)Y + j, param[5], param[5]);
                     }
                     break;
             }

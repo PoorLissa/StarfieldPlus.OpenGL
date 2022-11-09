@@ -45,6 +45,13 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        public static float randFloat(Random r, float min = 0.0f)
+        {
+            return (float)r.NextDouble() + min;
+        }
+
+        // -------------------------------------------------------------------------
+
         // Randomly return -1, 0 or +1
         public static int random101(Random r)
         {
