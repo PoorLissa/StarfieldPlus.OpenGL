@@ -70,7 +70,7 @@ namespace my
             mode = rand.Next(44);
 
 #if DEBUG //&& false
-            mode = 43;
+            mode = 19;
 #endif
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
@@ -207,7 +207,8 @@ namespace my
                 case 19:
                     N = rand.Next(1111) + 111;
                     max = rand.Next(111) + 25;
-                    param[0] = rand.Next(2);
+                    param[0] = rand.Next(2);                                                // Const size vs Random size
+                    param[1] = rand.Next(2) == 0 ? 0 : rand.Next(9) + 1;                    // Grid-aligned, if not 0
                     break;
 
                 // Squares moving sideways, bouncing off the walls
@@ -1812,7 +1813,7 @@ namespace my
                     if ((dx > 0 && x > gl_Width - width) || (dx < 0 && x < width))
                     {
                         dx *= -1;
-                        y -= height + 1;
+                        y -= (height + 1 + param[1]);
 
                         a *= (dx > 0) ? 2.0f : 0.5f;
                     }
@@ -2392,9 +2393,23 @@ namespace my
                 case 16:
                 case 17:
                 case 18:
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
                 case 19:
+                    if (param[1] == 0)
+                    {
+                        tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    }
+                    else
+                    {
+                        X = x - x % (width + param[1]);
+
+                        tex.Draw((int)X, (int)y, width, height, (int)X, (int)y, width, height);
+                    }
+                    break;
+
                 case 20:
-                    tex.setOpacity(a);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
 
