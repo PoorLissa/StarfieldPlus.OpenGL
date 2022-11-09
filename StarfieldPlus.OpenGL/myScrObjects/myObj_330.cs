@@ -1810,7 +1810,7 @@ namespace my
 
                     x += dx;
 
-                    if ((dx > 0 && x > gl_Width - width) || (dx < 0 && x < width))
+                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < 0))
                     {
                         dx *= -1;
                         y -= (height + 1 + param[1]);
