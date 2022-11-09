@@ -50,20 +50,6 @@ namespace my
         // One-time initialization
         private void init()
         {
-            gl_x0 = gl_Width  / 2;
-            gl_y0 = gl_Height / 2;
-
-            t = 0;
-
-            // Set default params
-            {
-                for (int i = 0; i < param.Length; i++)
-                    param[i] = 0;
-
-                for (int i = 0; i < paramf.Length; i++)
-                    paramf[i] = 0.0f;
-            }
-
             // todo:
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
@@ -72,6 +58,20 @@ namespace my
 #if DEBUG //&& false
             mode = 19;
 #endif
+
+            gl_x0 = gl_Width  / 2;
+            gl_y0 = gl_Height / 2;
+
+            t = 0;
+
+            // Set default parameter values
+            {
+                for (int i = 0; i < param.Length; i++)
+                    param[i] = 0;
+
+                for (int i = 0; i < paramf.Length; i++)
+                    paramf[i] = 0.0f;
+            }
 
             opacityFactor = rand.Next(3) + 1 + (myUtils.randomChance(rand, 1, 7) ? rand.Next(3) : 0);
 
@@ -208,7 +208,7 @@ namespace my
                     N = rand.Next(1111) + 111;
                     max = rand.Next(111) + 25;
                     param[0] = rand.Next(2);                                                // Const size vs Random size
-                    param[1] = rand.Next(2) == 0 ? 0 : rand.Next(9) + 1;                    // Grid-aligned, if not 0
+                    param[1] = myUtils.randomChance(rand, 1, 2) ? 0 : rand.Next(9) + 1;     // Grid-aligned, if not 0
                     break;
 
                 // Squares moving sideways, bouncing off the walls
