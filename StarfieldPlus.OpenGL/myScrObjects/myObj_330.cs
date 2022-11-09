@@ -475,7 +475,7 @@ namespace my
                     max = rand.Next(66) + 33;                                               // Grid cell's size
                     param[0] = rand.Next(7) + 1;                                            // Interval between the grid cells
                     param[1] = rand.Next(15) + 1;                                           // Draw the particles when (cnt < param[1])
-                    param[2] = rand.Next(2);                                                // COnst opacity vs random opacity
+                    param[2] = rand.Next(2);                                                // Const opacity vs random opacity
                     param[3] = rand.Next(5) + 1;                                            // Disappearing speed
                     param[4] = rand.Next(6);                                                // Single-line, in case of 0-1-2
                     param[5] = myUtils.randomChance(rand, 1, 2)                             // Zoom parameter
