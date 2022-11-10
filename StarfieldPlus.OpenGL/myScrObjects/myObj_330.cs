@@ -207,7 +207,7 @@ namespace my
                 case 19:
                     N = rand.Next(1111) + 111;
                     max = rand.Next(111) + 25;
-                    param[0] = rand.Next(2);                                                // Const size vs Random size
+                    param[0] = rand.Next(3);                                                // Const Square size vs Random Square size vs Rect
                     param[1] = myUtils.randomChance(rand, 1, 2) ? 0 : rand.Next(9) + 1;     // Grid-aligned, if not 0
                     break;
 
@@ -742,6 +742,11 @@ namespace my
 
                         case 1:
                             width = height = rand.Next(max) + 11;
+                            break;
+
+                        case 2:
+                            height = max;
+                            width = height / 2;
                             break;
                     }
 
