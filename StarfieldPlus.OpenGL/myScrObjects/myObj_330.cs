@@ -53,10 +53,10 @@ namespace my
             // todo:
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(45);
+            mode = rand.Next(47);
 
-#if DEBUG //&& false
-            mode = 44;
+#if DEBUG && false
+            mode = 46;
 #endif
 
             gl_x0 = gl_Width  / 2;
@@ -106,6 +106,7 @@ namespace my
                     doSampleOnce = doClearBuffer ? myUtils.randomBool(rand) : false;
                     dimAlpha /= 3;
                     N = 999 + rand.Next(666);
+                    param[0] = rand.Next(2);                                                // Squares (0) vs Lines (1)
                     break;
 
                 // 5; Pieces appear on the central line and then move up or down
@@ -488,6 +489,7 @@ namespace my
                     doClearBuffer = false;
                     break;
 
+                // Random cells move horizontally in 2 opposite directions
                 case 44:
                     N = rand.Next(66) + 33;
                     max = rand.Next(66) + 33;                                               // Grid cell's size
@@ -495,7 +497,41 @@ namespace my
                     param[0] = rand.Next(111) + 13;                                         // Max speed factor
                     param[1] = rand.Next(3);                                                // Use dWidth / dHeight
                     param[2] = rand.Next(2);                                                // Random size / const size
+                    param[3] = myUtils.randomChance(rand, 1, 2) ? 0 : rand.Next(11);        // Grid interval
                     dt = 0.01f;
+                    break;
+
+                // Thin lines bounce off the sides of the screen
+                case 45:
+                    N = 3333;
+                    max = 111;                                                              // Max length
+                    param[0] = 13;                                                          // Speed factor
+
+                    dimAlpha /= (rand.Next(5) + 1);
+
+                    doDrawSrcImg  = myUtils.randomChance(rand, 1, 2);
+                    doClearBuffer = myUtils.randomChance(rand, 1, 2);
+                    doSampleOnce  = myUtils.randomChance(rand, 1, 2);
+                    break;
+
+                // Grid based cells are drawn with an offset into the texture coordinates
+                case 46:
+                    doClearBuffer = false;
+                    doDrawSrcImg = myUtils.randomChance(rand, 1, 3);
+                    N = 333 + rand.Next(666);
+                    max = rand.Next(111) + 23;                                              // Cells size
+                    param[0] = rand.Next(11) + 1;                                           // Grid interval
+                    param[1] = rand.Next(13) + 3;                                           // Max move interval
+                    param[2] = rand.Next(11) + 2;                                           // Move factor
+
+                    dimAlpha /= (rand.Next(11) + 1);
+
+                    // Recalc N, if too small
+                    {
+                        int n = (gl_Width / max) * (gl_Height / max);
+
+                        N *= (n / N > 3) ? 2 : 1;
+                    }
                     break;
             }
 
@@ -566,6 +602,7 @@ namespace my
 
                 case 4:
                     width = rand.Next(33) + 5;
+                    height = param[0] == 0 ? width : 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
                     dx = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
@@ -1521,9 +1558,47 @@ namespace my
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
 
+                    // Align to vertical grid
+                    if (param[3] != 0)
+                    {
+                        y -= y % (max + param[3]);
+                    }
+
                     dx = myUtils.randFloat(rand, min: 0.1f) * (rand.Next(param[0]) + 1);
                     dy = myUtils.randFloat(rand, min: 0.1f);
                     dy = 0;
+                    break;
+
+                case 45:
+                    a = myUtils.randFloat(rand, min: 0.1f);
+
+                    width = max;
+                    height = 2;
+
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, min: 0.1f) * (rand.Next(param[0]) + 1);
+                    dy = 0;
+                    break;
+
+                case 46:
+                    a = myUtils.randFloat(rand, min: 0.1f);
+                    a = 0.9f;
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    x -= x % (max + param[0]);
+                    y -= y % (max + param[0]);
+
+                    X = x;
+                    Y = y;
+
+                    // Width is used as a move interval
+                    width = rand.Next(param[1]) + 3;
+
+                    cnt = rand.Next(333) + 50;
                     break;
             }
 
@@ -2418,6 +2493,27 @@ namespace my
                     if (x < 0 || X > gl_Width - width)
                         a -= 0.0025f;
                     break;
+
+                case 45:
+                    x += dx;
+                    y += dy;
+
+                    if ((dx > 0 && x >= gl_Width - width) || (dx < 0 && x <= 0))
+                    {
+                        dx *= -1;
+                    }
+                    break;
+
+                case 46:
+                    if (--cnt <= 0)
+                        a = -1;
+
+                    if (cnt % width == 0)
+                    {
+                        X += myUtils.random101(rand) * myUtils.randFloat(rand, 0.1f) * rand.Next(param[2]);
+                        Y += myUtils.random101(rand) * myUtils.randFloat(rand, 0.1f) * rand.Next(param[2]);
+                    }
+                    break;
             }
 
             if (a <= 0)
@@ -2446,11 +2542,11 @@ namespace my
                 case 4:
                     if (doSampleOnce)
                     {
-                        tex.Draw((int)x - width, (int)y - width, 2 * width, 2 * width, (int)X - width, (int)X - width, 2 * width, 2 * width);
+                        tex.Draw((int)x - width, (int)y - height, 2 * width, 2 * height, (int)X - width, (int)X - height, 2 * width, 2 * height);
                     }
                     else
                     {
-                        tex.Draw((int)x - width, (int)y - width, 2 * width, 2 * width, (int)x - width, (int)y - width, 2 * width, 2 * width);
+                        tex.Draw((int)x - width, (int)y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
                     }
                     break;
 
@@ -2780,6 +2876,21 @@ namespace my
                 case 44:
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     tex.Draw((int)X, (int)Y, width, height, (int)X, (int)Y, width, height);
+                    break;
+
+                case 45:
+                    if (doSampleOnce)
+                    {
+                        tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
+                    }
+                    else
+                    {
+                        tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    }
+                    break;
+
+                case 46:
+                    tex.Draw((int)x, (int)y, max, max, (int)X, (int)Y, max, max);
                     break;
             }
 
