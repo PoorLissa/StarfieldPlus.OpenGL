@@ -53,10 +53,10 @@ namespace my
             // todo:
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(44);
+            mode = rand.Next(45);
 
 #if DEBUG //&& false
-            mode = 19;
+            mode = 44;
 #endif
 
             gl_x0 = gl_Width  / 2;
@@ -209,6 +209,7 @@ namespace my
                     max = rand.Next(111) + 25;
                     param[0] = rand.Next(3);                                                // Const Square size vs Random Square size vs Rect
                     param[1] = myUtils.randomChance(rand, 1, 2) ? 0 : rand.Next(9) + 1;     // Grid-aligned, if not 0
+                    param[2] = rand.Next(3);                                                // dx generation mode
                     break;
 
                 // Squares moving sideways, bouncing off the walls
@@ -486,6 +487,16 @@ namespace my
 
                     doClearBuffer = false;
                     break;
+
+                case 44:
+                    N = rand.Next(66) + 33;
+                    max = rand.Next(66) + 33;                                               // Grid cell's size
+
+                    param[0] = rand.Next(111) + 13;                                         // Max speed factor
+                    param[1] = rand.Next(3);                                                // Use dWidth / dHeight
+                    param[2] = rand.Next(2);                                                // Random size / const size
+                    dt = 0.01f;
+                    break;
             }
 
             return;
@@ -754,7 +765,20 @@ namespace my
                     x = X = 0 - rand.Next(5*width) - width;
                     y = Y = gl_Height - height;
 
-                    dx = (float)rand.NextDouble() * (rand.Next(111) + 1) + 0.01f;
+                    switch (param[2])
+                    {
+                        case 0:
+                            dx = (float)rand.NextDouble() * (rand.Next(111) + 1) + 0.01f;
+                            break;
+
+                        case 1:
+                            dx = (rand.Next(33) + 5) * 1.5f;
+                            break;
+
+                        case 2:
+                            dx = (rand.Next(1111) + 1) * 0.1f;
+                            break;
+                    }
                     break;
 
                 case 20:
@@ -1478,6 +1502,29 @@ namespace my
                     if (myUtils.randomChance(rand, 1, 3))
                         colorPicker.getColor(x + width/2, y + height/2, ref r, ref g, ref b);
                     break;
+
+                case 44:
+                    a = myUtils.randFloat(rand, min: 0.05f);
+
+                    switch (param[2])
+                    {
+                        case 0:
+                            width = height = max;
+                            break;
+
+                        case 1:
+                            width  = rand.Next(2 * max) + 3;
+                            height = rand.Next(1 * max) + 3;
+                            break;
+                    }
+
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    dx = myUtils.randFloat(rand, min: 0.1f) * (rand.Next(param[0]) + 1);
+                    dy = myUtils.randFloat(rand, min: 0.1f);
+                    dy = 0;
+                    break;
             }
 
             return;
@@ -1814,6 +1861,11 @@ namespace my
                         generateNew();
 
                     x += dx;
+
+                    if (param[2] == 1)
+                    {
+                        //dx += dx > 0 ? 0.1f : -0.1f;
+                    }
 
                     if ((dx > 0 && x > gl_Width) || (dx < 0 && x < 0))
                     {
@@ -2335,6 +2387,37 @@ namespace my
                     if (--cnt < 0)
                         a = -1;
                     break;
+
+                case 44:
+                    x -= dx;
+                    X += dx;
+
+                    param[1] = 2;
+
+                    // Change the particle size
+                    switch (param[1])
+                    {
+                        case 1:
+                            width += 1;
+                            break;
+
+                        case 2:
+                            width += rand.Next(3) + 1;
+                            dy += myUtils.randFloat(rand);
+
+                            if (dy > 1.0f && height > 1)
+                            {
+                                height -= 1;
+                                y += 0.5f;
+                                Y = y;
+                                dy = 0;
+                            }
+                            break;
+                    }
+
+                    if (x < 0 || X > gl_Width - width)
+                        a -= 0.0025f;
+                    break;
             }
 
             if (a <= 0)
@@ -2692,6 +2775,11 @@ namespace my
                             for (int j = 0; j < height; j += (max + param[0]))
                                 tex.Draw((int)X + i, (int)Y + j, max, max, (int)X + i, (int)Y + j, param[5], param[5]);
                     }
+                    break;
+
+                case 44:
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    tex.Draw((int)X, (int)Y, width, height, (int)X, (int)Y, width, height);
                     break;
             }
 
