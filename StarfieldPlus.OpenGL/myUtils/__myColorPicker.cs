@@ -13,6 +13,7 @@ namespace my
         private Bitmap   _img = null;
         private Random   _rand = null;
         private Graphics _g = null;
+        private string   _f = null;
 
         private static int _W = -1, _H = -1, gl_R = -1, gl_G = -1, gl_B = -1, gl_r = -1, gl_g = -1, gl_b = -1;
         private static bool isRlocked = false, isGlocked = false, isBlocked = false;
@@ -114,6 +115,13 @@ namespace my
         public Graphics GetGraphics()
         {
             return _g;
+        }
+
+        // -------------------------------------------------------------------------
+
+        public string GetFileName()
+        {
+            return _f;
         }
 
         // -------------------------------------------------------------------------
@@ -363,6 +371,7 @@ namespace my
 
                     _g = Graphics.FromImage(_img);
                     _g.CopyFromScreen(Point.Empty, Point.Empty, new Size(Width, Height));
+                    _f = "-= desktop snapshot =-";
                 }
             }
             catch (Exception ex)
@@ -414,6 +423,7 @@ namespace my
                     }
 
                     _g = Graphics.FromImage(_img);
+                    _f = image.Substring(image.LastIndexOf('\\') + 1);
                 }
                 else
                 {

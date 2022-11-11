@@ -53,10 +53,11 @@ namespace my
             // todo:
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(49);
+            // mode. rnd a pt on texture. increase pt size, while its average color is pretty much const. When the color starts to change, step back and draw this pt
+            mode = rand.Next(51);
 
 #if DEBUG && false
-            mode = 48;
+            mode = 50;
 #endif
 
             gl_x0 = gl_Width  / 2;
@@ -116,6 +117,8 @@ namespace my
                     dimAlpha /= 3;
                     max = rand.Next(45) + 3;
                     N = 999 + rand.Next(666);
+                    param[0] = myUtils.randomChance(rand, 1, 2)                             // 5: Central line vs random line
+                        ? gl_y0 : rand.Next(gl_Height);
                     break;
 
                 // Random pieces of the image constantly appearing at their own locations
@@ -558,6 +561,25 @@ namespace my
                     param[2] = rand.Next(4);                                                // Align to grid probability
                     dt = 0.01f;
                     break;
+
+                // Fast-living small static squares coming in large numbers
+                case 49:
+                    N = 666 + rand.Next(1234) + rand.Next(2) * rand.Next(3333);
+                    max = rand.Next(11) + 2;                                                // Cells size
+                    param[0] = rand.Next(11) + 1;                                           // Grid interval
+                    param[1] = rand.Next(11) + 1;                                           // Life speed factor
+                    param[2] = rand.Next(2);                                                // Align to grid
+                    dimAlpha /= (1.0f + myUtils.randFloat(rand) * rand.Next(5));
+                    break;
+
+                // Primitive edge searching algorithm
+                case 50:
+                    doClearBuffer = false;
+                    N = 333 + rand.Next(666);
+                    param[0] = rand.Next(4);                                                // Drawing mode
+                    param[1] = rand.Next(3);                                                // Search mode
+                    dimAlpha /= 33;
+                    break;
             }
 
             return;
@@ -583,7 +605,8 @@ namespace my
                             $"doSampleOnce  = {doSampleOnce}\n" +
                             $"opacityFactor = {opacityFactor}\n" +
                             $"doUseRandDxy  = {doUseRandDxy}\n" +
-                            $"param: [{str_params}]"
+                            $"param: [{str_params}]\n\n" +
+                            $"file: {colorPicker.GetFileName()}"
             ;
             return str;
         }
@@ -647,9 +670,10 @@ namespace my
                     break;
 
                 case 5:
+                    a = doClearBuffer ? a * 1.75f : a;
                     width = rand.Next(max) + 1;
                     x = X = rand.Next(gl_Width);
-                    y = Y = gl_y0;
+                    y = Y = param[0];
                     dx = 0;
                     dy = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
                     da = (float)rand.NextDouble() / 25;
@@ -1692,6 +1716,77 @@ namespace my
                     cnt = rand.Next(111) + 7;
                     width = rand.Next(333);
                     break;
+
+                case 49:
+                    a = myUtils.randFloat(rand) / 2;
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    if (param[2] == 1)
+                    {
+                        x -= x % (max + param[0]);
+                        y -= y % (max + param[0]);
+                    }
+
+                    cnt = rand.Next(param[1]) + 3;
+                    break;
+
+                case 50:
+                    a = 0;
+                    cnt = 2;
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    colorPicker.getColor(x, y, ref r, ref g, ref b);
+
+                    switch (param[1])
+                    {
+                        case 0:
+                            {
+                                float R = 0, G = 0, B = 0, delta = 0.0001f;
+                                width = height = 1;
+
+                                while (width < 9 && a == 0)
+                                {
+                                    colorPicker.getColorAverage(x, y, ++width, ++height, ref R, ref G, ref B);
+
+                                    if (Math.Abs(R - r) > delta || Math.Abs(G - g) > delta || Math.Abs(B - b) > delta)
+                                        a = 1;
+                                }
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                float R = 0, G = 0, B = 0, delta = 0.01f;
+
+                                colorPicker.getColorAverage(x, y, 8, 8, ref R, ref G, ref B);
+
+                                if (Math.Abs(R - r) > delta || Math.Abs(G - g) > delta || Math.Abs(B - b) > delta)
+                                {
+                                    a = 1;
+                                    width = height = 8;
+                                }
+                            }
+                            break;
+
+                        case 2:
+                            {
+                                float R = 0, G = 0, B = 0, delta = 0.5f;
+
+                                colorPicker.getColorAverage(x, y, 8, 8, ref R, ref G, ref B);
+
+                                if (Math.Abs(R + G + B - r - g - b) > delta)
+                                {
+                                    a = 1;
+                                    width = height = 8;
+                                }
+                            }
+                            break;
+                    }
+                    break;
             }
 
             return;
@@ -2649,6 +2744,16 @@ namespace my
                     if (--cnt < 0)
                         a -= myUtils.randFloat(rand) * 0.0037f;
                     break;
+
+                case 49:
+                    if (--cnt < 0)
+                        a -= myUtils.randFloat(rand) * 0.05f;
+                    break;
+
+                case 50:
+                    if (--cnt < 0)
+                        a -= myUtils.randFloat(rand);
+                    break;
             }
 
             if (a <= 0)
@@ -3072,6 +3177,53 @@ namespace my
 
                 case 48:
                     tex.Draw((int)x, (int)y, max, max, (int)X, (int)Y, max, max);
+                    break;
+
+                case 49:
+                    if (param[2] == 0)
+                    {
+                        for (int i = 1; i <= 3; i++)
+                        {
+                            int n = i * max / 3;
+                            tex.Draw((int)x - n, (int)y - n, 2 * n, 2 * n, (int)x - n, (int)y - n, 2 * n, 2 * n);
+                        }
+                    }
+                    else
+                    {
+                        tex.setOpacity(a * 2);
+                        tex.Draw((int)x, (int)y, max, max, (int)x, (int)y, max, max);
+                    }
+                    break;
+
+                case 50:
+                    if (a > 0 && cnt == 0)
+                    {
+                        switch (param[0])
+                        {
+                            case 0:
+                                tex.setOpacity(0.85f);
+                                tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                                break;
+
+                            case 1:
+                                tex.setOpacity(myUtils.randFloat(rand));
+                                tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                                break;
+
+                            case 2:
+                                myPrimitive._Rectangle.SetColor(r, g, b, myUtils.randFloat(rand));
+                                myPrimitive._Rectangle.Draw((int)x, (int)y, width, height, true);
+                                break;
+
+                            case 3:
+                                myPrimitive._Rectangle.SetColor(r, g, b, 0.5f);
+                                myPrimitive._Rectangle.Draw((int)x, (int)y, width, height, true);
+
+                                tex.setOpacity(0.5f);
+                                tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                                break;
+                        }
+                    }
                     break;
             }
 
