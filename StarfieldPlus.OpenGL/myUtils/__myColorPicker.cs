@@ -181,6 +181,29 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        // Get average color at a rectangle, as float R-G-B ([0..1]-[0..1]-[0..1])
+        public void getColorAverage(float x, float y, int width, int height, ref float R, ref float G, ref float B)
+        {
+            R = G = B = 0;
+
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
+                    getColor((int)x + i, (int)y + j, ref gl_r, ref gl_g, ref gl_b);
+                    R += gl_r / 255.0f;
+                    G += gl_g / 255.0f;
+                    B += gl_b / 255.0f;
+                }
+            }
+
+            R /= (width * height);
+            G /= (width * height);
+            B /= (width * height);
+        }
+
+        // -------------------------------------------------------------------------
+
         // Get color at a point, as R-G-B
         public void getColor(int x, int y, ref int R, ref int G, ref int B)
         {

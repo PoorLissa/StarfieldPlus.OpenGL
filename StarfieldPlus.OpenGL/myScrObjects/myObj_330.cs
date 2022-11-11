@@ -18,7 +18,7 @@ namespace my
         public int width, height, cnt;
 
         static int N = 1, max = 1, opacityFactor = 1;
-        static int[] param = new int[6];
+        static int[] param = new int[7];
         static int mode = 0;
 
         static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
@@ -53,10 +53,10 @@ namespace my
             // todo:
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            mode = rand.Next(47);
+            mode = rand.Next(49);
 
-#if DEBUG && false
-            mode = 46;
+#if DEBUG //&& false
+            mode = 48;
 #endif
 
             gl_x0 = gl_Width  / 2;
@@ -533,6 +533,31 @@ namespace my
                         N *= (n / N > 3) ? 2 : 1;
                     }
                     break;
+
+                // Slowly showing grig-based image; the cells might have a border around them
+                case 47:
+                    doClearBuffer = false;
+                    N = 333 + rand.Next(666);
+                    max = rand.Next(111) + 23;                                              // Cells size
+                    param[0] = rand.Next(11) + 1;                                           // Grid interval
+                    param[1] = rand.Next(3);                                                // Cell border option (0 - No border, 1 - Border, 2 - Randomly offset border)
+                    param[2] = rand.Next(3);                                                // Cell border color option
+                    param[3] = rand.Next(2);                                                // Fill cell's background with its border color
+                    param[4] = rand.Next(3);                                                // Align to grid ( > 0) or not ( == 0)
+                    param[5] = rand.Next(2);                                                // Cells bluring option
+                    param[6] = rand.Next(2);                                                // Draw grid line intersections
+                    dimAlpha /= (9.0f + myUtils.randFloat(rand));
+                    break;
+
+                // Cells oscillating right and left in a grid based structure
+                case 48:
+                    N = 333 + rand.Next(1111) + rand.Next(2) * rand.Next(3333);
+                    max = rand.Next(111) + 23;                                              // Cells size
+                    param[0] = rand.Next(11) + 1;                                           // Grid interval
+                    param[1] = rand.Next(3);                                                // Move mode
+                    param[2] = rand.Next(4);                                                // Align to grid probability
+                    dt = 0.01f;
+                    break;
             }
 
             return;
@@ -582,6 +607,7 @@ namespace my
             {
                 case 2:
                     width = rand.Next(33) + 5;
+                    height = (param[0] == 0) ? width : 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
                     dx = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
@@ -590,6 +616,7 @@ namespace my
 
                 case 3:
                     width = rand.Next(33) + 5;
+                    height = (param[0] == 0) ? width : 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
                     dx = dy = 0;
@@ -602,7 +629,7 @@ namespace my
 
                 case 4:
                     width = rand.Next(33) + 5;
-                    height = param[0] == 0 ? width : 1;
+                    height = (param[0] == 0) ? width : 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
                     dx = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
@@ -1600,6 +1627,71 @@ namespace my
 
                     cnt = rand.Next(333) + 50;
                     break;
+
+                case 47:
+                    a = da = myUtils.randFloat(rand) * (myUtils.randomChance(rand, 1, 666) ? 0.25f : 0.05f);
+
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    // Align to grid
+                    if (param[4] > 0)
+                    {
+                        X -= x % (max + param[0]);
+                        Y -= y % (max + param[0]);
+                    }
+
+                    // Border color and opacity:
+                    {
+                        switch (param[2])
+                        {
+                            case 0:
+                                r = g = b = 1.0f;
+                                break;
+
+                            case 1:
+                                r = myUtils.randFloat(rand);
+                                g = myUtils.randFloat(rand);
+                                b = myUtils.randFloat(rand);
+                                da /= 2;
+                                break;
+
+                            case 2:
+                                colorPicker.getColor(x, y, ref r, ref g, ref b);
+                                break;
+
+                            case 3:
+                                colorPicker.getColorAverage(X, Y, max, max, ref r, ref g, ref b);
+                                break;
+                        }
+                    }
+
+                    cnt = rand.Next(111) + 7;
+                    break;
+
+                case 48:
+                    a = myUtils.randFloat(rand) / (rand.Next(2) + 1);
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    // Align to grid
+                    if (param[2] != 0)
+                    {
+                        x -= x % (max + param[0]);
+                        y -= y % (max + param[0]);
+                    }
+
+                    X = x;
+                    Y = y;
+
+                    dx = rand.Next(23) + 7;
+                    dy = rand.Next(23) + 7;
+                    da = 1.0f + myUtils.randFloat(rand) * rand.Next(3);
+
+                    cnt = rand.Next(111) + 7;
+                    width = rand.Next(333);
+                    break;
             }
 
             return;
@@ -2514,6 +2606,32 @@ namespace my
                         Y += myUtils.random101(rand) * myUtils.randFloat(rand, 0.1f) * rand.Next(param[2]);
                     }
                     break;
+
+                case 47:
+                    if (--cnt <= 0)
+                        a = -1;
+                    break;
+
+                case 48:
+                    switch (param[1])
+                    {
+                        case 0:
+                            X += (float)(Math.Sin(t * dx + width) * da);
+                            break;
+
+                        case 1:
+                            x += (float)(Math.Sin(t * dx + width) * da);
+                            break;
+
+                        case 2:
+                            X += (float)(Math.Sin(t * dx + width) * da);
+                            x += (float)(Math.Sin(t * dy + width) * da);
+                            break;
+                    }
+
+                    if (--cnt < 0)
+                        a -= myUtils.randFloat(rand) * 0.0037f;
+                    break;
             }
 
             if (a <= 0)
@@ -2890,6 +3008,52 @@ namespace my
                     break;
 
                 case 46:
+                    tex.Draw((int)x, (int)y, max, max, (int)X, (int)Y, max, max);
+                    break;
+
+                case 47:
+                    if (cnt == 1)
+                    {
+                        int offsetx = param[5] == 1 ? myUtils.random101(rand) * rand.Next(3) : 0;
+                        int offsety = param[5] == 1 ? myUtils.random101(rand) * rand.Next(3) : 0;
+                        tex.Draw((int)X, (int)Y, max, max, (int)X + offsetx, (int)Y + offsety, max, max);
+
+                        // Slightly fill the cell with its border color
+                        if (param[3] == 1)
+                        {
+                            myPrimitive._Rectangle.SetColor(r, g, b, da/2);
+                            myPrimitive._Rectangle.Draw((int)X + 1, (int)Y + 1, max - 2, max - 2, true);
+                        }
+
+                        myPrimitive._Rectangle.SetColor(r, g, b, da);
+
+                        switch (param[1])
+                        {
+                            case 1:
+                                myPrimitive._Rectangle.Draw((int)X + 1, (int)Y + 1, max - 2, max - 2, false);
+                                break;
+
+                            case 2:
+                                myPrimitive._Rectangle.Draw((int)X + rand.Next(3), (int)Y + rand.Next(3), max - rand.Next(6), max - rand.Next(6), false);
+                                break;
+                        }
+
+                        // Draw grid lines intersections
+                        if (param[6] == 1)
+                        {
+                            int n = 3;
+
+                            myPrimitive._Rectangle.SetColor(0, 0, 0, 0.5f);
+
+                            myPrimitive._Rectangle.Draw((int)X, (int)Y, n, n, true);
+                            myPrimitive._Rectangle.Draw((int)X, (int)Y + max - n, n, n, true);
+                            myPrimitive._Rectangle.Draw((int)X + max - n, (int)Y, n, n, true);
+                            myPrimitive._Rectangle.Draw((int)X + max - n, (int)Y + max - n, n, n, true);
+                        }
+                    }
+                    break;
+
+                case 48:
                     tex.Draw((int)x, (int)y, max, max, (int)X, (int)Y, max, max);
                     break;
             }
