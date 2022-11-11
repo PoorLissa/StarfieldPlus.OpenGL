@@ -55,7 +55,7 @@ namespace my
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
             mode = rand.Next(49);
 
-#if DEBUG //&& false
+#if DEBUG && false
             mode = 48;
 #endif
 
