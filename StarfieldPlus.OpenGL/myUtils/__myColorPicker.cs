@@ -371,7 +371,7 @@ namespace my
 
                     _g = Graphics.FromImage(_img);
                     _g.CopyFromScreen(Point.Empty, Point.Empty, new Size(Width, Height));
-                    _f = "-= desktop snapshot =-";
+                    _f = "[ Desktop Snapshot ]";
                 }
             }
             catch (Exception ex)
