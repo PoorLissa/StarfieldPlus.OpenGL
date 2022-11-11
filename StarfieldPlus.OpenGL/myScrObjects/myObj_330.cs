@@ -554,7 +554,7 @@ namespace my
                     N = 333 + rand.Next(1111) + rand.Next(2) * rand.Next(3333);
                     max = rand.Next(111) + 23;                                              // Cells size
                     param[0] = rand.Next(11) + 1;                                           // Grid interval
-                    param[1] = rand.Next(3);                                                // Move mode
+                    param[1] = rand.Next(6);                                                // Move mode
                     param[2] = rand.Next(4);                                                // Align to grid probability
                     dt = 0.01f;
                     break;
@@ -2620,12 +2620,29 @@ namespace my
                             break;
 
                         case 1:
-                            x += (float)(Math.Sin(t * dx + width) * da);
+                            X += (float)(Math.Sin(t * dx + width) * da);
+                            Y += (float)(Math.Cos(t * dx + width) * da);
                             break;
 
                         case 2:
+                            x += (float)(Math.Sin(t * dx + width) * da);
+                            break;
+
+                        case 3:
+                            x += (float)(Math.Sin(t * dx + width) * da);
+                            y += (float)(Math.Cos(t * dx + width) * da);
+                            break;
+
+                        case 4:
                             X += (float)(Math.Sin(t * dx + width) * da);
                             x += (float)(Math.Sin(t * dy + width) * da);
+                            break;
+
+                        case 5:
+                            X += (float)(Math.Sin(t * dx + width) * da);
+                            Y += (float)(Math.Cos(t * dx + width) * da);
+                            x += (float)(Math.Sin(t * dy + width) * da);
+                            y += (float)(Math.Cos(t * dy + width) * da);
                             break;
                     }
 
