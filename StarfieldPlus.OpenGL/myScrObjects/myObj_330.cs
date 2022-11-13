@@ -53,11 +53,13 @@ namespace my
             // todo:
             // mode 33: add grid-alignment option
             // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
+            // mode. like 42, but not suares but a rand length rectangles
             // mode. rnd a pt on texture. increase pt size, while its average color is pretty much const. When the color starts to change, step back and draw this pt
+            // lines come out of out of the screen, but at some point start moving in rectangle, along the screen's edge
             mode = rand.Next(51);
 
-#if DEBUG && false
-            mode = 50;
+#if DEBUG //&& false
+            mode = 42;
 #endif
 
             gl_x0 = gl_Width  / 2;
