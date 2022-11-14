@@ -7,6 +7,11 @@ using System.Collections.Generic;
 /*
     -- Textures, Take 1
     https://www.youtube.com/watch?v=sA4p3wuDLo8&ab_channel=FranklyGaming
+
+    // todo:
+    // mode 33: add grid-alignment option
+    // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
+    // mode. like 42, but rand length rectangles instead of squares
 */
 
 
@@ -31,14 +36,6 @@ namespace my
 
         public myObj_330()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
-                list = new List<myObject>();
-
-                init();
-            }
-
             // This value means, this is the first iteration ever for this object
             cnt = -12345;
 
@@ -47,27 +44,26 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
         {
-            // todo:
-            // mode 33: add grid-alignment option
-            // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
-            // mode. like 42, but not suares but a rand length rectangles
-            // mode. rnd a pt on texture. increase pt size, while its average color is pretty much const. When the color starts to change, step back and draw this pt
-            // lines come out of out of the screen, but at some point start moving in rectangle, along the screen's edge
-            mode = rand.Next(51);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            list = new List<myObject>();
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            mode = rand.Next(52);
 
 #if DEBUG //&& false
-            mode = 42;
+            mode = 51;
 #endif
-
-            gl_x0 = gl_Width  / 2;
-            gl_y0 = gl_Height / 2;
-
-            t = 0;
-
-            // Set default parameter values
+            // Reset parameter values
             {
                 for (int i = 0; i < param.Length; i++)
                     param[i] = 0;
@@ -83,6 +79,7 @@ namespace my
             doUseRandDxy   = myUtils.randomBool(rand);
             doSampleOnce   = false;
             doDrawSrcImg   = false;
+            t = 0;
 
             switch (mode)
             {
@@ -582,6 +579,14 @@ namespace my
                     param[1] = rand.Next(3);                                                // Search mode
                     dimAlpha /= 33;
                     break;
+
+                // Lines come out of out of the screen, but at some point start moving in rectangle, along the screen's edge
+                case 51:
+                    doSampleOnce = true;
+                    N = 3333;
+                    max = rand.Next(666) + 66;                                              // Max line length
+                    param[0] = 1;                                                           // Line generation mode
+                    break;
             }
 
             return;
@@ -618,7 +623,7 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            init();
+            initLocal();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -1789,6 +1794,46 @@ namespace my
                             break;
                     }
                     break;
+
+                case 51:
+                    a = myUtils.randFloat(rand, 0.1f);
+                    da = 0;
+
+                    switch (param[0])
+                    {
+                        case 0:
+                            width = 3;
+                            height = rand.Next(max) + 111;
+
+                            x = rand.Next(gl_Width);
+                            y = myUtils.randomChance(rand, 1, 2) ? -(height + 1) : (gl_Height + 1);
+
+                            dx = 0;
+                            dy = -myUtils.signOf(y) * myUtils.randFloat(rand, 0.1f) * (rand.Next(11) + 1);
+
+                            X = Y = rand.Next(gl_Height/3) + (y < 0 ? 0 : 2*gl_Height/3);
+                            break;
+
+                        case 1:
+                            a /= 2;
+                            width = rand.Next(17) + 1;
+                            //height = gl_Height + 11;
+
+                            height = 111;
+
+                            x = rand.Next(gl_Width);
+
+                            x += (float)Math.Sin(x);
+
+                            y = rand.Next(gl_Height);
+                            //y = -5;
+
+                            y -= y % height;
+                            break;
+                    }
+
+                    cnt = rand.Next(333) + 12399;
+                    break;
             }
 
             return;
@@ -2756,6 +2801,84 @@ namespace my
                     if (--cnt < 0)
                         a -= myUtils.randFloat(rand);
                     break;
+
+                case 51:
+                    if (--cnt < 0)
+                        a -= myUtils.randFloat(rand);
+
+                    if (param[0] == 1)
+                    {
+                        da += 0.025f * myUtils.randFloat(rand);
+
+                        //da += 0.025f * x * x * x * 0.001f * 0.001f * 0.001f;
+
+                        da += 0.00001f * x * y / 100;
+                        
+                        cnt--;
+                        break;
+                    }
+
+                    if (y >= 111 || y <= gl_Height - 111)
+                    {
+                        da += 0.0023f * myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                        height++;
+                    }
+
+                    if (false && dy > 0)
+                    {
+                        if (y >= 111)
+                        {
+                            float zzz = 0.01f * (gl_x0 - x);
+
+                            //dy += 0.5f * myUtils.randFloat(rand) * myUtils.randomSign(rand);
+
+                            if (x < gl_x0)
+                            {
+                                da += 0.001f * zzz;
+                                dx -= 0.010f * zzz;
+                            }
+                            else
+                            {
+                                da += 0.001f * zzz;
+                                dx -= 0.010f * zzz;
+                            }
+
+                            //dx = dy;
+                            //dy = 0;
+                            //myUtils.swap<int>(ref width, ref height);
+                        }
+                    }
+
+                    if (false && dy < 0)
+                    {
+                        if (y <= gl_Height - 111)
+                        {
+                            float zzz = 0.01f * (gl_x0 - x);
+
+                            //dy += 0.5f * myUtils.randFloat(rand) * myUtils.randomSign(rand);
+
+                            if (x < gl_x0)
+                            {
+                                da -= 0.001f * zzz;
+                                dx -= 0.010f * zzz;
+                            }
+                            else
+                            {
+                                da -= 0.001f * zzz;
+                                dx -= 0.010f * zzz;
+                            }
+
+                            //dx = dy;
+                            //dy = 0;
+                            //myUtils.swap<int>(ref width, ref height);
+                        }
+                    }
+
+                    x += dx;
+                    y += dy;
+
+                    //height++;
+                    break;
             }
 
             if (a <= 0)
@@ -3226,6 +3349,13 @@ namespace my
                                 break;
                         }
                     }
+                    break;
+
+                case 51:
+                    tex.setOpacity(a);
+                    tex.setAngle(Math.Sin(da));
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    //tex.Draw(gl_Width/4 + (int)x/2, gl_Height/4 + (int)y/2, width/2, height/2, (int)x, (int)y, width, height);
                     break;
             }
 

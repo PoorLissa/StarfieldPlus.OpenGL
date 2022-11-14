@@ -23,11 +23,21 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        protected float _a, _r, _g, _b;
+        public myObject()
+        {
+            if (colorPicker == null)
+            {
+                gl_x0 = gl_Width  / 2;
+                gl_y0 = gl_Height / 2;
+
+                initGlobal();
+            }
+        }
 
         // -------------------------------------------------------------------------
 
-        public myObject()
+        // Override this function to perform one-time initialization upon creating the first object of a derived class
+        protected virtual void initGlobal()
         {
         }
 
@@ -181,9 +191,6 @@ namespace my
 #endif
 
                     openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", trueFullScreen: false);
-
-                    gl_x0 = gl_Width  / 2;
-                    gl_y0 = gl_Height / 2;
                 }
 
                 // Set Blend mode
@@ -199,6 +206,9 @@ namespace my
 
                 // One time call to let all the primitives know the screen dimensions
                 myPrimitive.init(gl_Width, gl_Height);
+
+                gl_x0 = gl_Width  / 2;
+                gl_y0 = gl_Height / 2;
 
                 Process(openGL_Window);
 
