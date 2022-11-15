@@ -60,10 +60,8 @@ namespace my
         private void initLocal()
         {
             mode = rand.Next(53);
+            //mode = 52;
 
-#if DEBUG && false
-            mode = 52;
-#endif
             // Reset parameter values
             {
                 for (int i = 0; i < param.Length; i++)
