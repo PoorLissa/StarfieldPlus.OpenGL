@@ -12,6 +12,7 @@ using System.Collections.Generic;
     // mode 33: add grid-alignment option
     // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
     // mode. like 42, but rand length rectangles instead of squares
+    // Vertical lines move out of the screen's edge, but at some point start moving in rectangle, along the screen's edge
 */
 
 
@@ -58,10 +59,10 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(52);
+            mode = rand.Next(53);
 
-#if DEBUG //&& false
-            mode = 51;
+#if DEBUG && false
+            mode = 52;
 #endif
             // Reset parameter values
             {
@@ -580,12 +581,25 @@ namespace my
                     dimAlpha /= 33;
                     break;
 
-                // Lines come out of out of the screen, but at some point start moving in rectangle, along the screen's edge
+                // Vertical or horizontal lines partially rotating at the same angle
                 case 51:
-                    doSampleOnce = true;
+                    doCreateAtOnce = true;
                     N = 3333;
                     max = rand.Next(666) + 66;                                              // Max line length
                     param[0] = 1;                                                           // Line generation mode
+                    dt = 0.01f;
+                    break;
+
+                // At random points, draw the same particle several times with various random offset
+                case 52:
+                    N = 1111 + rand.Next(777);
+                    max = rand.Next(22) + 11;                                               // Max size
+                    param[0] = 0;
+                    param[1] = 5;                                                           // Number of particles per step
+                    param[2] = 66;                                                          // Particle scattering
+
+                    dimAlpha /= rand.Next(3) + 5;
+                    dt = 0.0025f;
                     break;
             }
 
@@ -1802,37 +1816,47 @@ namespace my
                     switch (param[0])
                     {
                         case 0:
-                            width = 3;
-                            height = rand.Next(max) + 111;
+                            width  = rand.Next(13) + 1;
+                            height = rand.Next(1234) + 111;
 
-                            x = rand.Next(gl_Width);
-                            y = myUtils.randomChance(rand, 1, 2) ? -(height + 1) : (gl_Height + 1);
+                            a = a / width * 2.5f;
+                            da = t;
 
-                            dx = 0;
-                            dy = -myUtils.signOf(y) * myUtils.randFloat(rand, 0.1f) * (rand.Next(11) + 1);
+                            x = rand.Next(gl_Width  + 200) - 100;
+                            y = rand.Next(gl_Height + 200) - 100;
 
-                            X = Y = rand.Next(gl_Height/3) + (y < 0 ? 0 : 2*gl_Height/3);
+                            x -= x % 25;
+                            y -= y % 25;
                             break;
 
                         case 1:
-                            a /= 2;
-                            width = rand.Next(17) + 1;
-                            //height = gl_Height + 11;
+                            width  = rand.Next(1234) + 123;
+                            height = rand.Next(13) + 1;
 
-                            height = 111;
+                            a = a / height * 2.5f;
+                            da = t;
 
-                            x = rand.Next(gl_Width);
+                            x = rand.Next(gl_Width  + 200) - 100;
+                            y = rand.Next(gl_Height + 200) - 100;
 
-                            x += (float)Math.Sin(x);
-
-                            y = rand.Next(gl_Height);
-                            //y = -5;
-
-                            y -= y % height;
+                            x -= x % 25;
+                            y -= y % 25;
                             break;
                     }
 
-                    cnt = rand.Next(333) + 12399;
+                    cnt = rand.Next(333) + 123;
+                    break;
+
+                case 52:
+                    doClearBuffer = false;
+                    a = myUtils.randFloat(rand, 0.1f) / 2;
+
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    width = height = rand.Next(max) + 11;
+
+                    cnt = rand.Next(33) + 11 + (int)t;
                     break;
             }
 
@@ -2804,80 +2828,23 @@ namespace my
 
                 case 51:
                     if (--cnt < 0)
-                        a -= myUtils.randFloat(rand);
+                        a -= myUtils.randFloat(rand)/5;
 
-                    if (param[0] == 1)
+                    switch (param[0])
                     {
-                        da += 0.025f * myUtils.randFloat(rand);
+                        case 0:
+                            da = t + myUtils.randomSign(rand) * t * 0.0001f * a;
+                            break;
 
-                        //da += 0.025f * x * x * x * 0.001f * 0.001f * 0.001f;
-
-                        da += 0.00001f * x * y / 100;
-                        
-                        cnt--;
-                        break;
+                        case 1:
+                            da = t + myUtils.randomSign(rand) * t * 0.0001f * a;
+                            break;
                     }
+                    break;
 
-                    if (y >= 111 || y <= gl_Height - 111)
-                    {
-                        da += 0.0023f * myUtils.randFloat(rand) * myUtils.randomSign(rand);
-                        height++;
-                    }
-
-                    if (false && dy > 0)
-                    {
-                        if (y >= 111)
-                        {
-                            float zzz = 0.01f * (gl_x0 - x);
-
-                            //dy += 0.5f * myUtils.randFloat(rand) * myUtils.randomSign(rand);
-
-                            if (x < gl_x0)
-                            {
-                                da += 0.001f * zzz;
-                                dx -= 0.010f * zzz;
-                            }
-                            else
-                            {
-                                da += 0.001f * zzz;
-                                dx -= 0.010f * zzz;
-                            }
-
-                            //dx = dy;
-                            //dy = 0;
-                            //myUtils.swap<int>(ref width, ref height);
-                        }
-                    }
-
-                    if (false && dy < 0)
-                    {
-                        if (y <= gl_Height - 111)
-                        {
-                            float zzz = 0.01f * (gl_x0 - x);
-
-                            //dy += 0.5f * myUtils.randFloat(rand) * myUtils.randomSign(rand);
-
-                            if (x < gl_x0)
-                            {
-                                da -= 0.001f * zzz;
-                                dx -= 0.010f * zzz;
-                            }
-                            else
-                            {
-                                da -= 0.001f * zzz;
-                                dx -= 0.010f * zzz;
-                            }
-
-                            //dx = dy;
-                            //dy = 0;
-                            //myUtils.swap<int>(ref width, ref height);
-                        }
-                    }
-
-                    x += dx;
-                    y += dy;
-
-                    //height++;
+                case 52:
+                    if (--cnt < 0)
+                        a = -1;
                     break;
             }
 
@@ -3355,7 +3322,21 @@ namespace my
                     tex.setOpacity(a);
                     tex.setAngle(Math.Sin(da));
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
-                    //tex.Draw(gl_Width/4 + (int)x/2, gl_Height/4 + (int)y/2, width/2, height/2, (int)x, (int)y, width, height);
+                    break;
+
+                case 52:
+                    if (cnt == 1)
+                    {
+                        tex.setOpacity(a);
+
+                        for (int i = 0; i < rand.Next(param[1]) + 3; i++)
+                        {
+                            int offsetx = myUtils.randomSign(rand) * rand.Next(param[2]);
+                            int offsety = myUtils.randomSign(rand) * rand.Next(param[2]);
+
+                            tex.Draw((int)x + offsetx, (int)y + offsety, width, height, (int)x, (int)y, width, height);
+                        }
+                    }
                     break;
             }
 
