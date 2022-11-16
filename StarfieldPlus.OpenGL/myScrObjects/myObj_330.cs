@@ -59,8 +59,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(53);
-            //mode = 52;
+            mode = rand.Next(54);
+            mode = 53;
 
             // Reset parameter values
             {
@@ -598,6 +598,14 @@ namespace my
 
                     dimAlpha /= rand.Next(3) + 5;
                     dt = 0.0025f;
+                    break;
+
+                // 
+                case 53:
+                    N = 4;
+                    max = rand.Next(66) + 11;                                               // Grid cell size
+                    param[0] = rand.Next(11) + 1;                                           // Grid interval
+                    dt = 0.1f;
                     break;
             }
 
@@ -1856,6 +1864,14 @@ namespace my
 
                     cnt = rand.Next(33) + 11 + (int)t;
                     break;
+
+                case 53:
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    dx = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(11) + 7);
+                    dy = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(11) + 7);
+                    break;
             }
 
             return;
@@ -2844,6 +2860,20 @@ namespace my
                     if (--cnt < 0)
                         a = -1;
                     break;
+
+                case 53:
+                    x += dx;
+                    y += dy;
+
+                    dx += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
+                    dy += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
+
+                    if (x < -max || x > gl_Width)
+                        dx *= -1;
+
+                    if (y < -max || y > gl_Height)
+                        dy *= -1;
+                    break;
             }
 
             if (a <= 0)
@@ -3333,6 +3363,59 @@ namespace my
                             int offsety = myUtils.randomSign(rand) * rand.Next(param[2]);
 
                             tex.Draw((int)x + offsetx, (int)y + offsety, width, height, (int)x, (int)y, width, height);
+                        }
+                    }
+                    break;
+
+                case 53:
+                    if (id != 4)
+                    {
+                        //myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
+                        //myPrimitive._Rectangle.Draw((int)x, (int)y, 7, 7, false);
+                    }
+                    else
+                    {
+                        int offset = (max + param[0]) / 2;
+                        double dist = 0;
+
+                        int d = 500 + 250;
+                        int step = max + param[0];
+
+                        void draw53(float x, float y)
+                        {
+                            int xmin = (int)x - d;
+                            xmin -= xmin % step;
+                            xmin = xmin < 0 ? 0 : xmin;
+
+                            int ymin = (int)y - d;
+                            ymin -= ymin % step;
+                            ymin = ymin < 0 ? 0 : ymin;
+
+                            for (int i = xmin; i < x + d; i += step)
+                            {
+                                for (int j = ymin; j < y + d; j += step)
+                                {
+                                    dist = (x - i + offset) * (x - i + offset) + (y - j + offset) * (y - j + offset);
+                                    //a = (float)((4500.0) / dist) + 0.05f;
+
+                                    dist = Math.Sqrt(dist);
+                                    a = (float)(30.0 / dist);
+
+                                    if (a > 0.1f)
+                                    {
+                                        tex.setOpacity(a);
+                                        tex.Draw(i, j, max, max, i, j, max, max);
+                                    }
+                                }
+                            }
+                        }
+
+                        for (int k = 0; k < 3; k++)
+                        {
+                            float x = (list[k] as myObj_330).x;
+                            float y = (list[k] as myObj_330).y;
+
+                            draw53(x, y);
                         }
                     }
                     break;
