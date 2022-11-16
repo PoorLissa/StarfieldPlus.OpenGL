@@ -59,8 +59,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(54);
-            mode = 53;
+            mode = rand.Next(56);
+            //mode = 55;
 
             // Reset parameter values
             {
@@ -600,12 +600,36 @@ namespace my
                     dt = 0.0025f;
                     break;
 
-                // 
+                // Moving grid-based spotlights
                 case 53:
-                    N = 4;
-                    max = rand.Next(66) + 11;                                               // Grid cell size
+                    N = 3 + rand.Next(3);
+                    max = rand.Next(29) + 15;                                               // Grid cell size
                     param[0] = rand.Next(11) + 1;                                           // Grid interval
+                    param[1] = N;                                                           // Number of big cells
+                    paramf[0] = myUtils.randFloat(rand) / 10;                               // Min cell opacity to display
+                    N += 1111;
                     dt = 0.1f;
+                    break;
+
+                // Randomly moving small particles; moving model taken from #53
+                case 54:
+                    N = rand.Next(3333) + 666;
+                    max = myUtils.randomChance(rand, 2, 3)                                  // Max particle size
+                        ? rand.Next(7) + 1
+                        : rand.Next(50) + 33;
+                    param[0] = rand.Next(2);                                                // Use delayed draw coordinates
+                    param[1] = rand.Next(2);                                                // Use sudden stops
+                    break;
+
+                // Random particles make sudden moves vertically or horizontally
+                case 55:
+                    N = rand.Next(1111) + 666;
+                    max = myUtils.randomChance(rand, 2, 3)                                  // Max particle size
+                        ? rand.Next(7) + 3
+                        : rand.Next(50) + 33;
+                    param[0] = rand.Next(3);                                                // Move mode
+                    param[1] = rand.Next(4);                                                // Stopping mode
+                    param[2] = rand.Next(400) + 101;                                        // Probability to start moving
                     break;
             }
 
@@ -1866,11 +1890,39 @@ namespace my
                     break;
 
                 case 53:
+                    a = myUtils.randFloat(rand, 0.2f) / 2;
+
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
 
+                    width = 475 + rand.Next(123);
+
                     dx = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(11) + 7);
                     dy = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(11) + 7);
+                    break;
+
+                case 54:
+                    a = myUtils.randFloat(rand, 0.1f);
+
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    width = height = rand.Next(max) + 1;
+
+                    dx = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(11) + 7);
+                    dy = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(11) + 7);
+                    break;
+
+                case 55:
+                    a = myUtils.randFloat(rand, 0.1f);
+
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    width = height = rand.Next(max) + 1;
+
+                    dx = dy = 0;
+                    cnt = 0;
                     break;
             }
 
@@ -2868,11 +2920,120 @@ namespace my
                     dx += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
                     dy += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
 
-                    if (x < -max || x > gl_Width)
-                        dx *= -1;
+                    if (x < 250)
+                        dx += myUtils.randFloat(rand);
 
-                    if (y < -max || y > gl_Height)
-                        dy *= -1;
+                    if (x > gl_Width - 250)
+                        dx -= myUtils.randFloat(rand);
+
+                    if (y < 250)
+                        dy += myUtils.randFloat(rand);
+
+                    if (y > gl_Height - 250)
+                        dy -= myUtils.randFloat(rand);
+                    break;
+
+                case 54:
+                    X = x;
+                    Y = y;
+
+                    x += dx;
+                    y += dy;
+
+                    dx += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
+                    dy += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
+
+                    if (x < 250)
+                        dx += myUtils.randFloat(rand);
+
+                    if (x > gl_Width - 250)
+                        dx -= myUtils.randFloat(rand);
+
+                    if (y < 250)
+                        dy += myUtils.randFloat(rand);
+
+                    if (y > gl_Height - 250)
+                        dy -= myUtils.randFloat(rand);
+
+                    // Make a sudden stop
+                    if (param[1] == 1 && rand.Next(123) == 0)
+                    {
+                        dx /= 111;
+                        dy /= 111;
+                    }
+                    break;
+
+                case 55:
+                    if (cnt > 0)
+                    {
+                        cnt--;
+                    }
+                    else
+                    {
+                        if (cnt == 0 && max <= 20)
+                        {
+                            width  -= 3;
+                            height -= 3;
+                            y += 1;
+                            x += 1;
+                            cnt = -1;
+                        }
+
+                        // Stop moving
+                        switch (param[1])
+                        {
+                            case 0:
+                            case 1:
+                                dx = dy = 0;
+                                break;
+
+                            case 2:
+                                dx /= 1.1f;
+                                dy /= 1.1f;
+                                break;
+
+                            case 3:
+                                dx /= 1.05f;
+                                dy /= 1.05f;
+                                break;
+                        }
+
+                        // Start moving
+                        if (rand.Next(param[2]) == 0)
+                        {
+                            cnt = rand.Next(123) + 13;
+                            dx = dy = 0;
+
+                            switch (param[0])
+                            {
+                                case 0:
+                                    dx = myUtils.randFloat(rand) * myUtils.randomSign(rand) * rand.Next(13);
+                                    break;
+
+                                case 1:
+                                    dy = myUtils.randFloat(rand) * myUtils.randomSign(rand) * rand.Next(13);
+                                    break;
+
+                                case 2:
+                                    if (rand.Next(2) == 0)
+                                        dx = myUtils.randFloat(rand) * myUtils.randomSign(rand) * rand.Next(13);
+                                    else
+                                        dy = myUtils.randFloat(rand) * myUtils.randomSign(rand) * rand.Next(13);
+                                    break;
+                            }
+
+                            if (max <= 20)
+                            {
+                                width  += 3;
+                                height += 3;
+                                y -= 1;
+                                x -= 1;
+                            }
+                        }
+                    }
+
+                    x += dx;
+                    y += dy;
                     break;
             }
 
@@ -3368,56 +3529,63 @@ namespace my
                     break;
 
                 case 53:
-                    if (id != 4)
+                    if (id <= param[1])
                     {
-                        //myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
-                        //myPrimitive._Rectangle.Draw((int)x, (int)y, 7, 7, false);
-                    }
-                    else
-                    {
-                        int offset = (max + param[0]) / 2;
+                        int d = width;
+                        int step = max + param[0];
+                        int offset = step / 2;
                         double dist = 0;
 
-                        int d = 500 + 250;
-                        int step = max + param[0];
+                        X = (int)(x - x % step);
+                        Y = (int)(y - y % step);
 
-                        void draw53(float x, float y)
+                        d -= d % step;
+
+                        int xmin = (int)X - d;
+                        xmin = xmin < 0 ? 0 : xmin;
+
+                        int ymin = (int)Y - d;
+                        ymin = ymin < 0 ? 0 : ymin;
+
+                        for (int i = xmin; i < X + d; i += step)
                         {
-                            int xmin = (int)x - d;
-                            xmin -= xmin % step;
-                            xmin = xmin < 0 ? 0 : xmin;
-
-                            int ymin = (int)y - d;
-                            ymin -= ymin % step;
-                            ymin = ymin < 0 ? 0 : ymin;
-
-                            for (int i = xmin; i < x + d; i += step)
+                            for (int j = ymin; j < Y + d; j += step)
                             {
-                                for (int j = ymin; j < y + d; j += step)
+                                dist = (x - i + offset) * (x - i + offset) + (y - j + offset) * (y - j + offset);
+                                //dist = Math.Sqrt(dist);
+
+                                a = (float)(max * d / dist / 4);
+
+                                //if (a > 0.1f)
+                                if (a > paramf[0])
                                 {
-                                    dist = (x - i + offset) * (x - i + offset) + (y - j + offset) * (y - j + offset);
-                                    //a = (float)((4500.0) / dist) + 0.05f;
-
-                                    dist = Math.Sqrt(dist);
-                                    a = (float)(30.0 / dist);
-
-                                    if (a > 0.1f)
-                                    {
-                                        tex.setOpacity(a);
-                                        tex.Draw(i, j, max, max, i, j, max, max);
-                                    }
+                                    tex.setOpacity(a);
+                                    tex.Draw(i, j, max, max, i, j, max, max);
                                 }
                             }
                         }
-
-                        for (int k = 0; k < 3; k++)
-                        {
-                            float x = (list[k] as myObj_330).x;
-                            float y = (list[k] as myObj_330).y;
-
-                            draw53(x, y);
-                        }
                     }
+                    else
+                    {
+                        tex.Draw((int)x, (int)y, 5, 5, (int)x, (int)y, 5, 5);
+                    }
+                    break;
+
+                case 54:
+                    switch (param[0])
+                    {
+                        case 0:
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                            break;
+
+                        case 1:
+                            tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
+                            break;
+                    }
+                    break;
+
+                case 55:
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
             }
 
