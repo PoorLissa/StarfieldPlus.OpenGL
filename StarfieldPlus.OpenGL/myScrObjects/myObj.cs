@@ -12,7 +12,12 @@ namespace my
 {
     public class myObject
     {
+        protected uint id { get; private set; } = 0;
+
+        // -------------------------------------------------------------------------
+
         public static int gl_Width, gl_Height, gl_x0, gl_y0, renderDelay = 25;
+        private static uint s_id = 0;
 
         // -------------------------------------------------------------------------
 
@@ -25,6 +30,8 @@ namespace my
 
         public myObject()
         {
+            id = s_id++;
+
             if (colorPicker == null)
             {
                 gl_x0 = gl_Width  / 2;
