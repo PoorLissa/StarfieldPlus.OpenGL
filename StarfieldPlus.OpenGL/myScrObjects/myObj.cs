@@ -17,7 +17,7 @@ namespace my
         // -------------------------------------------------------------------------
 
         public static int gl_Width, gl_Height, gl_x0, gl_y0, renderDelay = 25;
-        private static uint s_id = 0;
+        private static uint s_id = uint.MaxValue;
 
         // -------------------------------------------------------------------------
 
@@ -30,6 +30,7 @@ namespace my
 
         public myObject()
         {
+            // Assign unique id (the objects that are actually used have their ids starting at 0)
             id = s_id++;
 
             if (colorPicker == null)

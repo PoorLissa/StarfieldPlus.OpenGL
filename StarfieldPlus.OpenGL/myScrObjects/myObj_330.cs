@@ -60,7 +60,7 @@ namespace my
         private void initLocal()
         {
             mode = rand.Next(56);
-            //mode = 55;
+            //mode = 53;
 
             // Reset parameter values
             {
@@ -602,7 +602,7 @@ namespace my
 
                 // Moving grid-based spotlights
                 case 53:
-                    N = 3 + rand.Next(3);
+                    N = 2 + rand.Next(4);
                     max = rand.Next(29) + 15;                                               // Grid cell size
                     param[0] = rand.Next(11) + 1;                                           // Grid interval
                     param[1] = N;                                                           // Number of big cells
@@ -624,12 +624,21 @@ namespace my
                 // Random particles make sudden moves vertically or horizontally
                 case 55:
                     N = rand.Next(1111) + 666;
-                    max = myUtils.randomChance(rand, 2, 3)                                  // Max particle size
-                        ? rand.Next(7) + 3
-                        : rand.Next(50) + 33;
+                    switch (rand.Next(4))
+                    {
+                        case 0: max = rand.Next( 7) + 3; break;                             // Max particle size
+                        case 1: max = rand.Next( 9) + 3; break;
+                        case 2: max = rand.Next(13) + 3; break;
+                        case 3: max = rand.Next(50) + 3; break;
+                    }
                     param[0] = rand.Next(3);                                                // Move mode
                     param[1] = rand.Next(4);                                                // Stopping mode
                     param[2] = rand.Next(400) + 101;                                        // Probability to start moving
+                    param[3] = rand.Next(3);                                                // Sampling method
+                    break;
+
+                // ...
+                case 56:
                     break;
             }
 
@@ -1924,6 +1933,9 @@ namespace my
                     dx = dy = 0;
                     cnt = 0;
                     break;
+
+                case 56:
+                    break;
             }
 
             return;
@@ -2966,14 +2978,14 @@ namespace my
                 case 55:
                     if (cnt > 0)
                     {
-                        cnt--;
+                        cnt--;      // Keep moving
                     }
                     else
                     {
-                        if (cnt == 0 && max <= 20)
+                        if (cnt == 0)
                         {
-                            width  -= 3;
-                            height -= 3;
+                            width  -= 2;
+                            height -= 2;
                             y += 1;
                             x += 1;
                             cnt = -1;
@@ -2983,8 +2995,12 @@ namespace my
                         switch (param[1])
                         {
                             case 0:
-                            case 1:
                                 dx = dy = 0;
+                                break;
+
+                            case 1:
+                                dx /= 2;
+                                dy /= 2;
                                 break;
 
                             case 2:
@@ -3022,18 +3038,30 @@ namespace my
                                     break;
                             }
 
-                            if (max <= 20)
+                            // Tyr to keep all the particles within the screen range
                             {
-                                width  += 3;
-                                height += 3;
-                                y -= 1;
-                                x -= 1;
+                                if ((x < 100 && dx < 0) || (x > gl_Width - 100 && dx > 0))
+                                    if (myUtils.randomChance(rand, 1, 2))
+                                        dx = -dx;
+
+                                if ((y < 100 && dy < 0) || (y > gl_Height - 100 && dy > 0))
+                                    if (myUtils.randomChance(rand, 1, 2))
+                                        dy = -dy;
                             }
+
+                            // Moving particle is slightly bigger than a dormant one
+                            width  += 2;
+                            height += 2;
+                            y -= 1;
+                            x -= 1;
                         }
                     }
 
                     x += dx;
                     y += dy;
+                    break;
+
+                case 56:
                     break;
             }
 
@@ -3529,7 +3557,7 @@ namespace my
                     break;
 
                 case 53:
-                    if (id <= param[1])
+                    if (id < param[1])
                     {
                         int d = width;
                         int step = max + param[0];
@@ -3585,7 +3613,20 @@ namespace my
                     break;
 
                 case 55:
-                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    switch (param[3])
+                    {
+                        case 0:
+                            tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
+                            break;
+
+                        case 1:
+                        case 2:
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                            break;
+                    }
+                    break;
+
+                case 56:
                     break;
             }
 
@@ -3619,12 +3660,8 @@ namespace my
             }
 
             if (doCreateAtOnce)
-            {
                 for (int i = 0; i < N; i++)
-                {
                     list.Add(new myObj_330());
-                }
-            }
 
             while (!Glfw.WindowShouldClose(window))
             {
