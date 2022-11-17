@@ -60,7 +60,7 @@ namespace my
         private void initLocal()
         {
             mode = rand.Next(56);
-            //mode = 55;
+            //mode = 53;
 
             // Reset parameter values
             {
@@ -611,14 +611,20 @@ namespace my
                     dt = 0.1f;
                     break;
 
-                // Randomly moving small particles; moving model taken from #53
+                // Randomly moving small particles; move model taken from #53
                 case 54:
                     N = rand.Next(3333) + 666;
-                    max = myUtils.randomChance(rand, 2, 3)                                  // Max particle size
+                    max = myUtils.randomChance(rand, 4, 5)                                  // Max particle size
                         ? rand.Next(7) + 1
                         : rand.Next(50) + 33;
                     param[0] = rand.Next(2);                                                // Use delayed draw coordinates
                     param[1] = rand.Next(2);                                                // Use sudden stops
+
+                    switch (rand.Next(3))
+                    {
+                        case 1: dimAlpha /= 2; break;
+                        case 2: dimAlpha *= 2; break;
+                    }
                     break;
 
                 // Random particles make sudden moves vertically or horizontally
