@@ -683,9 +683,9 @@ namespace my
 
                 // ...
                 case 58:
-                    N = 3333;
+                    N = 333;
                     doClearBuffer = false;
-                    max = 20;                                                               // Cell size
+                    max = 33;                                                               // Cell size
                     param[0] = 5;                                                           // Grid interval
 
                     dimAlpha /= 5;
@@ -2035,11 +2035,9 @@ namespace my
                         var objP = new p58_myObj_330();
                         p = objP;
 
-                        var list = objP.getList();
-
-                        if (list == null)
+                        if (p58_myObj_330._list1 == null)
                         {
-                            objP.initList(gl_Width, gl_Height, max + param[0]);
+                            objP.initLists(gl_Width, gl_Height, max + param[0]);
                         }
                     }
 
@@ -2052,6 +2050,7 @@ namespace my
                     width = height = max;
                     cnt = rand.Next(33) + 11;
                     cnt = rand.Next(7) + 3;
+                    cnt = 2;
                     break;
             }
 
@@ -3851,7 +3850,6 @@ namespace my
                     if (cnt == 1)
                     {
                         var prm = (p as p58_myObj_330);
-                        var lst = prm.getList();
 
                         int step = max + param[0];
 
@@ -3869,28 +3867,32 @@ namespace my
 
                             int trySwap = 0;
 
-                            if (lst[i1].Item3 >= 0)
+                            if (p58_myObj_330._list3[i1] >= 0)
                             {
-                                avg1 = lst[i1].Item3;
+                                avg1 = p58_myObj_330._list3[i1];
                                 trySwap++;
                             }
                             else
                             {
-                                colorPicker.getColorAverage(lst[i1].Item1 * step, lst[i1].Item2 * step, width, height, ref r, ref g, ref b);
-                                avg1 = (r + g + b) / 3;
-                                prm.setFloat(i1, avg1);
+                                colorPicker.getColorAverage(p58_myObj_330._list1[i1] * step, p58_myObj_330._list2[i1] * step, width, height, ref r, ref g, ref b);
+                                //avg1 = (r + g + b) / 3;
+                                //avg1 = (0.2126f * r + 0.7152f * g + 0.0722f * b);
+                                avg1 = (0.299f * r + 0.587f * g + 0.114f * b);
+                                p58_myObj_330._list3[i1] = avg1;
                             }
 
-                            if (lst[i2].Item3 >= 0)
+                            if (p58_myObj_330._list3[i2] >= 0)
                             {
-                                avg2 = lst[i2].Item3;
+                                avg2 = p58_myObj_330._list3[i2];
                                 trySwap++;
                             }
                             else
                             {
-                                colorPicker.getColorAverage(lst[i2].Item1 * step, lst[i2].Item2 * step, width, height, ref r, ref g, ref b);
-                                avg2 = (r + g + b) / 3;
-                                prm.setFloat(i2, avg2);
+                                colorPicker.getColorAverage(p58_myObj_330._list1[i2] * step, p58_myObj_330._list2[i2] * step, width, height, ref r, ref g, ref b);
+                                //avg2 = (r + g + b) / 3;
+                                //avg2 = (0.2126f * r + 0.7152f * g + 0.0722f * b);
+                                avg2 = (0.299f * r + 0.587f * g + 0.114f * b);
+                                p58_myObj_330._list3[i2] = avg2;
                             }
 
                             if(trySwap == 2 && avg1 > avg2)
@@ -3898,42 +3900,13 @@ namespace my
                                 prm.swap(i1, i2);
                             }
 
-                            tex.Draw((int)x,        (int)y, width, height, (int)lst[i1].Item1 * step, (int)lst[i1].Item2 * step, width, height);
-                            tex.Draw((int)x + step, (int)y, width, height, (int)lst[i2].Item1 * step, (int)lst[i2].Item2 * step, width, height);
+                            tex.Draw((int)x,        (int)y, width, height, (int)p58_myObj_330._list1[i1] * step, (int)p58_myObj_330._list2[i1] * step, width, height);
+                            tex.Draw((int)x + step, (int)y, width, height, (int)p58_myObj_330._list1[i2] * step, (int)p58_myObj_330._list2[i2] * step, width, height);
                         }
                         else
                         {
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                         }
-
-
-/*
-                        for (int j = 0; j < h; j++)
-                        {
-                            for (int i = 0; i < w; i++)
-                            {
-                                int x1 = i * step;
-                                int y1 = j * step;
-
-                                int index = j * w + i;
-
-                                int x = lst[index].Item1 * step;
-                                int y = lst[index].Item2 * step;
-
-                                tex.Draw(x1, y1, width, height, x, y, width, height);
-                            }
-                        }
-
-                        {
-                            int i1 = rand.Next(lst.Count);
-                            int i2 = rand.Next(lst.Count);
-
-                            var t = new Tuple<int, int>(lst[i1].Item1, lst[i1].Item2);
-
-                            lst[i1] = lst[i2];
-                            lst[i2] = t;
-                        }
-*/
                     }
                     break;
             }
@@ -4245,43 +4218,44 @@ namespace my
 
     public class p58_myObj_330 : myObjectParams
     {
-        private static List<Tuple<int, int, float>> _list = null;
+        public static List<  int> _list1 = null;
+        public static List<  int> _list2 = null;
+        public static List<float> _list3 = null;
 
         public p58_myObj_330()
         {
         }
 
-        public List<Tuple<int, int, float>> getList()
+        public void initLists(int w, int h, int step)
         {
-            return _list;
-        }
-
-        public void initList(int w, int h, int step)
-        {
-            _list = new List<Tuple<int, int, float>>();
+            _list1 = new List<int>();
+            _list2 = new List<int>();
+            _list3 = new List<float>();
 
             for (int j = 0; j < h; j += step)
             {
                 for (int i = 0; i < w; i += step)
                 {
-                    _list.Add(new Tuple<int, int, float>(i/step, j/step, -1.0f));
+                    _list1.Add(i/step);
+                    _list2.Add(j/step);
+                    _list3.Add(-1.0f);
                 }
             }
         }
 
         public void swap(int i1, int i2)
         {
-            var t = new Tuple<int, int, float>(_list[i1].Item1, _list[i1].Item2, _list[i1].Item3);
+            int tmpi = _list1[i1];
+            _list1[i1] = _list1[i2];
+            _list1[i2] = tmpi;
 
-            _list[i1] = _list[i2];
-            _list[i2] = t;
-        }
+            tmpi = _list2[i1];
+            _list2[i1] = _list2[i2];
+            _list2[i2] = tmpi;
 
-        public void setFloat(int i, float val)
-        {
-            var t = new Tuple<int, int, float>(_list[i].Item1, _list[i].Item2, val);
-            _list[i] = t;
+            float tmpf = _list3[i1];
+            _list3[i1] = _list3[i2];
+            _list3[i2] = tmpf;
         }
     }
-
 };
