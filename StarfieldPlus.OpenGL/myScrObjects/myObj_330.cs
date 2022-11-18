@@ -9,7 +9,6 @@ using System.Collections.Generic;
     https://www.youtube.com/watch?v=sA4p3wuDLo8&ab_channel=FranklyGaming
 
     // todo:
-    // mode 33: add grid-alignment option
     // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
     // mode. like 42, but rand length rectangles instead of squares
     // Vertical lines move out of the screen's edge, but at some point start moving in rectangle, along the screen's edge
@@ -21,6 +20,8 @@ namespace my
 {
     public class myObj_330 : myObject
     {
+        private myObjectParams p = null;
+
         public float x, y, X, Y, dx, dy, a, da, r, g, b;
         public int width, height, cnt;
 
@@ -60,8 +61,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(58);
-            //mode = 3;
+            mode = rand.Next(59);
+            mode = 58;
 
             // Reset parameter values
             {
@@ -350,9 +351,10 @@ namespace my
                     param[0] = rand.Next(4);                                                // Const size / Random size / Lines / Wide lines
                     param[1] = rand.Next(2);                                                // Rotation mode
                     param[2] = rand.Next(2);                                                // y-axis original position (in-screen, out-of-screen)
-                    param[3] = rand.Next(11);                                               // y-axis acceleration
+                    param[3] = rand.Next(11);                                               // y-axis acceleration / grid interval
                     param[4] = rand.Next(2) == 0 ? 0 : rand.Next(11);                       // Decrease opacity mode
                     param[5] = rand.Next(2);                                                // Random size for each frame
+                    param[6] = rand.Next(3);                                                // Align to grid (if 0)
                     break;
 
                 // Horizontal lines that are shifted sideways
@@ -677,6 +679,16 @@ namespace my
                         oldRenderDelay = renderDelay;
                         renderDelay = rand.Next(11);
                     }
+                    break;
+
+                // ...
+                case 58:
+                    N = 3333;
+                    doClearBuffer = false;
+                    max = 20;                                                               // Cell size
+                    param[0] = 5;                                                           // Grid interval
+
+                    dimAlpha /= 5;
                     break;
             }
 
@@ -1290,6 +1302,12 @@ namespace my
                     a = (float)rand.NextDouble();
                     da = 0;
                     x = rand.Next(gl_Width);
+
+                    // Align to grid
+                    if (param[6] == 0)
+                    {
+                        x -= x % (max + param[3] + 1);
+                    }
 
                     if (param[2] == 0)
                     {
@@ -2007,6 +2025,34 @@ namespace my
                     x = X = y = Y = gl_Width + 1;
                     width = height = max;
                     break;
+
+                case 58:
+                    a = myUtils.randFloat(rand);
+                    a = 1;
+
+                    if (p == null)
+                    {
+                        var objP = new p58_myObj_330();
+                        p = objP;
+
+                        var list = objP.getList();
+
+                        if (list == null)
+                        {
+                            objP.initList(gl_Width, gl_Height, max + param[0]);
+                        }
+                    }
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    X = x = x - x % (max + param[0]);
+                    Y = y = y - y % (max + param[0]);
+
+                    width = height = max;
+                    cnt = rand.Next(33) + 11;
+                    cnt = rand.Next(7) + 3;
+                    break;
             }
 
             return;
@@ -2595,6 +2641,12 @@ namespace my
                     if (param[1] == 1)
                     {
                         X += dx;
+
+                        // Vary rotation speed somehow
+                        if (myUtils.randomChance(rand, 1, 23))
+                        {
+                            dx += myUtils.randomSign(rand) * myUtils.randFloat(rand);
+                        }
                     }
 
                     // y-axis acceleration
@@ -3191,6 +3243,11 @@ namespace my
                             X = Y = 0;
                         }
                     }
+                    break;
+
+                case 58:
+                    if (--cnt < 0)
+                        a = -1;
                     break;
             }
 
@@ -3789,6 +3846,96 @@ namespace my
                     myPrimitive._Rectangle.SetColor(0.66f, 0.66f, 0.66f, 0.37f);
                     myPrimitive._Rectangle.Draw((int)X + 2, (int)Y + 2, width - 4, height - 4, false);
                     break;
+
+                case 58:
+                    if (cnt == 1)
+                    {
+                        var prm = (p as p58_myObj_330);
+                        var lst = prm.getList();
+
+                        int step = max + param[0];
+
+                        int w = 1 + gl_Width  / step;
+                        int h = 1 + gl_Height / step;
+
+                        int index = (int)y / step * w + (int)x / step;
+
+                        if ((int)(x + step) < gl_Width)
+                        {
+                            int i1 = index + 0;
+                            int i2 = index + 1;
+
+                            float avg1, avg2;
+
+                            int trySwap = 0;
+
+                            if (lst[i1].Item3 >= 0)
+                            {
+                                avg1 = lst[i1].Item3;
+                                trySwap++;
+                            }
+                            else
+                            {
+                                colorPicker.getColorAverage(lst[i1].Item1 * step, lst[i1].Item2 * step, width, height, ref r, ref g, ref b);
+                                avg1 = (r + g + b) / 3;
+                                prm.setFloat(i1, avg1);
+                            }
+
+                            if (lst[i2].Item3 >= 0)
+                            {
+                                avg2 = lst[i2].Item3;
+                                trySwap++;
+                            }
+                            else
+                            {
+                                colorPicker.getColorAverage(lst[i2].Item1 * step, lst[i2].Item2 * step, width, height, ref r, ref g, ref b);
+                                avg2 = (r + g + b) / 3;
+                                prm.setFloat(i2, avg2);
+                            }
+
+                            if(trySwap == 2 && avg1 > avg2)
+                            {
+                                prm.swap(i1, i2);
+                            }
+
+                            tex.Draw((int)x,        (int)y, width, height, (int)lst[i1].Item1 * step, (int)lst[i1].Item2 * step, width, height);
+                            tex.Draw((int)x + step, (int)y, width, height, (int)lst[i2].Item1 * step, (int)lst[i2].Item2 * step, width, height);
+                        }
+                        else
+                        {
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                        }
+
+
+/*
+                        for (int j = 0; j < h; j++)
+                        {
+                            for (int i = 0; i < w; i++)
+                            {
+                                int x1 = i * step;
+                                int y1 = j * step;
+
+                                int index = j * w + i;
+
+                                int x = lst[index].Item1 * step;
+                                int y = lst[index].Item2 * step;
+
+                                tex.Draw(x1, y1, width, height, x, y, width, height);
+                            }
+                        }
+
+                        {
+                            int i1 = rand.Next(lst.Count);
+                            int i2 = rand.Next(lst.Count);
+
+                            var t = new Tuple<int, int>(lst[i1].Item1, lst[i1].Item2);
+
+                            lst[i1] = lst[i2];
+                            lst[i2] = t;
+                        }
+*/
+                    }
+                    break;
             }
 
             return;
@@ -4093,4 +4240,48 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
     }
+
+    // ==================== Helper Classes =========================================================================================
+
+    public class p58_myObj_330 : myObjectParams
+    {
+        private static List<Tuple<int, int, float>> _list = null;
+
+        public p58_myObj_330()
+        {
+        }
+
+        public List<Tuple<int, int, float>> getList()
+        {
+            return _list;
+        }
+
+        public void initList(int w, int h, int step)
+        {
+            _list = new List<Tuple<int, int, float>>();
+
+            for (int j = 0; j < h; j += step)
+            {
+                for (int i = 0; i < w; i += step)
+                {
+                    _list.Add(new Tuple<int, int, float>(i/step, j/step, -1.0f));
+                }
+            }
+        }
+
+        public void swap(int i1, int i2)
+        {
+            var t = new Tuple<int, int, float>(_list[i1].Item1, _list[i1].Item2, _list[i1].Item3);
+
+            _list[i1] = _list[i2];
+            _list[i2] = t;
+        }
+
+        public void setFloat(int i, float val)
+        {
+            var t = new Tuple<int, int, float>(_list[i].Item1, _list[i].Item2, val);
+            _list[i] = t;
+        }
+    }
+
 };

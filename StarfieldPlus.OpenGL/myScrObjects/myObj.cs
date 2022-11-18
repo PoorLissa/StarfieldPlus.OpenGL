@@ -10,6 +10,17 @@ using System.Windows.Forms;
 
 namespace my
 {
+    // Additional parameters could be stored in this object
+    public class myObjectParams
+    {
+        public myObjectParams()
+        {
+        }
+        ~myObjectParams()
+        {
+        }
+    }
+
     public class myObject
     {
         protected uint id { get; private set; } = 0;
