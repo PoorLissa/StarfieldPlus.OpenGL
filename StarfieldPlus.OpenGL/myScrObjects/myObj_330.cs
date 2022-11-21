@@ -685,10 +685,10 @@ namespace my
                 case 58:
                     N = 333;
                     doClearBuffer = false;
-                    max = 33;                                                               // Cell size
+                    max = 13;                                                               // Cell size
                     param[0] = 5;                                                           // Grid interval
 
-                    dimAlpha /= 5;
+                    dimAlpha /= 15;
                     break;
             }
 
@@ -3875,9 +3875,8 @@ namespace my
                             else
                             {
                                 colorPicker.getColorAverage(p58_myObj_330._list1[i1] * step, p58_myObj_330._list2[i1] * step, width, height, ref r, ref g, ref b);
-                                //avg1 = (r + g + b) / 3;
-                                //avg1 = (0.2126f * r + 0.7152f * g + 0.0722f * b);
-                                avg1 = (0.299f * r + 0.587f * g + 0.114f * b);
+
+                                avg1 = prm.getLuminosity(r, g, b, mode: 1);
                                 p58_myObj_330._list3[i1] = avg1;
                             }
 
@@ -3889,13 +3888,12 @@ namespace my
                             else
                             {
                                 colorPicker.getColorAverage(p58_myObj_330._list1[i2] * step, p58_myObj_330._list2[i2] * step, width, height, ref r, ref g, ref b);
-                                //avg2 = (r + g + b) / 3;
-                                //avg2 = (0.2126f * r + 0.7152f * g + 0.0722f * b);
-                                avg2 = (0.299f * r + 0.587f * g + 0.114f * b);
+
+                                avg2 = prm.getLuminosity(r, g, b, mode: 1);
                                 p58_myObj_330._list3[i2] = avg2;
                             }
 
-                            if(trySwap == 2 && avg1 > avg2)
+                            if (trySwap == 2 && avg1 > avg2)
                             {
                                 prm.swap(i1, i2);
                             }
@@ -4256,6 +4254,61 @@ namespace my
             float tmpf = _list3[i1];
             _list3[i1] = _list3[i2];
             _list3[i2] = tmpf;
+        }
+
+        public float getLuminosity(float r, float g, float b, int mode)
+        {
+            float res = 0.0f;
+
+            switch (mode)
+            {
+                case 0:
+                    res = (r + g + b) / 3.0f;
+                    break;
+
+                case 1:
+                    res = gray(r, g, b);
+                    break;
+            }
+
+            return res;
+        }
+
+        // GRAY VALUE ("brightness")
+        // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
+        private int gray(float r, float g, float b)
+        {
+            // sRGB luminance(Y) values
+            const float rY = 0.212655f;
+            const float gY = 0.715158f;
+            const float bY = 0.072187f;
+
+            // Inverse of sRGB "gamma" function. (approx 2.2)
+            float inv_gam_sRGB(float color)
+            {
+                if (color <= 0.04045)
+                    return color / 12.92f;
+                else
+                    return (float)Math.Pow(((color + 0.055) / (1.055)), 2.4);
+            }
+
+            // sRGB "gamma" function (approx 2.2)
+            int gam_sRGB(float v)
+            {
+                if (v <= 0.0031308f)
+                    v *= 12.92f;
+                else
+                    v = (float)(1.055 * Math.Pow(v, 1.0 / 2.4) - 0.055);
+
+                // This is correct in C++. Other languages may not require +0.5
+                return (int)(v * 255 + 0.5);
+            }
+
+            return gam_sRGB(
+                    rY * inv_gam_sRGB(r) +
+                    gY * inv_gam_sRGB(g) +
+                    bY * inv_gam_sRGB(b)
+            );
         }
     }
 };
