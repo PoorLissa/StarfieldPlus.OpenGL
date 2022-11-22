@@ -674,21 +674,22 @@ namespace my
                     param[4] = rand.Next(2);                                                // Random offset for every brick
                     dimAlpha /= (1.0f + 0.1f * (rand.Next(60)));
 
-                    if(myUtils.randomChance(rand, 1, 3))
+                    if (myUtils.randomChance(rand, 1, 3))
                     {
                         oldRenderDelay = renderDelay;
                         renderDelay = rand.Next(11);
                     }
                     break;
 
-                // ...
+                // Sorting the grid-based image by the cell luminance
                 case 58:
                     N = 333;
                     doClearBuffer = false;
-                    max = 13;                                                               // Cell size
+                    max = 21;                                                               // Cell size
                     param[0] = 5;                                                           // Grid interval
+                    param[1] = rand.Next(3);                                                // Cell comparison mode
 
-                    dimAlpha /= 15;
+                    dimAlpha /= 33;
                     break;
             }
 
@@ -3245,7 +3246,7 @@ namespace my
                     break;
 
                 case 58:
-                    if (--cnt < 0)
+                    if (--cnt == 0)
                         a = -1;
                     break;
             }
@@ -3858,6 +3859,70 @@ namespace my
 
                         int index = (int)y / step * w + (int)x / step;
 
+                        if (true)
+                        {
+                            int x2 = rand.Next(gl_Width);
+                            int y2 = rand.Next(gl_Height);
+
+                            x2 -= x2 % step;
+                            y2 -= y2 % step;
+
+                            int index2 = y2 / step * w + x2 / step;
+                            float avg1, avg2;
+                            int trySwap = 0;
+
+                            if (p58_myObj_330._list3[index] >= 0)
+                            {
+                                avg1 = p58_myObj_330._list3[index];
+                                trySwap++;
+                            }
+                            else
+                            {
+                                colorPicker.getColorAverage(p58_myObj_330._list1[index] * step, p58_myObj_330._list2[index] * step, width, height, ref r, ref g, ref b);
+
+                                avg1 = prm.getLuminosity(r, g, b, mode: param[1]);
+                                p58_myObj_330._list3[index] = avg1;
+                            }
+
+                            if (p58_myObj_330._list3[index2] >= 0)
+                            {
+                                avg2 = p58_myObj_330._list3[index2];
+                                trySwap++;
+                            }
+                            else
+                            {
+                                colorPicker.getColorAverage(p58_myObj_330._list1[index2] * step, p58_myObj_330._list2[index2] * step, width, height, ref r, ref g, ref b);
+
+                                avg2 = prm.getLuminosity(r, g, b, mode: param[1]);
+                                p58_myObj_330._list3[index2] = avg2;
+                            }
+
+                            if (trySwap == 2)
+                            {
+                                if ((avg1 > avg2 && y > y2) || (avg2 > avg1 && y < y2))
+                                {
+                                    prm.swap(index, index2);
+                                }
+
+/*
+                                if (avg1 > avg2 && (x > x2 || y > y2))
+                                {
+                                    prm.swap(index, index2);
+                                }
+
+                                if (avg2 > avg1 && (x < x2 || y < y2))
+                                {
+                                    prm.swap(index, index2);
+                                }
+*/
+                                tex.Draw((int)x, (int)y, width, height, (int)p58_myObj_330._list1[index] * step, (int)p58_myObj_330._list2[index] * step, width, height);
+                                tex.Draw(x2, y2, width, height, (int)p58_myObj_330._list1[index2] * step, (int)p58_myObj_330._list2[index2] * step, width, height);
+                            }
+
+                            break;
+                        }
+
+
                         if ((int)(x + step) < gl_Width)
                         {
                             int i1 = index + 0;
@@ -3876,7 +3941,7 @@ namespace my
                             {
                                 colorPicker.getColorAverage(p58_myObj_330._list1[i1] * step, p58_myObj_330._list2[i1] * step, width, height, ref r, ref g, ref b);
 
-                                avg1 = prm.getLuminosity(r, g, b, mode: 1);
+                                avg1 = prm.getLuminosity(r, g, b, mode: param[1]);
                                 p58_myObj_330._list3[i1] = avg1;
                             }
 
@@ -3889,7 +3954,7 @@ namespace my
                             {
                                 colorPicker.getColorAverage(p58_myObj_330._list1[i2] * step, p58_myObj_330._list2[i2] * step, width, height, ref r, ref g, ref b);
 
-                                avg2 = prm.getLuminosity(r, g, b, mode: 1);
+                                avg2 = prm.getLuminosity(r, g, b, mode: param[1]);
                                 p58_myObj_330._list3[i2] = avg2;
                             }
 
@@ -4267,6 +4332,10 @@ namespace my
                     break;
 
                 case 1:
+                    res = 10 * r + 5 * g + 1 * b;
+                    break;
+
+                case 2:
                     res = gray(r, g, b);
                     break;
             }
