@@ -681,7 +681,7 @@ namespace my
                     }
                     break;
 
-                // Sorting the grid-based image by the cell luminance
+                // Sorting the grid by the average cell color/luminance
                 case 58:
                     N = 333;
                     doClearBuffer = false;
@@ -2044,7 +2044,7 @@ namespace my
 
                             if (p58_myObj_330._list1 == null)
                             {
-                                prm.initLists2(gl_Width, gl_Height, step, offsetx, offsety);
+                                prm.initLists(gl_Width, gl_Height, step, offsetx, offsety);
                             }
                         }
 
@@ -4248,24 +4248,7 @@ namespace my
         {
         }
 
-        public void initLists(int w, int h, int step)
-        {
-            _list1 = new List<int>();
-            _list2 = new List<int>();
-            _list3 = new List<float>();
-
-            for (int j = 0; j < h; j += step)
-            {
-                for (int i = 0; i < w; i += step)
-                {
-                    _list1.Add(i/step);
-                    _list2.Add(j/step);
-                    _list3.Add(-1.0f);
-                }
-            }
-        }
-
-        public void initLists2(int w, int h, int step, int offsetx, int offsety)
+        public void initLists(int w, int h, int step, int offsetx, int offsety)
         {
             _list1 = new List<int>();
             _list2 = new List<int>();
