@@ -3891,7 +3891,7 @@ namespace my
                                 index2 = (int)Y / step * w + (int)X / step;
                                 break;
 
-                            // Comparing to a cell to the left
+                            // Comparing to a cell to the leftv (if not first in the row)
                             case 1:
                                 if (index1 % w != 0)
                                 {
