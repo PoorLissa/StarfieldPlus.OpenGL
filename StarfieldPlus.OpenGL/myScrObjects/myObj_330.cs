@@ -685,9 +685,10 @@ namespace my
                 case 58:
                     N = 333;
                     doClearBuffer = false;
-                    max = 21;                                                               // Cell size
-                    param[0] = 5;                                                           // Grid interval
+                    max = rand.Next(60) + 2;                                                // Cell size
+                    param[0] = rand.Next(11) + 1;                                           // Grid interval
                     param[1] = rand.Next(3);                                                // Cell comparison mode
+                    param[2] = rand.Next(2);                                                // Mode to determine the second cell to compare/swap with
 
                     dimAlpha /= 33;
                     break;
@@ -2028,30 +2029,38 @@ namespace my
                     break;
 
                 case 58:
-                    a = myUtils.randFloat(rand);
-                    a = 1;
-
-                    if (p == null)
                     {
-                        var objP = new p58_myObj_330();
-                        p = objP;
+                        a = 0.85f;
 
-                        if (p58_myObj_330._list1 == null)
+                        int step = max + param[0], offsetx, offsety;
+
+                        offsetx = (gl_Width  % step);
+                        offsety = (gl_Height % step);
+
+                        if (p == null)
                         {
-                            objP.initLists(gl_Width, gl_Height, max + param[0]);
+                            var prm = new p58_myObj_330();
+                            p = prm;
+
+                            if (p58_myObj_330._list1 == null)
+                            {
+                                prm.initLists2(gl_Width, gl_Height, step, offsetx, offsety);
+                            }
                         }
+
+                        x = rand.Next(gl_Width  - offsetx);
+                        y = rand.Next(gl_Height - offsety);
+                        X = rand.Next(gl_Width  - offsetx);
+                        Y = rand.Next(gl_Height - offsety);
+
+                        x = (x - x % step) + offsetx/2;
+                        y = (y - y % step) + offsety/2;
+                        X = (X - X % step) + offsetx/2;
+                        Y = (Y - Y % step) + offsety/2;
+
+                        width = height = max;
+                        cnt = rand.Next(7) + 1;
                     }
-
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
-
-                    X = x = x - x % (max + param[0]);
-                    Y = y = y - y % (max + param[0]);
-
-                    width = height = max;
-                    cnt = rand.Next(33) + 11;
-                    cnt = rand.Next(7) + 3;
-                    cnt = 2;
                     break;
             }
 
@@ -3340,7 +3349,7 @@ namespace my
                         switch (param[5])
                         {
                             case 0:
-                                tex.setAngle(Math.PI/2);
+                                tex.setAngle(Math.PI / 2);
                                 break;
 
                             case 1:
@@ -3348,11 +3357,11 @@ namespace my
                                 break;
 
                             case 2:
-                                tex.setAngle(3 * Math.PI/2);
+                                tex.setAngle(3 * Math.PI / 2);
                                 break;
 
                             case 3:
-                                tex.setAngle(rand.Next(4) * Math.PI/2);
+                                tex.setAngle(rand.Next(4) * Math.PI / 2);
                                 break;
                         }
 
@@ -3411,14 +3420,14 @@ namespace my
                         if (width > height)
                         {
                             int w1 = width / part;
-                            int w2 = (part-2) * width / part;
+                            int w2 = (part - 2) * width / part;
 
                             tex.Draw((int)x + w1, (int)y, w2, height, (int)x + rx + w1, (int)y + ry, w2, height);
                         }
                         else
                         {
                             int h1 = height / part;
-                            int h2 = (part-2) * height / part;
+                            int h2 = (part - 2) * height / part;
 
                             tex.Draw((int)x, (int)y + h1, width, h2, (int)x + rx, (int)y + ry + h1, width, h2);
                         }
@@ -3458,7 +3467,7 @@ namespace my
                             break;
 
                         case 1:
-                            tex.setOpacity(a/2);
+                            tex.setOpacity(a / 2);
 
                             tex.setAngle(0);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
@@ -3468,7 +3477,7 @@ namespace my
                             break;
 
                         case 2:
-                            tex.setOpacity(a/4);
+                            tex.setOpacity(a / 4);
 
                             tex.setAngle(0);
                             tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
@@ -3492,7 +3501,7 @@ namespace my
                         // Not to be used. Just for testing purposes
                         default:
                             tex.setOpacity(a);
-                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, 2*width, 2*height);
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, 2 * width, 2 * height);
                             break;
                     }
                     break;
@@ -3551,7 +3560,7 @@ namespace my
 
                 case 37:
                     tex.setOpacity(a);
-                    tex.Draw((int)x, (int)(y - height), width, 2*height, (int)x, (int)(y - height), width, 2*height);
+                    tex.Draw((int)x, (int)(y - height), width, 2 * height, (int)x, (int)(y - height), width, 2 * height);
                     break;
 
                 case 38:
@@ -3563,10 +3572,10 @@ namespace my
                     }
                     else
                     {
-                        int _x = (int)(x > X ?   X : x);
-                        int _w = (int)(x > X ? x-X : X-x);
-                        int _y = (int)(y > Y ?   Y : y);
-                        int _h = (int)(y > Y ? y-Y : Y-y);
+                        int _x = (int)(x > X ? X : x);
+                        int _w = (int)(x > X ? x - X : X - x);
+                        int _y = (int)(y > Y ? Y : y);
+                        int _h = (int)(y > Y ? y - Y : Y - y);
 
                         tex.Draw(_x, _y, _w, _h, _x, _y, _w, _h);
                     }
@@ -3638,7 +3647,7 @@ namespace my
                         // Slightly fill the cell with its border color
                         if (param[3] == 1)
                         {
-                            myPrimitive._Rectangle.SetColor(r, g, b, da/2);
+                            myPrimitive._Rectangle.SetColor(r, g, b, da / 2);
                             myPrimitive._Rectangle.Draw((int)X + 1, (int)Y + 1, max - 2, max - 2, true);
                         }
 
@@ -3848,127 +3857,77 @@ namespace my
                     break;
 
                 case 58:
+
+                    //tex.Draw((int)x, (int)y, width, height, prm.getX(index1), prm.getY(index1), width, height);
+
                     if (cnt == 1)
                     {
                         var prm = (p as p58_myObj_330);
 
-                        int step = max + param[0];
-
-                        int w = 1 + gl_Width  / step;
-                        int h = 1 + gl_Height / step;
-
-                        int index = (int)y / step * w + (int)x / step;
-
-                        if (true)
+                        void getAvg(int index, ref float val, ref int Cnt)
                         {
-                            int x2 = rand.Next(gl_Width);
-                            int y2 = rand.Next(gl_Height);
-
-                            x2 -= x2 % step;
-                            y2 -= y2 % step;
-
-                            int index2 = y2 / step * w + x2 / step;
-                            float avg1, avg2;
-                            int trySwap = 0;
-
-                            if (p58_myObj_330._list3[index] >= 0)
+                            if (prm.getF(index) >= 0)
                             {
-                                avg1 = p58_myObj_330._list3[index];
-                                trySwap++;
+                                val = prm.getF(index);
+                                Cnt++;
                             }
                             else
                             {
-                                colorPicker.getColorAverage(p58_myObj_330._list1[index] * step, p58_myObj_330._list2[index] * step, width, height, ref r, ref g, ref b);
-
-                                avg1 = prm.getLuminosity(r, g, b, mode: param[1]);
-                                p58_myObj_330._list3[index] = avg1;
+                                colorPicker.getColorAverage(prm.getX(index), prm.getY(index), width, height, ref r, ref g, ref b);
+                                val = prm.getLuminosity(r, g, b, mode: param[1]);
+                                prm.setF(index, val);
                             }
+                        }
 
-                            if (p58_myObj_330._list3[index2] >= 0)
-                            {
-                                avg2 = p58_myObj_330._list3[index2];
-                                trySwap++;
-                            }
-                            else
-                            {
-                                colorPicker.getColorAverage(p58_myObj_330._list1[index2] * step, p58_myObj_330._list2[index2] * step, width, height, ref r, ref g, ref b);
+                        float avg1 = 0, avg2 = 0;
+                        int trySwap = 0, step = max + param[0], index1 = 0, index2 = -1;
+                        int w = gl_Width / step;
+                        index1 = (int)y / step * w + (int)x / step;
 
-                                avg2 = prm.getLuminosity(r, g, b, mode: param[1]);
-                                p58_myObj_330._list3[index2] = avg2;
-                            }
+                        switch (param[2])
+                        {
+                            // Comparing to a random cell
+                            case 0:
+                                index2 = (int)Y / step * w + (int)X / step;
+                                break;
+
+                            // Comparing to a cell to the left
+                            case 1:
+                                if (index1 % w != 0)
+                                {
+                                    index2 = index1 - 1;
+                                    Y = y;
+                                    X = x - step;
+                                }
+                                break;
+                        }
+
+                        if (index2 >= 0)
+                        {
+                            getAvg(index1, ref avg1, ref trySwap);
+                            getAvg(index2, ref avg2, ref trySwap);
 
                             if (trySwap == 2)
                             {
-                                if ((avg1 > avg2 && y > y2) || (avg2 > avg1 && y < y2))
+                                switch (param[2])
                                 {
-                                    prm.swap(index, index2);
-                                }
+                                    case 0:
+                                        if (avg1 > avg2 == y > Y)
+                                            prm.swap(index1, index2);
+                                        break;
 
-/*
-                                if (avg1 > avg2 && (x > x2 || y > y2))
-                                {
-                                    prm.swap(index, index2);
+                                    case 1:
+                                        if (avg1 > avg2)
+                                            prm.swap(index1, index2);
+                                        break;
                                 }
-
-                                if (avg2 > avg1 && (x < x2 || y < y2))
-                                {
-                                    prm.swap(index, index2);
-                                }
-*/
-                                tex.Draw((int)x, (int)y, width, height, (int)p58_myObj_330._list1[index] * step, (int)p58_myObj_330._list2[index] * step, width, height);
-                                tex.Draw(x2, y2, width, height, (int)p58_myObj_330._list1[index2] * step, (int)p58_myObj_330._list2[index2] * step, width, height);
                             }
-
-                            break;
                         }
 
-
-                        if ((int)(x + step) < gl_Width)
+                        if (index2 >= 0)
                         {
-                            int i1 = index + 0;
-                            int i2 = index + 1;
-
-                            float avg1, avg2;
-
-                            int trySwap = 0;
-
-                            if (p58_myObj_330._list3[i1] >= 0)
-                            {
-                                avg1 = p58_myObj_330._list3[i1];
-                                trySwap++;
-                            }
-                            else
-                            {
-                                colorPicker.getColorAverage(p58_myObj_330._list1[i1] * step, p58_myObj_330._list2[i1] * step, width, height, ref r, ref g, ref b);
-
-                                avg1 = prm.getLuminosity(r, g, b, mode: param[1]);
-                                p58_myObj_330._list3[i1] = avg1;
-                            }
-
-                            if (p58_myObj_330._list3[i2] >= 0)
-                            {
-                                avg2 = p58_myObj_330._list3[i2];
-                                trySwap++;
-                            }
-                            else
-                            {
-                                colorPicker.getColorAverage(p58_myObj_330._list1[i2] * step, p58_myObj_330._list2[i2] * step, width, height, ref r, ref g, ref b);
-
-                                avg2 = prm.getLuminosity(r, g, b, mode: param[1]);
-                                p58_myObj_330._list3[i2] = avg2;
-                            }
-
-                            if (trySwap == 2 && avg1 > avg2)
-                            {
-                                prm.swap(i1, i2);
-                            }
-
-                            tex.Draw((int)x,        (int)y, width, height, (int)p58_myObj_330._list1[i1] * step, (int)p58_myObj_330._list2[i1] * step, width, height);
-                            tex.Draw((int)x + step, (int)y, width, height, (int)p58_myObj_330._list1[i2] * step, (int)p58_myObj_330._list2[i2] * step, width, height);
-                        }
-                        else
-                        {
-                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                            tex.Draw((int)x, (int)y, width, height, prm.getX(index1), prm.getY(index1), width, height);
+                            tex.Draw((int)X, (int)Y, width, height, prm.getX(index2), prm.getY(index2), width, height);
                         }
                     }
                     break;
@@ -4304,6 +4263,43 @@ namespace my
                     _list3.Add(-1.0f);
                 }
             }
+        }
+
+        public void initLists2(int w, int h, int step, int offsetx, int offsety)
+        {
+            _list1 = new List<int>();
+            _list2 = new List<int>();
+            _list3 = new List<float>();
+
+            for (int j = 0; j < h / step; j++)
+            {
+                for (int i = 0; i < w / step; i++)
+                {
+                    _list1.Add(i * step + offsetx / 2);
+                    _list2.Add(j * step + offsety / 2);
+                    _list3.Add(-1.0f);
+                }
+            }
+        }
+
+        public int getX(int index)
+        {
+            return _list1[index];
+        }
+
+        public int getY(int index)
+        {
+            return _list2[index];
+        }
+
+        public float getF(int index)
+        {
+            return _list3[index];
+        }
+
+        public void setF(int index, float value)
+        {
+            _list3[index] = value;
         }
 
         public void swap(int i1, int i2)

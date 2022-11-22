@@ -236,7 +236,7 @@ namespace my
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show($"{this.ToString()} says:\n{ex.Message}", "Process Exception}", MessageBoxButtons.OK);
+                MessageBox.Show($"{this.ToString()} says:\n{ex.Message}\n\n{ex.StackTrace}", "Process Exception", MessageBoxButtons.OK);
             }
 
             return;
