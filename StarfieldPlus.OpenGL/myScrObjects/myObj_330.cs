@@ -683,12 +683,21 @@ namespace my
 
                 // Sorting the grid by the average cell color/luminance
                 case 58:
-                    N = 333;
+                    N = 1;
                     doClearBuffer = false;
                     max = rand.Next(60) + 2;                                                // Cell size
                     param[0] = rand.Next(11) + 1;                                           // Grid interval
                     param[1] = rand.Next(3);                                                // Cell comparison mode
-                    param[2] = rand.Next(2);                                                // Mode to determine the second cell to compare/swap with
+                    param[2] = rand.Next(3);                                                // Mode to determine the second cell to compare/swap with
+                    paramf[0] = myUtils.randFloat(rand);                                    // Opacity to draw swapped cells
+
+                    if (max < 20)
+                        N = 3333;
+                    else
+                        if (max < 40)
+                            N = 333;
+                        else
+                            N = 33;
 
                     dimAlpha /= 33;
                     break;
@@ -3886,18 +3895,28 @@ namespace my
 
                         switch (param[2])
                         {
-                            // Comparing to a random cell
+                            // Comparing to a random cell (which was pre-generated earlier)
                             case 0:
                                 index2 = (int)Y / step * w + (int)X / step;
                                 break;
 
-                            // Comparing to a cell to the leftv (if not first in the row)
+                            // Comparing to a cell to the left (if not first in the row)
                             case 1:
                                 if (index1 % w != 0)
                                 {
                                     index2 = index1 - 1;
                                     Y = y;
                                     X = x - step;
+                                }
+                                break;
+
+                            // Comparing to a cell just above
+                            case 2:
+                                if (index1 >= w)
+                                {
+                                    index2 = index1 - w;
+                                    X = x;
+                                    Y = y - step;
                                 }
                                 break;
                         }
@@ -3913,13 +3932,24 @@ namespace my
                                 {
                                     case 0:
                                         if (avg1 > avg2 == y > Y)
-                                            prm.swap(index1, index2);
+                                            trySwap++;
                                         break;
 
                                     case 1:
                                         if (avg1 > avg2)
-                                            prm.swap(index1, index2);
+                                            trySwap++;
                                         break;
+
+                                    case 2:
+                                        if (avg1 > avg2)
+                                            trySwap++;
+                                        break;
+                                }
+
+                                if (trySwap == 3)
+                                {
+                                    tex.setOpacity(paramf[0] > 0.25f ? paramf[0] : myUtils.randFloat(rand));
+                                    prm.swap(index1, index2);
                                 }
                             }
                         }
