@@ -61,8 +61,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(60);
-            //mode = 17;
+            mode = rand.Next(61);
+            //mode = 60;
 
             // Reset parameter values
             {
@@ -512,6 +512,7 @@ namespace my
                     N = 3333;
                     max = 111;                                                              // Max length
                     param[0] = 13;                                                          // Speed factor
+                    param[1] = rand.Next(2);                                                // Draw additional low-opacity line
 
                     dimAlpha /= (rand.Next(5) + 1);
 
@@ -704,7 +705,7 @@ namespace my
                     dimAlpha /= 33;
                     break;
 
-                // ...
+                // Cells with black holes and low-opacity color filling around them
                 case 59:
                     N = 333;
                     doClearBuffer = false;
@@ -714,6 +715,12 @@ namespace my
                     param[2] = rand.Next(5);                                                // Align to grid
                     param[3] = rand.Next(max/2) + 1;                                        // Size of blackened area
                     dimAlpha /= rand.Next(15) + 1;
+                    break;
+
+                // Rectangles specified by 2 moving points bouncing off the walls
+                case 60:
+                    N = rand.Next(123) + 3;
+                    dimAlpha /= 1;
                     break;
             }
 
@@ -2110,6 +2117,18 @@ namespace my
                         cnt = rand.Next(17) + 1;
                     }
                     break;
+
+                case 60:
+                    a = myUtils.randFloat(rand) / (doClearBuffer ? 5 : 10);
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    X = rand.Next(gl_Width);
+                    Y = rand.Next(gl_Height);
+
+                    dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
+                    dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
+                    break;
             }
 
             return;
@@ -3311,6 +3330,39 @@ namespace my
                     if (--cnt == 0)
                         a = -1;
                     break;
+
+                case 60:
+
+                    x += dx;
+                    y += dy;
+                    X -= dx;
+                    Y -= dy;
+
+                    if (x < 0 || x > gl_Width || X < 0 || X > gl_Width)
+                        dx *= -1;
+
+                    if (y < 0 || y > gl_Height || Y < 0 || Y > gl_Height)
+                        dy *= -1;
+
+                    if (x > X)
+                    {
+                        int tmp = (int)x;
+                        x = X;
+                        X = tmp;
+                        dx *= -1;
+                    }
+
+                    if (y > Y)
+                    {
+                        int tmp = (int)y;
+                        y = Y;
+                        Y = tmp;
+                        dy *= -1;
+                    }
+
+                    width = (int)Math.Abs(x - X);
+                    height = (int)Math.Abs(y - Y);
+                    break;
             }
 
             if (a <= 0)
@@ -3689,10 +3741,22 @@ namespace my
                     if (doSampleOnce)
                     {
                         tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
+
+                        if (param[1] == 1)
+                        {
+                            tex.setOpacity(a/3);
+                            tex.Draw((int)x - 2, (int)y - 2, width + 4, height + 4, (int)X - 2, (int)Y - 2, width + 4, height + 4);
+                        }
                     }
                     else
                     {
                         tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+
+                        if (param[1] == 1)
+                        {
+                            tex.setOpacity(a/3);
+                            tex.Draw((int)x - 2, (int)y - 2, width + 4, height + 4, (int)x - 2, (int)y - 2, width + 4, height + 4);
+                        }
                     }
                     break;
 
@@ -4052,6 +4116,10 @@ namespace my
                         myPrimitive._Rectangle.SetColor(0, 0, 0, myUtils.randFloat(rand));
                         myPrimitive._Rectangle.Draw((int)X + param[3], (int)Y + param[3], width - 2*param[3], height - 2*param[3], true);
                     }
+                    break;
+
+                case 60:
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
             }
 
