@@ -62,7 +62,7 @@ namespace my
         private void initLocal()
         {
             mode = rand.Next(60);
-            //mode = 59;
+            //mode = 17;
 
             // Reset parameter values
             {
@@ -196,6 +196,7 @@ namespace my
                     max = rand.Next(666) + 125;
                     param[0] = rand.Next(7);
                     param[1] = rand.Next(33) + 12;
+                    param[2] = rand.Next(2);                                                // Draw additional low-opacity line just a bit larger than the original one
                     break;
 
                 // Squares moving around, changing direction of movement occasionally
@@ -3372,6 +3373,16 @@ namespace my
                 case 15:
                 case 16:
                 case 17:
+
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+
+                    if (param[2] == 1)
+                    {
+                        tex.setOpacity(a/3);
+                        tex.Draw((int)x - 2, (int)y - 2, width + 4, height + 4, (int)x - 2, (int)y - 2, width + 4, height + 4);
+                    }
+                    break;
+
                 case 18:
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
