@@ -61,8 +61,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(59);
-            mode = 58;
+            mode = rand.Next(60);
+            //mode = 59;
 
             // Reset parameter values
             {
@@ -689,6 +689,7 @@ namespace my
                     param[0] = rand.Next(11) + 1;                                           // Grid interval
                     param[1] = rand.Next(3);                                                // Cell comparison mode
                     param[2] = rand.Next(3);                                                // Mode to determine the second cell to compare/swap with
+                    param[3] = rand.Next(2);                                                // Blending mode for swapped cells
                     paramf[0] = myUtils.randFloat(rand);                                    // Opacity to draw swapped cells
 
                     if (max < 20)
@@ -700,6 +701,18 @@ namespace my
                             N = 33;
 
                     dimAlpha /= 33;
+                    break;
+
+                // ...
+                case 59:
+                    N = 333;
+                    doClearBuffer = false;
+                    max = rand.Next(60) + 5;                                                // Cell size
+                    param[0] = rand.Next(6) + 5;                                            // Grid interval
+                    param[1] = rand.Next(4);                                                // Color fill mode
+                    param[2] = rand.Next(5);                                                // Align to grid
+                    param[3] = rand.Next(max/2) + 1;                                        // Size of blackened area
+                    dimAlpha /= rand.Next(15) + 1;
                     break;
             }
 
@@ -2071,6 +2084,31 @@ namespace my
                         cnt = rand.Next(7) + 1;
                     }
                     break;
+
+                case 59:
+                    {
+                        a = 0.85f;
+
+                        int step = max + param[0];
+                        int offsetx = (gl_Width % step);
+                        int offsety = (gl_Height % step);
+
+                        x = rand.Next(gl_Width - offsetx);
+                        y = rand.Next(gl_Height - offsety);
+
+                        X = (x - x % step) + offsetx/2;
+                        Y = (y - y % step) + offsety/2;
+
+                        if (param[2] == 0)
+                        {
+                            X = x;
+                            Y = y;
+                        }
+
+                        width = height = max;
+                        cnt = rand.Next(17) + 1;
+                    }
+                    break;
             }
 
             return;
@@ -3267,6 +3305,11 @@ namespace my
                     if (--cnt == 0)
                         a = -1;
                     break;
+
+                case 59:
+                    if (--cnt == 0)
+                        a = -1;
+                    break;
             }
 
             if (a <= 0)
@@ -3936,10 +3979,6 @@ namespace my
                                         break;
 
                                     case 1:
-                                        if (avg1 > avg2)
-                                            trySwap++;
-                                        break;
-
                                     case 2:
                                         if (avg1 > avg2)
                                             trySwap++;
@@ -3948,7 +3987,11 @@ namespace my
 
                                 if (trySwap == 3)
                                 {
-                                    tex.setOpacity(paramf[0] > 0.25f ? paramf[0] : myUtils.randFloat(rand));
+                                    if (param[3] == 1)
+                                    {
+                                        tex.setOpacity(paramf[0] > 0.25f ? paramf[0] : myUtils.randFloat(rand));
+                                    }
+
                                     prm.swap(index1, index2);
                                 }
                             }
@@ -3959,6 +4002,44 @@ namespace my
                             tex.Draw((int)x, (int)y, width, height, prm.getX(index1), prm.getY(index1), width, height);
                             tex.Draw((int)X, (int)Y, width, height, prm.getX(index2), prm.getY(index2), width, height);
                         }
+                    }
+                    break;
+
+                case 59:
+                    if (cnt == 1)
+                    {
+                        colorPicker.getColor(x, y, ref r, ref g, ref b);
+
+                        // Draw our texture
+                        tex.Draw((int)X, (int)Y, width, height, (int)X, (int)Y, width, height);
+
+                        // Draw low-opacity color-filled rectangle
+                        {
+                            myPrimitive._Rectangle.SetColor(r, g, b, 0.1f);
+
+                            switch (param[1])
+                            {
+                                case 0:
+                                    myPrimitive._Rectangle.Draw((int)X - 2, (int)Y - 2, width + 4, height + 4, true);
+                                    break;
+
+                                case 1:
+                                    myPrimitive._Rectangle.Draw((int)X - max, (int)Y - max, width + 2 * max, height + 2 * max, true);
+                                    break;
+
+                                case 2:
+                                    myPrimitive._Rectangle.Draw((int)X - rand.Next(max), (int)Y - rand.Next(max), width + rand.Next(2 * max), height + rand.Next(2 * max), true);
+                                    break;
+
+                                case 3:
+                                    myPrimitive._Rectangle.Draw((int)x - max, (int)y - max, width + max + max, height + max + max, true);
+                                    break;
+                            }
+                        }
+
+                        // Remove the center of the texture
+                        myPrimitive._Rectangle.SetColor(0, 0, 0, myUtils.randFloat(rand));
+                        myPrimitive._Rectangle.Draw((int)X + param[3], (int)Y + param[3], width - 2*param[3], height - 2*param[3], true);
                     }
                     break;
             }
@@ -4388,5 +4469,5 @@ namespace my
                     bY * inv_gam_sRGB(b)
             );
         }
-    }
+    };
 };
