@@ -13,6 +13,8 @@ using System.Collections.Generic;
     // mode. like 42, but rand length rectangles instead of squares
     // Vertical lines move out of the screen's edge, but at some point start moving in rectangle, along the screen's edge
     // grid based. 2 neighbour cells are compared by avg color and are swapped. the larger goes left, the lesser goes right
+    // particles oscillate on the x-axis to and fro, like as a center-gravity based. On the y-axis, they move as sin or cos (if the rist one is also a sin-cos, the different argument than the first one has)
+    // Gravitational pull towards the point which is off screen
 */
 
 
@@ -62,7 +64,7 @@ namespace my
         private void initLocal()
         {
             mode = rand.Next(61);
-            //mode = 60;
+            //mode = 4;
 
             // Reset parameter values
             {
@@ -109,6 +111,8 @@ namespace my
                     N = 999 + rand.Next(666);
                     param[0] = rand.Next(2);                                                // Squares (0) vs Lines (1)
                     param[1] = rand.Next(2);                                                // Resample texture periodically (if doSampleOnce)
+                    param[2] = rand.Next(2);                                                // Use angle
+                    dt = 0.01f;
                     break;
 
                 // 5; Pieces appear on the central line and then move up or down
@@ -787,7 +791,7 @@ namespace my
                     height = (param[0] == 0) ? width : 1;
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
-                    dx = dy = 0;
+                    dx = dy = da = 0;
 
                     if (rand.Next(2) == 0)
                         dx = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
@@ -2194,6 +2198,8 @@ namespace my
                     x += dx;
                     y += dy;
 
+                    da = (float)Math.Sin(t * dx + dy);
+
                     if (x < 0 || x > gl_Width)
                         dx *= -1;
 
@@ -3389,6 +3395,18 @@ namespace my
                 case 02:
                 case 03:
                 case 04:
+                    if (param[2] == 1)
+                    {
+                        tex.setAngle(da);
+                    }
+
+                    if (param[0] == 0)
+                    {
+                        tex.setOpacity(a/2);
+                        tex.Draw((int)x - width - 1, (int)y - height - 1, 2 * width + 2, 2 * height + 2, (int)x - width - 1, (int)y - height - 1, 2 * width + 2, 2 * height + 2);
+                        tex.setOpacity(a);
+                    }
+
                     if (doSampleOnce)
                     {
                         tex.Draw((int)x - width, (int)y - height, 2 * width, 2 * height, (int)X - width, (int)X - height, 2 * width, 2 * height);
