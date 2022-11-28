@@ -63,8 +63,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(61);
-            //mode = 4;
+            mode = rand.Next(62);
+            mode = 61;
 
             // Reset parameter values
             {
@@ -725,6 +725,17 @@ namespace my
                 case 60:
                     N = rand.Next(123) + 3;
                     dimAlpha /= 1;
+                    break;
+
+                // ...
+                case 61:
+                    N = 999;
+                    doClearBuffer = true;
+                    max = rand.Next(11) + 5;                                                // Cells size
+
+                    //dimAlpha /= rand.Next(15) + 1;
+                    dimAlpha /= 13;
+                    dt = 0.01f;
                     break;
             }
 
@@ -2133,6 +2144,20 @@ namespace my
                     dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
                     dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
                     break;
+
+                case 61:
+                    a = 0.85f;
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    width = height = max;
+
+                    dx = myUtils.signOf(gl_x0 - x) * myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
+
+                    y = 0;
+                    dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
+                    break;
             }
 
             return;
@@ -3369,6 +3394,26 @@ namespace my
                     width = (int)Math.Abs(x - X);
                     height = (int)Math.Abs(y - Y);
                     break;
+
+                case 61:
+
+                    x += dx;
+                    y += dy;
+                    //y += (float)Math.Sin(dt * 10) * 10;
+
+                    //if ((x > gl_x0 && dx > 0) || (x < gl_x0 && dx < 0))
+                    if (x > gl_x0)
+                    {
+                        dx -= 0.25f;
+                    }
+                    else
+                    {
+                        dx += 0.25f;
+                    }
+
+                    if (y > gl_Height)
+                        a = -1;
+                    break;
             }
 
             if (a <= 0)
@@ -4137,6 +4182,10 @@ namespace my
                     break;
 
                 case 60:
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
+
+                case 61:
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
             }
