@@ -12,8 +12,6 @@ using System.Collections.Generic;
     // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
     // mode. like 42, but rand length rectangles instead of squares
     // Vertical lines move out of the screen's edge, but at some point start moving in rectangle, along the screen's edge
-    // grid based. 2 neighbour cells are compared by avg color and are swapped. the larger goes left, the lesser goes right
-    // particles oscillate on the x-axis to and fro, like as a center-gravity based. On the y-axis, they move as sin or cos (if the rist one is also a sin-cos, the different argument than the first one has)
     // Gravitational pull towards the point which is off screen
 */
 
@@ -63,8 +61,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(62);
-            mode = 61;
+            mode = rand.Next(63);
+            //mode = 62;
 
             // Reset parameter values
             {
@@ -727,14 +725,32 @@ namespace my
                     dimAlpha /= 1;
                     break;
 
-                // ...
+                // Gravity-alike oscillation along x-axis + additional moving along y-axis
                 case 61:
-                    N = 999;
-                    doClearBuffer = true;
-                    max = rand.Next(11) + 5;                                                // Cells size
+                    N = 999 + rand.Next(333);
+                    doClearBuffer = false;
+                    max = rand.Next(11) + 7;                                                // Cells size
+                    param[0] = rand.Next(2);                                                // Start Y pos is zero
+                    param[1] = rand.Next(7);                                                // dy behaviour
+                    param[2] = rand.Next(10) + 1;                                           // Const 1
+                    param[3] = rand.Next(4);                                                // Draw mode
+                    param[4] = rand.Next(5);                                                // dx or dy is zero
+                    param[5] = rand.Next(2);                                                // Use size as a mass for dx calculation
 
-                    //dimAlpha /= rand.Next(15) + 1;
-                    dimAlpha /= 13;
+                    paramf[0] = 0.1f + 0.05f * rand.Next(5);                                // dx change speed
+
+                    dimAlpha *= rand.Next(3) + 1;
+                    dt = 0.01f;
+                    break;
+
+                // Square particles within rotating square particles, moving around and repelling from the borders of the screen
+                case 62:
+                    N = 999;
+                    max = rand.Next(33) + 20;
+                    param[0] = rand.Next(23) + 3;                                           // dSize for the larger square(s)
+                    param[1] = rand.Next(333) + 200;                                        // Border repel distance
+                    param[2] = rand.Next(2);                                                // Border repel mode
+                    paramf[0] = myUtils.randFloat(rand);                                    // Border repel force
                     dt = 0.01f;
                     break;
             }
@@ -2146,17 +2162,39 @@ namespace my
                     break;
 
                 case 61:
-                    a = 0.85f;
+                    a = myUtils.randFloat(rand);
+
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    width = height = rand.Next(max) + 1;
+
+                    dx = myUtils.signOf(gl_x0 - x) * myUtils.randFloat(rand, 0.05f) * (rand.Next(25) + 1);
+                    dy = myUtils.randFloat(rand, 0.05f) * (rand.Next(25) + 1);
+
+                    switch (param[4])
+                    {
+                        case 0: dx = 0; break;
+                        case 1: dy = 0; break;
+                    }
+
+                    if (param[0] == 0)
+                        y = Y = 0;
+                    break;
+
+                case 62:
+                    a = myUtils.randFloat(rand);
 
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
 
-                    width = height = max;
+                    width = height = rand.Next(max) + 5;
 
-                    dx = myUtils.signOf(gl_x0 - x) * myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
+                    dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.05f) * (rand.Next(11) + 1);
+                    dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.05f) * (rand.Next(11) + 1);
 
-                    y = 0;
-                    dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
+                    X = x;
+                    Y = myUtils.randomSign(rand) * (0.05f + myUtils.randFloat(rand)/15);
                     break;
             }
 
@@ -3391,28 +3429,69 @@ namespace my
                         dy *= -1;
                     }
 
-                    width = (int)Math.Abs(x - X);
+                    width  = (int)Math.Abs(x - X);
                     height = (int)Math.Abs(y - Y);
                     break;
 
                 case 61:
+                    x += dx;
+                    dx += ((x > gl_x0) ? -paramf[0] : paramf[0]) * (param[5] == 0 ? 1 : width);
 
+                    switch (param[1])
+                    {
+                        case 0:
+                            if (param[0] == 0)
+                                y += 3.0f;
+                            else
+                                y += 0.01f;
+                            break;
+
+                        case 1:
+                            y += dy;
+                            break;
+
+                        case 2:
+                            y += dy;
+                            dy += dy * 0.001f;
+                            break;
+
+                        case 3:
+                            y += (float)Math.Abs(gl_x0 - x) / 100;
+                            break;
+
+                        case 4:
+                            y += param[2] * 1000 / (float)Math.Abs(gl_x0 - x);
+                            break;
+
+                        case 5:
+                            y += (float)Math.Sin(t * 10 * x) * 3;
+                            break;
+
+                        case 6:
+                            y += dy;
+                            y += (float)Math.Sin(t * 10) * 3;
+                            break;
+                    }
+
+                    if (y < 0 || y > gl_Height)
+                        a = -1;
+                    break;
+
+                case 62:
                     x += dx;
                     y += dy;
-                    //y += (float)Math.Sin(dt * 10) * 10;
+                    X += Y;     // angle += dAngle
 
-                    //if ((x > gl_x0 && dx > 0) || (x < gl_x0 && dx < 0))
-                    if (x > gl_x0)
+                    switch (param[2])
                     {
-                        dx -= 0.25f;
-                    }
-                    else
-                    {
-                        dx += 0.25f;
-                    }
+                        case 0:
+                            applyBorderRepel(ref x, ref y, ref dx, ref dy, param[1], paramf[0]);
+                            break;
 
-                    if (y > gl_Height)
-                        a = -1;
+                        case 1:
+                            applyBorderRepel(ref x, ref y, ref dx, ref dy, param[1] + param[1]/2, param[1], 0.33f * paramf[0], paramf[0]);
+                            break;
+                    }
                     break;
             }
 
@@ -4186,6 +4265,58 @@ namespace my
                     break;
 
                 case 61:
+                    switch (param[3])
+                    {
+                        case 0:
+                        case 1:
+                            tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                            break;
+
+                        case 2:
+                            {
+                                int x1 = (int)(x > X ? X : x);
+                                int y1 = (int)(y > Y ? Y : y);
+                                int x2 = (int)(x < X ? X : x);
+                                int y2 = (int)(y < Y ? Y : y);
+
+                                int w = x2 - x1;
+                                int h = y2 - y1;
+                                h = h == 0 ? 1 : h;
+
+                                tex.Draw(x1, y1, w, h, x1, y1, w, h);
+                            }
+                            break;
+
+                        case 3:
+                            {
+                                int x1 = (int)(x + X) / 2;
+                                int y1 = (int)(y + Y) / 2;
+
+                                int w = (int)(Math.Abs(x - X));
+                                int h = (int)(Math.Abs(y - Y));
+
+                                w = w < 2 ? 2 : w;
+                                h = h < 2 ? 2 : h;
+
+                                tex.Draw(x1 - w/2, y1 - h/2, w, h, x1 - w/2, y1 - h/2, w, h);
+                            }
+                            break;
+                    }
+
+                    X = x;
+                    Y = y;
+                    break;
+
+                case 62:
+                    tex.setOpacity(a/5);
+                    tex.setAngle(X*1);
+                    tex.Draw((int)x - param[0], (int)y - param[0], width + 2*param[0], height + 2*param[0], (int)x - param[0], (int)y - param[0], width + 2*param[0], height + 2*param[0]);
+
+                    tex.setAngle(X*2);
+                    tex.Draw((int)x - param[0], (int)y - param[0], width + 2*param[0], height + 2*param[0], (int)x - param[0], (int)y - param[0], width + 2*param[0], height + 2*param[0]);
+
+                    tex.setOpacity(a);
+                    tex.setAngle(0);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
             }
@@ -4488,6 +4619,42 @@ namespace my
             tex.Draw(x1, y1, w1, h1, x2, y2, w2, h2);
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Apply a force repelling the particle from the borders of the screen
+        private void applyBorderRepel(ref float x, ref float y, ref float dx, ref float dy, int dist, float dSpeed)
+        {
+            if (x < dist)
+                dx += dSpeed;
+
+            if (y < dist)
+                dy += dSpeed;
+
+            if (x > gl_Width - dist)
+                dx -= dSpeed;
+
+            if (y > gl_Height - dist)
+                dy -= dSpeed;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Apply a force repelling the particle from the borders of the screen (extended version)
+        private void applyBorderRepel(ref float x, ref float y, ref float dx, ref float dy, int xDist, int yDist, float dxSpeed, float dySpeed)
+        {
+            if (x < xDist)
+                dx += dxSpeed;
+
+            if (y < yDist)
+                dy += dySpeed;
+
+            if (x > gl_Width - xDist)
+                dx -= dxSpeed;
+
+            if (y > gl_Height - yDist)
+                dy -= dySpeed;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
