@@ -23,6 +23,8 @@ namespace my
 
     public class myObject
     {
+        protected enum BgrDrawMode : byte { NEVER, ONCE, ALWAYS };
+
         protected uint id { get; private set; } = 0;
 
         // -------------------------------------------------------------------------
@@ -37,6 +39,9 @@ namespace my
         protected static List<myObject> list = null;
         protected static myColorPicker colorPicker = null;
         protected static myInstancedPrimitive inst = null;
+
+        protected static BgrDrawMode bgrDrawMode = BgrDrawMode.NEVER;
+        protected static float       bgrOpacity = 0.01f;
 
         // -------------------------------------------------------------------------
 

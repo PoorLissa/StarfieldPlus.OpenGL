@@ -29,7 +29,7 @@ namespace my
         static int[] prm_i = new int[7];
         static int mode = 0, oldRenderDelay = -1;
 
-        static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawSrcImg = false;
+        static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false;
         static float dimAlpha = 0.05f, t = 0, dt = 0;
         static float[] prm_f = new float[2];
 
@@ -61,8 +61,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(63);
-            //mode = 62;
+            mode = rand.Next(64);
+            mode = 63;
 
             // Reset parameter values
             {
@@ -79,7 +79,7 @@ namespace my
             doClearBuffer  = myUtils.randomBool(rand);
             doUseRandDxy   = myUtils.randomBool(rand);
             doSampleOnce   = false;
-            doDrawSrcImg   = false;
+            bgrDrawMode    = BgrDrawMode.NEVER;
             t = 0;
 
             switch (mode)
@@ -518,7 +518,7 @@ namespace my
 
                     dimAlpha /= (rand.Next(5) + 1);
 
-                    doDrawSrcImg  = myUtils.randomChance(rand, 1, 2);
+                    bgrDrawMode   = myUtils.randomChance(rand, 1, 2) ? BgrDrawMode.ONCE : BgrDrawMode.NEVER;
                     doClearBuffer = myUtils.randomChance(rand, 1, 2);
                     doSampleOnce  = myUtils.randomChance(rand, 1, 2);
                     break;
@@ -526,7 +526,7 @@ namespace my
                 // Grid based cells are drawn with an offset into the texture coordinates
                 case 46:
                     doClearBuffer = false;
-                    doDrawSrcImg = myUtils.randomChance(rand, 1, 3);
+                    bgrDrawMode = myUtils.randomChance(rand, 1, 3) ? BgrDrawMode.ONCE : BgrDrawMode.NEVER;
                     N = 333 + rand.Next(666);
                     max = rand.Next(111) + 23;                                              // Cells size
                     prm_i[0] = rand.Next(11) + 1;                                           // Grid interval
@@ -751,6 +751,14 @@ namespace my
                     prm_i[2] = rand.Next(2);                                                // Border repel mode
                     prm_f[0] = myUtils.randFloat(rand);                                     // Border repel force
                     dt = 0.01f;
+                    break;
+
+                // ... unfinished attraction/repulsion based
+                case 63:
+                    N = 150;
+                    max = rand.Next(33) + 10;                                               // max particle size
+                    bgrDrawMode = myUtils.randomChance(rand, 1, 2)                          // Draw bgr never / Draw bgr every iteration
+                        ? BgrDrawMode.ALWAYS : BgrDrawMode.NEVER;
                     break;
             }
 
@@ -2195,6 +2203,16 @@ namespace my
                     X = x;
                     Y = myUtils.randomSign(rand) * (0.05f + myUtils.randFloat(rand)/15);
                     break;
+
+                case 63:
+                    a = myUtils.randFloat(rand);
+                    a = 0.85f;
+
+                    x = X = rand.Next(gl_Width);
+                    y = Y = rand.Next(gl_Height);
+
+                    width = height = rand.Next(max) + 3;
+                    break;
             }
 
             return;
@@ -3492,6 +3510,66 @@ namespace my
                             break;
                     }
                     break;
+
+                case 63:
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_330;
+
+                        if (obj.id != id)
+                        {
+                            float DX = x - obj.x;
+                            float DY = y - obj.y;
+
+                            double dist2 = DX * DX + DY * DY;
+
+                            bool doUseMass = true;
+
+                            if (dist2 > 0)
+                            {
+                                float factor = 10.0f;
+
+                                if (doUseMass)
+                                {
+                                    factor *= 0.05f;
+                                }
+
+                                if (dist2 > 30000)
+                                {
+                                    factor *= 1;
+                                }
+                                else
+                                {
+                                    factor *= -10;
+                                }
+
+                                float F = (float)(factor / dist2);
+
+                                dx -= F * obj.width * DX;
+                                dy -= F * obj.width * DY;
+                            }
+                        }
+                    }
+
+                    x += dx;
+                    y += dy;
+
+                    float repelFactor = 0.5f;
+
+                    if (x < 200 && dx < 0)
+                        dx += repelFactor;
+
+                    if (y < 200 && dy < 0)
+                        dy += repelFactor;
+
+                    if (x > gl_Width - 200 && dx > 0)
+                        dx -= repelFactor;
+
+                    if (y > gl_Height - 200 && dy > 0)
+                        dy -= repelFactor;
+
+                    break;
             }
 
             if (a <= 0)
@@ -4318,6 +4396,10 @@ namespace my
                     tex.setAngle(0);
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
                     break;
+
+                case 63:
+                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    break;
             }
 
             return;
@@ -4346,7 +4428,7 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
-            if (doDrawSrcImg)
+            if (bgrDrawMode == BgrDrawMode.ONCE)
             {
                 tex.Draw(0, 0, gl_Width, gl_Height);
             }
@@ -4369,6 +4451,13 @@ namespace my
                 else
                 {
                     dimScreen(dimAlpha, false);
+                }
+
+                // Draw background image every frame
+                if (bgrDrawMode == BgrDrawMode.ALWAYS)
+                {
+                    tex.setOpacity(bgrOpacity);
+                    tex.Draw(0, 0, gl_Width, gl_Height);
                 }
 
                 // Render Frame
