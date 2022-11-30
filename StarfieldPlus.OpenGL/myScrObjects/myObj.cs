@@ -29,6 +29,7 @@ namespace my
 
         public static int gl_Width, gl_Height, gl_x0, gl_y0, renderDelay = 25;
         private static uint s_id = uint.MaxValue;
+        private static double cursorx = 0, cursory = 0;
 
         // -------------------------------------------------------------------------
 
@@ -104,63 +105,34 @@ namespace my
 
         protected void processInput(Window window)
         {
-            // Exit
+            // Exit via mouse move
+            if (false)
+            {
+                double xpos, ypos;
+                Glfw.GetCursorPosition(window, out xpos, out ypos);
+
+                if (cursorx != 0 && cursory != 0)
+                {
+                    if (xpos != cursorx || ypos != cursory)
+                    {
+                        Glfw.SetWindowShouldClose(window, true);
+                    }
+                }
+
+                cursorx = xpos;
+                cursory = ypos;
+            }
+
+            // Exit via Esc Key press
             if (Glfw.GetKey(window, GLFW.Keys.Escape) == GLFW.InputState.Press)
             {
                 Glfw.SetWindowShouldClose(window, true);
             }
 
-            // Show some info
+            // Show some info (Tab)
             if (Glfw.GetKey(window, GLFW.Keys.Tab) == GLFW.InputState.Press)
             {
-                int width = 500;
-                int height = 500;
-
-                var form = new Form();
-                var rich = new RichTextBox();
-
-                form.Width = width;
-                form.Height = height;
-                form.StartPosition = FormStartPosition.CenterScreen;
-                form.TopMost = true;
-                form.Opacity = 50;
-                form.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-                form.BackColor = System.Drawing.Color.Black;
-
-                rich.BackColor = System.Drawing.Color.Black;
-                rich.ForeColor = System.Drawing.Color.Red;
-
-                rich.Font = new System.Drawing.Font("Helvetica Condensed", 11, System.Drawing.FontStyle.Regular, rich.Font.Unit, rich.Font.GdiCharSet);
-
-                rich.Dock = DockStyle.Fill;
-                rich.AppendText("\n");
-                rich.AppendText(CollectCurrentInfo(ref width, ref height));
-                rich.AppendText("\n");
-                rich.SelectAll();
-                rich.SelectionAlignment = HorizontalAlignment.Center;
-                rich.DeselectAll();
-                rich.Select(rich.TextLength, 0);
-                rich.ReadOnly = true;
-                form.Controls.Add(rich);
-
-                if (form.Width != width)
-                    form.Width = width;
-
-                if (form.Height != height)
-                    form.Height = height;
-
-                rich.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
-                    if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
-                        form.Close();
-                };
-
-                form.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
-                    if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
-                        form.Close();
-                };
-
-                // Display modal form
-                form.ShowDialog();
+                displayInfo();
             }
 
             // Decrease speed
@@ -298,6 +270,66 @@ namespace my
                     inst = myPrimitive._HexagonInst;
                     break;
             }
+
+            return;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Get info string from the concrete object and display this info in a separate window
+        private void displayInfo()
+        {
+            int width  = 600;
+            int height = 500;
+
+            var form = new Form();
+            var rich = new RichTextBox();
+
+            form.Width = width;
+            form.Height = height;
+            form.StartPosition = FormStartPosition.CenterScreen;
+            form.TopMost = true;
+            form.Opacity = 50;
+            form.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            form.BackColor = System.Drawing.Color.Black;
+
+            rich.BackColor = System.Drawing.Color.Black;
+            rich.ForeColor = System.Drawing.Color.Red;
+
+            rich.Font = new System.Drawing.Font("Helvetica Condensed", 11, System.Drawing.FontStyle.Regular, rich.Font.Unit, rich.Font.GdiCharSet);
+
+            rich.Dock = DockStyle.Fill;
+            rich.AppendText("\n");
+            rich.AppendText(CollectCurrentInfo(ref width, ref height));
+            rich.AppendText("\n");
+            rich.SelectAll();
+            rich.SelectionAlignment = HorizontalAlignment.Center;
+            rich.DeselectAll();
+            rich.Select(rich.TextLength, 0);
+            rich.ReadOnly = true;
+            form.Controls.Add(rich);
+
+            if (form.Width != width)
+                form.Width = width;
+
+            if (form.Height != height)
+                form.Height = height;
+
+            rich.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
+                if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
+                    form.Close();
+            };
+
+            form.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
+                if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
+                    form.Close();
+            };
+
+            // Display modal form
+            form.ShowDialog();
+
+            rich.Dispose();
+            form.Dispose();
 
             return;
         }

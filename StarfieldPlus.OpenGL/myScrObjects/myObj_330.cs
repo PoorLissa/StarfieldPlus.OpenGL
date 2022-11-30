@@ -769,8 +769,8 @@ namespace my
             }
 
             string str = $"Obj = myObj_330\n\n" +
+                            $"mode = {mode}\n\n" +
                             $"N = {N} ({list.Count})\n" +
-                            $"mode = {mode}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
                             $"max = {max}\n" +
                             $"doClearBuffer = {doClearBuffer}\n" +
