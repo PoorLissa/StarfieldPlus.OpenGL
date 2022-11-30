@@ -29,7 +29,7 @@ namespace my
         static int[] prm_i = new int[7];
         static int mode = 0, oldRenderDelay = -1;
 
-        static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false;
+        static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawLines = false;
         static float dimAlpha = 0.05f, t = 0, dt = 0;
         static float[] prm_f = new float[2];
 
@@ -79,6 +79,7 @@ namespace my
             doClearBuffer  = myUtils.randomBool(rand);
             doUseRandDxy   = myUtils.randomBool(rand);
             doSampleOnce   = false;
+            doDrawLines    = false;
             bgrDrawMode    = BgrDrawMode.NEVER;
             t = 0;
 
@@ -755,10 +756,21 @@ namespace my
 
                 // ... unfinished attraction/repulsion based
                 case 63:
-                    N = 150;
+                    N = myUtils.randomChance(rand, 1, 2) ? 25 : 250;
+                    doDrawLines = true;
                     max = rand.Next(33) + 10;                                               // max particle size
+                    prm_f[0] = doClearBuffer ? 0.25f : 0.1f;                                // Inst line opacity
+                    prm_i[0] = rand.Next(3);                                                // Inst lines drawing mode
+                    prm_i[1] = rand.Next(2);                                                // Cross texture lines draw mode
+                    prm_i[2] = rand.Next(2);                                                // Do use particle mass
                     bgrDrawMode = myUtils.randomChance(rand, 1, 2)                          // Draw bgr never / Draw bgr every iteration
                         ? BgrDrawMode.ALWAYS : BgrDrawMode.NEVER;
+/*
+                    N = 1;
+                    max = 250;
+                    prm_i[1] = 0;
+                    prm_i[2] = 0;
+                    bgrDrawMode = BgrDrawMode.NEVER;*/
                     break;
             }
 
@@ -2211,7 +2223,7 @@ namespace my
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
 
-                    width = height = rand.Next(max) + 3;
+                    width = height = (prm_i[2] == 0) ? max : rand.Next(max) + 3;
                     break;
             }
 
@@ -3512,63 +3524,118 @@ namespace my
                     break;
 
                 case 63:
-
-                    for (int i = 0; i < list.Count; i++)
                     {
-                        var obj = list[i] as myObj_330;
+                        int index = -1;
+                        float fmax = 0;
+                        bool doUseMass = (prm_i[2] > 0);
 
-                        if (obj.id != id)
+                        for (int i = 0; i < list.Count; i++)
                         {
-                            float DX = x - obj.x;
-                            float DY = y - obj.y;
+                            var obj = list[i] as myObj_330;
 
-                            double dist2 = DX * DX + DY * DY;
-
-                            bool doUseMass = true;
-
-                            if (dist2 > 0)
+                            if (obj.id != id)
                             {
-                                float factor = 10.0f;
+                                float DX = x - obj.x;
+                                float DY = y - obj.y;
 
-                                if (doUseMass)
+                                double dist2 = DX * DX + DY * DY;
+
+                                if (dist2 > 0)
                                 {
-                                    factor *= 0.05f;
-                                }
+                                    float factor = 10.0f;
 
-                                if (dist2 > 30000)
-                                {
-                                    factor *= 1;
-                                }
-                                else
-                                {
-                                    factor *= -10;
-                                }
+                                    if (doUseMass)
+                                    {
+                                        factor *= 0.05f;
+                                        factor *= 0.25f;
+                                    }
 
-                                float F = (float)(factor / dist2);
+                                    if (dist2 > 200000)
+                                    {
+                                        factor *= 0.75f;
+                                    }
+                                    else
+                                    {
+                                        // dx = 0; dy = 0; factor = 0;
 
-                                dx -= F * obj.width * DX;
-                                dy -= F * obj.width * DY;
+                                        if (dist2 > 100000)
+                                        {
+                                            factor *= 0.9f;
+                                        }
+
+                                        if (dist2 < 10000)
+                                        {
+                                            factor *= -1.5f;
+                                        }
+                                    }
+
+                                    float F = doUseMass
+                                        ? (float)(obj.width * factor / dist2)
+                                        : (float)(            factor / dist2);
+
+                                    dx -= F * DX;
+                                    dy -= F * DY;
+
+                                    if (fmax < F)
+                                    {
+                                        fmax = F;
+                                        index = i;
+                                    }
+                                }
                             }
                         }
+
+                        // How to draw inst lines
+                        switch (prm_i[0])
+                        {
+                            // Center
+                            case 0:
+                                X = gl_x0;
+                                Y = gl_y0;
+                                break;
+
+                            // Tail
+                            case 1:
+                                X = x - 7 * dx;
+                                Y = y - 7 * dy;
+                                break;
+
+                            // Current direction
+                            case 2:
+                                X = x + 100 * dx;
+                                Y = y + 100 * dy;
+                                break;
+
+                            // The most attracting other particle
+                            case 3:
+                                if (index != -1)
+                                {
+                                    X = (list[index] as myObj_330).x + (list[index] as myObj_330).width  / 2;
+                                    Y = (list[index] as myObj_330).y + (list[index] as myObj_330).height / 2;
+                                }
+                                break;
+                        }
+
+                        x += dx;
+                        y += dy;
+
+                        // Repel from the borders of the screen
+                        {
+                            float repelFactor = 0.5f;
+
+                            if (x < 200 && dx < 0)
+                                dx += repelFactor;
+
+                            if (y < 200 && dy < 0)
+                                dy += repelFactor;
+
+                            if (x > gl_Width - 200 && dx > 0)
+                                dx -= repelFactor;
+
+                            if (y > gl_Height - 200 && dy > 0)
+                                dy -= repelFactor;
+                        }
                     }
-
-                    x += dx;
-                    y += dy;
-
-                    float repelFactor = 0.5f;
-
-                    if (x < 200 && dx < 0)
-                        dx += repelFactor;
-
-                    if (y < 200 && dy < 0)
-                        dy += repelFactor;
-
-                    if (x > gl_Width - 200 && dx > 0)
-                        dx -= repelFactor;
-
-                    if (y > gl_Height - 200 && dy > 0)
-                        dy -= repelFactor;
-
                     break;
             }
 
@@ -4399,6 +4466,13 @@ namespace my
 
                 case 63:
                     tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+
+                    if (prm_i[1] == 1)
+                    {
+                        tex.setOpacity(a / 20);
+                        tex.Draw((int)x - 500, (int)y, width + 1000, height, (int)x - 500, (int)y, width + 1000, height);
+                        tex.Draw((int)x, (int)y - 500, width, height + 1000, (int)x, (int)y - 500, width, height + 1000);
+                    }
                     break;
             }
 
@@ -4462,12 +4536,28 @@ namespace my
 
                 // Render Frame
                 {
+                    if (doDrawLines)
+                    {
+                        myPrimitive._LineInst.ResetBuffer();
+                    }
+
                     for (int i = 0; i < list.Count; i++)
                     {
                         var obj = list[i] as myObj_330;
 
                         obj.Move();
                         obj.Show();
+
+                        if (doDrawLines)
+                        {
+                            myPrimitive._LineInst.setInstanceCoords(obj.x + obj.width/2, obj.y + obj.height/2, obj.X, obj.Y);
+                            myPrimitive._LineInst.setInstanceColor(0.9f, 0.9f, 0.9f, prm_f[0]);
+                        }
+                    }
+
+                    if (doDrawLines)
+                    {
+                        myPrimitive._LineInst.Draw();
                     }
                 }
 
@@ -4487,6 +4577,11 @@ namespace my
 
         private void initShapes()
         {
+            if (doDrawLines)
+            {
+                myPrimitive.init_LineInst(N);
+            }
+
             myPrimitive.init_Rectangle();
             tex = new myTexRectangle(colorPicker.getImg());
         }
