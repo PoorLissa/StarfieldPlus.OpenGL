@@ -761,6 +761,7 @@ namespace my
                     doDrawLines = true;
                     max = rand.Next(33) + 5;                                                // max particle size
                     prm_f[0] = doClearBuffer ? 0.25f : 0.1f;                                // Inst line opacity
+
                     prm_i[0] = rand.Next(6);                                                // Inst lines drawing mode
                     prm_i[1] = rand.Next(2);                                                // Cross texture lines draw mode
                     prm_i[2] = rand.Next(2);                                                // Do use particle mass
@@ -777,14 +778,18 @@ namespace my
 
                 // Active particles are moving around the screen, attracting the passive particles
                 case 64:
-                    N = 999 + rand.Next(2000);
+                    N = 999 + (myUtils.randomChance(rand, 1, 2) ? rand.Next(2000) : 0);
                     doClearBuffer = true;
                     max = rand.Next(45) + 10;
                     prm_i[0] = 1 + rand.Next(100);                                          // Number of active particles
                     prm_i[1] = rand.Next(101);                                              // Factor to the distance within which the passive particles are affected by active ones
+                    prm_i[2] = rand.Next(2);                                                // Passive particles repel each other
+                    prm_i[3] = rand.Next(2);                                                // Active particles attract each other
                     prm_i[4] = 30 + rand.Next(333);                                         // Border repel distance
-                    prm_f[0] = 0.5f;                                                        // Viscosity factor of the medium
-                    prm_f[1] = 2500.0f;                                                     // Attraction factor
+                    prm_i[5] = myUtils.randomChance(rand, 1, 2) ? 1 : -1;                   // Attract vs Repel
+
+                    prm_f[0] = myUtils.randFloat(rand);                                     // Viscosity factor of the medium
+                    prm_f[1] = 2500.0f;                                                     // Interaction (attraction/repulsion) factor
                     break;
             }
 
@@ -2293,6 +2298,7 @@ namespace my
                     // Drawing coordinates
                     X = x - width;
                     Y = y - width;
+                    cnt = 0;
                     break;
             }
 
@@ -3719,56 +3725,137 @@ namespace my
                     x += dx;
                     y += dy;
 
-                    // Drawing coordinates
-                    X = x - width;
-                    Y = y - width;
-
                     if (id < prm_i[0])
                     {
-                        // Repel from the borders of the screen
-                        dx += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.1f;
-                        dy += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.1f;
+                        // Active particle:
+                        {
+                            // Interact with other active particles
+                            if (prm_i[3] == 1 && list.Count > prm_i[0])
+                            {
+                                for (int i = 0; i < prm_i[0]; i++)
+                                {
+                                    var obj = list[i] as myObj_330;
 
-                        float repelFactor = 0.5f;
+                                    if (id != obj.id)
+                                    {
+                                        X = x - obj.x;
+                                        Y = y - obj.y;
 
-                        if (x < prm_i[4])
-                            dx += repelFactor;
+                                        float dist2 = X * X + Y * Y + 0.0001f;
 
-                        if (y < prm_i[4])
-                            dy += repelFactor;
+                                        float F = (float)(100 / dist2);
 
-                        if (x > gl_Width - prm_i[4])
-                            dx -= repelFactor;
+                                        dx -= F * X;
+                                        dy -= F * Y;
+                                    }
+                                }
+                            }
 
-                        if (y > gl_Height - prm_i[4])
-                            dy -= repelFactor;
+                            // Repel from the borders of the screen
+                            dx += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.1f;
+                            dy += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.1f;
+
+                            float repelFactor = 0.5f;
+
+                            if (x < prm_i[4])
+                                dx += repelFactor;
+
+                            if (y < prm_i[4])
+                                dy += repelFactor;
+
+                            if (x > gl_Width - prm_i[4])
+                                dx -= repelFactor;
+
+                            if (y > gl_Height - prm_i[4])
+                                dy -= repelFactor;
+                        }
                     }
                     else
                     {
-                        // Add medium viscosity
-                        dx *= prm_f[0];
-                        dy *= prm_f[0];
-
-                        // Attract to active particle(s)
-                        for (int i = 0; i < prm_i[0]; i++)
+                        // Passive particle:
                         {
-                            var obj = list[i] as myObj_330;
+                            float dist2;
 
-                            float DX = x - obj.x;
-                            float DY = y - obj.y;
+                            // Add medium viscosity
+                            dx *= prm_f[0];
+                            dy *= prm_f[0];
 
-                            double dist2 = DX * DX + DY * DY + 0.0001;
-
-                            if (prm_i[1] == 0 || (prm_i[1] > 0 && dist2 < prm_i[1] * 5000))
+                            // Interact with active particle(s)
+                            for (int i = 0; i < prm_i[0]; i++)
                             {
-                                // The larger the particle is, the lesser it is affected
-                                float F = (float)(prm_f[1] / dist2) / width;
+                                var obj = list[i] as myObj_330;
 
-                                dx -= F * DX;
-                                dy -= F * DY;
+                                X = x - obj.x;
+                                Y = y - obj.y;
+
+                                dist2 = X * X + Y * Y + 0.0001f;
+
+                                if (prm_i[1] == 0 || (prm_i[1] > 0 && dist2 < prm_i[1] * 5000))
+                                {
+                                    // The larger the particle is, the lesser it is affected
+                                    float F = (float)(prm_f[1] * prm_i[5] / dist2) / width;
+
+                                    dx -= F * X;
+                                    dy -= F * Y;
+                                }
                             }
+
+                            // Interact with other passive particles (n consequent particles per frame)
+                            if (prm_i[2] == 1)
+                            {
+                                int n = 100;
+                                int beg = prm_i[0] + cnt * n;
+                                int end = beg + n;
+
+                                if (end >= list.Count)
+                                {
+                                    end = list.Count;
+                                    cnt = -1;
+                                }
+
+                                for (int i = beg; i < end; i++)
+                                {
+                                    var obj = list[i] as myObj_330;
+
+                                    if (id != obj.id)
+                                    {
+                                        X = x - obj.x;
+                                        Y = y - obj.y;
+
+                                        if (X > -99 && X < 99 && Y > -99 && Y < 99)
+                                        {
+                                            dist2 = X * X + Y * Y + 0.0001f;
+
+                                            float F = (float)(50 / dist2);
+
+                                            dx += F * X;
+                                            dy += F * Y;
+                                        }
+                                    }
+                                }
+
+                                cnt++;
+                            }
+
+                            float repelFactor = 2.5f / prm_f[0];
+
+                            if (x < 0)
+                                dx += repelFactor;
+
+                            if (y < 0)
+                                dy += repelFactor;
+
+                            if (x > gl_Width)
+                                dx -= repelFactor;
+
+                            if (y > gl_Height)
+                                dy -= repelFactor;
                         }
                     }
+
+                    // Drawing coordinates
+                    X = x - width;
+                    Y = y - width;
                     break;
             }
 
