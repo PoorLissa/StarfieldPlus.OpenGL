@@ -13,6 +13,7 @@ using System.Collections.Generic;
     // mode. like 42, but rand length rectangles instead of squares
     // Vertical lines move out of the screen's edge, but at some point start moving in rectangle, along the screen's edge
     // Gravitational pull towards the point which is off screen
+    // The one like 64, but with repulsion instead of attraction; The passive particles are returning back to their initial places
 */
 
 
