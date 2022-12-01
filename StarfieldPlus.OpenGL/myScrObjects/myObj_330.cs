@@ -760,14 +760,14 @@ namespace my
                     doDrawLines = true;
                     max = rand.Next(33) + 10;                                               // max particle size
                     prm_f[0] = doClearBuffer ? 0.25f : 0.1f;                                // Inst line opacity
-                    prm_i[0] = rand.Next(3);                                                // Inst lines drawing mode
+                    prm_i[0] = rand.Next(4);                                                // Inst lines drawing mode
                     prm_i[1] = rand.Next(2);                                                // Cross texture lines draw mode
                     prm_i[2] = rand.Next(2);                                                // Do use particle mass
                     bgrDrawMode = myUtils.randomChance(rand, 1, 2)                          // Draw bgr never / Draw bgr every iteration
                         ? BgrDrawMode.ALWAYS : BgrDrawMode.NEVER;
 /*
-                    N = 1;
-                    max = 250;
+                    N = 33;
+                    max = 5;
                     prm_i[1] = 0;
                     prm_i[2] = 0;
                     bgrDrawMode = BgrDrawMode.NEVER;*/
@@ -3547,6 +3547,7 @@ namespace my
                                     if (doUseMass)
                                     {
                                         factor *= 0.05f;
+                                        factor *= 0.25f;
                                         factor *= 0.25f;
                                     }
 
