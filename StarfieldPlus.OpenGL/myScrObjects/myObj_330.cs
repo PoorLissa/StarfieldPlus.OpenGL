@@ -61,8 +61,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(64);
-            mode = 63;
+            mode = rand.Next(65);
+            mode = 64;
 
             // Reset parameter values
             {
@@ -754,23 +754,36 @@ namespace my
                     dt = 0.01f;
                     break;
 
-                // ... unfinished attraction/repulsion based
+                // Attraction/Repulsion based particles
                 case 63:
                     N = myUtils.randomChance(rand, 1, 2) ? 25 : 250;
                     doDrawLines = true;
-                    max = rand.Next(33) + 10;                                               // max particle size
+                    max = rand.Next(33) + 5;                                                // max particle size
                     prm_f[0] = doClearBuffer ? 0.25f : 0.1f;                                // Inst line opacity
-                    prm_i[0] = rand.Next(4);                                                // Inst lines drawing mode
+                    prm_i[0] = rand.Next(6);                                                // Inst lines drawing mode
                     prm_i[1] = rand.Next(2);                                                // Cross texture lines draw mode
                     prm_i[2] = rand.Next(2);                                                // Do use particle mass
+                    prm_i[3] = rand.Next(2);                                                // Do use single high-mass particle
+                    prm_i[4] = 100 + rand.Next(666);                                        // Border repel distance
+                    prm_i[5] = rand.Next(6);                                                // Line color mode
                     bgrDrawMode = myUtils.randomChance(rand, 1, 2)                          // Draw bgr never / Draw bgr every iteration
                         ? BgrDrawMode.ALWAYS : BgrDrawMode.NEVER;
 /*
-                    N = 33;
-                    max = 5;
+                    prm_i[0] = 4;
                     prm_i[1] = 0;
-                    prm_i[2] = 0;
                     bgrDrawMode = BgrDrawMode.NEVER;*/
+                    break;
+
+                // Active particles are moving around the screen, attracting the passive particles
+                case 64:
+                    N = 999 + rand.Next(2000);
+                    doClearBuffer = true;
+                    max = rand.Next(45) + 10;
+                    prm_i[0] = 1 + rand.Next(100);                                          // Number of active particles
+                    prm_i[1] = rand.Next(101);                                              // Factor to the distance within which the passive particles are affected by active ones
+                    prm_i[4] = 30 + rand.Next(333);                                         // Border repel distance
+                    prm_f[0] = 0.5f;                                                        // Viscosity factor of the medium
+                    prm_f[1] = 2500.0f;                                                     // Attraction factor
                     break;
             }
 
@@ -2217,13 +2230,68 @@ namespace my
                     break;
 
                 case 63:
-                    a = myUtils.randFloat(rand);
-                    a = 0.85f;
+                    a = N < 50 ? 0.85f : myUtils.randFloat(rand, 0.1f);
 
                     x = X = rand.Next(gl_Width);
                     y = Y = rand.Next(gl_Height);
 
-                    width = height = (prm_i[2] == 0) ? max : rand.Next(max) + 3;
+                    switch (prm_i[5])
+                    {
+                        case 0: case 1: case 2:
+                            r = g = b = 0.9f;
+                            break;
+
+                        case 3: case 4:
+                            colorPicker.getColor(x, y, ref r, ref g, ref b);
+                            break;
+
+                        case 5:
+                            colorPicker.getColorRand(ref r, ref g, ref b);
+                            break;
+                    }
+
+                    if (prm_i[2] == 0)
+                    {
+                        width  = max;
+                        height = max / 3 + 1;                       // mass is the same for each particle
+
+                        if (prm_i[3] == 1 && id == 1)
+                            height = 123;
+                    }
+                    else
+                    {
+                        width = height = rand.Next(max) + 1;        // each particle's mass is different
+
+                        if (prm_i[3] == 1 && id == 1)
+                            width = height = 234;
+
+                        width = 3 + width / 5;
+                    }
+                    break;
+
+                case 64:
+                    a = (id < prm_i[0]) ? 1.0f : 0.33f;
+
+                    if (id < prm_i[0])
+                    {
+                        width = height = 5;
+                        dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.25f) * (rand.Next(11) + 7);
+                        dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.25f) * (rand.Next(11) + 7);
+                    }
+                    else
+                    {
+                        width = height = max;
+                        width = height = (rand.Next(max * 2) + max) / 2;
+                        a *= max / width;
+                        dx = dy = 0;
+                    }
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    // Drawing coordinates
+                    X = x - width;
+                    Y = y - width;
                     break;
             }
 
@@ -3550,6 +3618,10 @@ namespace my
                                         factor *= 0.25f;
                                         factor *= 0.25f;
                                     }
+                                    else
+                                    {
+                                        factor *= 0.1f;
+                                    }
 
                                     if (dist2 > 200000)
                                     {
@@ -3570,9 +3642,8 @@ namespace my
                                         }
                                     }
 
-                                    float F = doUseMass
-                                        ? (float)(obj.width * factor / dist2)
-                                        : (float)(            factor / dist2);
+                                    // Calculate the attraction force (obj.height is actually used as a mass here)
+                                    float F = (float)(obj.height * factor / dist2);
 
                                     dx -= F * DX;
                                     dy -= F * DY;
@@ -3586,33 +3657,37 @@ namespace my
                             }
                         }
 
-                        // How to draw inst lines
+                        // How to draw instanced lines
                         switch (prm_i[0])
                         {
-                            // Center
                             case 0:
+                                break;
+
+                            // Center
+                            case 1:
                                 X = gl_x0;
                                 Y = gl_y0;
                                 break;
 
                             // Tail
-                            case 1:
+                            case 2:
                                 X = x - 7 * dx;
                                 Y = y - 7 * dy;
                                 break;
 
                             // Current direction
-                            case 2:
+                            case 3:
                                 X = x + 100 * dx;
                                 Y = y + 100 * dy;
                                 break;
 
-                            // The most attracting other particle
-                            case 3:
+                            // The particle that is attracting this one the most
+                            case 4:
+                            case 5:
                                 if (index != -1)
                                 {
-                                    X = (list[index] as myObj_330).x + (list[index] as myObj_330).width  / 2;
-                                    Y = (list[index] as myObj_330).y + (list[index] as myObj_330).height / 2;
+                                    X = (list[index] as myObj_330).x + (list[index] as myObj_330).width / 2;
+                                    Y = (list[index] as myObj_330).y + (list[index] as myObj_330).width / 2;
                                 }
                                 break;
                         }
@@ -3624,17 +3699,73 @@ namespace my
                         {
                             float repelFactor = 0.5f;
 
-                            if (x < 200 && dx < 0)
+                            if (x < prm_i[4] && dx < 0)
                                 dx += repelFactor;
 
-                            if (y < 200 && dy < 0)
+                            if (y < prm_i[4] && dy < 0)
                                 dy += repelFactor;
 
-                            if (x > gl_Width - 200 && dx > 0)
+                            if (x > gl_Width - prm_i[4] && dx > 0)
                                 dx -= repelFactor;
 
-                            if (y > gl_Height - 200 && dy > 0)
+                            if (y > gl_Height - prm_i[4] && dy > 0)
                                 dy -= repelFactor;
+                        }
+                    }
+                    break;
+
+                case 64:
+                    x += dx;
+                    y += dy;
+
+                    // Drawing coordinates
+                    X = x - width;
+                    Y = y - width;
+
+                    if (id < prm_i[0])
+                    {
+                        // Repel from the borders of the screen
+                        dx += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.1f;
+                        dy += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.1f;
+
+                        float repelFactor = 0.5f;
+
+                        if (x < prm_i[4])
+                            dx += repelFactor;
+
+                        if (y < prm_i[4])
+                            dy += repelFactor;
+
+                        if (x > gl_Width - prm_i[4])
+                            dx -= repelFactor;
+
+                        if (y > gl_Height - prm_i[4])
+                            dy -= repelFactor;
+                    }
+                    else
+                    {
+                        // Add medium viscosity
+                        dx *= prm_f[0];
+                        dy *= prm_f[0];
+
+                        // Attract to active particle(s)
+                        for (int i = 0; i < prm_i[0]; i++)
+                        {
+                            var obj = list[i] as myObj_330;
+
+                            float DX = x - obj.x;
+                            float DY = y - obj.y;
+
+                            double dist2 = DX * DX + DY * DY + 0.0001;
+
+                            if (prm_i[1] == 0 || (prm_i[1] > 0 && dist2 < prm_i[1] * 5000))
+                            {
+                                // The larger the particle is, the lesser it is affected
+                                float F = (float)(prm_f[1] / dist2) / width;
+
+                                dx -= F * DX;
+                                dy -= F * DY;
+                            }
                         }
                     }
                     break;
@@ -4466,13 +4597,35 @@ namespace my
                     break;
 
                 case 63:
-                    tex.Draw((int)x, (int)y, width, height, (int)x, (int)y, width, height);
+                    //tex.setAngle(0);
+                    tex.Draw((int)x, (int)y, width, width, (int)x, (int)y, width, width);
+
+                    tex.setOpacity(a/5);
+                    //tex.setAngle(myUtils.randFloat(rand));
+                    tex.Draw((int)x - 3, (int)y - 3, width + 6, width + 6, (int)x - 3, (int)y - 3, width + 6, width + 6);
 
                     if (prm_i[1] == 1)
                     {
+                        //tex.setAngle(0);
                         tex.setOpacity(a / 20);
-                        tex.Draw((int)x - 500, (int)y, width + 1000, height, (int)x - 500, (int)y, width + 1000, height);
-                        tex.Draw((int)x, (int)y - 500, width, height + 1000, (int)x, (int)y - 500, width, height + 1000);
+                        tex.Draw((int)x - 500, (int)y, width + 1000, width, (int)x - 500, (int)y, width + 1000, width);
+                        tex.Draw((int)x, (int)y - 500, width, width + 1000, (int)x, (int)y - 500, width, width + 1000);
+                    }
+
+                    if (doDrawLines)
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(x + width/2, y + width/2, X, Y);
+                        myPrimitive._LineInst.setInstanceColor(r, g, b, prm_f[0]);
+                    }
+                    break;
+
+                case 64:
+                    tex.Draw((int)X, (int)Y, 2*width, 2*width, (int)X, (int)Y, 2*width, 2*width);
+
+                    if (id < prm_i[0])
+                    {
+                        tex.setOpacity(a / 5);
+                        tex.Draw((int)X - 3, (int)Y - 3, 2 * width + 6, 2 * width + 6, (int)X - 3, (int)Y - 3, 2 * width + 6, 2 * width + 6);
                     }
                     break;
             }
@@ -4548,12 +4701,6 @@ namespace my
 
                         obj.Move();
                         obj.Show();
-
-                        if (doDrawLines)
-                        {
-                            myPrimitive._LineInst.setInstanceCoords(obj.x + obj.width/2, obj.y + obj.height/2, obj.X, obj.Y);
-                            myPrimitive._LineInst.setInstanceColor(0.9f, 0.9f, 0.9f, prm_f[0]);
-                        }
                     }
 
                     if (doDrawLines)
