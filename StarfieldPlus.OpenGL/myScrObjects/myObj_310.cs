@@ -73,8 +73,17 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
+            string str_params = "";
+
+            for (int i = 0; i < prm_i.Length; i++)
+            {
+                str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
+            }
+
             string str = $"Obj = myObj_310\n\n" + 
-                            $"mode = {mode}\n" + 
+                            $"mode = {mode}\n" +
+                            $"param: [{str_params}]\n\n" +
+                            $"file: {colorPicker.GetFileName()}" + 
                             $""
             ;
             return str;
