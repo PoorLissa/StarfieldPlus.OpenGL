@@ -51,6 +51,7 @@ public class ScreenSaver
         id = ids.myObj_043;
         id = ids.myObj_000;
         id = ids.myObj_330;
+        id = ids.myObj_310;
 
         switch (id)
         {
@@ -149,6 +150,7 @@ public class ScreenSaver
                 _obj = new my.myObj_310();
                 break;
 
+            // Spiralling doodles (?..)
             case ids.myObj_320:
                 _obj = new my.myObj_320();
                 break;

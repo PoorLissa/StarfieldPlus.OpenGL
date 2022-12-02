@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Triangulation
+    - Triangulation (experimental unfinished)
 */
 
 
@@ -15,8 +15,10 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static int x0, y0, N = 100, objN = 0;
-        private static int shapeType = 0;
+        private static int N = 0;
+        private static int shapeType = 0, mode = 0;
+
+        static int[] prm_i = new int[5];
 
         private float x, y, dx, dy, size, R, G, B, A;
         private int shape = 0;
@@ -27,36 +29,54 @@ namespace my
 
         public myObj_310()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                objN = 25;
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
         {
-            x0 = gl_Width  / 2;
-            y0 = gl_Height / 2;
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
 
-            return;
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            N = 25 + 4;
+
+            mode = rand.Next(2);
+            //mode = 0;
+
+            // Reset parameter values
+            {
+                for (int i = 0; i < prm_i.Length; i++)
+                    prm_i[i] = 0;
+            }
+
+            switch (mode)
+            {
+                case 00:
+                case 01:
+                case 02:
+                    prm_i[0] = rand.Next(4);                                                // Interconnection lines drawing mode
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_310\n\n";
-
+            string str = $"Obj = myObj_310\n\n" + 
+                            $"mode = {mode}\n" + 
+                            $""
+            ;
             return str;
         }
 
@@ -67,8 +87,19 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            dx = (rand.Next(111) + 11) * 0.1f * myUtils.randomSign(rand);
-            dy = (rand.Next(111) + 11) * 0.1f * myUtils.randomSign(rand);
+            switch (mode)
+            {
+                case 00:
+                case 01:
+                    dx = (rand.Next(111) + 11) * 0.1f * myUtils.randomSign(rand);
+                    dy = (rand.Next(111) + 11) * 0.1f * myUtils.randomSign(rand);
+                    break;
+
+                case 02:
+                    dx = myUtils.randFloat(rand, 0.1f) * (rand.Next(50) + 1) * myUtils.randomSign(rand);
+                    dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(50) + 1) * myUtils.randomSign(rand);
+                    break;
+            }
 
             //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -87,7 +118,7 @@ namespace my
 
         protected override void setNextMode()
         {
-            init();
+            initLocal();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -97,14 +128,42 @@ namespace my
             x += dx;
             y += dy;
 
-            if (x < 0 || x > gl_Width)
+            switch (mode)
             {
-                dx *= -1;
-            }
+                case 00:
+                    if (x < 0 || x > gl_Width)
+                        dx *= -1;
 
-            if (y < 0 || y > gl_Height)
-            {
-                dy *= -1;
+                    if (y < 0 || y > gl_Height)
+                        dy *= -1;
+                    break;
+
+                case 01:
+                    if (x < -6666 || x > gl_Width + 6666)
+                        dx *= -1;
+
+                    if (y < -6666 || y > gl_Height + 6666)
+                        dy *= -1;
+                    break;
+
+                case 02:
+                    {
+                        float factor = 0.25f;
+                        int offset = 111;
+
+                        if (x < offset)
+                            dx += myUtils.randFloat(rand) * factor;
+
+                        if (x > gl_Width - offset)
+                            dx -= myUtils.randFloat(rand) * factor;
+
+                        if (y < offset)
+                            dy += myUtils.randFloat(rand) * factor;
+
+                        if (y > gl_Height - offset)
+                            dy -= myUtils.randFloat(rand) * factor;
+                    }
+                    break;
             }
         }
 
@@ -112,6 +171,8 @@ namespace my
 
         protected override void Show()
         {
+            float lineOpacity = 0.1f;
+
             // Render connecting lines
             for (int i = 0; i < list.Count; i++)
             {
@@ -119,8 +180,35 @@ namespace my
 
                 if (obj != this)
                 {
+                    switch (prm_i[0])
+                    {
+                        case 0:
+                            break;
+
+                        case 1:
+                            {
+                                double dist2 = (obj.x - x) * (obj.x - x) + (obj.y - y) * (obj.y - y) + 0.0001;
+                                lineOpacity = (float)(10000.0 / dist2);
+                            }
+                            break;
+
+                        case 2:
+                            {
+                                double dist2 = (obj.x - x) * (obj.x - x) + (obj.y - y) * (obj.y - y) + 0.0001;
+                                lineOpacity = (float)(20000.0 / dist2);
+                            }
+                            break;
+
+                        case 3:
+                            {
+                                double dist2 = (obj.x - x) * (obj.x - x) + (obj.y - y) * (obj.y - y) + 0.0001;
+                                lineOpacity = (float)(20000.0 / dist2) + 0.05f;
+                            }
+                            break;
+                    }
+
                     myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
-                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
+                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, lineOpacity);
                 }
             }
 
@@ -153,7 +241,7 @@ namespace my
 
             initShapes();
 
-            while (list.Count < objN)
+            while (list.Count < N - 4)
             {
                 list.Add(new myObj_310());
             }
@@ -218,7 +306,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
-            myPrimitive.init_LineInst(N*N);
+            myPrimitive.init_LineInst(N * N + N * 2);
 
             base.initShapes(shapeType, N, 0);
 

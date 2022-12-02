@@ -13,7 +13,7 @@ namespace my
         private Bitmap   _img = null;
         private Random   _rand = null;
         private Graphics _g = null;
-        private string   _f = null;
+        private string   _f = "n/a";
 
         private static int _W = -1, _H = -1, gl_R = -1, gl_G = -1, gl_B = -1, gl_r = -1, gl_g = -1, gl_b = -1;
         private static bool isRlocked = false, isGlocked = false, isBlocked = false;

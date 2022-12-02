@@ -5,7 +5,10 @@ using System.Collections.Generic;
 
 
 /*
+    --
 
+    todo:
+        - draw mode 2 does not have any generate new call
 */
 
 
@@ -15,7 +18,7 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static int x0, y0, N = 1000, objN = 0;
+        private static int N = 1000, objN = 0;
         private static int shapeType = 0, drawMode = 0, maxSteps = 0, gridMode = 0;
 
         private float x, y, dx, dy, sizex, sizey, R, G, B, A;
@@ -27,35 +30,35 @@ namespace my
 
         public myObj_320()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                objN = 10;
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
         {
-            x0 = gl_Width  / 2;
-            y0 = gl_Height / 2;
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
 
+            objN = 10;
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time initialization
+        private void initLocal()
+        {
             maxSteps = rand.Next(51) + 5;
             gridMode = rand.Next(3);
             drawMode = rand.Next(3);
-
+/*
 drawMode = 1;
 gridMode = 0;
 objN = 1;
-
+*/
             if (gridMode > 0)
             {
                 objN = 100;
@@ -69,9 +72,12 @@ objN = 1;
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = myObj_320\n\n" +
-                         $"gridMode = {gridMode}"
-                ;
-
+                            $"gridMode = {gridMode}\n" +
+                            $"drawMode = {drawMode}\n" +
+                            $"maxSteps = {maxSteps}\n" +
+                            $"file: {colorPicker.GetFileName()}" + 
+                            ""
+            ;
             return str;
         }
 
@@ -85,9 +91,6 @@ objN = 1;
             y = rand.Next(gl_Height);
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            //x = x0;
-            //y = y0;
 
             sizex = sizey = rand.Next(2222) + 666;
             steps = rand.Next(maxSteps) + 2;
@@ -133,7 +136,7 @@ objN = 1;
             A = gridMode > 0 ? 0 : 0.05f;
 
             dx = dy = rand.Next(10) + 3;
-
+/*
 x1 = 333;
 y1 = 333;
 
@@ -159,7 +162,7 @@ x4old = x4 = rand.Next(gl_Width); ;
 y4old = y4 = rand.Next(gl_Height);
 
 A = 0.5f;
-
+*/
             return;
         }
 
@@ -167,17 +170,18 @@ A = 0.5f;
 
         protected override void setNextMode()
         {
-            init();
+            initLocal();
 
+/*
 gridMode = 0;
 objN = 1;
-
+*/
             list.Clear();
 
             var obj = new myObj_320();
 
-            obj.x = x0;
-            obj.y = y0;
+            obj.x = gl_x0;
+            obj.y = gl_y0;
 
             obj.sizex = obj.sizey = 500;
 
@@ -188,88 +192,93 @@ objN = 1;
 
         protected override void Move()
         {
-            if (drawMode == 0)
+            switch (drawMode)
             {
-                if (x1 < x2)
-                {
-                    x1 += dx;
-                    x3 -= dx;
-                    y2 += dy;
-                    y4 -= dy;
-                }
-                else
-                {
-                    if (--cnt == 0)
-                        generateNew();
-                }
-            }
+                case 0:
+                    if (x1 < x2)
+                    {
+                        x1 += dx;
+                        x3 -= dx;
+                        y2 += dy;
+                        y4 -= dy;
+                    }
+                    else
+                    {
+                        if (--cnt == 0)
+                            generateNew();
+                    }
+                    break;
 
-            if (drawMode == 1)
-            {
-                float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, X3 = 0, Y3 = 0, X4 = 0, Y4 = 0;
+                case 1:
+                    {
+                        float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, X3 = 0, Y3 = 0, X4 = 0, Y4 = 0;
 
-                double dist = recalc(ref X1, ref Y1, x1, y1, x2, y2);
-                recalc(ref X2, ref Y2, x2, y2, x3, y3);
-                recalc(ref X3, ref Y3, x3, y3, x4, y4);
-                recalc(ref X4, ref Y4, x4, y4, x1, y1);
+                        double dist = recalc(ref X1, ref Y1, x1, y1, x2, y2);
+                        recalc(ref X2, ref Y2, x2, y2, x3, y3);
+                        recalc(ref X3, ref Y3, x3, y3, x4, y4);
+                        recalc(ref X4, ref Y4, x4, y4, x1, y1);
 
-                x1 += X1;
-                y1 += Y1;
-                x2 += X2;
-                y2 += Y2;
-                x3 += X3;
-                y3 += Y3;
-                x4 += X4;
-                y4 += Y4;
+                        x1 += X1;
+                        y1 += Y1;
+                        x2 += X2;
+                        y2 += Y2;
+                        x3 += X3;
+                        y3 += Y3;
+                        x4 += X4;
+                        y4 += Y4;
 
-                stepx = (int)dist / steps;
-                stepy = (int)dist / steps;
+                        stepx = (int)dist / steps;
+                        stepy = (int)dist / steps;
 
-                if (stepx < 5 || dist < 100)
-                {
-                    A -= 0.011f;
-                }
+                        if (stepx < 5 || dist < 100)
+                        {
+                            A -= 0.011f;
+                        }
 
-                if (stepx < 2)
-                {
-                    stepx = 1;
-                    stepy = 1;
-/*
-                    if (--cnt == 0)
-                        generateNew();
-*/
-                }
-            }
+                        if (stepx < 2)
+                        {
+                            stepx = 1;
+                            stepy = 1;
 
-            if (drawMode == 2)
-            {
-                float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, X3 = 0, Y3 = 0, X4 = 0, Y4 = 0;
+                            if (--cnt == 0)
+                                generateNew();
+                        }
+                    }
+                    break;
 
-                double dist = recalc(ref X1, ref Y1, x1, y1, x2, y2);
-                recalc(ref X2, ref Y2, x2, y2, x3, y3);
-                recalc(ref X3, ref Y3, x3, y3, x4, y4);
+                case 2:
+                    {
+                        float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, X3 = 0, Y3 = 0, X4 = 0, Y4 = 0;
 
-                x1 += X1;
-                y1 += Y1;
+                        double dist = recalc(ref X1, ref Y1, x1, y1, x2, y2);
+                        recalc(ref X2, ref Y2, x2, y2, x3, y3);
+                        recalc(ref X3, ref Y3, x3, y3, x4, y4);
 
-                recalc(ref X4, ref Y4, x4, y4, x1, y1);
+                        x1 += X1;
+                        y1 += Y1;
 
-                x4old = x4;
-                y4old = y4;
+                        recalc(ref X4, ref Y4, x4, y4, x1, y1);
 
-                x2 += X2;
-                y2 += Y2;
-                x3 += X3;
-                y3 += Y3;
-                x4 += X4;
-                y4 += Y4;
+                        x4old = x4;
+                        y4old = y4;
 
-                A = 0.85f;
-                return;
+                        x2 += X2;
+                        y2 += Y2;
+                        x3 += X3;
+                        y3 += Y3;
+                        x4 += X4;
+                        y4 += Y4;
+
+                        A = 0.85f;
+                        return;
+                    }
+                    break;
             }
 
             A += 0.01f;
         }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
         double recalc(ref float x, ref float y, float x1, float y1, float x2, float y2)
         {
