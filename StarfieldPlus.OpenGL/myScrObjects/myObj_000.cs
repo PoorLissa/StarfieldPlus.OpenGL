@@ -20,7 +20,7 @@ namespace my
 
         protected static int drawMode = 0;
         private static int N = 0, staticStarsN = 0, shape = 0;
-        private static bool doClearBuffer = false, doFillShapes = false;
+        private static bool doFillShapes = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -335,11 +335,39 @@ namespace my
             double dist = Math.Sqrt((x - gl_x0) * (x- gl_x0) + (y - gl_x0) * (y - gl_x0));
             double sp_dist = speed / dist;
 
+#if true
             dx = (float)((x - gl_x0) * sp_dist);
             dy = (float)((y - gl_x0) * sp_dist);
 
             y = (y - (gl_Width - gl_Height) / 2);
+#else
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
 
+            if (y < gl_y0 && x > gl_x0)
+            {
+                dy = -(float)((x - gl_x0) * sp_dist);
+                dx = +(float)((y - gl_y0) * sp_dist);
+            }
+
+            if (y < gl_y0 && x < gl_x0)
+            {
+                dy = -(float)((x - gl_x0) * sp_dist);
+                dx = +(float)((y - gl_y0) * sp_dist);
+            }
+
+            if (y > gl_y0 && x < gl_x0)
+            {
+                dy = -(float)((x - gl_x0) * sp_dist);
+                dx = +(float)((y - gl_y0) * sp_dist);
+            }
+
+            if (y > gl_y0 && x > gl_x0)
+            {
+                dy = -(float)((x - gl_x0) * sp_dist);
+                dx = +(float)((y - gl_y0) * sp_dist);
+            }
+#endif
             size = 0;
         }
 

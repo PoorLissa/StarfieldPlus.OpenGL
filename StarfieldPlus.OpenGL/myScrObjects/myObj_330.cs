@@ -30,7 +30,7 @@ namespace my
         static int[] prm_i = new int[7];
         static int mode = 0, oldRenderDelay = -1;
 
-        static bool doClearBuffer = false, doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawLines = false;
+        static bool doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawLines = false;
         static float dimAlpha = 0.05f, t = 0, dt = 0;
         static float[] prm_f = new float[2];
 

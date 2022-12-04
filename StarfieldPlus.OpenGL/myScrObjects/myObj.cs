@@ -43,6 +43,8 @@ namespace my
         protected static BgrDrawMode bgrDrawMode = BgrDrawMode.NEVER;
         protected static float       bgrOpacity = 0.01f;
 
+        protected static bool doClearBuffer = true;
+
         // -------------------------------------------------------------------------
 
         public myObject()
@@ -335,6 +337,35 @@ namespace my
 
             rich.Dispose();
             form.Dispose();
+
+            return;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Dim the screen constantly
+        protected virtual void dimScreen(float dimAlpha, bool doShiftColor = false, bool useStrongerDimFactor = false)
+        {
+            int rnd = rand.Next(101), dimFactor = 1;
+
+            if (useStrongerDimFactor && rnd < 11)
+            {
+                dimFactor = (rnd == 0) ? 5 : 2;
+            }
+
+            myPrimitive._Rectangle.SetAngle(0);
+
+            if (doShiftColor)
+            {
+                // Shift background color just a bit, to hide long lasting traces of shapes
+                myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
+            }
+            else
+            {
+                myPrimitive._Rectangle.SetColor(0, 0, 0, dimAlpha * dimFactor);
+            }
+
+            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
 
             return;
         }
