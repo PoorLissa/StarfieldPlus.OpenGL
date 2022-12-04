@@ -19,7 +19,7 @@ namespace my
         private static int shapeType = 0, mode = 0, colorMode = 0;
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
 
-        static int[] prm_i = new int[5];
+        static int[] prm_i = new int[6];
         static int max = 0;
         static bool moveStep = false;
 
@@ -53,8 +53,8 @@ namespace my
         {
             N = rand.Next(500) + 25;
 
-            doClearBuffer = myUtils.randomChance(rand, 1, 2);
-            colorMode = rand.Next(3);
+            doClearBuffer = myUtils.randomChance(rand, 4, 5);
+            colorMode = rand.Next(4);
             max = rand.Next(3) + 3;
             mode = rand.Next(5);
 
@@ -69,6 +69,7 @@ namespace my
             prm_i[2] = rand.Next(5) + 1;                                            // Slowness factor for dx/dy
             prm_i[3] = rand.Next(7);                                                // Drawing style for interconnection lines (parallel vs crossed)
             prm_i[4] = rand.Next(7);                                                // In modes 0-2, dx or dy will be zero
+            prm_i[5] = rand.Next(2);                                                // For large N and when prm_i[2] > 3, chance to have fast moving particles
 
             switch (mode)
             {
@@ -147,6 +148,12 @@ namespace my
                 case 2:
                     colorPicker.getColor(x, y, ref r, ref g, ref b);
                     break;
+
+                case 3:
+                    r = myUtils.randFloat(rand, 0.1f);
+                    g = myUtils.randFloat(rand, 0.1f);
+                    b = myUtils.randFloat(rand, 0.1f);
+                    break;
             }
 
             switch (prm_i[4])
@@ -167,8 +174,16 @@ namespace my
                     break;
             }
 
-            dx /= prm_i[2];
-            dy /= prm_i[2];
+            if (N > 50 && prm_i[5] == 1 && rand.Next(111) == 0)
+            {
+                dx *= 1.1f;
+                dy *= 1.1f;
+            }
+            else
+            {
+                dx /= prm_i[2];
+                dy /= prm_i[2];
+            }
 
             a = 0.85f;
             size = max;
@@ -273,12 +288,12 @@ namespace my
 
         protected override void Show()
         {
-            float lineOpacity = 0.1f;
-
             // Render connecting lines
             for (int i = 0; i < list.Count; i++)
             {
                 var obj = list[i] as myObj_310;
+
+                float lineOpacity = 0.1f;
 
                 if (obj != this)
                 {
@@ -289,7 +304,17 @@ namespace my
                     switch (prm_i[0])
                     {
                         case 0:
-                            // Const opacity
+                            // Const opacity (adjusted for N)
+                            {
+                                if (N > 500)
+                                    lineOpacity -= N * 0.000175f;
+                                else if (N > 450)
+                                    lineOpacity -= N * 0.000185f;
+                                else if (N > 333)
+                                    lineOpacity -= N * 0.00020f;
+                                else
+                                    lineOpacity -= N * 0.00025f;
+                            }
                             break;
 
                         case 1:
