@@ -532,7 +532,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
-            myPrimitive.init_LineInst(N * N + N * 2);
+            myPrimitive.init_LineInst(N * (N-1) + N * 2);
 
             base.initShapes(shapeType, 2*N, 0);
 
