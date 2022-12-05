@@ -151,11 +151,15 @@ public class myInstancedPrimitive : myPrimitive
 
     // ---------------------------------------------------------------------------------------
 
-    protected virtual unsafe void updateInstances() { }
+    protected virtual unsafe void updateInstances()
+    {
+    }
 
     // ---------------------------------------------------------------------------------------
 
-    public virtual void Draw(bool doFill = false) { }
+    public virtual void Draw(bool doFill = false)
+    {
+    }
 
     // ---------------------------------------------------------------------------------------
 

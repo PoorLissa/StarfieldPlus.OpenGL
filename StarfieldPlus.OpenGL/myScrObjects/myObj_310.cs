@@ -55,7 +55,7 @@ namespace my
 
             doClearBuffer = myUtils.randomChance(rand, 4, 5);
             colorMode = rand.Next(4);
-            max = rand.Next(3) + 3;
+            max = rand.Next(11) + 3;
             mode = rand.Next(5);
 
             // Reset parameter values
@@ -67,9 +67,12 @@ namespace my
             prm_i[0] = rand.Next(5);                                                // Interconnection lines drawing mode
             prm_i[1] = rand.Next(15);                                               // Draw vertical lines (in case of 1)
             prm_i[2] = rand.Next(5) + 1;                                            // Slowness factor for dx/dy
-            prm_i[3] = rand.Next(7);                                                // Drawing style for interconnection lines (parallel vs crossed)
+            prm_i[3] = rand.Next(9);                                                // Drawing style for interconnection lines (parallel vs crossed)
             prm_i[4] = rand.Next(7);                                                // In modes 0-2, dx or dy will be zero
             prm_i[5] = rand.Next(2);                                                // For large N and when prm_i[2] > 3, chance to have fast moving particles
+
+            dimAlpha /= (0.1f + 0.1f * rand.Next(20));
+            dt = 0.025f;
 
             switch (mode)
             {
@@ -78,11 +81,16 @@ namespace my
                 case 02:
                 case 03:
                 case 04:
-                    dimAlpha /= (0.1f  + 0.1f * rand.Next(20));
-                    dt = 0.025f;
                     break;
             }
 
+#if false
+            N = 4;
+            max = 20;
+            prm_i[0] = 0;
+            prm_i[3] = 8;
+            doClearBuffer = true;
+#endif
             N += 4;
         }
 
@@ -372,6 +380,19 @@ namespace my
                         case 5:
                         case 6:
                             myPrimitive._LineInst.setInstanceCoords(obj.x + prm_i[3] - 3, obj.y, x - prm_i[3] + 3, y);
+                            break;
+
+                        // Parallel, the square angles are connected
+                        case 7:
+                            if (obj.id < id)
+                                myPrimitive._LineInst.setInstanceCoords(obj.x - size + 1, obj.y - size + 1, x - size + 1, y - size + 1);
+                            else
+                                myPrimitive._LineInst.setInstanceCoords(obj.x + size - 1, obj.y + size - 1, x + size - 1, y + size - 1);
+                            break;
+
+                        // Crossed, the square angles are connected
+                        case 8:
+                            myPrimitive._LineInst.setInstanceCoords(obj.x - size + 1, obj.y - size + 1, x + size - 1, y + size - 1);
                             break;
                     }
 
