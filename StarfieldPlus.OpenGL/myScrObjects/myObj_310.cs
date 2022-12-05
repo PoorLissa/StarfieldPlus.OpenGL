@@ -28,6 +28,8 @@ namespace my
 
         private myObj_310 left = null, right = null;
 
+        private static float X = 0, Y = 0;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_310()
@@ -51,12 +53,15 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            X = gl_x0 + (float)Math.Sin(t) * 666;
+            Y = gl_y0 + (float)Math.Cos(t) * 666;
+
             N = rand.Next(500) + 25;
 
             doClearBuffer = myUtils.randomChance(rand, 4, 5);
             colorMode = rand.Next(4);
             max = rand.Next(11) + 3;
-            mode = rand.Next(5);
+            mode = rand.Next(9);
 
             // Reset parameter values
             {
@@ -64,7 +69,7 @@ namespace my
                     prm_i[i] = 0;
             }
 
-            prm_i[0] = rand.Next(5);                                                // Interconnection lines drawing mode
+            prm_i[0] = rand.Next(6);                                                // Interconnection lines drawing mode (affects distance and opacity factor calculation)
             prm_i[1] = rand.Next(15);                                               // Draw vertical lines (in case of 1)
             prm_i[2] = rand.Next(5) + 1;                                            // Slowness factor for dx/dy
             prm_i[3] = rand.Next(9);                                                // Drawing style for interconnection lines (parallel vs crossed)
@@ -81,6 +86,10 @@ namespace my
                 case 02:
                 case 03:
                 case 04:
+                case 05:
+                case 06:
+                case 07:
+                case 08:
                     break;
             }
 
@@ -138,6 +147,29 @@ namespace my
                 case 04:
                     dx = myUtils.randFloat(rand, 0.1f) * (rand.Next(50) + 1) * myUtils.randomSign(rand);
                     dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(50) + 1) * myUtils.randomSign(rand);
+                    break;
+
+                case 05:
+                    dx = (0.5f + 0.5f * rand.Next(13)) * myUtils.randomSign(rand);
+                    dy = (0.5f + 0.5f * rand.Next(13)) * myUtils.randomSign(rand);
+                    break;
+
+                case 06:
+                case 07:
+                    dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+                    dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+                    break;
+
+                case 08:
+                    {
+                        x = gl_x0;
+                        y = gl_y0;
+
+                        double sp_dist = (50 + rand.Next(100)) / 6660.0;
+
+                        dx = (float)((X - gl_x0) * sp_dist);
+                        dy = (float)((Y - gl_y0) * sp_dist);
+                    }
                     break;
             }
 
@@ -214,6 +246,12 @@ namespace my
             {
                 x += dx;
                 y += dy;
+
+                if (id == 0)
+                {
+                    X = gl_x0 + (float)Math.Sin(t * 2.5f) * 666;
+                    Y = gl_y0 + (float)Math.Cos(t * 2.5f) * 666;
+                }
             }
             else
             {
@@ -286,6 +324,37 @@ namespace my
                                 dy *= -1;
                         }
                         break;
+
+                    case 05:
+                        if (x < -50)
+                            x = gl_Width + 50;
+                        else if (x > gl_Width + 50)
+                            x = -50;
+
+                        if (y < -50)
+                            y = gl_Height + 50;
+                        else if (y > gl_Height + 50)
+                            y = -50;
+                        break;
+
+                    case 06:
+                        if (x < -50 || x > gl_Width + 50 || y < -50 || y > gl_Height + 50)
+                        {
+                            x = gl_x0;
+                            y = gl_y0;
+                        }
+                        break;
+
+                    case 07:
+                    case 08:
+                        if (x < -50 || x > gl_Width + 50 || y < -50 || y > gl_Height + 50)
+                        {
+                            a -= 0.05f;
+
+                            if (a <= 0)
+                                generateNew();
+                        }
+                        break;
                 }
             }
 
@@ -296,6 +365,12 @@ namespace my
 
         protected override void Show()
         {
+            if (false)
+            {
+                myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
+                myPrimitive._Rectangle.Draw(X - 10, Y - 10, 20, 20, true);
+            }
+
             // Render connecting lines
             for (int i = 0; i < list.Count; i++)
             {
@@ -352,6 +427,19 @@ namespace my
                             else
                                 lineOpacity = (float)((gl_Height * 0.05f) / dist2);
                             break;
+
+                        case 5:
+                            {
+                                lineOpacity = 0;
+                                int zzz = 234;
+
+                                if (xx > -zzz && xx < zzz && yy > -zzz && yy < zzz)
+                                {
+                                    dist2 += (float)Math.Sqrt(xx * xx + yy * yy);
+                                    lineOpacity = (float)(zzz / dist2 / 3);
+                                }
+                            }
+                            break;
                     }
 
                     if (doClearBuffer == false)
@@ -359,44 +447,47 @@ namespace my
                         lineOpacity /= (N < 300) ? 3 : 7;
                     }
 
-                    switch (prm_i[3])
+                    if (lineOpacity > 0)
                     {
-                        case 0:
-                            myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
-                            break;
+                        switch (prm_i[3])
+                        {
+                            case 0:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
+                                break;
 
-                        // Parallel
-                        case 1:
-                        case 2:
-                        case 3:
-                            if (obj.id < id)
-                                myPrimitive._LineInst.setInstanceCoords(obj.x + prm_i[3], obj.y, x + prm_i[3], y);
-                            else
-                                myPrimitive._LineInst.setInstanceCoords(obj.x - prm_i[3], obj.y, x - prm_i[3], y);
-                            break;
+                            // Parallel
+                            case 1:
+                            case 2:
+                            case 3:
+                                if (obj.id < id)
+                                    myPrimitive._LineInst.setInstanceCoords(obj.x + prm_i[3], obj.y, x + prm_i[3], y);
+                                else
+                                    myPrimitive._LineInst.setInstanceCoords(obj.x - prm_i[3], obj.y, x - prm_i[3], y);
+                                break;
 
-                        // Crossed
-                        case 4:
-                        case 5:
-                        case 6:
-                            myPrimitive._LineInst.setInstanceCoords(obj.x + prm_i[3] - 3, obj.y, x - prm_i[3] + 3, y);
-                            break;
+                            // Crossed
+                            case 4:
+                            case 5:
+                            case 6:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x + prm_i[3] - 3, obj.y, x - prm_i[3] + 3, y);
+                                break;
 
-                        // Parallel, the square angles are connected
-                        case 7:
-                            if (obj.id < id)
-                                myPrimitive._LineInst.setInstanceCoords(obj.x - size + 1, obj.y - size + 1, x - size + 1, y - size + 1);
-                            else
-                                myPrimitive._LineInst.setInstanceCoords(obj.x + size - 1, obj.y + size - 1, x + size - 1, y + size - 1);
-                            break;
+                            // Parallel, the TL and BR angles are connected
+                            case 7:
+                                if (obj.id < id)
+                                    myPrimitive._LineInst.setInstanceCoords(obj.x - size + 1, obj.y - size + 1, x - size + 1, y - size + 1);
+                                else
+                                    myPrimitive._LineInst.setInstanceCoords(obj.x + size - 1, obj.y + size - 1, x + size - 1, y + size - 1);
+                                break;
 
-                        // Crossed, the square angles are connected
-                        case 8:
-                            myPrimitive._LineInst.setInstanceCoords(obj.x - size + 1, obj.y - size + 1, x + size - 1, y + size - 1);
-                            break;
+                            // Parallel, the TL and BR angles are connected
+                            case 8:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x - size + 1, obj.y - size + 1, x + size - 1, y + size - 1);
+                                break;
+                        }
+
+                        myPrimitive._LineInst.setInstanceColor(r, g, b, lineOpacity);
                     }
-
-                    myPrimitive._LineInst.setInstanceColor(r, g, b, lineOpacity);
                 }
             }
 
