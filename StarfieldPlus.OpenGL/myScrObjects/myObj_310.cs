@@ -68,8 +68,8 @@ namespace my
             slowFactor = rand.Next(5) + 1;                                          // Slowness factor for dx and/or dy
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
-            mode = rand.Next(12);
-            mode = 8;
+            mode = rand.Next(13);
+            //mode = 12;
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
@@ -88,7 +88,6 @@ namespace my
             switch (mode)
             {
                 case 08:
-                    axisMode = 7;
                     doCreateAtOnce = false;
                     break;
 
@@ -99,6 +98,12 @@ namespace my
                 case 11:
                     prm_i[0] = (short)(rand.Next(4) + 1);                           // Probability used in this mode; must be 1-2 or 8-9
                     prm_i[0] += (short)((prm_i[0] > 2) ? 5 : 0);
+                    break;
+
+                // Particles start as static, but eventually begin accelerating gradually
+                case 12:
+                    doClearBuffer = true;
+                    prm_i[0] = (short)(50 + rand.Next(321));                        // Probability that the particle starts moving / continues accelerating
                     break;
             }
 
@@ -180,11 +185,24 @@ namespace my
 
                 case 08:
                     {
-                        x = gl_x0;
-                        y = gl_y0;
+                        switch (axisMode)
+                        {
+                            case 0:
+                                y = gl_y0;
+                                break;
 
-                        float dX = X - x;
-                        float dY = Y - y;
+                            case 1:
+                                x = gl_x0;
+                                break;
+
+                            default:
+                                x = gl_x0;
+                                y = gl_y0;
+                                break;
+                        }
+
+                        float dX = X - gl_x0;
+                        float dY = Y - gl_y0;
 
                         float dist2 = (float)Math.Sqrt(dX * dX + dY * dY);
                         float sp_dist = (50 + rand.Next(100)) / dist2 / 10;
@@ -233,6 +251,11 @@ namespace my
                         dy = 0;
                         dx /= 5;
                     }
+                    break;
+
+                case 12:
+                    offset = 100 + rand.Next(50 + N);
+                    dx = dy = 0;
                     break;
             }
 
@@ -493,6 +516,42 @@ namespace my
 
                         if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
                             generateNew();
+                        break;
+
+                    case 12:
+                        {
+                            if (myUtils.randomChance(rand, 1, prm_i[0]) && axisMode != 0)
+                            {
+                                if (dx == 0)
+                                {
+                                    if (axisMode != 2 || (axisMode == 2 && dy == 0))
+                                        dx += myUtils.randomSign(rand) * 0.1f;
+                                }
+                                else
+                                {
+                                    dx += myUtils.signOf(dx) * 0.1f;
+                                }
+                            }
+
+                            if (myUtils.randomChance(rand, 1, prm_i[0]) && axisMode != 1)
+                            {
+                                if (dy == 0)
+                                {
+                                    if (axisMode != 2 || (axisMode == 2 && dx == 0))
+                                        dy += myUtils.randomSign(rand) * 0.1f;
+                                }
+                                else
+                                {
+                                    dy += myUtils.signOf(dy) * 0.1f;
+                                }
+                            }
+
+                            if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                                generateNew();
+
+                            if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                                generateNew();
+                        }
                         break;
                 }
             }
