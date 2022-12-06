@@ -342,6 +342,11 @@ namespace my
                         {
                             x = gl_x0;
                             y = gl_y0;
+
+                            if (myUtils.randomChance(rand, 1, 2))
+                            {
+                                myUtils.swap<float>(ref dx, ref dy);
+                            }
                         }
                         break;
 
