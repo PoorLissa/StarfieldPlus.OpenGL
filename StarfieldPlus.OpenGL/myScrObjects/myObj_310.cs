@@ -16,7 +16,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         private static int N = 0;
-        private static int shapeType = 0, mode = 0, colorMode = 0;
+        private static int mode = 0, colorMode = 0, shape = 0;
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
 
         private static short[] prm_i = new short[3];
@@ -26,7 +26,6 @@ namespace my
 
         private float x, y, dx, dy, size, r, g, b, a;
         private int offset = 0;
-        private int shape = 0;
 
         private static float X = 0, Y = 0;
 
@@ -68,6 +67,7 @@ namespace my
             slowFactor = rand.Next(5) + 1;                                          // Slowness factor for dx and/or dy
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
+            shape = rand.Next(5);
             mode = rand.Next(13);
             //mode = 12;
 
@@ -721,6 +721,54 @@ namespace my
                         rectInst.setInstanceAngle(i == 0 ? t : 0);
                     }
                     break;
+
+                case 1:
+                    var triangleInst = inst as myTriangleInst;
+
+                    for (int i = 0; i < 2; i++)
+                    {
+                        int val1 = (int)(size - 2 * i);
+
+                        triangleInst.setInstanceCoords(x, y, val1, i == 0 ? t : 0);
+                        triangleInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
+                    }
+                    break;
+
+                case 2:
+                    var ellipseInst = inst as myEllipseInst;
+
+                    for (int i = 0; i < 2; i++)
+                    {
+                        int val1 = (int)(size - 2 * i);
+
+                        ellipseInst.setInstanceCoords(x, y, 2 * val1, 0);
+                        ellipseInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
+                    }
+                    break;
+
+                case 3:
+                    var pentagonInst = inst as myPentagonInst;
+
+                    for (int i = 0; i < 2; i++)
+                    {
+                        int val1 = (int)(size - 2 * i);
+
+                        pentagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
+                        pentagonInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
+                    }
+                    break;
+
+                case 4:
+                    var hexagonInst = inst as myHexagonInst;
+
+                    for (int i = 0; i < 2; i++)
+                    {
+                        int val1 = (int)(size - 2 * i);
+
+                        hexagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
+                        hexagonInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
+                    }
+                    break;
             }
 
             return;
@@ -833,7 +881,7 @@ namespace my
             myPrimitive.init_Rectangle();
             myPrimitive.init_LineInst(N * (N-1) + N * 2);
 
-            base.initShapes(shapeType, 2*N, 0);
+            base.initShapes(shape, 2*N, 0);
 
             return;
         }
