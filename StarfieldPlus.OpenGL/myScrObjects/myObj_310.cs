@@ -19,11 +19,12 @@ namespace my
         private static int shapeType = 0, mode = 0, colorMode = 0;
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
 
-        static int[] prm_i = new int[6];
-        static int max = 0;
-        static bool moveStep = false;
+        private static int[] prm_i = new int[6];
+        private static int max = 0;
+        private static bool moveStep = false;
 
         private float x, y, dx, dy, size, r, g, b, a;
+        private int offset = 0;
         private int shape = 0;
 
         private myObj_310 left = null, right = null;
@@ -61,7 +62,8 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 4, 5);
             colorMode = rand.Next(4);
             max = rand.Next(11) + 3;
-            mode = rand.Next(9);
+            mode = rand.Next(11);
+            mode = 10;
 
             // Reset parameter values
             {
@@ -73,7 +75,7 @@ namespace my
             prm_i[1] = rand.Next(15);                                               // Draw vertical lines (in case of 1)
             prm_i[2] = rand.Next(5) + 1;                                            // Slowness factor for dx/dy
             prm_i[3] = rand.Next(9);                                                // Drawing style for interconnection lines (parallel vs crossed)
-            prm_i[4] = rand.Next(7);                                                // In modes 0-2, dx or dy will be zero
+            prm_i[4] = rand.Next(7);                                                // In modes 0-2, dx or dy will be zero; in mode 9 the same
             prm_i[5] = rand.Next(2);                                                // For large N and when prm_i[2] > 3, chance to have fast moving particles
 
             dimAlpha /= (0.1f + 0.1f * rand.Next(20));
@@ -90,6 +92,7 @@ namespace my
                 case 06:
                 case 07:
                 case 08:
+                case 09:
                     break;
             }
 
@@ -171,6 +174,71 @@ namespace my
                         dy = (float)((Y - gl_y0) * sp_dist);
                     }
                     break;
+
+                case 09:
+                    dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+                    dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+
+                    offset = 100 + rand.Next(50 + N);
+
+                    switch (prm_i[4])
+                    {
+                        case 0:
+                        case 1:
+                            dx = 0;
+                            break;
+
+                        case 2:
+                        case 3:
+                            dy = 0;
+                            break;
+
+                        case 4:
+                            if (myUtils.randomChance(rand, 1, 7))
+                                dx = 0;
+                            else
+                                dy = 0;
+                            break;
+
+                        case 5:
+                            if (myUtils.randomChance(rand, 1, 7))
+                                dy = 0;
+                            else
+                                dx = 0;
+                            break;
+
+                        default:
+                            if (myUtils.randomChance(rand, 1, 2))
+                                dx = 0;
+                            else
+                                dy = 0;
+                            break;
+                    }
+                    break;
+
+                case 10:
+
+                    dx = (0.5f + 0.5f * rand.Next(99)) * myUtils.randomSign(rand);
+                    dy = (0.5f + 0.5f * rand.Next(15)) * myUtils.randomSign(rand);
+
+                    // keep this mode and other 2 ((rand, 8, 10) / (rand, 2, 10))
+
+                    //dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+                    //dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+
+                    offset = 100 + rand.Next(50 + N);
+/*
+                    if (myUtils.randomChance(rand, 8, 10))
+                    {
+                        dx = 0;
+                        dy *= 5;
+                    }
+                    else
+                    {
+                        dy = 0;
+                        dx /= 5;
+                    }*/
+                    break;
             }
 
             switch (colorMode)
@@ -196,22 +264,25 @@ namespace my
                     break;
             }
 
-            switch (prm_i[4])
+            if (mode < 9)
             {
-                case 0:
-                    dx = 0.0f;
-                    break;
+                switch (prm_i[4])
+                {
+                    case 0:
+                        dx = 0.0f;
+                        break;
 
-                case 1:
-                    dy = 0.0f;
-                    break;
+                    case 1:
+                        dy = 0.0f;
+                        break;
 
-                case 2:
-                    if (myUtils.randomChance(rand, 1, 2))
-                        dx = 0;
-                    else
-                        dy = 0;
-                    break;
+                    case 2:
+                        if (myUtils.randomChance(rand, 1, 2))
+                            dx = 0;
+                        else
+                            dy = 0;
+                        break;
+                }
             }
 
             if (N > 50 && prm_i[5] == 1 && rand.Next(111) == 0)
@@ -359,6 +430,22 @@ namespace my
                             if (a <= 0)
                                 generateNew();
                         }
+                        break;
+
+                    case 09:
+                        if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                            dx *= -1;
+
+                        if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                            dy *= -1;
+                        break;
+
+                    case 10:
+                        if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                            generateNew();
+
+                        if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                            generateNew();
                         break;
                 }
             }
