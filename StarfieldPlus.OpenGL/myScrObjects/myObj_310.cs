@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Triangulation (experimental unfinished)
+    - Moving particles interconnected with each other
 */
 
 
@@ -19,15 +19,14 @@ namespace my
         private static int shapeType = 0, mode = 0, colorMode = 0;
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
 
-        private static int[] prm_i = new int[6];
-        private static int max = 0;
+        private static short[] prm_i = new short[3];
+        private static int max = 0, xRad = 666, yRad = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0;
         private static bool moveStep = false;
+        private static bool doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false;
 
         private float x, y, dx, dy, size, r, g, b, a;
         private int offset = 0;
         private int shape = 0;
-
-        private myObj_310 left = null, right = null;
 
         private static float X = 0, Y = 0;
 
@@ -54,16 +53,28 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            X = gl_x0 + (float)Math.Sin(t) * 666;
-            Y = gl_y0 + (float)Math.Cos(t) * 666;
+            xRad += myUtils.randomChance(rand, 1, 2) ? 0 : rand.Next(1234);
+
+            X = gl_x0 + (float)Math.Sin(t) * xRad;
+            Y = gl_y0 + (float)Math.Cos(t) * yRad;
 
             N = rand.Next(500) + 25;
 
             doClearBuffer = myUtils.randomChance(rand, 4, 5);
+            doCreateAtOnce = myUtils.randomChance(rand, 1, 2);
             colorMode = rand.Next(4);
-            max = rand.Next(11) + 3;
-            mode = rand.Next(11);
-            mode = 10;
+            lineMode = rand.Next(6);                                                // Interconnection lines drawing mode (affects distance and opacity factor calculation)
+            lineStyle = rand.Next(9);                                               // Drawing style for interconnection lines (parallel vs crossed)
+            slowFactor = rand.Next(5) + 1;                                          // Slowness factor for dx and/or dy
+            axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
+            max = rand.Next(11) + 3;                                                // Particle size
+            mode = rand.Next(12);
+            mode = 8;
+
+            isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
+            isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
+            isFastMoving = myUtils.randomChance(rand, 1, 2);                        // For large N and when slowFactor > 3, chance to have fast moving particles
+            isRandomSize = myUtils.randomChance(rand, 1, 3);                        // Use particles of different size
 
             // Reset parameter values
             {
@@ -71,58 +82,62 @@ namespace my
                     prm_i[i] = 0;
             }
 
-            prm_i[0] = rand.Next(6);                                                // Interconnection lines drawing mode (affects distance and opacity factor calculation)
-            prm_i[1] = rand.Next(15);                                               // Draw vertical lines (in case of 1)
-            prm_i[2] = rand.Next(5) + 1;                                            // Slowness factor for dx/dy
-            prm_i[3] = rand.Next(9);                                                // Drawing style for interconnection lines (parallel vs crossed)
-            prm_i[4] = rand.Next(7);                                                // In modes 0-2, dx or dy will be zero; in mode 9 the same
-            prm_i[5] = rand.Next(2);                                                // For large N and when prm_i[2] > 3, chance to have fast moving particles
-
             dimAlpha /= (0.1f + 0.1f * rand.Next(20));
             dt = 0.025f;
 
             switch (mode)
             {
-                case 00:
-                case 01:
-                case 02:
-                case 03:
-                case 04:
-                case 05:
-                case 06:
-                case 07:
                 case 08:
-                case 09:
+                    axisMode = 7;
+                    doCreateAtOnce = false;
+                    break;
+
+                case 10:
+                    prm_i[0] = (short)rand.Next(2);                                 // Generate particles in-screen or off-screen
+                    break;
+
+                case 11:
+                    prm_i[0] = (short)(rand.Next(4) + 1);                           // Probability used in this mode; must be 1-2 or 8-9
+                    prm_i[0] += (short)((prm_i[0] > 2) ? 5 : 0);
                     break;
             }
 
 #if false
             N = 4;
             max = 20;
-            prm_i[0] = 0;
-            prm_i[3] = 8;
+            lineMode = 0;
+            lineStyle = 8;
             doClearBuffer = true;
 #endif
-            N += 4;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str_params = "";
+            height += 100;
 
+            string str_params = "";
             for (int i = 0; i < prm_i.Length; i++)
             {
                 str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
             }
 
             string str = $"Obj = myObj_310\n\n" +
-                            $"N = {N}\n" +
+                            $"N = {list.Count} of {N}\n" +
                             $"mode = {mode}\n" +
+                            $"max = {max}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
                             $"doClearBuffer = {doClearBuffer}\n" +
+                            $"isAggregateOpacity = {isAggregateOpacity}\n" +
+                            $"isVerticalLine = {isVerticalLine}\n" +
+                            $"isFastMoving = {isFastMoving}\n" +
+                            $"isRandomSize = {isRandomSize}\n" +
                             $"colorMode = {colorMode}\n" +
+                            $"lineMode = {lineMode}\n" +
+                            $"lineStyle = {lineStyle}\n" +
+                            $"slowFactor = {slowFactor}\n" +
+                            $"axisMode = {axisMode}\n" +
                             $"param: [{str_params}]\n\n" +
                             $"file: {colorPicker.GetFileName()}" + 
                             $""
@@ -168,10 +183,14 @@ namespace my
                         x = gl_x0;
                         y = gl_y0;
 
-                        double sp_dist = (50 + rand.Next(100)) / 6660.0;
+                        float dX = X - x;
+                        float dY = Y - y;
 
-                        dx = (float)((X - gl_x0) * sp_dist);
-                        dy = (float)((Y - gl_y0) * sp_dist);
+                        float dist2 = (float)Math.Sqrt(dX * dX + dY * dY);
+                        float sp_dist = (50 + rand.Next(100)) / dist2 / 10;
+
+                        dx = dX * sp_dist;
+                        dy = dY * sp_dist;
                     }
                     break;
 
@@ -181,7 +200,71 @@ namespace my
 
                     offset = 100 + rand.Next(50 + N);
 
-                    switch (prm_i[4])
+                    // Is modified into vertical/horizontal pattern a bit below
+                    break;
+
+                case 10:
+                    offset = 100 + rand.Next(50 + N);
+
+                    dx = (0.5f + 0.5f * rand.Next(99)) * myUtils.randomSign(rand);
+                    dy = (0.5f + 0.5f * rand.Next(15)) * myUtils.randomSign(rand);
+
+                    if (prm_i[0] == 1)
+                    {
+                        // generate particles off-screen -- fox x axis only
+                        x = (dx > 0) ? -50 : gl_Width + 50;
+                    }
+                    break;
+
+                case 11:
+                    offset = 100 + rand.Next(50 + N);
+
+                    dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+                    dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+
+                    // This translates to (1 out of 10), (2 out of 10), (8 out of 10) or (9 out of 10)
+                    if (myUtils.randomChance(rand, prm_i[0], 10))
+                    {
+                        dx = 0;
+                        dy *= 5;
+                    }
+                    else
+                    {
+                        dy = 0;
+                        dx /= 5;
+                    }
+                    break;
+            }
+
+            // Transform movement into vertical and/or horizontal
+            {
+                if (mode < 9)
+                {
+                    switch (axisMode)
+                    {
+                        case 0:
+                            dx = 0.0f;
+                            break;
+
+                        case 1:
+                            dy = 0.0f;
+                            break;
+
+                        case 2:
+                            if (myUtils.randomChance(rand, 1, 2))
+                                dx = 0;
+                            else
+                                dy = 0;
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                if (mode == 9)
+                {
+                    switch (axisMode)
                     {
                         case 0:
                         case 1:
@@ -214,33 +297,22 @@ namespace my
                                 dy = 0;
                             break;
                     }
-                    break;
-
-                case 10:
-
-                    dx = (0.5f + 0.5f * rand.Next(99)) * myUtils.randomSign(rand);
-                    dy = (0.5f + 0.5f * rand.Next(15)) * myUtils.randomSign(rand);
-
-                    // keep this mode and other 2 ((rand, 8, 10) / (rand, 2, 10))
-
-                    //dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
-                    //dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
-
-                    offset = 100 + rand.Next(50 + N);
-/*
-                    if (myUtils.randomChance(rand, 8, 10))
-                    {
-                        dx = 0;
-                        dy *= 5;
-                    }
-                    else
-                    {
-                        dy = 0;
-                        dx /= 5;
-                    }*/
-                    break;
+                }
             }
 
+            // Apply slowness factor
+            if (N > 50 && isFastMoving && rand.Next(111) == 0)
+            {
+                dx *= 1.1f;
+                dy *= 1.1f;
+            }
+            else
+            {
+                dx /= slowFactor;
+                dy /= slowFactor;
+            }
+
+            // Get color
             switch (colorMode)
             {
                 case 0:
@@ -264,40 +336,8 @@ namespace my
                     break;
             }
 
-            if (mode < 9)
-            {
-                switch (prm_i[4])
-                {
-                    case 0:
-                        dx = 0.0f;
-                        break;
-
-                    case 1:
-                        dy = 0.0f;
-                        break;
-
-                    case 2:
-                        if (myUtils.randomChance(rand, 1, 2))
-                            dx = 0;
-                        else
-                            dy = 0;
-                        break;
-                }
-            }
-
-            if (N > 50 && prm_i[5] == 1 && rand.Next(111) == 0)
-            {
-                dx *= 1.1f;
-                dy *= 1.1f;
-            }
-            else
-            {
-                dx /= prm_i[2];
-                dy /= prm_i[2];
-            }
-
             a = 0.85f;
-            size = max;
+            size = isRandomSize ? rand.Next(max) + 3 : max;
 
             return;
         }
@@ -313,6 +353,9 @@ namespace my
 
         protected override void Move()
         {
+            // Movement is calculated in 2 steps;
+            //  - step 1 (moveStep == false) calculates all the dx/dy for each particle
+            //  - step 2 (moveStep == true ) just recalcs all xs and ys
             if (moveStep == true)
             {
                 x += dx;
@@ -320,8 +363,8 @@ namespace my
 
                 if (id == 0)
                 {
-                    X = gl_x0 + (float)Math.Sin(t * 2.5f) * 666;
-                    Y = gl_y0 + (float)Math.Cos(t * 2.5f) * 666;
+                    X = gl_x0 + (float)Math.Sin(t * 2.5f) * xRad;
+                    Y = gl_y0 + (float)Math.Cos(t * 2.5f) * yRad;
                 }
             }
             else
@@ -425,6 +468,9 @@ namespace my
                     case 08:
                         if (x < -50 || x > gl_Width + 50 || y < -50 || y > gl_Height + 50)
                         {
+                            if (a > 1)
+                                a = 1;
+
                             a -= 0.05f;
 
                             if (a <= 0)
@@ -441,6 +487,7 @@ namespace my
                         break;
 
                     case 10:
+                    case 11:
                         if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
                             generateNew();
 
@@ -463,6 +510,9 @@ namespace my
                 myPrimitive._Rectangle.Draw(X - 10, Y - 10, 20, 20, true);
             }
 
+            if (isAggregateOpacity)
+                a = 0;
+
             // Render connecting lines
             for (int i = 0; i < list.Count; i++)
             {
@@ -476,7 +526,7 @@ namespace my
                     float yy = obj.y - y;
                     float dist2 = 0.0001f;
 
-                    switch (prm_i[0])
+                    switch (lineMode)
                     {
                         case 0:
                             // Const opacity (adjusted for N)
@@ -541,7 +591,7 @@ namespace my
 
                     if (lineOpacity > 0)
                     {
-                        switch (prm_i[3])
+                        switch (lineStyle)
                         {
                             case 0:
                                 myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
@@ -552,16 +602,16 @@ namespace my
                             case 2:
                             case 3:
                                 if (obj.id < id)
-                                    myPrimitive._LineInst.setInstanceCoords(obj.x + prm_i[3], obj.y, x + prm_i[3], y);
+                                    myPrimitive._LineInst.setInstanceCoords(obj.x + lineStyle, obj.y, x + lineStyle, y);
                                 else
-                                    myPrimitive._LineInst.setInstanceCoords(obj.x - prm_i[3], obj.y, x - prm_i[3], y);
+                                    myPrimitive._LineInst.setInstanceCoords(obj.x - lineStyle, obj.y, x - lineStyle, y);
                                 break;
 
                             // Crossed
                             case 4:
                             case 5:
                             case 6:
-                                myPrimitive._LineInst.setInstanceCoords(obj.x + prm_i[3] - 3, obj.y, x - prm_i[3] + 3, y);
+                                myPrimitive._LineInst.setInstanceCoords(obj.x + lineStyle - 3, obj.y, x - lineStyle + 3, y);
                                 break;
 
                             // Parallel, the TL and BR angles are connected
@@ -580,11 +630,14 @@ namespace my
 
                         myPrimitive._LineInst.setInstanceColor(r, g, b, lineOpacity);
                     }
+
+                    if (isAggregateOpacity)
+                        a += lineOpacity/3;
                 }
             }
 
             // Draw vertical lines
-            if (prm_i[1] == 1 && N < 50)
+            if (isVerticalLine && N < 50)
             {
                 myPrimitive._LineInst.setInstanceCoords(x, 0, x, gl_Height);
                 myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.13f);
@@ -622,11 +675,11 @@ namespace my
 
             //Glfw.SwapInterval(0);
 
-            while (list.Count < N - 4)
-            {
-                list.Add(new myObj_310());
-            }
+            if (doCreateAtOnce)
+                while (list.Count < N)
+                    list.Add(new myObj_310());
 
+/*
             list.Add(new myObj_310());
             (list[list.Count - 1] as myObj_310).x = 0;
             (list[list.Count - 1] as myObj_310).y = 0;
@@ -642,7 +695,7 @@ namespace my
             list.Add(new myObj_310());
             (list[list.Count - 1] as myObj_310).x = gl_Width;
             (list[list.Count - 1] as myObj_310).y = gl_Height;
-
+*/
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
@@ -703,6 +756,10 @@ namespace my
                     inst.Draw(false);
                 }
 
+                if (!doCreateAtOnce)
+                    if (list.Count < N)
+                        list.Add(new myObj_310());
+
                 System.Threading.Thread.Sleep(renderDelay);
                 t += dt;
             }
@@ -726,6 +783,7 @@ namespace my
 
         private void Triangulate()
         {
+/*
             for (int i = 0; i < list.Count; i++)
             {
                 var obj = list[i] as myObj_310;
@@ -742,6 +800,7 @@ namespace my
                     }
                 }
             }
+*/
         }
 
         // ---------------------------------------------------------------------------------------------------------------

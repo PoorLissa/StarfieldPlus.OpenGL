@@ -147,7 +147,7 @@ public class ScreenSaver
                 _obj = new my.myObj_300();
                 break;
 
-            // Triangulation
+            // Moving particles interconnected with each other
             case ids.myObj_310:
                 _obj = new my.myObj_310();
                 break;
