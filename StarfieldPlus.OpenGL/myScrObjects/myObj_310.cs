@@ -23,7 +23,7 @@ namespace my
         private static float[] prm_f = new float[1];
         private static int max = 0, xRad1 = 666, yRad1 = 666, xRad2 = 666, yRad2 = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0;
         private static bool moveStep = false;
-        private static bool doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false;
+        private static bool doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false, doShowAuxParticles = false;
 
         private float x, y, dx, dy, size, r, g, b, a;
         private int offset = 0;
@@ -78,8 +78,8 @@ namespace my
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
-            mode = rand.Next(17);
-            //mode = 16;
+            mode = rand.Next(18);
+            mode = 17;
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
@@ -150,6 +150,16 @@ namespace my
                         ? (short)0
                         : (short)(rand.Next(777) + 111);
                     prm_f[0] = 1.0f + myUtils.randFloat(rand) / 33;                 // Acceleration factor
+                    break;
+
+                // Gravitation pull/push towards aux particles
+                case 17:
+                    doShowAuxParticles = true;
+                    prm_i[0] = (short)rand.Next(2);                                 // Initial particle speed is zero/non-zero
+                    prm_i[1] = (short)rand.Next(4);                                 // Mass factor sign of aux particles
+                    prm_i[2] = (short)rand.Next(2);                                 // Additive / non-additive dx/dy
+                    dt1 = myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
+                    dt2 = myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
                     break;
             }
 
@@ -454,6 +464,22 @@ namespace my
 
                         dx = dX * sp_dist;
                         dy = dY * sp_dist;
+                    }
+                    break;
+
+                case 17:
+                    offset = 100 + rand.Next(50 + N);
+
+                    switch (prm_i[0])
+                    {
+                        case 0:
+                            dx = dy = 0;
+                            break;
+
+                        case 1:
+                            dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+                            dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+                            break;
                     }
                     break;
             }
@@ -795,6 +821,56 @@ namespace my
                         if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
                             generateNew();
                         break;
+
+                    case 17:
+                        if (x < -offset || x > gl_Width + offset || y < -offset || y > gl_Height + offset)
+                            generateNew();
+                        else
+                        {
+                            if (prm_i[2] == 0)
+                            {
+                                // Non-additive dx/dy: each iteration we forget the state of the previous one
+                                dx = dy = 0;
+                            }
+
+                            float factor1 = 500;
+                            float factor2 = 500;
+
+                            switch (prm_i[1])
+                            {
+                                case 0: factor1 *= +1; factor2 *= +1; break;
+                                case 1: factor1 *= +1; factor2 *= -1; break;
+                                case 2: factor1 *= -1; factor2 *= +1; break;
+                                case 3: factor1 *= -1; factor2 *= -1; break;
+                            }
+
+                            float dX = X1 - x;
+                            float dY = Y1 - y;
+
+                            float dist = (float)(dX * dX + dY * dY) + 0.0001f;
+                            float sp_dist = factor1 / dist;
+
+                            dx += dX * sp_dist;
+                            dy += dY * sp_dist;
+
+                            dX = X2 - x;
+                            dY = Y2 - y;
+
+                            dist = (float)(dX * dX + dY * dY) + 0.0001f;
+                            sp_dist = factor2 / dist;
+
+                            dx += dX * sp_dist; 
+                            dy += dY * sp_dist;
+
+                            if (prm_i[2] == 1)
+                            {
+                                // Additive dx/dy: each iteration's result just adds to the current state;
+                                // Need to introduce reducing factor in order not to reach super high values
+                                dx *= 0.75f;
+                                dy *= 0.75f;
+                            }
+                        }
+                        break;
                 }
             }
 
@@ -805,11 +881,11 @@ namespace my
 
         protected override void Show()
         {
-            if (false)
+            if (doShowAuxParticles)
             {
-                myPrimitive._Rectangle.SetColor(1.0f, 0.33f, 0.33f, 1.0f);
-                myPrimitive._Rectangle.Draw(X1 - 10, Y1 - 10, 20, 20, false);
-                myPrimitive._Rectangle.Draw(X2 - 10, Y2 - 10, 20, 20, false);
+                myPrimitive._Rectangle.SetColor(1.0f, 0.33f, 0.33f, 0.85f);
+                myPrimitive._Rectangle.Draw(X1 - 5, Y1 - 5, 10, 10, false);
+                myPrimitive._Rectangle.Draw(X2 - 5, Y2 - 5, 10, 10, false);
             }
 
             if (isAggregateOpacity)
