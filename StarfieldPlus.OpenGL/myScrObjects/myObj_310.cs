@@ -165,6 +165,7 @@ namespace my
                 // Particles rotating around the center
                 case 18:
                     prm_i[0] = (short)rand.Next(2);                                 // Direction of rotation
+                    prm_i[1] = (short)(rand.Next(5) + 1);                           // Radius changing speed
                     break;
             }
 
@@ -491,10 +492,14 @@ namespace my
                 case 18:
                     x = gl_x0;
                     y = gl_y0;
+
                     offset = rand.Next(2 * gl_Height / 3);
                     pt = myUtils.randFloat(rand) * rand.Next(123);
                     pdt = myUtils.randFloat(rand) / 33;
                     pdt *= (prm_i[0] == 0) ? 1 : myUtils.randomSign(rand);
+
+                    x = gl_x0 + (float)Math.Sin(pt) * offset;
+                    y = gl_y0 + (float)Math.Cos(pt) * offset;
                     break;
             }
 
@@ -887,14 +892,14 @@ namespace my
                         break;
 
                     case 18:
-                        if (offset > gl_Width)
+                        if (offset > gl_Width / 2 + 13)
                             generateNew();
                         else
                         {
                             dx = (gl_x0 + (float)Math.Sin(pt) * offset) - x;
                             dy = (gl_y0 + (float)Math.Cos(pt) * offset) - y;
                             pt += pdt;
-                            offset++;
+                            offset += prm_i[1];
                         }
                         break;
                 }
