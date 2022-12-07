@@ -25,7 +25,7 @@ namespace my
         private static bool moveStep = false;
         private static bool doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false, doShowAuxParticles = false;
 
-        private float x, y, dx, dy, size, r, g, b, a;
+        private float x, y, dx, dy, size, r, g, b, a, pt, pdt;
         private int offset = 0;
 
         // Parameters for auxiliary invisible particles rotating around the center
@@ -55,6 +55,7 @@ namespace my
         private void initLocal()
         {
             t = 0;                                                                  // Global time
+            dt = 0.025f;
             t1 = myUtils.randFloat(rand);                                           // pt1 time
             t2 = myUtils.randFloat(rand);                                           // pt2 time
 
@@ -78,8 +79,8 @@ namespace my
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
-            mode = rand.Next(18);
-            mode = 17;
+            mode = rand.Next(19);
+            mode = 18;
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
@@ -96,7 +97,6 @@ namespace my
             }
 
             dimAlpha /= (0.1f + 0.1f * rand.Next(20));
-            dt = 0.025f;
 
             switch (mode)
             {
@@ -158,8 +158,13 @@ namespace my
                     prm_i[0] = (short)rand.Next(2);                                 // Initial particle speed is zero/non-zero
                     prm_i[1] = (short)rand.Next(4);                                 // Mass factor sign of aux particles
                     prm_i[2] = (short)rand.Next(2);                                 // Additive / non-additive dx/dy
-                    dt1 = myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
-                    dt2 = myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
+                    dt1 = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
+                    dt2 = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
+                    break;
+
+                // Particles rotating around the center
+                case 18:
+                    prm_i[0] = (short)rand.Next(2);                                 // Direction of rotation
                     break;
             }
 
@@ -481,6 +486,15 @@ namespace my
                             dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
                             break;
                     }
+                    break;
+
+                case 18:
+                    x = gl_x0;
+                    y = gl_y0;
+                    offset = rand.Next(2 * gl_Height / 3);
+                    pt = myUtils.randFloat(rand) * rand.Next(123);
+                    pdt = myUtils.randFloat(rand) / 33;
+                    pdt *= (prm_i[0] == 0) ? 1 : myUtils.randomSign(rand);
                     break;
             }
 
@@ -869,6 +883,18 @@ namespace my
                                 dx *= 0.75f;
                                 dy *= 0.75f;
                             }
+                        }
+                        break;
+
+                    case 18:
+                        if (offset > gl_Width)
+                            generateNew();
+                        else
+                        {
+                            dx = (gl_x0 + (float)Math.Sin(pt) * offset) - x;
+                            dy = (gl_y0 + (float)Math.Cos(pt) * offset) - y;
+                            pt += pdt;
+                            offset++;
                         }
                         break;
                 }
