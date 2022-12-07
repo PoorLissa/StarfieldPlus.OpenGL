@@ -77,8 +77,8 @@ namespace my
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
-            mode = rand.Next(14);
-            //mode = 13;
+            mode = rand.Next(16);
+            //mode = 15;
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
@@ -116,16 +116,26 @@ namespace my
                     prm_i[0] = (short)(50 + rand.Next(321));                        // Probability that the particle starts moving / continues accelerating
                     break;
 
-                // Particles generate based on positions of 2 points [X1, Y1] and [X2, Y2], which both are rotating around the center
+                // Particles generate based on positions of 2 points, [X1, Y1] and [X2, Y2], which both are rotating around the center
                 case 13:
                     prm_i[0] = (short)rand.Next(4);                                 // Particles generation mode
                     prm_i[1] = (short)myUtils.randomSign(rand);                     // Sign for dx
                     prm_i[2] = (short)myUtils.randomSign(rand);                     // Sign for dy
-                    prm_i[3] = (short)rand.Next(16);                                // Particle speed factor
+                    prm_i[3] = (short)rand.Next(21);                                // Particle speed factor
                     dt1 = myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
                     dt2 = myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
                     dt2 = myUtils.randomChance(rand, 1, 7) ? dt1 : dt2;             // Sometimes dt1 == dt2
                     doCreateAtOnce = false;
+                    break;
+
+                // Particles generate at the 4 corners of the screen
+                case 14:
+                    break;
+
+                // Particles generate offscreen and move vertically / horizontally in a grid-based fashion
+                case 15:
+                    prm_i[0] = (short)rand.Next(3);                                 // Movement: vertical, horizontal, both
+                    prm_i[1] = (short)(rand.Next(200) + 75);                        // Grid interval
                     break;
             }
 
@@ -290,6 +300,7 @@ namespace my
                         float dist2 = (float)Math.Sqrt(dX * dX + dY * dY) + 0.0001f;
                         float sp_dist = 1;
 
+                        // Speed
                         switch (prm_i[3])
                         {
                             // random [50 .. 150]
@@ -306,33 +317,97 @@ namespace my
                             case 11: case 12: case 13: case 14: case 15:
                                 sp_dist = (50 + (prm_i[3] - 11) * 25) / dist2 / (10 + 10 * rand.Next(2));
                                 break;
+
+                            // Fast particles
+                            case 16: case 17: case 18:
+                                sp_dist = (200 + prm_i[3] * rand.Next(5)) / dist2 / 10;
+                                break;
+
+                            // Even faster particles
+                            case 19: case 20:
+                                sp_dist = (300 + prm_i[3] * rand.Next(7)) / dist2 / 10;
+                                break;
                         }
 
+                        // Position and move direction
                         switch (prm_i[0])
                         {
-                            case 0:
-                                x = X1;
-                                y = Y1;
-                                break;
-
-                            case 1:
-                                x = X2;
-                                y = Y2;
-                                break;
-
-                            case 2:
-                                x = X1;
-                                y = Y2;
-                                break;
-
-                            case 3:
-                                x = X2;
-                                y = Y1;
-                                break;
+                            case 0: x = X1; y = Y1; break;
+                            case 1: x = X2; y = Y2; break;
+                            case 2: x = X1; y = Y2; break;
+                            case 3: x = X2; y = Y1; break;
                         }
 
                         dx = dX * sp_dist * prm_i[1];
                         dy = dY * sp_dist * prm_i[2];
+                    }
+                    break;
+
+                case 14:
+                    offset = 100 + rand.Next(50 + N);
+
+                    switch (rand.Next(4))
+                    {
+                        case 0:
+                            x = 0; y = 0;
+                            dx = (0.5f + 0.5f * rand.Next(17)) * +1;
+                            dy = (0.5f + 0.5f * rand.Next(17)) * +1;
+                            break;
+
+                        case 1:
+                            x = 0; y = gl_Height;
+                            dx = (0.5f + 0.5f * rand.Next(17)) * +1;
+                            dy = (0.5f + 0.5f * rand.Next(17)) * -1;
+                            break;
+
+                        case 2:
+                            x = gl_Width; y = 0;
+                            dx = (0.5f + 0.5f * rand.Next(17)) * -1;
+                            dy = (0.5f + 0.5f * rand.Next(17)) * +1;
+                            break;
+
+                        case 3:
+                            x = gl_Width; y = gl_Height;
+                            dx = (0.5f + 0.5f * rand.Next(17)) * -1;
+                            dy = (0.5f + 0.5f * rand.Next(17)) * -1;
+                            break;
+                    }
+                    break;
+
+                case 15:
+                    offset = 100 + rand.Next(50 + N);
+
+                    switch (prm_i[0])
+                    {
+                        // Vertical
+                        case 0:
+                            dx = 0;
+                            dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+
+                            x -= x % prm_i[1];
+                            y = myUtils.signOf(dy) > 0 ? -50 : gl_Height + 50;
+
+                            x += (gl_Width % prm_i[1]) / 2;
+                            break;
+
+                        // Horizontal
+                        case 1:
+                            dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
+                            dy = 0;
+
+                            y -= y % prm_i[1];
+                            x = myUtils.signOf(dx) > 0 ? -50 : gl_Width + 50;
+
+                            y += (gl_Height % prm_i[1]) / 2;
+                            break;
+
+                        // Both
+                        case 2:
+                            if (myUtils.randomChance(rand, 1, 2))
+                                goto case 0;
+                            else
+                                goto case 1;
+                            break;
                     }
                     break;
             }
@@ -639,6 +714,8 @@ namespace my
                         break;
 
                     case 13:
+                    case 14:
+                    case 15:
                         if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
                             generateNew();
 
