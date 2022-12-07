@@ -20,6 +20,7 @@ namespace my
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
 
         private static short[] prm_i = new short[4];
+        private static float[] prm_f = new float[1];
         private static int max = 0, xRad1 = 666, yRad1 = 666, xRad2 = 666, yRad2 = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0;
         private static bool moveStep = false;
         private static bool doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false;
@@ -77,8 +78,8 @@ namespace my
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
-            mode = rand.Next(16);
-            //mode = 15;
+            mode = rand.Next(17);
+            //mode = 16;
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
@@ -89,6 +90,9 @@ namespace my
             {
                 for (int i = 0; i < prm_i.Length; i++)
                     prm_i[i] = 0;
+
+                for (int i = 0; i < prm_f.Length; i++)
+                    prm_f[i] = 0;
             }
 
             dimAlpha /= (0.1f + 0.1f * rand.Next(20));
@@ -136,6 +140,16 @@ namespace my
                 case 15:
                     prm_i[0] = (short)rand.Next(3);                                 // Movement: vertical, horizontal, both
                     prm_i[1] = (short)(rand.Next(200) + 75);                        // Grid interval
+                    break;
+
+                // Starfield-like
+                case 16:
+                    prm_i[0] = (short)rand.Next(6);                                 // Particle initial speed factor
+                    prm_i[1] = (short)rand.Next(3);                                 // Particle acceleration mode
+                    prm_i[2] = myUtils.randomChance(rand, 2, 3)                     // Generate particles across the whole screen vs within some square in the center
+                        ? (short)0
+                        : (short)(rand.Next(777) + 111);
+                    prm_f[0] = 1.0f + myUtils.randFloat(rand) / 33;                 // Acceleration factor
                     break;
             }
 
@@ -408,6 +422,38 @@ namespace my
                             else
                                 goto case 1;
                             break;
+                    }
+                    break;
+
+                case 16:
+                    {
+                        offset = 100 + rand.Next(50 + N);
+
+                        if (prm_i[2] > 0)
+                        {
+                            x = rand.Next(prm_i[2]) + gl_x0 - prm_i[2]/2;
+                            y = rand.Next(prm_i[2]) + gl_y0 - prm_i[2]/2;
+                        }
+
+                        float dX = x - gl_x0;
+                        float dY = y - gl_y0;
+
+                        float dist2 = (float)Math.Sqrt(dX * dX + dY * dY) + 0.0001f;
+                        float sp_dist = 1;
+
+                        switch (prm_i[0])
+                        {
+                            case 0: case 1: case 2:
+                                sp_dist = (50 + prm_i[0] * 25) / dist2 / 10;
+                                break;
+
+                            case 3: case 4: case 5:
+                                sp_dist = (50 + rand.Next(100)) / dist2 / 10;
+                                break;
+                        }
+
+                        dx = dX * sp_dist;
+                        dy = dY * sp_dist;
                     }
                     break;
             }
@@ -716,6 +762,33 @@ namespace my
                     case 13:
                     case 14:
                     case 15:
+                        if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                            generateNew();
+
+                        if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                            generateNew();
+                        break;
+
+                    case 16:
+                        switch (prm_i[1])
+                        {
+                            // No acceleration
+                            case 0:
+                                break;
+
+                            // Const acceleration
+                            case 1:
+                                dx *= prm_f[0];
+                                dy *= prm_f[0];
+                                break;
+
+                            // Random acceleration
+                            case 2:
+                                dx *= 1.0f + myUtils.randFloat(rand)/33;
+                                dy *= 1.0f + myUtils.randFloat(rand)/33;
+                                break;
+                        }
+
                         if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
                             generateNew();
 
