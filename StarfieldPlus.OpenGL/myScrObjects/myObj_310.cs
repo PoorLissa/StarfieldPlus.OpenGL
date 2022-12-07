@@ -19,15 +19,16 @@ namespace my
         private static int mode = 0, colorMode = 0, shape = 0;
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
 
-        private static short[] prm_i = new short[3];
-        private static int max = 0, xRad = 666, yRad = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0;
+        private static short[] prm_i = new short[4];
+        private static int max = 0, xRad1 = 666, yRad1 = 666, xRad2 = 666, yRad2 = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0;
         private static bool moveStep = false;
         private static bool doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false;
 
         private float x, y, dx, dy, size, r, g, b, a;
         private int offset = 0;
 
-        private static float X = 0, Y = 0;
+        // Coordinates for auxiliary invisible particle rotating around the center
+        private static float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, t1 = 0, t2 = 0, dt1 = 0, dt2 = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -52,10 +53,18 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            xRad += myUtils.randomChance(rand, 1, 2) ? 0 : rand.Next(1234);
+            t = 0;                                                                  // Global time
+            t1 = myUtils.randFloat(rand);                                           // pt1 time
+            t2 = myUtils.randFloat(rand);                                           // pt2 time
 
-            X = gl_x0 + (float)Math.Sin(t) * xRad;
-            Y = gl_y0 + (float)Math.Cos(t) * yRad;
+            xRad1 += myUtils.randomChance(rand, 1, 2) ? 0 : rand.Next(1234);
+            xRad2 += myUtils.randomChance(rand, 1, 2) ? 0 : rand.Next(1234);
+
+            X1 = gl_x0 + (float)Math.Sin(t1) * xRad1;                               // pt1 init
+            Y1 = gl_y0 + (float)Math.Cos(t1) * yRad1;
+
+            X2 = gl_x0 + (float)Math.Sin(t2) * xRad2;                               // pt2 init
+            Y2 = gl_y0 + (float)Math.Cos(t2) * yRad2;
 
             N = rand.Next(500) + 25;
 
@@ -68,8 +77,8 @@ namespace my
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
-            mode = rand.Next(13);
-            //mode = 12;
+            mode = rand.Next(14);
+            //mode = 13;
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
@@ -87,6 +96,7 @@ namespace my
 
             switch (mode)
             {
+                // Particles generate based on position of a point [X1, Y1], which is rotating around the center
                 case 08:
                     doCreateAtOnce = false;
                     break;
@@ -104,6 +114,18 @@ namespace my
                 case 12:
                     doClearBuffer = true;
                     prm_i[0] = (short)(50 + rand.Next(321));                        // Probability that the particle starts moving / continues accelerating
+                    break;
+
+                // Particles generate based on positions of 2 points [X1, Y1] and [X2, Y2], which both are rotating around the center
+                case 13:
+                    prm_i[0] = (short)rand.Next(4);                                 // Particles generation mode
+                    prm_i[1] = (short)myUtils.randomSign(rand);                     // Sign for dx
+                    prm_i[2] = (short)myUtils.randomSign(rand);                     // Sign for dy
+                    prm_i[3] = (short)rand.Next(16);                                // Particle speed factor
+                    dt1 = myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
+                    dt2 = myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
+                    dt2 = myUtils.randomChance(rand, 1, 7) ? dt1 : dt2;             // Sometimes dt1 == dt2
+                    doCreateAtOnce = false;
                     break;
             }
 
@@ -201,8 +223,8 @@ namespace my
                                 break;
                         }
 
-                        float dX = X - gl_x0;
-                        float dY = Y - gl_y0;
+                        float dX = X1 - gl_x0;
+                        float dY = Y1 - gl_y0;
 
                         float dist2 = (float)Math.Sqrt(dX * dX + dY * dY);
                         float sp_dist = (50 + rand.Next(100)) / dist2 / 10;
@@ -256,6 +278,62 @@ namespace my
                 case 12:
                     offset = 100 + rand.Next(50 + N);
                     dx = dy = 0;
+                    break;
+
+                case 13:
+                    {
+                        offset = 100 + rand.Next(50 + N);
+
+                        float dX = X1 - X2;
+                        float dY = Y1 - Y2;
+
+                        float dist2 = (float)Math.Sqrt(dX * dX + dY * dY) + 0.0001f;
+                        float sp_dist = 1;
+
+                        switch (prm_i[3])
+                        {
+                            // random [50 .. 150]
+                            case 0: case 1: case 2: case 3: case 4:
+                                sp_dist = (50 + rand.Next(100)) / dist2 / 10;
+                                break;
+
+                            // const [50, 70, 90, 110, 130, 150]
+                            case 5: case 6: case 7: case 8: case 9: case 10:
+                                sp_dist = (50 + (prm_i[3] - 5) * 20) / dist2 / 10;
+                                break;
+
+                            // const [50, 75, 100, 125 , 150], with 50% chance of half-speed
+                            case 11: case 12: case 13: case 14: case 15:
+                                sp_dist = (50 + (prm_i[3] - 11) * 25) / dist2 / (10 + 10 * rand.Next(2));
+                                break;
+                        }
+
+                        switch (prm_i[0])
+                        {
+                            case 0:
+                                x = X1;
+                                y = Y1;
+                                break;
+
+                            case 1:
+                                x = X2;
+                                y = Y2;
+                                break;
+
+                            case 2:
+                                x = X1;
+                                y = Y2;
+                                break;
+
+                            case 3:
+                                x = X2;
+                                y = Y1;
+                                break;
+                        }
+
+                        dx = dX * sp_dist * prm_i[1];
+                        dy = dY * sp_dist * prm_i[2];
+                    }
                     break;
             }
 
@@ -386,8 +464,14 @@ namespace my
 
                 if (id == 0)
                 {
-                    X = gl_x0 + (float)Math.Sin(t * 2.5f) * xRad;
-                    Y = gl_y0 + (float)Math.Cos(t * 2.5f) * yRad;
+                    X1 = gl_x0 + (float)Math.Sin(t1) * xRad1;
+                    Y1 = gl_y0 + (float)Math.Cos(t1) * yRad1;
+
+                    X2 = gl_x0 + (float)Math.Sin(t2) * xRad2;
+                    Y2 = gl_y0 + (float)Math.Cos(t2) * yRad2;
+
+                    t1 += dt1;
+                    t2 += dt2;
                 }
             }
             else
@@ -553,6 +637,14 @@ namespace my
                                 generateNew();
                         }
                         break;
+
+                    case 13:
+                        if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                            generateNew();
+
+                        if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                            generateNew();
+                        break;
                 }
             }
 
@@ -565,8 +657,9 @@ namespace my
         {
             if (false)
             {
-                myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
-                myPrimitive._Rectangle.Draw(X - 10, Y - 10, 20, 20, true);
+                myPrimitive._Rectangle.SetColor(1.0f, 0.33f, 0.33f, 1.0f);
+                myPrimitive._Rectangle.Draw(X1 - 10, Y1 - 10, 20, 20, false);
+                myPrimitive._Rectangle.Draw(X2 - 10, Y2 - 10, 20, 20, false);
             }
 
             if (isAggregateOpacity)
@@ -844,8 +937,7 @@ namespace my
 
                     for (int i = 0; i < list.Count; i++)
                     {
-                        var obj = list[i] as myObj_310;
-                        obj.Move();
+                        (list[i] as myObj_310).Move();
                     }
 
                     moveStep = false;
