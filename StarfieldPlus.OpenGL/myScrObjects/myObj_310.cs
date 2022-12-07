@@ -28,7 +28,7 @@ namespace my
         private float x, y, dx, dy, size, r, g, b, a;
         private int offset = 0;
 
-        // Coordinates for auxiliary invisible particle rotating around the center
+        // Parameters for auxiliary invisible particles rotating around the center
         private static float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, t1 = 0, t2 = 0, dt1 = 0, dt2 = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
