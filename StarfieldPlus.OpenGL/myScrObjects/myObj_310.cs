@@ -80,7 +80,7 @@ namespace my
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
             mode = rand.Next(19);
-            mode = 18;
+            //mode = 15;
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
@@ -893,7 +893,12 @@ namespace my
 
                     case 18:
                         if (offset > gl_Width / 2 + 13)
-                            generateNew();
+                        {
+                            a -= 0.05f;
+
+                            if (a < 0)
+                                generateNew();
+                        }
                         else
                         {
                             dx = (gl_x0 + (float)Math.Sin(pt) * offset) - x;
