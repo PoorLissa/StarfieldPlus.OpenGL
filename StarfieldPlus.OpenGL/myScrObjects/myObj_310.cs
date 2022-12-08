@@ -967,8 +967,8 @@ namespace my
 
                     switch (lineMode)
                     {
+                        // Const opacity adjusted for N
                         case 0:
-                            // Const opacity (adjusted for N)
                             {
                                 if (N > 500)
                                     lineOpacity -= N * 0.000175f;
