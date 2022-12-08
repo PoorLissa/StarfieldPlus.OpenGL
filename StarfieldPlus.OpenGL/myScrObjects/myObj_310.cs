@@ -22,7 +22,7 @@ namespace my
 
         private static short[] prm_i = new short[4];
         private static float[] prm_f = new float[1];
-        private static int max = 0, xRad1 = 666, yRad1 = 666, xRad2 = 666, yRad2 = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0;
+        private static int max = 0, xRad1 = 666, yRad1 = 666, xRad2 = 666, yRad2 = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0, lineMaxOpacity = 1;
         private static bool moveStep = false;
         private static bool doShiftColor = false, doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false,
                             doShowAuxParticles = false;
@@ -59,18 +59,19 @@ namespace my
         {
             N = rand.Next(500) + 25;
             mode = rand.Next(19);
-            //mode = 17;
+            //mode = 1;
 
             doClearBuffer  = myUtils.randomChance(rand, 4, 5);
             doShiftColor   = myUtils.randomChance(rand, 1, 2);
             doCreateAtOnce = myUtils.randomChance(rand, 1, 2);
             colorMode = rand.Next(4);
             lineMode = rand.Next(6);                                                // Interconnection lines drawing mode (affects distance and opacity factor calculation)
-            lineStyle = rand.Next(9);                                               // Drawing style for interconnection lines (parallel vs crossed)
+            lineStyle = rand.Next(13);                                              // Drawing style for interconnection lines (parallel vs crossed)
             slowFactor = rand.Next(5) + 1;                                          // Slowness factor for dx and/or dy
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
+            lineMaxOpacity = 500 + rand.Next(20000);                                // Max opacity of the lines in lineMode == 1
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 02);                 // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine     = myUtils.randomChance(rand, 1, 15);                 // Draw vertical lines
@@ -186,11 +187,15 @@ namespace my
             }
 
 #if false
-            N = 4;
-            max = 20;
+            N = 550;
+            mode = 0;
             lineMode = 0;
-            lineStyle = 8;
+            max = 10;
+            shape = 0;
+            isAggregateOpacity = false;
+            doCreateAtOnce = true;
             doClearBuffer = true;
+            colorMode = 0;
 #endif
         }
 
@@ -219,6 +224,7 @@ namespace my
                             $"colorMode = {colorMode}\n" +
                             $"lineMode = {lineMode}\n" +
                             $"lineStyle = {lineStyle}\n" +
+                            $"lineMaxOpacity = {lineMaxOpacity}\n" +
                             $"slowFactor = {slowFactor}\n" +
                             $"axisMode = {axisMode}\n" +
                             $"param: [{str_params}]\n\n" +
@@ -957,21 +963,29 @@ namespace my
             {
                 var obj = list[i] as myObj_310;
 
-                float lineOpacity = 0.1f;
-
                 if (obj != this)
                 {
+                    float lineOpacity = 0.1f;
                     float xx = obj.x - x;
                     float yy = obj.y - y;
                     float dist2 = 0.0001f;
+
+/*
+    --- No Lines Visible ---
+        N = 427; dimAlpha = 0.167; doClearBuffer = False; lineMode = 0; lineMaxOpacity = 16475;
+        N = 426; dimAlpha = 0.036; doClearBuffer = False; lineMode = 0; lineMaxOpacity = 3332;
+        N = 227; dimAlpha = 0.250; doClearBuffer = False; lineMode = 3; lineMaxOpacity = 17225;
+*/
 
                     switch (lineMode)
                     {
                         // Const opacity adjusted for N
                         case 0:
                             {
-                                if (N > 500)
-                                    lineOpacity -= N * 0.000175f;
+                                if (N > 1000)
+                                    lineOpacity = 0.0021972657f;
+                                else if (N > 500)
+                                    lineOpacity = 0.0021972656f;
                                 else if (N > 450)
                                     lineOpacity -= N * 0.000185f;
                                 else if (N > 333)
@@ -981,21 +995,25 @@ namespace my
                             }
                             break;
 
+                        // Const divided by distance square
                         case 1:
                             dist2 += xx * xx + yy * yy;
-                            lineOpacity = (float)(10000.0 / dist2);
+                            lineOpacity = (float)(lineMaxOpacity / dist2);
                             break;
 
+                        // Const divided by distance square + some min value
                         case 2:
                             dist2 += xx * xx + yy * yy;
-                            lineOpacity = (float)(20000.0 / dist2);
+                            lineOpacity = (float)(lineMaxOpacity / dist2) + 0.01f;
                             break;
 
+                        // Semi-Random value divided by distance square + very min value
                         case 3:
                             dist2 += xx * xx + yy * yy;
-                            lineOpacity = (float)(20000.0 / dist2) + 0.05f;
+                            lineOpacity = (float)((1000 + rand.Next(1000)) / dist2) + 0.005f;
                             break;
 
+                        // Const divided by distance, adjusted for N
                         case 4:
                             dist2 += (float)Math.Sqrt(xx * xx + yy * yy);
 
@@ -1009,20 +1027,22 @@ namespace my
                                 lineOpacity = (float)((gl_Height * 0.05f) / dist2);
                             break;
 
+                        // Const divided by distance, with max distance limitation
                         case 5:
                             {
                                 lineOpacity = 0;
-                                int zzz = 234;
+                                int maxDist = 234;
 
-                                if (xx > -zzz && xx < zzz && yy > -zzz && yy < zzz)
+                                if (xx > -maxDist && xx < maxDist && yy > -maxDist && yy < maxDist)
                                 {
                                     dist2 += (float)Math.Sqrt(xx * xx + yy * yy);
-                                    lineOpacity = (float)(zzz / dist2 / 3);
+                                    lineOpacity = (float)(maxDist / dist2 / 3);
                                 }
                             }
                             break;
                     }
 
+                    // In case the screen is not completely cleared between the frames, lower lineOpacity to prevent overdrawing
                     if (doClearBuffer == false)
                     {
                         lineOpacity /= (N < 300) ? 3 : 7;
@@ -1032,11 +1052,12 @@ namespace my
                     {
                         switch (lineStyle)
                         {
+                            // Single line center-to-center
                             case 0:
                                 myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
                                 break;
 
-                            // Parallel
+                            // 2 parallel lines (lineStyle is a parameter)
                             case 1:
                             case 2:
                             case 3:
@@ -1046,14 +1067,14 @@ namespace my
                                     myPrimitive._LineInst.setInstanceCoords(obj.x - lineStyle, obj.y, x - lineStyle, y);
                                 break;
 
-                            // Crossed
+                            // 2 crossed lines (lineStyle is a parameter)
                             case 4:
                             case 5:
                             case 6:
                                 myPrimitive._LineInst.setInstanceCoords(obj.x + lineStyle - 3, obj.y, x - lineStyle + 3, y);
                                 break;
 
-                            // Parallel, the TL and BR angles are connected
+                            // 2 parallel lines, the Top Left and Bottom Right angles (of a square) are connected
                             case 7:
                                 if (obj.id < id)
                                     myPrimitive._LineInst.setInstanceCoords(obj.x - size + 1, obj.y - size + 1, x - size + 1, y - size + 1);
@@ -1061,9 +1082,59 @@ namespace my
                                     myPrimitive._LineInst.setInstanceCoords(obj.x + size - 1, obj.y + size - 1, x + size - 1, y + size - 1);
                                 break;
 
-                            // Parallel, the TL and BR angles are connected
+                            // 2 crossed lines, the Top Left and Bottom Right angles (of a square) are connected
                             case 8:
                                 myPrimitive._LineInst.setInstanceCoords(obj.x - size + 1, obj.y - size + 1, x + size - 1, y + size - 1);
+                                break;
+
+                            // Single line, which does not reach the center of the shapes
+                            case 9:
+                                {
+                                    int div = 5;
+                                    float distx = (obj.x - x) / div;
+                                    float disty = (obj.y - y) / div;
+
+                                    myPrimitive._LineInst.setInstanceCoords(x + distx, y + disty, obj.x - distx, obj.y - disty);
+                                }
+                                break;
+
+                            // Single line, which does not reach the center of the shapes + randomized length
+                            case 10:
+                                {
+                                    int div = rand.Next(3) + 10;
+                                    float distx = (obj.x - x) / div;
+                                    float disty = (obj.y - y) / div;
+
+                                    myPrimitive._LineInst.setInstanceCoords(x + distx, y + disty, obj.x - distx, obj.y - disty);
+                                }
+                                break;
+
+                            // 2 parallel lines, which do not reach the center of the shapes
+                            case 11:
+                                {
+                                    int div = 7;
+                                    float distx = (obj.x - x) / div;
+                                    float disty = (obj.y - y) / div;
+
+                                    if (obj.id < id)
+                                        myPrimitive._LineInst.setInstanceCoords(x + distx + 2, y + disty, obj.x - distx + 2, obj.y - disty);
+                                    else
+                                        myPrimitive._LineInst.setInstanceCoords(x + distx - 2, y + disty, obj.x - distx - 2, obj.y - disty);
+                                }
+                                break;
+
+                            // 2 parallel lines, which do not reach the center of the shapes
+                            case 12:
+                                {
+                                    int div = rand.Next(3) + 10;
+                                    float distx = (obj.x - x) / div;
+                                    float disty = (obj.y - y) / div;
+
+                                    if (obj.id < id)
+                                        myPrimitive._LineInst.setInstanceCoords(x + distx + 2, y + disty, obj.x - distx + 2, obj.y - disty);
+                                    else
+                                        myPrimitive._LineInst.setInstanceCoords(x + distx - 2, y + disty, obj.x - distx - 2, obj.y - disty);
+                                }
                                 break;
                         }
 
@@ -1166,30 +1237,21 @@ namespace my
                 while (list.Count < N)
                     list.Add(new myObj_310());
 
-/*
-            list.Add(new myObj_310());
-            (list[list.Count - 1] as myObj_310).x = 0;
-            (list[list.Count - 1] as myObj_310).y = 0;
-
-            list.Add(new myObj_310());
-            (list[list.Count - 1] as myObj_310).x = 0;
-            (list[list.Count - 1] as myObj_310).y = gl_Height;
-
-            list.Add(new myObj_310());
-            (list[list.Count - 1] as myObj_310).x = gl_Width;
-            (list[list.Count - 1] as myObj_310).y = 0;
-
-            list.Add(new myObj_310());
-            (list[list.Count - 1] as myObj_310).x = gl_Width;
-            (list[list.Count - 1] as myObj_310).y = gl_Height;
-*/
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
 
-                float r = (float)rand.NextDouble() / 13;
-                float g = (float)rand.NextDouble() / 13;
-                float b = (float)rand.NextDouble() / 13;
+                int div = 13;
+
+                switch (rand.Next(11))
+                {
+                    case 0:                  div = 3; break;
+                    case 1: case 2: case 3:  div = 5; break;
+                }
+
+                float r = (float)rand.NextDouble() / div;
+                float g = (float)rand.NextDouble() / div;
+                float b = (float)rand.NextDouble() / div;
 
                 glClearColor(r, g, b, 1.0f);
             }
