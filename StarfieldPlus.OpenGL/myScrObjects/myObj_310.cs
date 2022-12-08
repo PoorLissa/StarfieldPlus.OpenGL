@@ -57,6 +57,26 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            N = rand.Next(500) + 25;
+            mode = rand.Next(19);
+            //mode = 17;
+
+            doClearBuffer  = myUtils.randomChance(rand, 4, 5);
+            doShiftColor   = myUtils.randomChance(rand, 1, 2);
+            doCreateAtOnce = myUtils.randomChance(rand, 1, 2);
+            colorMode = rand.Next(4);
+            lineMode = rand.Next(6);                                                // Interconnection lines drawing mode (affects distance and opacity factor calculation)
+            lineStyle = rand.Next(9);                                               // Drawing style for interconnection lines (parallel vs crossed)
+            slowFactor = rand.Next(5) + 1;                                          // Slowness factor for dx and/or dy
+            axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
+            max = rand.Next(11) + 3;                                                // Particle size
+            shape = rand.Next(5);
+
+            isAggregateOpacity = myUtils.randomChance(rand, 1, 02);                 // Const opacity vs a sum of all particle's connecting line opacities
+            isVerticalLine     = myUtils.randomChance(rand, 1, 15);                 // Draw vertical lines
+            isFastMoving       = myUtils.randomChance(rand, 1, 02);                 // For large N and when slowFactor > 3, chance to have fast moving particles
+            isRandomSize       = myUtils.randomChance(rand, 1, 03);                 // Use particles of different size
+
             t = 0;                                                                  // Global time
             dt = 0.025f;
             t1 = myUtils.randFloat(rand);                                           // pt1 time
@@ -70,26 +90,6 @@ namespace my
 
             X2 = gl_x0 + (float)Math.Sin(t2) * xRad2;                               // pt2 init
             Y2 = gl_y0 + (float)Math.Cos(t2) * yRad2;
-
-            N = rand.Next(500) + 25;
-
-            doClearBuffer  = myUtils.randomChance(rand, 4, 5);
-            doShiftColor   = myUtils.randomChance(rand, 1, 2);
-            doCreateAtOnce = myUtils.randomChance(rand, 1, 2);
-            colorMode = rand.Next(4);
-            lineMode = rand.Next(6);                                                // Interconnection lines drawing mode (affects distance and opacity factor calculation)
-            lineStyle = rand.Next(9);                                               // Drawing style for interconnection lines (parallel vs crossed)
-            slowFactor = rand.Next(5) + 1;                                          // Slowness factor for dx and/or dy
-            axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
-            max = rand.Next(11) + 3;                                                // Particle size
-            shape = rand.Next(5);
-            mode = rand.Next(19);
-            //mode = 8;
-
-            isAggregateOpacity = myUtils.randomChance(rand, 1, 02);                 // Const opacity vs a sum of all particle's connecting line opacities
-            isVerticalLine     = myUtils.randomChance(rand, 1, 15);                 // Draw vertical lines
-            isFastMoving       = myUtils.randomChance(rand, 1, 02);                 // For large N and when slowFactor > 3, chance to have fast moving particles
-            isRandomSize       = myUtils.randomChance(rand, 1, 03);                 // Use particles of different size
 
             // Reset parameter values
             {
@@ -163,6 +163,13 @@ namespace my
                     prm_i[0] = (short)rand.Next(2);                                 // Initial particle speed is zero/non-zero
                     prm_i[1] = (short)rand.Next(4);                                 // Mass factor sign of aux particles
                     prm_i[2] = (short)rand.Next(2);                                 // Additive / non-additive dx/dy
+                    prm_i[3] = (short)(222 + rand.Next(333));                       // Aux particle min rotation radius
+
+                    xRad1 = prm_i[3] + rand.Next(222) + rand.Next(222) + rand.Next(222);
+                    yRad1 = prm_i[3] + rand.Next(222) + rand.Next(222) + rand.Next(222);
+                    xRad2 = prm_i[3] + rand.Next(222) + rand.Next(222) + rand.Next(222);
+                    yRad2 = prm_i[3] + rand.Next(222) + rand.Next(222) + rand.Next(222);
+
                     dt1 = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
                     dt2 = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
                     break;
