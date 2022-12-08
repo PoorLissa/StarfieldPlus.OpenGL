@@ -22,10 +22,11 @@ namespace my
 
         private static short[] prm_i = new short[4];
         private static float[] prm_f = new float[1];
-        private static int max = 0, xRad1 = 666, yRad1 = 666, xRad2 = 666, yRad2 = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0, lineMaxOpacity = 1;
+        private static int max = 0, xRad1 = 666, yRad1 = 666, xRad2 = 666, yRad2 = 666, lineMode = 0,
+                           lineStyle = 0, lineColor = 0, slowFactor = 1, axisMode = 0, lineMaxOpacity = 1;
         private static bool moveStep = false;
         private static bool doShiftColor = false, doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false,
-                            doShowAuxParticles = false, doUseAltLineColor = false;
+                            doShowAuxParticles = false;
 
         // Parameters for auxiliary invisible particles rotating around the center
         private static float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, t1 = 0, t2 = 0, dt1 = 0, dt2 = 0;
@@ -67,6 +68,7 @@ namespace my
             colorMode = rand.Next(4);
             lineMode = rand.Next(6);                                                // Interconnection lines drawing mode (affects distance and opacity factor calculation)
             lineStyle = rand.Next(13);                                              // Drawing style for interconnection lines (parallel vs crossed)
+            lineColor = rand.Next(6);                                               // Give connecting line alternative color depending on its opacity
             slowFactor = rand.Next(5) + 1;                                          // Slowness factor for dx and/or dy
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
@@ -77,7 +79,6 @@ namespace my
             isVerticalLine     = myUtils.randomChance(rand, 1, 15);                 // Draw vertical lines
             isFastMoving       = myUtils.randomChance(rand, 1, 02);                 // For large N and when slowFactor > 3, chance to have fast moving particles
             isRandomSize       = myUtils.randomChance(rand, 1, 03);                 // Use particles of different size
-            doUseAltLineColor  = myUtils.randomChance(rand, 1, 03);                 // Change color of connecting line depending on its opacity
 
             t = 0;                                                                  // Global time
             dt = 0.025f;
@@ -1139,23 +1140,50 @@ namespace my
                                 break;
                         }
 
-                        if (doUseAltLineColor)
+                        switch (lineColor)
                         {
-                            float op = lineOpacity * 0.33f;
-                            float altR = r + op;
-                            float altG = g > op ? g - op : 0;
-                            float altB = b > op ? b - op : 0;
+                            case 0: case 1: case 2:
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, lineOpacity);
+                                break;
 
-                            myPrimitive._LineInst.setInstanceColor(altR, altG, altB, lineOpacity);
-                        }
-                        else
-                        {
-                            myPrimitive._LineInst.setInstanceColor(r, g, b, lineOpacity);
+                            case 3:
+                                {
+                                    float op = lineOpacity * 0.33f;
+                                    float altR = r + op;
+                                    float altG = g > op ? g - op : 0;
+                                    float altB = b > op ? b - op : 0;
+
+                                    myPrimitive._LineInst.setInstanceColor(altR, altG, altB, lineOpacity);
+                                }
+                                break;
+
+                            case 4:
+                                {
+                                    float op = lineOpacity * 0.33f;
+                                    float altR = r > op ? r - op : 0;
+                                    float altG = g + op;
+                                    float altB = b > op ? b - op : 0;
+
+                                    myPrimitive._LineInst.setInstanceColor(altR, altG, altB, lineOpacity);
+                                }
+                                break;
+
+                            case 5:
+                                {
+                                    float op = lineOpacity * 0.33f;
+
+                                    float altR = r > op ? r - op : 0;
+                                    float altG = g > op ? g - op : 0;
+                                    float altB = b + op;
+
+                                    myPrimitive._LineInst.setInstanceColor(altR, altG, altB, lineOpacity);
+                                }
+                                break;
                         }
                     }
 
                     if (isAggregateOpacity)
-                        a += lineOpacity/3;
+                        a += lineOpacity * 0.33f;
                 }
             }
 
