@@ -346,11 +346,16 @@ namespace my
         // Dim the screen constantly
         protected virtual void dimScreen(float dimAlpha, bool doShiftColor = false, bool useStrongerDimFactor = false)
         {
-            int rnd = rand.Next(101), dimFactor = 1;
+            int dimFactor = 1;
 
-            if (useStrongerDimFactor && rnd < 11)
+            if (useStrongerDimFactor)
             {
-                dimFactor = (rnd == 0) ? 5 : 2;
+                int rnd = rand.Next(101);
+
+                if (rnd < 11)
+                {
+                    dimFactor = (rnd == 0) ? 5 : 2;
+                }
             }
 
             myPrimitive._Rectangle.SetAngle(0);

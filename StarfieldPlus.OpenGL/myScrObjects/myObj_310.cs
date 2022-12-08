@@ -15,6 +15,7 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Static parameters
         private static int N = 0;
         private static int mode = 0, colorMode = 0, shape = 0;
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
@@ -23,13 +24,15 @@ namespace my
         private static float[] prm_f = new float[1];
         private static int max = 0, xRad1 = 666, yRad1 = 666, xRad2 = 666, yRad2 = 666, lineMode = 0, lineStyle = 0, slowFactor = 1, axisMode = 0;
         private static bool moveStep = false;
-        private static bool doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false, doShowAuxParticles = false;
-
-        private float x, y, dx, dy, size, r, g, b, a, pt, pdt;
-        private int offset = 0;
+        private static bool doShiftColor = false, doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false,
+                            doShowAuxParticles = false;
 
         // Parameters for auxiliary invisible particles rotating around the center
         private static float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, t1 = 0, t2 = 0, dt1 = 0, dt2 = 0;
+
+        // Common parameters
+        private float x, y, dx, dy, size, r, g, b, a, pt, pdt;
+        private int offset1 = 0, offset2 = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +73,8 @@ namespace my
 
             N = rand.Next(500) + 25;
 
-            doClearBuffer = myUtils.randomChance(rand, 4, 5);
+            doClearBuffer  = myUtils.randomChance(rand, 4, 5);
+            doShiftColor   = myUtils.randomChance(rand, 1, 2);
             doCreateAtOnce = myUtils.randomChance(rand, 1, 2);
             colorMode = rand.Next(4);
             lineMode = rand.Next(6);                                                // Interconnection lines drawing mode (affects distance and opacity factor calculation)
@@ -80,12 +84,12 @@ namespace my
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
             mode = rand.Next(19);
-            //mode = 15;
+            //mode = 8;
 
-            isAggregateOpacity = myUtils.randomChance(rand, 1, 2);                  // Const opacity vs a sum of all particle's connecting line opacities
-            isVerticalLine = myUtils.randomChance(rand, 1, 15);                     // Draw vertical lines
-            isFastMoving = myUtils.randomChance(rand, 1, 2);                        // For large N and when slowFactor > 3, chance to have fast moving particles
-            isRandomSize = myUtils.randomChance(rand, 1, 3);                        // Use particles of different size
+            isAggregateOpacity = myUtils.randomChance(rand, 1, 02);                 // Const opacity vs a sum of all particle's connecting line opacities
+            isVerticalLine     = myUtils.randomChance(rand, 1, 15);                 // Draw vertical lines
+            isFastMoving       = myUtils.randomChance(rand, 1, 02);                 // For large N and when slowFactor > 3, chance to have fast moving particles
+            isRandomSize       = myUtils.randomChance(rand, 1, 03);                 // Use particles of different size
 
             // Reset parameter values
             {
@@ -103,6 +107,7 @@ namespace my
                 // Particles generate based on position of a point [X1, Y1], which is rotating around the center
                 case 08:
                     doCreateAtOnce = false;
+                    dt1 = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) / (8 + rand.Next(3));
                     break;
 
                 case 10:
@@ -164,8 +169,12 @@ namespace my
 
                 // Particles rotating around the center
                 case 18:
-                    prm_i[0] = (short)rand.Next(2);                                 // Direction of rotation
-                    prm_i[1] = (short)(rand.Next(5) + 1);                           // Radius changing speed
+                    prm_i[0] = (short)rand.Next(4);                                 // Direction of rotation
+                    prm_i[1] = (short)(rand.Next(5)+1 + 10 * (rand.Next(5)+1));     // Radius changing speed (use prm_i[1] % 10 and prm_i[1] / 10 for 2 different values)
+                    prm_i[2] = (short)(rand.Next(2));                               // Circular vs elliptic orbit
+
+                    if (prm_i[2] == 0 && myUtils.randomChance(rand, 1, 3))          // For circular orbit, 33% chance to have the same changing speed for both radius offsets
+                        prm_i[1] = (short)((rand.Next(5) + 1) * 11);
                     break;
             }
 
@@ -278,13 +287,13 @@ namespace my
                     dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
                     dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
 
-                    offset = 100 + rand.Next(50 + N);
+                    offset1 = 100 + rand.Next(50 + N);
 
                     // Is modified into vertical/horizontal pattern a bit below
                     break;
 
                 case 10:
-                    offset = 100 + rand.Next(50 + N);
+                    offset1 = 100 + rand.Next(50 + N);
 
                     dx = (0.5f + 0.5f * rand.Next(99)) * myUtils.randomSign(rand);
                     dy = (0.5f + 0.5f * rand.Next(15)) * myUtils.randomSign(rand);
@@ -297,7 +306,7 @@ namespace my
                     break;
 
                 case 11:
-                    offset = 100 + rand.Next(50 + N);
+                    offset1 = 100 + rand.Next(50 + N);
 
                     dx = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
                     dy = (0.5f + 0.5f * rand.Next(17)) * myUtils.randomSign(rand);
@@ -316,13 +325,13 @@ namespace my
                     break;
 
                 case 12:
-                    offset = 100 + rand.Next(50 + N);
+                    offset1 = 100 + rand.Next(50 + N);
                     dx = dy = 0;
                     break;
 
                 case 13:
                     {
-                        offset = 100 + rand.Next(50 + N);
+                        offset1 = 100 + rand.Next(50 + N);
 
                         float dX = X1 - X2;
                         float dY = Y1 - Y2;
@@ -374,7 +383,7 @@ namespace my
                     break;
 
                 case 14:
-                    offset = 100 + rand.Next(50 + N);
+                    offset1 = 100 + rand.Next(50 + N);
 
                     switch (rand.Next(4))
                     {
@@ -405,7 +414,7 @@ namespace my
                     break;
 
                 case 15:
-                    offset = 100 + rand.Next(50 + N);
+                    offset1 = 100 + rand.Next(50 + N);
 
                     switch (prm_i[0])
                     {
@@ -443,7 +452,7 @@ namespace my
 
                 case 16:
                     {
-                        offset = 100 + rand.Next(50 + N);
+                        offset1 = 100 + rand.Next(50 + N);
 
                         if (prm_i[2] > 0)
                         {
@@ -474,7 +483,7 @@ namespace my
                     break;
 
                 case 17:
-                    offset = 100 + rand.Next(50 + N);
+                    offset1 = 100 + rand.Next(50 + N);
 
                     switch (prm_i[0])
                     {
@@ -493,13 +502,21 @@ namespace my
                     x = gl_x0;
                     y = gl_y0;
 
-                    offset = rand.Next(2 * gl_Height / 3);
+                    offset1 = rand.Next(2 * gl_Height / 3);
+                    offset2 = prm_i[2] == 0 ? offset1 : rand.Next(2 * gl_Height / 3);
                     pt = myUtils.randFloat(rand) * rand.Next(123);
                     pdt = myUtils.randFloat(rand) / 33;
-                    pdt *= (prm_i[0] == 0) ? 1 : myUtils.randomSign(rand);
 
-                    x = gl_x0 + (float)Math.Sin(pt) * offset;
-                    y = gl_y0 + (float)Math.Cos(pt) * offset;
+                    // Direction of rotation
+                    switch (prm_i[0])
+                    {
+                        case 0: pdt *= +1; break;
+                        case 1: pdt *= -1; break;
+                        default: pdt *= myUtils.randomSign(rand); break;
+                    }
+
+                    x = gl_x0 + (float)Math.Sin(pt) * offset1;
+                    y = gl_y0 + (float)Math.Cos(pt) * offset2;
                     break;
             }
 
@@ -752,19 +769,19 @@ namespace my
                         break;
 
                     case 09:
-                        if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                        if ((x < -offset1 && dx < 0) || (x > gl_Width + offset1 && dx > 0))
                             dx *= -1;
 
-                        if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                        if ((y < -offset1 && dy < 0) || (y > gl_Height + offset1 && dy > 0))
                             dy *= -1;
                         break;
 
                     case 10:
                     case 11:
-                        if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                        if ((x < -offset1 && dx < 0) || (x > gl_Width + offset1 && dx > 0))
                             generateNew();
 
-                        if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                        if ((y < -offset1 && dy < 0) || (y > gl_Height + offset1 && dy > 0))
                             generateNew();
                         break;
 
@@ -796,10 +813,10 @@ namespace my
                                 }
                             }
 
-                            if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                            if ((x < -offset1 && dx < 0) || (x > gl_Width + offset1 && dx > 0))
                                 generateNew();
 
-                            if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                            if ((y < -offset1 && dy < 0) || (y > gl_Height + offset1 && dy > 0))
                                 generateNew();
                         }
                         break;
@@ -807,10 +824,10 @@ namespace my
                     case 13:
                     case 14:
                     case 15:
-                        if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                        if ((x < -offset1 && dx < 0) || (x > gl_Width + offset1 && dx > 0))
                             generateNew();
 
-                        if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                        if ((y < -offset1 && dy < 0) || (y > gl_Height + offset1 && dy > 0))
                             generateNew();
                         break;
 
@@ -834,15 +851,15 @@ namespace my
                                 break;
                         }
 
-                        if ((x < -offset && dx < 0) || (x > gl_Width + offset && dx > 0))
+                        if ((x < -offset1 && dx < 0) || (x > gl_Width + offset1 && dx > 0))
                             generateNew();
 
-                        if ((y < -offset && dy < 0) || (y > gl_Height + offset && dy > 0))
+                        if ((y < -offset1 && dy < 0) || (y > gl_Height + offset1 && dy > 0))
                             generateNew();
                         break;
 
                     case 17:
-                        if (x < -offset || x > gl_Width + offset || y < -offset || y > gl_Height + offset)
+                        if (x < -offset1 || x > gl_Width + offset1 || y < -offset1 || y > gl_Height + offset1)
                             generateNew();
                         else
                         {
@@ -892,7 +909,7 @@ namespace my
                         break;
 
                     case 18:
-                        if (offset > gl_Width / 2 + 13)
+                        if ((offset1 <= offset2 && offset1 > gl_Width / 2 + 33) || (offset1 > offset2 && offset2 > gl_Width / 2 + 33))
                         {
                             a -= 0.05f;
 
@@ -901,10 +918,11 @@ namespace my
                         }
                         else
                         {
-                            dx = (gl_x0 + (float)Math.Sin(pt) * offset) - x;
-                            dy = (gl_y0 + (float)Math.Cos(pt) * offset) - y;
+                            dx = (gl_x0 + (float)Math.Sin(pt) * offset1) - x;
+                            dy = (gl_y0 + (float)Math.Cos(pt) * offset2) - y;
                             pt += pdt;
-                            offset += prm_i[1];
+                            offset1 += prm_i[1] % 10;   // 23 % 10 = 3  -- value 1
+                            offset2 += prm_i[1] / 10;   // 23 / 10 = 2  -- value 2
                         }
                         break;
                 }
@@ -1187,7 +1205,7 @@ namespace my
                 }
                 else
                 {
-                    dimScreen(dimAlpha, false, false);
+                    dimScreen(dimAlpha, doShiftColor: doShiftColor, useStrongerDimFactor: false);
                 }
 
                 // Render Frame
