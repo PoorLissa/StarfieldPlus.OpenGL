@@ -1007,7 +1007,12 @@ namespace my
                 a = 0;
 
             // Render connecting lines
+#if false
+            int Count = list.Count - 1;
+            for (int i = 0; i != Count; i++)
+#else
             for (int i = 0; i < list.Count; i++)
+#endif
             {
                 var obj = list[i] as myObj_310;
 
