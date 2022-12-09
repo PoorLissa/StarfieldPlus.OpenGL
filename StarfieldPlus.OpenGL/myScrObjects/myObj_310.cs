@@ -105,10 +105,6 @@ namespace my
 
             dimAlpha /= (0.1f + 0.1f * rand.Next(20));
 
-// #pmv
-mode = 18;
-isAggregateOpacity = true;
-
             switch (mode)
             {
                 // Particles generate based on position of a point [X1, Y1], which is rotating around the center
