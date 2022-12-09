@@ -1007,8 +1007,8 @@ namespace my
                 a = 0;
 
             // Render connecting lines
-#if false
-            int Count = list.Count - 1;
+#if true
+            int Count = list.Count;
             for (int i = 0; i != Count; i++)
 #else
             for (int i = 0; i < list.Count; i++)
