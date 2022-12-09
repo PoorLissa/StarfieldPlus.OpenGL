@@ -1351,6 +1351,23 @@ namespace my
 
                 System.Threading.Thread.Sleep(renderDelay);
                 t += dt;
+
+#if false
+                myPrimitive._Rectangle.SetAngle(cnt / 1234.0f);
+
+                for (int i = 0; i < cnt; i+= 30)
+                {
+                    //myPrimitive._Rectangle.SetColor(1, 1, 1, 0.005f);
+
+                    float clr = 1.0f - (1.0f / i);
+
+                    myPrimitive._Rectangle.SetColor(clr, 1, 1, 0.009f);
+                    myPrimitive._Rectangle.Draw((int)(sqX - i), (int)(sqY - i), (int)(sqSize  + i * 2), (int)(sqSize + i * 2), false);
+                }
+
+                dimAlpha = 0.01f;
+                cnt += 1;
+#endif
             }
 
             return;
