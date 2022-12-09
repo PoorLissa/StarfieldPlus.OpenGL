@@ -5,7 +5,10 @@ using System.Collections.Generic;
 
 
 /*
-    - Moving particles interconnected with each other
+    - Moving particles, where each particle is connected with every other particle out there
+
+    // todo:
+        - in case of isAggragateOpacity, a < 0 is not an option to call generateNew(), because a is recacled each iteration
 */
 
 
@@ -59,8 +62,8 @@ namespace my
         private void initLocal()
         {
             N = rand.Next(500) + 25;
-            mode = rand.Next(19);
-            //mode = 1;
+            mode = rand.Next(20);
+            //mode = 19;
 
             doClearBuffer  = myUtils.randomChance(rand, 4, 5);
             doShiftColor   = myUtils.randomChance(rand, 1, 2);
@@ -79,7 +82,7 @@ namespace my
             isVerticalLine     = myUtils.randomChance(rand, 1, 15);                 // Draw vertical lines
             isFastMoving       = myUtils.randomChance(rand, 1, 02);                 // For large N and when slowFactor > 3, chance to have fast moving particles
             isRandomSize       = myUtils.randomChance(rand, 1, 03);                 // Use particles of different size
-            doShowParticles    = myUtils.randomChance(rand, 9, 10);                 // Show particles or only connecting lines
+            doShowParticles    = myUtils.randomChance(rand, 9, 10);                 // Draw particles (or not)
 
             t = 0;                                                                  // Global time
             dt = 0.025f;
@@ -181,11 +184,16 @@ namespace my
                 // Particles rotating around the center
                 case 18:
                     prm_i[0] = (short)rand.Next(4);                                 // Direction of rotation
-                    prm_i[1] = (short)(rand.Next(5)+1 + 10 * (rand.Next(5)+1));     // Radius changing speed (use prm_i[1] % 10 and prm_i[1] / 10 for 2 different values)
+                    prm_i[1] = (short)(rand.Next(6) + 10 * (rand.Next(6)));         // Radius changing speed (prm_i[1]%10 and prm_i[1]/10 yield 2 different values of [0..5])
                     prm_i[2] = (short)(rand.Next(2));                               // Circular vs elliptic orbit
 
                     if (prm_i[2] == 0 && myUtils.randomChance(rand, 1, 3))          // For circular orbit, 33% chance to have the same changing speed for both radius offsets
-                        prm_i[1] = (short)((rand.Next(5) + 1) * 11);
+                        prm_i[1] = (short)((rand.Next(6)) * 11);
+                    break;
+
+                // Two horizontal flows of particles moving in opposite directions
+                case 19:
+                    prm_i[0] = (short)rand.Next(3);                                 // Speed factor, depending on y position
                     break;
             }
 
@@ -533,6 +541,33 @@ namespace my
 
                     x = gl_x0 + (float)Math.Sin(pt) * offset1;
                     y = gl_y0 + (float)Math.Cos(pt) * offset2;
+                    break;
+
+                case 19:
+                    offset1 = 50 + N / 5;
+
+                    dx = myUtils.randFloat(rand);
+                    dy = myUtils.randFloat(rand) * myUtils.randomSign(rand);
+
+                    if (r < 0 && g < 0 && b < 0)
+                    {
+                        x = (y > gl_y0) ? (50 - rand.Next(offset1)) : (gl_Width + 50 + rand.Next(offset1));
+                    }
+
+                    switch (prm_i[0])
+                    {
+                        case 0:
+                            dx *= myUtils.signOf(y - gl_y0) * 5 * slowFactor;
+                            break;
+
+                        case 1:
+                            dx *= (y - gl_y0) / 5;
+                            break;
+
+                        case 2:
+                            dx *= (y == gl_y0) ? (-3 * myUtils.signOf(x)) : (2 * gl_y0 / (y - gl_y0));
+                            break;
+                    }
                     break;
             }
 
@@ -939,6 +974,18 @@ namespace my
                             pt += pdt;
                             offset1 += prm_i[1] % 10;   // 23 % 10 = 3  -- value 1
                             offset2 += prm_i[1] / 10;   // 23 / 10 = 2  -- value 2
+                        }
+                        break;
+
+                    case 19:
+                        if ((x < -offset1 && dx < 0) || (x > gl_Width + offset1 && dx > 0))
+                        {
+                            r -= 0.05f;
+                            g -= 0.05f;
+                            b -= 0.05f;
+
+                            if (r < 0 && g < 0 && b < 0)
+                                generateNew();
                         }
                         break;
                 }
