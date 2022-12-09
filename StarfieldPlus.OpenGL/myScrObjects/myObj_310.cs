@@ -26,7 +26,7 @@ namespace my
                            lineStyle = 0, lineColor = 0, slowFactor = 1, axisMode = 0, lineMaxOpacity = 1;
         private static bool moveStep = false;
         private static bool doShiftColor = false, doCreateAtOnce = false, isAggregateOpacity = false, isVerticalLine = false, isFastMoving = false, isRandomSize = false,
-                            doShowAuxParticles = false;
+                            doShowAuxParticles = false, doShowParticles = true;
 
         // Parameters for auxiliary invisible particles rotating around the center
         private static float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, t1 = 0, t2 = 0, dt1 = 0, dt2 = 0;
@@ -79,6 +79,7 @@ namespace my
             isVerticalLine     = myUtils.randomChance(rand, 1, 15);                 // Draw vertical lines
             isFastMoving       = myUtils.randomChance(rand, 1, 02);                 // For large N and when slowFactor > 3, chance to have fast moving particles
             isRandomSize       = myUtils.randomChance(rand, 1, 03);                 // Use particles of different size
+            doShowParticles    = myUtils.randomChance(rand, 9, 10);                 // Show particles or only connecting lines
 
             t = 0;                                                                  // Global time
             dt = 0.025f;
@@ -1197,70 +1198,73 @@ namespace my
                 myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.13f);
             }
 
-            switch (shape)
+            if (doShowParticles)
             {
-                // Instanced squares
-                case 0:
-                    var rectInst = inst as myRectangleInst;
+                switch (shape)
+                {
+                    // Instanced squares
+                    case 0:
+                        var rectInst = inst as myRectangleInst;
 
-                    for (int i = 0; i < 2; i++)
-                    {
-                        int val1 = (int)(size - 2 * i);
-                        int val2 = val1 * 2;
+                        for (int i = 0; i < 2; i++)
+                        {
+                            int val1 = (int)(size - 2 * i);
+                            int val2 = val1 * 2;
 
-                        rectInst.setInstanceCoords(x - val1, y - val1, val2, val2);
-                        rectInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
-                        rectInst.setInstanceAngle(i == 0 ? t : 0);
-                    }
-                    break;
+                            rectInst.setInstanceCoords(x - val1, y - val1, val2, val2);
+                            rectInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                            rectInst.setInstanceAngle(i == 0 ? t : 0);
+                        }
+                        break;
 
-                case 1:
-                    var triangleInst = inst as myTriangleInst;
+                    case 1:
+                        var triangleInst = inst as myTriangleInst;
 
-                    for (int i = 0; i < 2; i++)
-                    {
-                        int val1 = (int)(size - 2 * i);
+                        for (int i = 0; i < 2; i++)
+                        {
+                            int val1 = (int)(size - 2 * i);
 
-                        triangleInst.setInstanceCoords(x, y, val1, i == 0 ? t : 0);
-                        triangleInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
-                    }
-                    break;
+                            triangleInst.setInstanceCoords(x, y, val1, i == 0 ? t : 0);
+                            triangleInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                        }
+                        break;
 
-                case 2:
-                    var ellipseInst = inst as myEllipseInst;
+                    case 2:
+                        var ellipseInst = inst as myEllipseInst;
 
-                    for (int i = 0; i < 2; i++)
-                    {
-                        int val1 = (int)(size - 2 * i);
+                        for (int i = 0; i < 2; i++)
+                        {
+                            int val1 = (int)(size - 2 * i);
 
-                        ellipseInst.setInstanceCoords(x, y, 2 * val1, 0);
-                        ellipseInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
-                    }
-                    break;
+                            ellipseInst.setInstanceCoords(x, y, 2 * val1, 0);
+                            ellipseInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                        }
+                        break;
 
-                case 3:
-                    var pentagonInst = inst as myPentagonInst;
+                    case 3:
+                        var pentagonInst = inst as myPentagonInst;
 
-                    for (int i = 0; i < 2; i++)
-                    {
-                        int val1 = (int)(size - 2 * i);
+                        for (int i = 0; i < 2; i++)
+                        {
+                            int val1 = (int)(size - 2 * i);
 
-                        pentagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
-                        pentagonInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
-                    }
-                    break;
+                            pentagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
+                            pentagonInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                        }
+                        break;
 
-                case 4:
-                    var hexagonInst = inst as myHexagonInst;
+                    case 4:
+                        var hexagonInst = inst as myHexagonInst;
 
-                    for (int i = 0; i < 2; i++)
-                    {
-                        int val1 = (int)(size - 2 * i);
+                        for (int i = 0; i < 2; i++)
+                        {
+                            int val1 = (int)(size - 2 * i);
 
-                        hexagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
-                        hexagonInst.setInstanceColor(r, g, b, i == 0 ? a/2 : a);
-                    }
-                    break;
+                            hexagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
+                            hexagonInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                        }
+                        break;
+                }
             }
 
             return;
