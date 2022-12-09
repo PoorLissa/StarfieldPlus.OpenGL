@@ -6,9 +6,6 @@ using System.Collections.Generic;
 
 /*
     - Moving particles, where each particle is connected with every other particle out there
-
-    // todo:
-        - in case of isAggragateOpacity, a < 0 is not an option to call generateNew(), because a is recacled each iteration
 */
 
 
@@ -63,7 +60,6 @@ namespace my
         {
             N = rand.Next(500) + 25;
             mode = rand.Next(20);
-            //mode = 19;
 
             doClearBuffer  = myUtils.randomChance(rand, 4, 5);
             doShiftColor   = myUtils.randomChance(rand, 1, 2);
@@ -108,6 +104,10 @@ namespace my
             }
 
             dimAlpha /= (0.1f + 0.1f * rand.Next(20));
+
+// #pmv
+mode = 18;
+isAggregateOpacity = true;
 
             switch (mode)
             {
@@ -183,7 +183,7 @@ namespace my
 
                 // Particles rotating around the center
                 case 18:
-                    prm_i[0] = (short)rand.Next(4);                                 // Direction of rotation
+                    prm_i[0] = (short)(rand.Next(4));                               // Direction of rotation
                     prm_i[1] = (short)(rand.Next(6) + 10 * (rand.Next(6)));         // Radius changing speed (prm_i[1]%10 and prm_i[1]/10 yield 2 different values of [0..5])
                     prm_i[2] = (short)(rand.Next(2));                               // Circular vs elliptic orbit
 
@@ -194,6 +194,7 @@ namespace my
                 // Two horizontal flows of particles moving in opposite directions
                 case 19:
                     prm_i[0] = (short)rand.Next(3);                                 // Speed factor, depending on y position
+                    prm_i[1] = (short)rand.Next(5);                                 // dy speed factor
                     break;
             }
 
@@ -547,7 +548,7 @@ namespace my
                     offset1 = 50 + N / 5;
 
                     dx = myUtils.randFloat(rand);
-                    dy = myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                    dy = myUtils.randFloat(rand) * myUtils.randomSign(rand) * prm_i[1];
 
                     if (r < 0 && g < 0 && b < 0)
                     {
@@ -809,12 +810,11 @@ namespace my
                     case 08:
                         if (x < -50 || x > gl_Width + 50 || y < -50 || y > gl_Height + 50)
                         {
-                            if (a > 1)
-                                a = 1;
+                            r -= 0.05f;
+                            g -= 0.05f;
+                            b -= 0.05f;
 
-                            a -= 0.05f;
-
-                            if (a <= 0)
+                            if (r < 0 && g < 0 && b < 0)
                                 generateNew();
                         }
                         break;
@@ -962,9 +962,11 @@ namespace my
                     case 18:
                         if ((offset1 <= offset2 && offset1 > gl_Width / 2 + 33) || (offset1 > offset2 && offset2 > gl_Width / 2 + 33))
                         {
-                            a -= 0.05f;
+                            r -= 0.05f;
+                            g -= 0.05f;
+                            b -= 0.05f;
 
-                            if (a < 0)
+                            if (r < 0 && g < 0 && b < 0)
                                 generateNew();
                         }
                         else
