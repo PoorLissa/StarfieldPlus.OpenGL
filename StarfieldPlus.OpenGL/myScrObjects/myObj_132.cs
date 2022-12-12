@@ -13,18 +13,14 @@ namespace my
 {
     public class myObj_132 : myObject
     {
-        private static int N = 0;
-        private static bool doFillShapes = false;
+        private static int N = 1;
 
         static int max_dSize = 0, t = 0, tDefault = 0, shape = 0, x0 = 0, y0 = 0, si1 = 0, si2 = 0, invalidateRate = 1;
-        static bool isDimmableGlobal = true, isDimmableLocal = false, needNewScreen = false;
-        static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0;
-        static float fLifeCnt = 0, fdLifeCnt = 0;
+        static bool isDimmableGlobal = true, isDimmableLocal = false, needNewScreen = false, doFillShapes = false;
+        static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
 
-        int maxSize = 0, R = 0, G = 0, B = 0, dSize = 0, dA = 0, dA_Filling = 0;
-        float time, time2, dt2, dx, dy, float_B, x1, y1, x2, y2, x3, y3, x4, y4;
-
-        private float x, y, size, a, r, g, b, angle = 0;
+        private int maxSize = 0, R = 0, G = 0, B = 0, dSize = 0, dA = 0, dA_Filling = 0;
+        private float x, y, dx, dy, size, a, r, g, b, angle = 0, time, time2, dt2, float_B, x1, y1, x2, y2, x3, y3, x4, y4;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -194,6 +190,60 @@ shape = 0;
                     x2 = size * dx;
                     y2 = size * dy;
                     break;
+
+                case 1:
+                    x1 = size + dx2;
+                    y1 = size / 2 + dy2;
+                    x2 = x / 2;
+                    y2 = y / 2;
+                    break;
+
+                case 2:
+                    x1 = size + dx2;
+                    y1 = size + dy2;
+
+                    x1 = size;
+                    y1 = 1 * gl_Height / 5 + dy2 * dx / 100;
+
+                    x2 = x / 2;
+                    y2 = y / 2;
+                    break;
+
+                case 3:
+                    x1 = size + dx2;
+                    y1 = size + dy2;
+                    x2 = gl_Width - size + dx2;
+                    y2 = gl_Height - size + dy2;
+
+                    x3 = gl_Width - size + dx2;
+                    y3 = size + dy2;
+                    x4 = size + dx2;
+                    y4 = gl_Height - size + dy2;
+                    break;
+
+                case 4:
+                    x1 = size + dx2 * dx / 10;
+                    y1 = size + dy2;
+                    x2 = gl_Width - size + dx2 * dx / 10;
+                    y2 = gl_Height - size + dy2;
+
+                    x3 = gl_Width - size + dx2 * dx / 10;
+                    y3 = size + dy2;                        // * dy/10;
+                    x4 = size + dx2 * dx / 10;
+                    y4 = gl_Height - size + dy2;
+                    break;
+
+                case 5:
+                    x1 = size + dx2;
+                    y1 = size + dy2 * dy / 20;
+
+                    x1 += float_B;
+
+                    x2 = gl_Width - x1;
+                    y2 = gl_Height - y1;
+
+                    float_B += 1.123f;  // try changing this value
+                    break;
             }
 
             return;
@@ -208,64 +258,33 @@ shape = 0;
             switch (shape)
             {
                 case 0:
-                    myPrimitive._Line.SetColor(1, 1, 1, 0.33f);
+                    myPrimitive._Line.SetColor(1, 1, 1, 0.1f);
                     myPrimitive._Line.Draw(x, y, x1, y1);
                     myPrimitive._Line.Draw(x, y, x2, y2);
                     break;
-            }
 
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        protected void Show_Old()
-        {
-#if false
-            switch (shape)
-            {
-                // Instanced squares
-                case 0:
-                    var rectInst = inst as myRectangleInst;
-
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-                    break;
-
-                // Instanced triangles
                 case 1:
-                    var triangleInst = inst as myTriangleInst;
-
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced circles
                 case 2:
-                    var ellipseInst = inst as myEllipseInst;
-
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._Rectangle.SetColor(1.0f, 0.5f, 0.5f, 1.0f);
+                    myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+                    myPrimitive._Line.SetColor(1, 1, 1, 0.1f);
+                    myPrimitive._Line.Draw(x2, y2, x1, y1);
                     break;
 
-                // Instanced pentagons
                 case 3:
-                    var pentagonInst = inst as myPentagonInst;
-
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
                 case 4:
-                    var hexagonInst = inst as myHexagonInst;
+/*
+                    g.DrawLine(p, x1, y1, x2, y2);
+                    g.DrawLine(p, x3, y3, x4, y4);
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
+                    g.DrawRectangle(Pens.DarkOrange, x1, y1, 3, 3);
+                    g.DrawRectangle(Pens.DarkOrange, x2, y2, 3, 3);
+                    g.DrawRectangle(Pens.DarkOrange, x3, y3, 3, 3);
+                    g.DrawRectangle(Pens.DarkOrange, x4, y4, 3, 3);*/
                     break;
+
             }
-#endif
+
             return;
         }
 
