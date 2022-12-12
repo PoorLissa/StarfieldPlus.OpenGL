@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 /*
     - Get a rectangle at the original screen
-    - Calculate average color in this rectangle
+    - Get color at a point / Calculate average color in this rectangle
     - Put a shape filled with this average color at the same place
 */
 
@@ -17,7 +17,7 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static bool doClearBuffer = false, doCleanOnce = false, doUseGrid = false, doUseRandSize = false;
+        private static bool doCleanOnce = false, doUseGrid = false, doUseRandSize = false;
         private static int angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0, borderMode = 0, randSizeFactor = 1;
 
         private int x, y, size;

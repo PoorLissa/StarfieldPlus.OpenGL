@@ -63,9 +63,6 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        // If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels
-        // For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
-
         protected override void Process(Window window)
         {
             myPrimitive.init_Line();
@@ -76,9 +73,7 @@ namespace my
             myPrimitive.init_Rectangle();
 
             while (list.Count < 333)
-            {
                 list.Add(new myObj_999a());
-            }
 
             // it's static and not loading the second time
             myTexRectangle tex1 = new myTexRectangle(colorPicker.getImg());
@@ -110,58 +105,20 @@ namespace my
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
-
                 processInput(window);
-
-                // Swap fore/back framebuffers, and poll for operating system events.
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                // Clear the framebuffer to defined background color
                 if (doClearBuffer)
                 {
                     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 }
 
-                // Render frame:
-                // Copy rectangles from the texture
-                // drops lots of colored rectangles and sometimes draws a piece of real picture -- need this
-                if (false)
-                {
-                    foreach (myObj_999a obj in list)
-                    {
-                        obj.Show();
-                        obj.Move();
-                    }
 
-/*
-                    tex1.Draw(0, 0, gl_Width, gl_Height);
-                    myPrimitive._Rectangle.SetColor(0.5f, 0.5f, 0.5f, 0.66f);
-                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
-*/
-
-                    tex1.Draw(x0, y0, w0, h0, x0, y0, w0, h0);
-                    //tex2.Draw(x1, y1, z1, z1);
-
-                    if (cnt % 33 == 0)
-                    {
-                        x1 = rand.Next(gl_Width);
-                        y1 = rand.Next(gl_Height);
-                        z1 = rand.Next(300) + 100;
-                    }
-
-                    if (cnt % 50 == 0)
-                    {
-                        x0 = rand.Next(gl_Width);
-                        y0 = rand.Next(gl_Height);
-                        w0 = rand.Next(500) + 50;
-                        h0 = rand.Next(500) + 50;
-                    }
-                }
 
                 // need this option -- if not already
-                if (!true)
+                if (true)
                 {
                     for (int i = 0; i < 100; i++)
                     {

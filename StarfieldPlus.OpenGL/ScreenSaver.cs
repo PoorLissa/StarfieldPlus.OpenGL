@@ -29,8 +29,32 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels
+    // For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
+
+    // todo from the old StarfieldPlus:
+    // - divide the screen in squares and swap them randomly
+    // - gravity
+    // - sort all the screen pixels
+    // - moving stripes (from top to bottom, for example)
+    // - gravity, where the color of a pixel is its mass
+    // - posterization (color % int)
+    // - divide in squares and each square gets its own blur factor
+    // - sperm floating towards the center
+    // - cover everything in spiralling traingles
+    // - try bezier curves: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
+    // - try rotating rectangles: https://stackoverflow.com/questions/10210134/using-a-matrix-to-rotate-rectangles-individually
+    // - something like myObj_101, but the pieces are moved via sine/cosine function (up-down or elliptically)
+    // - randomly generate points. Every point grows its own square (with increasing or decreasing opacity). Grown squares stay a while then fade away. Example: myobj040 + moveType = 1 + shape = 0 + Show == g.FillRectangle(br, X, Y, Size, Size);
+    // - bouncing ball, but its trajctory is not straight line, but curved like in obj_040
+    // - moving ponts generator, where the moment of generation depends on sin(time)
+    // - battle ships
+    // - grid over an image. grid pulses, increasing and decreasing its cells size. each cell is displaying average img color
+    // - bouncing ball and lots of triangles rotating to point to it
+    // - mandlebrot
+
     // todo:
-    // - concentric circles moving inwards. The less the circle is, the less is its decreasing speed. Should look like a funnel of sorts
+    // - concentric circles moving inwards. The less the circle is, the less is its decreasing speed. Should look like a funnel or tunnel of sorts
     // - number of rotating lines. the length of each line is changing over time
     // - lots of triangles, where each vertice is moving like a bouncing ball
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
@@ -39,11 +63,12 @@ public class ScreenSaver
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - like a starfield, but points moving line originates not from the center, but from a center-offset position -- should look like a vortex of sorts (see myObj_000_Star : myObj_000 : generateNew())
     // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving towards the point where pt2 has been at the moment of generation
+    // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
 
     private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
                        myObj_102, myObj_130, myObj_131, myObj_180, myObj_200, myObj_210, myObj_220, myObj_230,
                        myObj_300, myObj_310, myObj_320, myObj_330,
-                       myObj_300_test, myObj_999a
+                       myObj_999a
     };
 
     public void selectObject()
@@ -53,11 +78,12 @@ public class ScreenSaver
         id = ids.myObj_043;
         id = ids.myObj_000;
         id = ids.myObj_330;
-        id = ids.myObj_310;
+        id = ids.myObj_102;
+        id = ids.myObj_999a;
 
         switch (id)
         {
-            // Stars: todo later
+            // Stars: kind of working, but needs finishing the migration
             case ids.myObj_000:
                 _obj = new my.myObj_000();
                 break;
@@ -72,7 +98,7 @@ public class ScreenSaver
                 _obj = new my.myObj_011();
                 break;
 
-            // Linearly Moving Shapes (Soap Bubbles alike)
+            // Linearly Moving Shapes (Soap Bubbles Alike)
             case ids.myObj_020:
                 _obj = new my.myObj_020();
                 break;
@@ -102,7 +128,7 @@ public class ScreenSaver
                 _obj = new my.myObj_043();
                 break;
 
-            // Desktop 2
+            // Desktop 2: Random rectangles with a color from the underlying image (point-based or average)
             case ids.myObj_102:
                 _obj = new my.myObj_102();
                 break;
@@ -160,10 +186,6 @@ public class ScreenSaver
             // Textures, Take 1
             case ids.myObj_330:
                 _obj = new my.myObj_330();
-                break;
-
-            case ids.myObj_300_test:
-                _obj = new my.myObj_300_test();
                 break;
 
             default:

@@ -63,7 +63,7 @@ namespace my
         private void initLocal()
         {
             mode = rand.Next(65);
-            mode = 64;
+            mode = 0;
 
             // Reset parameter values
             {
@@ -90,8 +90,10 @@ namespace my
                 // The narrower the rectangle, the higher is its opacity
                 case 00:
                     doClearBuffer = false;
+                    prm_i[0] = myUtils.randomChance(rand, 1, 5) ? 1 : 0;                    // Draw larger pieces of image sometimes
                     dimAlpha /= 10;
                     N = 10;
+                    prm_i[0] = 1;
                     break;
 
                 // Random very narrow rectangles (1 or 2 px) appear at random locations each iteration
@@ -2319,6 +2321,13 @@ namespace my
                     width = rand.Next(133) + 1;
                     height = rand.Next(133) + 1;
                     a = 133.0f / width / height;
+
+                    if (prm_i[0] == 1 && myUtils.randomChance(rand, 1, 1666))
+                    {
+                        width = rand.Next(333) + 100;
+                        height = rand.Next(333) + 100;
+                        a = 0.85f;
+                    }
 
                     if (doUseRandDxy)
                     {
