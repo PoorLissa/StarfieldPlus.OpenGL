@@ -8,6 +8,9 @@ using System.Collections.Generic;
 
 /*
     - Spiraling in shapes
+
+    todo:
+        -- add more variance. slowly rotating out shapes, changin the radius change speed, changing time change speed; saw-looking dRad or dT functions;
 */
 
 
@@ -15,7 +18,7 @@ namespace my
 {
     public class myObj_200 : myObject
     {
-        private static bool doClearBuffer = false, doChangeBgrColor = false, randomDrad = false;
+        private static bool doChangeBgrColor = false, randomDrad = false;
         private static int x0, y0, shapeType = 0, moveType = 0, rotationType = 0, dimMode = 0, t = 25, N = 1;
         private static float baseDt = 1.0f, dimAlpha = 0.025f;
 

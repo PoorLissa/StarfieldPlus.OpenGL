@@ -117,8 +117,9 @@ namespace my
 
 
 
+                // where is this option where we have lots of colored shapes appearing constantly?..
                 // need this option -- if not already
-                if (true)
+                if (false)
                 {
                     for (int i = 0; i < 100; i++)
                     {
@@ -137,7 +138,7 @@ namespace my
                 }
 
                 // already have something like this, but need this as well
-                if (false)
+                if (true)
                 {
                     myPrimitive._Hexagon.SetColor(1, 0, 0, 1);
 
@@ -197,39 +198,6 @@ namespace my
                     {
                         dt -= 0.01f;
                     }
-                }
-
-                if (false)
-                {
-                    int x = gl_Width  / 2;
-                    int y = gl_Height / 2;
-
-                    myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
-                    myPrimitive._Rectangle.SetAngle(t/10);
-                    myPrimitive._Rectangle.Draw(x - x1, y - x1, 2 * x1, 2 * x1, false);
-                    x1 -= 2;
-
-                    if (x1 < 0)
-                    {
-                        x1 = gl_Height;
-                    }
-
-                    if (cnt % 50 == 0)
-                    {
-                        //dt -= 0.01f;
-                    }
-                }
-
-                if (true)
-                {
-                    myPrimitive._Line.SetColor(1, 1, 0, 1);
-
-                    myPrimitive._Line.SetAngle(t/2);
-                    myPrimitive._Line.SetColor(1, 1, 0, 0.1f);
-                    myPrimitive._Line.Draw(xx1 + 100, yy1 + 100, xx1 + 100, yy1 + 200, 3);
-
-                    myPrimitive._Line.SetColor(1, 1, 0, 1);
-                    myPrimitive._Line.Draw(xx1 + 100, yy1 + 100, xx1 + 100, yy1 + 200, 1);
                 }
 
                 System.Threading.Thread.Sleep(25);
