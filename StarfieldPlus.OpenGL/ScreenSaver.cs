@@ -65,21 +65,19 @@ public class ScreenSaver
     // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving towards the point where pt2 has been at the moment of generation
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
 
-    private enum ids { myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
-                       myObj_102, myObj_130, myObj_131, myObj_180, myObj_200, myObj_210, myObj_220, myObj_230,
-                       myObj_300, myObj_310, myObj_320, myObj_330,
-                       myObj_999a
+    private enum ids {
+        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
+        myObj_102, myObj_130, myObj_131, myObj_132, myObj_180, myObj_200, myObj_210, myObj_220, myObj_230,
+        myObj_300, myObj_310, myObj_320, myObj_330,
+        myObj_999a
     };
 
     public void selectObject()
     {
         ids id = (ids)0;
-        id = ids.myObj_130;
-        id = ids.myObj_043;
-        id = ids.myObj_000;
         id = ids.myObj_330;
         id = ids.myObj_102;
-        id = ids.myObj_999a;
+        id = ids.myObj_132;
 
         switch (id)
         {
@@ -141,6 +139,11 @@ public class ScreenSaver
             // Growing shapes -- Rain circles alike
             case ids.myObj_131:
                 _obj = new my.myObj_131();
+                break;
+
+            // Splines
+            case ids.myObj_132:
+                _obj = new my.myObj_132();
                 break;
 
             // Generator of waves that are made of particles
