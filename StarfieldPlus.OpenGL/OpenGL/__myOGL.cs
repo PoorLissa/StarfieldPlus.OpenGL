@@ -31,7 +31,7 @@ class myOGL
     {
         var mode = Glfw.GetVideoMode(Glfw.PrimaryMonitor);
 
-        width = mode.Width;
+        width  = mode.Width;
         height = mode.Height;
 
         return;
