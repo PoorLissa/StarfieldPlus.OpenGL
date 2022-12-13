@@ -15,11 +15,14 @@ namespace my
     {
         private static int N = 1;
 
+        private enum ScreenMode { Active, Start = 10, ManualSwitch = 33, Transition = 125 };
+
         static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0;
-        static bool isDimmableGlobal = true, isDimmableLocal = false, needNewScreen = false, doFillShapes = false;
+        static bool isDimmableGlobal = true, isDimmableLocal = false, doFillShapes = false;
         static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
         static float a = 0, b = 0, c = 0;
         private static float dimAlpha = 0.05f;
+        private static ScreenMode scrMode = ScreenMode.Start;
 
         private int maxSize = 0, R = 0, G = 0, B = 0, dA = 0, dA_Filling = 0;
         private float x, y, dx, dy, size, dSize, a1, r1, g1, b1, a2, r2, g2, b2, angle = 0, time1, time2, dt1, dt2, float_B, x1, y1, x2, y2, x3, y3, x4, y4;
@@ -39,6 +42,8 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
+            doClearBuffer = false;
+
             initLocal();
         }
 
@@ -49,10 +54,6 @@ namespace my
         {
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
-
-            doClearBuffer = false;
-
-            N = (N == 0) ? 10 + rand.Next(10) : N;
 
             max_dSize = rand.Next(15) + 3;
             isDimmableGlobal = rand.Next(2) == 0;
@@ -84,13 +85,17 @@ namespace my
         protected override void setNextMode()
         {
             initLocal();
+            generateNew();
+
+            scrMode = ScreenMode.ManualSwitch;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
-            dimAlpha = 0.05f;                                           // Restore dim speed to its original value
+            // Restore dim speed to its original value
+            dimAlpha = 0.01f;
 
             fLifeCnt = 255.0f;
             fdLifeCnt = 0.25f;
@@ -98,18 +103,20 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            float_B = 1.0f;
-
-            colorPicker.getColor(x, y, ref r1, ref g1, ref b1);
-            if (r1 + g1 + b1 < 0.25f)
+            // Color to draw the lines
             {
-                r1 += 0.1f; g1 += 0.1f; b1 += 0.1f;
-            }
+                colorPicker.getColor(x, y, ref r1, ref g1, ref b1);
+                colorPicker.getColorRand(ref r2, ref g2, ref b2);
 
-            colorPicker.getColorRand(ref r2, ref g2, ref b2);
-            if (r2 + g2 + b2 < 0.25f)
-            {
-                r2 += 0.1f; g2 += 0.1f; b2 += 0.1f;
+                if (r1 + g1 + b1 < 0.25f)
+                {
+                    r1 += 0.1f; g1 += 0.1f; b1 += 0.1f;
+                }
+
+                if (r2 + g2 + b2 < 0.25f)
+                {
+                    r2 += 0.1f; g2 += 0.1f; b2 += 0.1f;
+                }
             }
 
             maxSize = rand.Next(333) + 33;
@@ -133,18 +140,16 @@ namespace my
             dA = rand.Next(5) + 1;
             dA = 1;
             dA_Filling = rand.Next(5) + 2;
+            float_B = 1.0f;
 
             time1 = 0.0f;
             time2 = 0.0f;
             dt1 = 0.1f;
             dt2 = 0.01f;
 
-            needNewScreen = true;
+            scrMode = (scrMode == ScreenMode.Start) ? ScreenMode.Start : ScreenMode.Transition;
 
             setUpConstants();
-
-fLifeCnt = 33.0f;
-dimAlpha = 0.001f;
 
             return;
         }
@@ -284,7 +289,7 @@ dimAlpha = 0.001f;
                     sf4 = 0.001f * rand.Next(1111) * rand.Next(333) * myUtils.randomSign(rand);
 
                     t = 3;
-                    needNewScreen = false;
+                    scrMode = ScreenMode.Active;
                     break;
 
                 case 87:
@@ -312,7 +317,7 @@ dimAlpha = 0.001f;
                     sf1 = 0.01f + 0.01f * rand.Next(100);
                     sf2 = 0.5f + 0.5f * rand.Next(50);
 
-                    needNewScreen = false;
+                    scrMode = ScreenMode.Active;
                     break;
 
                 case 90:
@@ -348,23 +353,35 @@ dimAlpha = 0.001f;
 
         protected override void Move()
         {
-            int tNow = System.DateTime.Now.Millisecond;
-
-            size += dSize;
-            time1 += dt1;
-            time2 += dt2;
-
-            dx = (float)(Math.Sin(time1)) * 5 * size / 10;
-            dy = (float)(Math.Cos(time1)) * 5 * size / 10;
-
-            x += dx;
-            y += dy;
-
-            move_0();
-
-            if ((fLifeCnt -= fdLifeCnt) < 0)
+            switch (scrMode)
             {
-                generateNew();
+                case ScreenMode.Active:
+                    {
+                        int tNow = System.DateTime.Now.Millisecond;
+
+                        size += dSize;
+                        time1 += dt1;
+                        time2 += dt2;
+
+                        dx = (float)(Math.Sin(time1)) * 5 * size / 10;
+                        dy = (float)(Math.Cos(time1)) * 5 * size / 10;
+
+                        x += dx;
+                        y += dy;
+
+                        move_0();
+
+                        if ((fLifeCnt -= fdLifeCnt) < 0)
+                        {
+                            generateNew();
+                        }
+                    }
+                    break;
+
+                // Decrease scrMode, until it becomes Active
+                default:
+                    scrMode--;
+                    break;
             }
 
             return;
@@ -1297,145 +1314,150 @@ dimAlpha = 0.001f;
 
         protected override void Show()
         {
-            switch (mode)
+            if (scrMode != ScreenMode.Active)
             {
-                case 00:
-                    myPrimitive._Line.SetColor(r1, g1, b1, 0.5f);
-                    myPrimitive._Line.Draw(x, y, x1, y1);
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x, y, x2, y2);
-                    break;
+                // Clear the screen between modes
+                dimScreen(0.075f, doShiftColor: true);
+            }
+            else
+            {
+                switch (mode)
+                {
+                    case 00:
+                        myPrimitive._Line.SetColor(r1, g1, b1, 0.5f);
+                        myPrimitive._Line.Draw(x, y, x1, y1);
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x, y, x2, y2);
+                        break;
 
-                case 01:case 02:
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x2, y2, x1, y1);
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-                    break;
+                    case 01:case 02:
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x2, y2, x1, y1);
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+                        break;
 
-                case 03:case 04:
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x1, y1, x2, y2);
-                    myPrimitive._Line.Draw(x3, y3, x4, y4);
-
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-                    myPrimitive._Rectangle.Draw(x3, y3, 3, 3, false);
-                    myPrimitive._Rectangle.Draw(x4, y4, 3, 3, false);
-                    break;
-
-                case 05:case 06:case 07:case 08:case 09:case 10:case 11:case 12:case 13:
-                case 14:case 15:case 16:case 17:case 18:case 19:case 20:case 21:case 22:
-                case 23:case 24:case 25:case 26:case 27:case 28:
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x1, y1, x2, y2);
-
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-                    break;
-
-                case 29:case 30:case 31:case 32:case 33:case 34:case 35:case 36:case 37:
-                case 38:case 39:
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x1, y1, x2, y2);
-
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-                    break;
-
-                case 40:case 41:case 42:case 43:case 44:case 45:case 46:case 47:case 48:
-                case 49:case 50:case 51:case 52:case 53:case 54:case 55:case 56:case 57:
-                case 58:case 59:case 60:case 61:case 62:case 63:case 64:case 65:case 66:
-                case 67:case 68:case 69:case 70:case 71:case 72:case 73:case 74:case 75:
-                case 76:case 77:case 78:case 79:case 80:case 81:case 82:case 83:case 85:
-                case 86:case 87:case 88:
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x1, y1, x2, y2);
-
-                    myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-                    break;
-
-                case 84:
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x1, y1, x3, y3);
-                    myPrimitive._Line.Draw(x2, y2, x3, y3);
-
-                    myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-                    break;
-
-                case 89:
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x1, y1, x2, y2 + 500);
-
-                    myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-
-                    myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.5451f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x3, y3, 3, 3, false);
-
-                    myPrimitive._Rectangle.SetColor(0.58f, 0.0f, 0.827f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x4, y4, 3, 3, false);
-                    break;
-
-                case 90:
-                    myPrimitive._Ellipse.SetColor(1.0f, 0.55f, 0.0f, 0.01f);
-                    myPrimitive._Ellipse.Draw(gl_x0 - 100, gl_y0 - 100, 0200, 0200);
-                    myPrimitive._Ellipse.Draw(gl_x0 - 300, gl_y0 - 300, 0600, 0600);
-                    myPrimitive._Ellipse.Draw(gl_x0 - 500, gl_y0 - 500, 1000, 1000);
-
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x1, y1, x2, y2);
-
-                    myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x1-1, y1-1, 3, 3, false);
-
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-
-                    if (x4 > 0)
-                    {
-                        x4 = (int)(x4);
-                        y4 = (int)(y4);
-
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.65f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x4 + 2, y4 + 2, 7, 7, true);
+                    case 03:case 04:
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2);
+                        myPrimitive._Line.Draw(x3, y3, x4, y4);
 
                         myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x4, y4, 10, 10, false);
-                    }
-                    break;
+                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        myPrimitive._Rectangle.Draw(x3, y3, 3, 3, false);
+                        myPrimitive._Rectangle.Draw(x4, y4, 3, 3, false);
+                        break;
 
-                case 91:
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-                    break;
+                    case 05:case 06:case 07:case 08:case 09:case 10:case 11:case 12:case 13:case 14:case 15:case 16:
+                    case 17:case 18:case 19:case 20:case 21:case 22:case 23:case 24:case 25:case 26:case 27:case 28:
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2);
 
-                case 1300:
-                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
-                    myPrimitive._Line.Draw(x1, y1, x2, y2);
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        break;
 
-                    myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+                    case 29:case 30:case 31:case 32:case 33:case 34:case 35:case 36:case 37:
+                    case 38:case 39:
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2);
 
-                    myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                    myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-                    break;
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        break;
 
-                default:
-                    break;
+                    case 40:case 41:case 42:case 43:case 44:case 45:case 46:case 47:case 48:case 49:case 50:case 51:
+                    case 52:case 53:case 54:case 55:case 56:case 57:case 58:case 59:case 60:case 61:case 62:case 63:
+                    case 64:case 65:case 66:case 67:case 68:case 69:case 70:case 71:case 72:case 73:case 74:case 75:
+                    case 76:case 77:case 78:case 79:case 80:case 81:case 82:case 83:case 85:case 86:case 87:case 88:
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2);
+
+                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        break;
+
+                    case 84:
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x3, y3);
+                        myPrimitive._Line.Draw(x2, y2, x3, y3);
+
+                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        break;
+
+                    case 89:
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2 + 500);
+
+                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+
+                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.5451f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x3, y3, 3, 3, false);
+
+                        myPrimitive._Rectangle.SetColor(0.58f, 0.0f, 0.827f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x4, y4, 3, 3, false);
+                        break;
+
+                    case 90:
+                        myPrimitive._Ellipse.SetColor(1.0f, 0.55f, 0.0f, 0.01f);
+                        myPrimitive._Ellipse.Draw(gl_x0 - 100, gl_y0 - 100, 0200, 0200);
+                        myPrimitive._Ellipse.Draw(gl_x0 - 300, gl_y0 - 300, 0600, 0600);
+                        myPrimitive._Ellipse.Draw(gl_x0 - 500, gl_y0 - 500, 1000, 1000);
+
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2);
+
+                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x1-1, y1-1, 3, 3, false);
+
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+
+                        if (x4 > 0)
+                        {
+                            x4 = (int)(x4);
+                            y4 = (int)(y4);
+
+                            myPrimitive._Rectangle.SetColor(1.0f, 0.65f, 0.0f, 1.0f);
+                            myPrimitive._Rectangle.Draw(x4 + 2, y4 + 2, 7, 7, true);
+
+                            myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                            myPrimitive._Rectangle.Draw(x4, y4, 10, 10, false);
+                        }
+                        break;
+
+                    case 91:
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        break;
+
+                    case 1300:
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2);
+
+                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+
+                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
+                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        break;
+
+                    default:
+                        break;
+                }
             }
 
             return;
