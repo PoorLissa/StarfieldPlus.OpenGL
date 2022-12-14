@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 /*
     - Splines
+
+    -- mode 10 only works once
+    -- mode 89 only starts once, then it draws outside of the screen, apparently
 */
 
 
@@ -18,7 +21,7 @@ namespace my
         private enum ScreenMode { Active, Start = 10, ManualSwitch = 33, Transition = 125 };
 
         private static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0, repeatMode = 1;
-        private static bool isDimmableGlobal = true, isDimmableLocal = false, doFillShapes = false;
+        private static bool isDimmableGlobal = true, isDimmableLocal = false;
         private static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
         private static float a = 0, b = 0, c = 0;
         private static float dimAlpha = 0.05f;
@@ -99,7 +102,14 @@ namespace my
             fdLifeCnt = 0.25f;
 
             // Number of particle iterations between 2 consequent frame renders
-            repeatMode = rand.Next(7) + 1;
+            if (myUtils.randomChance(rand, 1, 13))
+            {
+                repeatMode = rand.Next(123) + 1;
+            }
+            else
+            {
+                repeatMode = rand.Next(7) + 1;
+            }
 
             // Adjust dimming rate for the repeating speed
             if (myUtils.randomChance(rand, 1, 2))
@@ -138,7 +148,7 @@ namespace my
             t = tDefault;
             t -= isDimmableGlobal ? 13 : 0;
 
-            //mode = 47;
+            //mode = 10;
 
 #if false
             fdLifeCnt = 0.01f;
