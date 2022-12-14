@@ -17,10 +17,10 @@ namespace my
 
         private enum ScreenMode { Active, Start = 10, ManualSwitch = 33, Transition = 125 };
 
-        static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0;
-        static bool isDimmableGlobal = true, isDimmableLocal = false, doFillShapes = false;
-        static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
-        static float a = 0, b = 0, c = 0;
+        private static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0, repeatMode = 1;
+        private static bool isDimmableGlobal = true, isDimmableLocal = false, doFillShapes = false;
+        private static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
+        private static float a = 0, b = 0, c = 0;
         private static float dimAlpha = 0.05f;
         private static ScreenMode scrMode = ScreenMode.Start;
 
@@ -52,9 +52,6 @@ namespace my
         // One-time initialization
         private void initLocal()
         {
-            gl_x0 = gl_Width  / 2;
-            gl_y0 = gl_Height / 2;
-
             max_dSize = rand.Next(15) + 3;
             isDimmableGlobal = rand.Next(2) == 0;
             tDefault = 33;
@@ -71,6 +68,7 @@ namespace my
             string str = $"Obj = myObj_132\n\n" +
                             $"N = {N} of {list.Count}\n" +
                             $"mode = {mode}\n" +
+                            $"repeatMode = {repeatMode}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
                             $"dSize = {dSize}\n" +
                             $"fLifeCnt = {fLifeCnt}\n" +
@@ -95,10 +93,23 @@ namespace my
         protected override void generateNew()
         {
             // Restore dim speed to its original value
-            dimAlpha = 0.01f;
+            dimAlpha = 0.01f / (rand.Next(10) + 1);
 
             fLifeCnt = 255.0f;
             fdLifeCnt = 0.25f;
+
+            // Number of particle iterations between 2 consequent frame renders
+            repeatMode = rand.Next(7) + 1;
+
+            // Adjust dimming rate for the repeating speed
+            if (myUtils.randomChance(rand, 1, 2))
+            {
+                dimAlpha /= repeatMode;
+            }
+            else
+            {
+                dimAlpha *= repeatMode;
+            }
 
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
@@ -126,6 +137,8 @@ namespace my
 
             t = tDefault;
             t -= isDimmableGlobal ? 13 : 0;
+
+            //mode = 47;
 
 #if false
             fdLifeCnt = 0.01f;
@@ -353,35 +366,24 @@ namespace my
 
         protected override void Move()
         {
-            switch (scrMode)
+            if (scrMode == ScreenMode.Active)
             {
-                case ScreenMode.Active:
-                    {
-                        int tNow = System.DateTime.Now.Millisecond;
+                size  += dSize;
+                time1 += dt1;
+                time2 += dt2;
 
-                        size += dSize;
-                        time1 += dt1;
-                        time2 += dt2;
+                dx = (float)(Math.Sin(time1)) * 5 * size / 10;
+                dy = (float)(Math.Cos(time1)) * 5 * size / 10;
 
-                        dx = (float)(Math.Sin(time1)) * 5 * size / 10;
-                        dy = (float)(Math.Cos(time1)) * 5 * size / 10;
+                x += dx;
+                y += dy;
 
-                        x += dx;
-                        y += dy;
+                move_0();
 
-                        move_0();
-
-                        if ((fLifeCnt -= fdLifeCnt) < 0)
-                        {
-                            generateNew();
-                        }
-                    }
-                    break;
-
-                // Decrease scrMode, until it becomes Active
-                default:
-                    scrMode--;
-                    break;
+                if ((fLifeCnt -= fdLifeCnt / repeatMode) < 0)
+                {
+                    generateNew();
+                }
             }
 
             return;
@@ -1316,6 +1318,9 @@ namespace my
         {
             if (scrMode != ScreenMode.Active)
             {
+                // Decrease scrMode, until it becomes Active
+                scrMode--;
+
                 // Clear the screen between modes
                 dimScreen(0.075f, doShiftColor: true);
             }
@@ -1485,6 +1490,8 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
+            float ddalpha = 0.0001f;
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -1502,9 +1509,16 @@ namespace my
                 else
                 {
                     dimScreen(dimAlpha, doShiftColor: true);
+/*
+                    dimAlpha -= ddalpha;
+
+                    if (dimAlpha < 0 || dimAlpha > 0.01f )
+                        ddalpha *= -1;
+*/
                 }
 
                 // Render Frame
+                for (int repeat = 0; repeat < repeatMode; repeat++)
                 {
                     for (int i = 0; i < list.Count; i++)
                     {
