@@ -21,6 +21,7 @@ namespace my
         private enum ScreenMode { Active, Start = 10, ManualSwitch = 33, Transition = 125 };
 
         private static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0, repeatMode = 1;
+        private static int [] prm_i = new int[5];
         private static bool isDimmableGlobal = true, isDimmableLocal = false;
         private static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
         private static float a = 0, b = 0, c = 0;
@@ -68,6 +69,12 @@ namespace my
         {
             height = 800;
 
+            string str_params = "";
+            for (int i = 0; i < prm_i.Length; i++)
+            {
+                str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
+            }
+
             string str = $"Obj = myObj_132\n\n" +
                             $"N = {N} of {list.Count}\n" +
                             $"mode = {mode}\n" +
@@ -75,6 +82,8 @@ namespace my
                             $"dimAlpha = {dimAlpha}\n" +
                             $"dSize = {dSize}\n" +
                             $"fLifeCnt = {fLifeCnt}\n" +
+                            $"param: [{str_params}]\n\n" +
+                            $"file: {colorPicker.GetFileName()}" +
                             $""
                 ;
             return str;
@@ -95,6 +104,12 @@ namespace my
 
         protected override void generateNew()
         {
+            // Reset parameter values
+            {
+                for (int i = 0; i < prm_i.Length; i++)
+                    prm_i[i] = 0;
+            }
+
             // Restore dim speed to its original value
             dimAlpha = 0.01f / (rand.Next(10) + 1);
 
@@ -148,7 +163,7 @@ namespace my
             t = tDefault;
             t -= isDimmableGlobal ? 13 : 0;
 
-            mode = 91;
+            //mode = 91;
 
 #if false
             fdLifeCnt = 0.01f;
@@ -363,9 +378,36 @@ namespace my
                     break;
 
                 case 91:
-                    si1 = rand.Next(555) + 333;
-                    si2 = rand.Next(555) + 333;
-                    dt1 = 0.01f;
+                    sf1 = 1.0f + myUtils.randFloat(rand) * rand.Next(3);            // elliptic factor 1
+                    sf2 = 1.0f + myUtils.randFloat(rand) * rand.Next(3);            // elliptic factor 2
+                    sf3 = rand.Next(555) + 333;                                     // radius 1
+                    sf4 = rand.Next(555) + 333;                                     // radius 2
+                    prm_i[0] = rand.Next(4);                                        // Circle vs ellipse (4 modes)
+                    prm_i[1] = rand.Next(7);                                        // time factors for sin/cos (see switch-case just below)
+                    prm_i[2] = rand.Next(6);                                        // Radius changing mode
+
+                    dt1 = 0.001f * (rand.Next(11) + 1);
+                    si1 = si2 = 0;
+
+                    switch (prm_i[1])
+                    {
+                        case 0: case 1: case 2:
+                            prm_i[1] = 101 * (rand.Next(10) + 1);
+                            break;
+
+                        case 3: case 4:
+                            prm_i[1] = 101 * (rand.Next(33) + 1);
+                            break;
+
+                        case 5:
+                            prm_i[1] = 100 * (rand.Next(10) + 1) + rand.Next(10) + 1;
+                            break;
+
+                        case 6:
+                            prm_i[1] = 100 * (rand.Next(33) + 1) + rand.Next(33) + 1;
+                            break;
+                    }
+
                     break;
 
                 case 1300:
@@ -1314,22 +1356,91 @@ namespace my
                     break;
 
                 case 91:
-                    x1 = gl_x0 + (float)(Math.Sin(time1*1)) * (si1 * 1.5f);
-                    y1 = gl_y0 + (float)(Math.Cos(time1*1)) * si1;
 
-                    x2 = gl_x0 + (float)(Math.Sin(time1*3)) * (si2 * 1.5f);
-                    y2 = gl_y0 + (float)(Math.Cos(time1*3)) * si2;
+                    x1 = (float)(Math.Sin(time1 * (prm_i[1] / 100))) * sf3;
+                    y1 = (float)(Math.Cos(time1 * (prm_i[1] / 100))) * sf3;
 
-                    switch(0)
+                    x2 = (float)(Math.Sin(time1 * (prm_i[1] % 100))) * sf4;
+                    y2 = (float)(Math.Cos(time1 * (prm_i[1] % 100))) * sf4;
+
+                    // Circle vs ellipse mode
+                    switch (prm_i[0])
+                    {
+                        case 0: break;
+                        case 1: x1 *= sf1; break;
+                        case 2: x2 *= sf2; break;
+                        case 3: x1 *= sf1; x2 *= sf2; break;
+                    }
+
+                    // Move to the center
+                    x1 += gl_x0; y1 += gl_y0; x2 += gl_x0; y2 += gl_y0;
+
+                    // Vary the raduis
+                    switch (prm_i[2])
                     {
                         case 0:
-                            si1 += rand.Next(3) - 1;
-                            si2 += rand.Next(3) - 1;
                             break;
 
                         case 1:
-                            si1 += rand.Next(7) - 4;
-                            si2 += rand.Next(7) - 2;
+                            sf3 += 0.1f * (rand.Next(3) - 1);
+                            sf4 += 0.1f * (rand.Next(3) - 1);
+                            break;
+
+                        case 2:
+                            sf3 += 0.1f * (rand.Next(7) - 3);
+                            sf4 += 0.1f * (rand.Next(7) - 3);
+                            break;
+
+                        case 3:
+                            sf3 += 0.1f * (rand.Next(5));
+                            sf4 -= 0.1f * (rand.Next(5));
+                            break;
+
+                        case 4:
+                            if (si1 == 0)
+                            {
+                                if (myUtils.randomChance(rand, 1, 13))
+                                    si1 = (rand.Next(123) + 1) * myUtils.randomSign(rand);
+                            }
+                            else
+                            {
+                                if (si1 > 0)
+                                {
+                                    sf3 += 0.1f;
+                                    sf3 += myUtils.randFloat(rand);
+                                    si1--;
+                                }
+                                else
+                                {
+                                    sf3 -= 0.1f;
+                                    sf3 -= myUtils.randFloat(rand);
+                                    si1++;
+                                }
+                            }
+
+                            if (si2 == 0)
+                            {
+                                if (myUtils.randomChance(rand, 1, 13))
+                                    si2 = (rand.Next(123) + 1) * myUtils.randomSign(rand);
+                            }
+                            else
+                            {
+                                if (si2 > 0)
+                                {
+                                    sf4 += myUtils.randFloat(rand, 0.1f);
+                                    si2--;
+                                }
+                                else
+                                {
+                                    sf4 -= myUtils.randFloat(rand, 0.1f);
+                                    si2++;
+                                }
+                            }
+                            break;
+
+                        case 5:
+                            sf3 += 7 * (float)Math.Sin(time1 * 10);
+                            sf4 += 7 * (float)Math.Cos(time1 * 10);
                             break;
                     }
                     break;

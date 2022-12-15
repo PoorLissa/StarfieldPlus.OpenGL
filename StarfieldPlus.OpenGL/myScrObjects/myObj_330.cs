@@ -62,8 +62,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(65);
-            mode = 0;
+            mode = rand.Next(66);
+            mode = 65;
 
             // Reset parameter values
             {
@@ -792,6 +792,15 @@ namespace my
 
                     prm_f[0] = myUtils.randFloat(rand);                                     // Viscosity factor of the medium
                     prm_f[1] = 2500.0f;                                                     // Interaction (attraction/repulsion) factor
+                    break;
+
+                // ...
+                case 65:
+                    N = 999;
+                    doCreateAtOnce = false;
+                    max = 5 + rand.Next(4);
+
+                    prm_i[0] = rand.Next(50) + 1;                                           // Size of spot where all the particles are going to generate
                     break;
             }
 
@@ -2301,6 +2310,22 @@ namespace my
                     X = x - width;
                     Y = y - width;
                     cnt = 0;
+                    break;
+
+                case 65:
+                    a = 0.85f;
+
+                    width = height = max;
+                    dx = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.01f;
+                    dy = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.01f;
+
+                    x = gl_x0 + rand.Next(2 * prm_i[0] + 1) - prm_i[0];
+                    y = gl_y0 + rand.Next(2 * prm_i[0] + 1) - prm_i[0];
+
+                    // Drawing coordinates
+                    X = x - width;
+                    Y = y - width;
+                    cnt = rand.Next(N * 3);
                     break;
             }
 
@@ -3866,6 +3891,64 @@ namespace my
                     X = x - width;
                     Y = y - width;
                     break;
+
+                case 65:
+                    if (cnt == 0)
+                    {
+                        x += dx;
+                        y += dy;
+
+                        {
+                            prm_f[0] = 0.99f;
+                            prm_f[1] = 0.98f;
+
+                            // Add medium viscosity
+                            dx *= prm_f[0];
+                            dy *= prm_f[1];
+
+                            // Interact with other particles
+                            for (int i = 0; i < list.Count; i++)
+                            {
+                                var obj = list[i] as myObj_330;
+
+                                if (id != obj.id && obj.cnt == 0)
+                                {
+                                    X = x - obj.x;
+                                    Y = y - obj.y;
+
+                                    float dist2 = X * X + Y * Y + 0.0001f;
+
+                                    float maxDist = 20000;
+
+                                    if (dist2 < maxDist)
+                                    {
+                                        //float F = (float)(prm_f[1] * prm_i[5] / dist2) / width;
+
+                                        float F = (float)(15 / dist2);
+
+                                        dx += F * X;
+                                        dy += F * Y;
+                                    }
+                                }
+                            }
+                        }
+
+                        a -= 0.0005f;
+
+                        // Drawing coordinates
+                        X = x - width;
+                        Y = y - width;
+
+                        if (X < 0 || X > gl_Width || Y < 0 || Y > gl_Height)
+                        {
+                            a -= 0.01f;
+                        }
+                    }
+                    else
+                    {
+                        cnt--;
+                    }
+                    break;
             }
 
             if (a <= 0)
@@ -4723,6 +4806,22 @@ namespace my
                     {
                         tex.setOpacity(a / 5);
                         tex.Draw((int)X - 3, (int)Y - 3, 2 * width + 6, 2 * width + 6, (int)X - 3, (int)Y - 3, 2 * width + 6, 2 * width + 6);
+                    }
+                    break;
+
+                case 65:
+                    if (cnt == 0)
+                    {
+                        tex.Draw((int)X, (int)Y, 2 * width, 2 * width, (int)X, (int)Y, 2 * width, 2 * width);
+
+                        if (doClearBuffer == true)
+                        {
+                            tex.setOpacity(a/5);
+                            tex.Draw((int)X - 5, (int)Y - 5, 2 * width + 10, 2 * width + 10, (int)X - 5, (int)Y - 5, 2 * width + 10, 2 * width + 10);
+
+                            myPrimitive._Rectangle.SetColor(1, 1, 1, a);
+                            myPrimitive._Rectangle.Draw((int)X, (int)Y, 2 * width, 2 * height, false);
+                        }
                     }
                     break;
             }
