@@ -148,7 +148,7 @@ namespace my
             t = tDefault;
             t -= isDimmableGlobal ? 13 : 0;
 
-            //mode = 10;
+            mode = 91;
 
 #if false
             fdLifeCnt = 0.01f;
@@ -363,6 +363,9 @@ namespace my
                     break;
 
                 case 91:
+                    si1 = rand.Next(555) + 333;
+                    si2 = rand.Next(555) + 333;
+                    dt1 = 0.01f;
                     break;
 
                 case 1300:
@@ -1311,8 +1314,24 @@ namespace my
                     break;
 
                 case 91:
-                    x2 = gl_x0 + (float)(Math.Sin(time1 * sf4 + a)) * gl_Height / 3;
-                    y2 = gl_y0 + (float)(Math.Cos(time1 * sf4 + a)) * gl_Height / 3;
+                    x1 = gl_x0 + (float)(Math.Sin(time1*1)) * (si1 * 1.5f);
+                    y1 = gl_y0 + (float)(Math.Cos(time1*1)) * si1;
+
+                    x2 = gl_x0 + (float)(Math.Sin(time1*3)) * (si2 * 1.5f);
+                    y2 = gl_y0 + (float)(Math.Cos(time1*3)) * si2;
+
+                    switch(0)
+                    {
+                        case 0:
+                            si1 += rand.Next(3) - 1;
+                            si2 += rand.Next(3) - 1;
+                            break;
+
+                        case 1:
+                            si1 += rand.Next(7) - 4;
+                            si2 += rand.Next(7) - 2;
+                            break;
+                    }
                     break;
 
                 default:
@@ -1455,8 +1474,11 @@ namespace my
                         break;
 
                     case 91:
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2);
+
+                        drawRect(0.5451f, 0.00f, 0.0f, 1.0f, x1, y1, 3);
+                        drawRect(1.0f,    0.55f, 0.0f, 1.0f, x2, y2, 3);
                         break;
 
                     case 1300:
@@ -1554,6 +1576,17 @@ namespace my
             myPrimitive.init_Ellipse();
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void drawRect(float r, float g, float b, float a, float x, float y, int size)
+        {
+            myPrimitive._Rectangle.SetColor(r, g, b, a);
+            myPrimitive._Rectangle.Draw(x, y, size, size, false);
+            size += 4;
+            myPrimitive._Rectangle.SetColor(r, g, b, a * 0.33f);
+            myPrimitive._Rectangle.Draw(x - 2, y - 2, size, size, false);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
