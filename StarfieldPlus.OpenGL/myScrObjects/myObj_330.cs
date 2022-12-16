@@ -25,6 +25,7 @@ namespace my
 
         public float x, y, X, Y, dx, dy, a, da, r, g, b;
         public int width, height, cnt;
+        public int cellId;
 
         static int N = 1, max = 1, opacityFactor = 1;
         static int[] prm_i = new int[7];
@@ -796,11 +797,14 @@ namespace my
 
                 // ...
                 case 65:
-                    N = 999;
+                    N = 6999;
                     doCreateAtOnce = false;
+                    doDrawLines = true;
                     max = 5 + rand.Next(4);
 
                     prm_i[0] = rand.Next(50) + 1;                                           // Size of spot where all the particles are going to generate
+
+                    dimAlpha *= rand.Next(5) + 1;
                     break;
             }
 
@@ -3898,9 +3902,18 @@ namespace my
                         x += dx;
                         y += dy;
 
+                        float maxDist = 20000;
+                        float sqrt = (float)Math.Sqrt(maxDist);
+
+                        // calc cell id
                         {
-                            prm_f[0] = 0.99f;
-                            prm_f[1] = 0.98f;
+                            int cellWidth = (int)(gl_Width / sqrt);
+                            cellId = (int)(x / cellWidth);
+                        }
+
+                        {
+                            prm_f[0] = 0.99f - 0.1f;
+                            prm_f[1] = 0.98f - 0.1f;
 
                             // Add medium viscosity
                             dx *= prm_f[0];
@@ -3911,23 +3924,32 @@ namespace my
                             {
                                 var obj = list[i] as myObj_330;
 
+                                //if (id != obj.id && obj.cnt == 0 && Math.Abs(cellId - obj.cellId) < 4)
                                 if (id != obj.id && obj.cnt == 0)
                                 {
                                     X = x - obj.x;
-                                    Y = y - obj.y;
 
-                                    float dist2 = X * X + Y * Y + 0.0001f;
-
-                                    float maxDist = 20000;
-
-                                    if (dist2 < maxDist)
+                                    if (X < sqrt || X > -sqrt)
                                     {
-                                        //float F = (float)(prm_f[1] * prm_i[5] / dist2) / width;
+                                        Y = y - obj.y;
 
-                                        float F = (float)(15 / dist2);
+                                        if (Y < sqrt || Y > -sqrt)
+                                        {
+                                            float dist2 = X * X + Y * Y + 0.0001f;
 
-                                        dx += F * X;
-                                        dy += F * Y;
+                                            if (dist2 < maxDist)
+                                            {
+                                                //float F = (float)(prm_f[1] * prm_i[5] / dist2) / width;
+
+                                                float F = (float)(15 / dist2);
+
+                                                dx += F * X;
+                                                dy += F * Y;
+
+                                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
+                                                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -4923,7 +4945,7 @@ namespace my
         {
             if (doDrawLines)
             {
-                myPrimitive.init_LineInst(N);
+                myPrimitive.init_LineInst(N * 10);
             }
 
             myPrimitive.init_Rectangle();
