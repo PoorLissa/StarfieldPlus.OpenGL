@@ -3902,13 +3902,12 @@ namespace my
                         x += dx;
                         y += dy;
 
-                        float maxDist = 20000;
-                        float sqrt = (float)Math.Sqrt(maxDist);
+                        float maxDist = 150*150;
+                        float sqrt = 150;
 
                         // calc cell id
                         {
-                            int cellWidth = (int)(gl_Width / sqrt);
-                            cellId = (int)(x / cellWidth);
+                            cellId = (int)(x / sqrt);
                         }
 
                         {
@@ -3924,8 +3923,8 @@ namespace my
                             {
                                 var obj = list[i] as myObj_330;
 
-                                //if (id != obj.id && obj.cnt == 0 && Math.Abs(cellId - obj.cellId) < 4)
-                                if (id != obj.id && obj.cnt == 0)
+                                if (id != obj.id && obj.cnt == 0 && Math.Abs(cellId - obj.cellId) < 2)
+                                //if (id != obj.id && obj.cnt == 0)
                                 {
                                     X = x - obj.x;
 
