@@ -25,7 +25,7 @@ namespace my
 
         public float x, y, X, Y, dx, dy, a, da, r, g, b;
         public int width, height, cnt;
-        public int cellId;
+        public int cellIdX, cellIdY;
 
         static int N = 1, max = 1, opacityFactor = 1;
         static int[] prm_i = new int[7];
@@ -33,7 +33,7 @@ namespace my
 
         static bool doCreateAtOnce = true, doSampleOnce = false, doUseRandDxy = false, doDrawLines = false;
         static float dimAlpha = 0.05f, t = 0, dt = 0;
-        static float[] prm_f = new float[2];
+        static float[] prm_f = new float[4];
 
         static myTexRectangle tex = null;
 
@@ -803,6 +803,11 @@ namespace my
                     max = 5 + rand.Next(4);
 
                     prm_i[0] = rand.Next(50) + 1;                                           // Size of spot where all the particles are going to generate
+
+                    prm_f[0] = 150;                                                         // Max connection distance
+                    prm_f[1] = prm_f[0] * prm_f[0];                                         // Max connection distance, squared
+                    prm_f[2] = 0.9f;                                                        // x-axis viscosity factor
+                    prm_f[3] = 0.9f;                                                        // y-axis viscosity factor
 
                     dimAlpha *= rand.Next(5) + 1;
                     break;
@@ -3902,53 +3907,39 @@ namespace my
                         x += dx;
                         y += dy;
 
-                        float maxDist = 150*150;
-                        float sqrt = 150;
-
-                        // calc cell id
                         {
-                            cellId = (int)(x / sqrt);
-                        }
-
-                        {
-                            prm_f[0] = 0.99f - 0.1f;
-                            prm_f[1] = 0.98f - 0.1f;
+                            // calc cell id
+                            cellIdX = (int)(x / prm_f[0]);
+                            cellIdY = (int)(y / prm_f[0]);
 
                             // Add medium viscosity
-                            dx *= prm_f[0];
-                            dy *= prm_f[1];
+                            dx *= prm_f[2];
+                            dy *= prm_f[3];
 
                             // Interact with other particles
                             for (int i = 0; i < list.Count; i++)
                             {
                                 var obj = list[i] as myObj_330;
 
-                                if (id != obj.id && obj.cnt == 0 && Math.Abs(cellId - obj.cellId) < 2)
+                                if (obj.cnt == 0 && Math.Abs(cellIdX - obj.cellIdX) < 2 && Math.Abs(cellIdY - obj.cellIdY) < 2 && id != obj.id)
                                 //if (id != obj.id && obj.cnt == 0)
                                 {
                                     X = x - obj.x;
+                                    Y = y - obj.y;
 
-                                    if (X < sqrt || X > -sqrt)
+                                    float dist2 = X * X + Y * Y + 0.0001f;
+
+                                    if (dist2 < prm_f[1])
                                     {
-                                        Y = y - obj.y;
+                                        //float F = (float)(prm_f[1] * prm_i[5] / dist2) / width;
 
-                                        if (Y < sqrt || Y > -sqrt)
-                                        {
-                                            float dist2 = X * X + Y * Y + 0.0001f;
+                                        float F = (float)(15 / dist2);
 
-                                            if (dist2 < maxDist)
-                                            {
-                                                //float F = (float)(prm_f[1] * prm_i[5] / dist2) / width;
+                                        dx += F * X;
+                                        dy += F * Y;
 
-                                                float F = (float)(15 / dist2);
-
-                                                dx += F * X;
-                                                dy += F * Y;
-
-                                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
-                                                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
-                                            }
-                                        }
+                                        myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
+                                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
                                     }
                                 }
                             }
