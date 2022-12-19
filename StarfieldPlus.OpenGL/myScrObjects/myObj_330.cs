@@ -797,7 +797,7 @@ namespace my
 
                 // ...
                 case 65:
-                    N = 6999;
+                    N = 3999;
                     doCreateAtOnce = false;
                     doDrawLines = true;
                     max = 5 + rand.Next(4);
@@ -2334,7 +2334,7 @@ namespace my
                     // Drawing coordinates
                     X = x - width;
                     Y = y - width;
-                    cnt = rand.Next(N * 3);
+                    cnt = rand.Next(N * 3) + 13;
                     break;
             }
 
