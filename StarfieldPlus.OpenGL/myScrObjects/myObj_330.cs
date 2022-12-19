@@ -3912,7 +3912,7 @@ namespace my
                             cellIdX = (int)(x / prm_f[0]);
                             cellIdY = (int)(y / prm_f[0]);
 
-                            // Add medium viscosity
+                            // Apply medium viscosity
                             dx *= prm_f[2];
                             dy *= prm_f[3];
 
@@ -3922,7 +3922,6 @@ namespace my
                                 var obj = list[i] as myObj_330;
 
                                 if (obj.cnt == 0 && Math.Abs(cellIdX - obj.cellIdX) < 2 && Math.Abs(cellIdY - obj.cellIdY) < 2 && id != obj.id)
-                                //if (id != obj.id && obj.cnt == 0)
                                 {
                                     X = x - obj.x;
                                     Y = y - obj.y;
@@ -3939,7 +3938,18 @@ namespace my
                                         dy += F * Y;
 
                                         myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
-                                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
+
+                                        if (true)
+                                        {
+                                            if (prm_f[1] - dist2 < 1000)
+                                                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
+                                            else
+                                                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
+                                        }
+                                        else
+                                        {
+                                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, prm_f[1]/dist2/10);
+                                        }
                                     }
                                 }
                             }
