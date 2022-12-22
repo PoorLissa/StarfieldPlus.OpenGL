@@ -14,12 +14,17 @@ public class myRectangle : myPrimitive
     private static float _angle;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
 
+    private static float w1 = -1, w2 = -1;
+
     // -------------------------------------------------------------------------------------------------------------------
 
     public myRectangle()
     {
         if (vertices == null)
         {
+            w1 = 2.0f / (Width - 1);
+            w2 = 2.0f / (Width + 1);
+
             vertices = new float[12];
 
             CreateProgram();
@@ -61,7 +66,17 @@ public class myRectangle : myPrimitive
         if (_angle == 0)
         {
             // Recalc screen coordinates into Normalized Device Coordinates (NDC)
-            float fx = 2.0f * x / (Width + 1) - 1.0f;       // Shifting Width a bit to get rid of incomplete left bottom angle
+
+            //float fx = 2.0f * x / Width - 1.0f;
+
+            // Shift Width a bit to get rid of incomplete left bottom angle
+            float fx = 2.0f * x / (Width + 1) - 1.0f;
+
+            //float fx = (x < Width / 2) ? (w1 * x - 1.0f) : (w2 * x - 1.0f);
+            //float fx = 2.0f * x / (Width) - 1.0f;
+
+            // https://stackoverflow.com/questions/70146951/opengl-how-to-fix-missing-corner-pixel-in-rect-lines-or-line-loop
+
             float fy = 1.0f - 2.0f * y / Height;
             vertices[06] = fx;
             vertices[09] = fx;

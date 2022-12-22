@@ -17,27 +17,30 @@ namespace my
         private float size, A, R, G, B, angle = 0;
 
         private static int N = 0, shape = 0;
-        private static bool doClearBuffer = true, doFillShapes = false;
+        private static bool doFillShapes = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_empty()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
         {
             gl_x0 = gl_Width  / 2;
             gl_y0 = gl_Height / 2;
@@ -65,7 +68,7 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            init();
+            initLocal();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -157,6 +160,10 @@ namespace my
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0, 0, 0, 1);
+            }
+            else
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
             while (!Glfw.WindowShouldClose(window))
