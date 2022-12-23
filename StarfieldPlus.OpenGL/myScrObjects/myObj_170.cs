@@ -40,7 +40,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);//, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
             initLocal();
