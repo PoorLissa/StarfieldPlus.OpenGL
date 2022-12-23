@@ -21,10 +21,10 @@ namespace my
         private float size, dSize, A, R, G, B;
         bool doDraw = false, isSizeChanged = false;
 
-        private static int N = 0, shape = 0, angle = 0, drawMode = 0, t = 0, maxSize = 66;
+        private static int N = 0, shape = 0, angle = 0, drawMode = 0, eraseMode = 0, t = 0, maxSize = 66;
         private static int cellSize = 0, startX = 0, startY = 0;
         private static bool doLeaveTrace = false, doUseCells = false;
-        private static float largeDSize = 0.0f;
+        private static float largeDSize = 0.0f, eraseOpacity = 0;
 
         private static myTexRectangle tex = null;
 
@@ -40,7 +40,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height);//, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
             initLocal();
@@ -97,6 +97,9 @@ namespace my
                 case 2: maxSize = 166; break;
             }
 
+            eraseMode = rand.Next(3);
+            eraseOpacity = 0.5f + myUtils.randFloat(rand)/2;
+
 #if false
             drawMode = 0;
             doLeaveTrace = false;
@@ -115,6 +118,9 @@ namespace my
 
             string str = $"Obj = myObj_170\n\n" +
                             $"N = {list.Count} of {N}\n" +
+                            $"drawMode = {drawMode}\n" +
+                            $"eraseMode = {eraseMode}\n" +
+                            $"eraseOpacity = {eraseOpacity}\n" +
                             $""
                 ;
             return str;
@@ -258,20 +264,7 @@ namespace my
                         switch (drawMode)
                         {
                             case 0:
-                            case 2:
-                                myPrimitive._Rectangle.SetColor(0, 0, 0, 1);
-                                myPrimitive._Rectangle.Draw(X, Y, W, W, false);
-
-                                // Additional fix for a missing corner
-                                myPrimitive._Rectangle.Draw(X, Y + W, 1, 1, false);
-
-                                if (true)
-                                {
-                                    myPrimitive._Rectangle.Draw(X - 1, Y - 1, W + 2, W + 2, false);
-
-                                    myPrimitive._Rectangle.SetColor(R, G, B, A / 2);
-                                    myPrimitive._Rectangle.Draw(X, Y, W, W, false);
-                                }
+                                EraseInst(X-1, Y-1, W+2);
                                 break;
 
                             case 1:
@@ -281,71 +274,102 @@ namespace my
                                 myPrimitive._Rectangle.SetColor(R, G, B, A);
                                 myPrimitive._Rectangle.Draw(X + 1, Y + 1, W - 2, W - 2, false);
                                 break;
+
+                            case 2:
+                                EraseInst(X-1, Y-1, W+2);
+                                break;
                         }
                     }
                     else
                     {
-                        myPrimitive._Rectangle.SetColor(0, 0, 0, 1);
-                        myPrimitive._Rectangle.Draw(X - 1, Y - 1, 3, 3, true);
+                        EraseInst(X, Y, W, false);
                     }
-
-#if false
-                    if (size > 3)
-                    {
-                        g.FillRectangle(Brushes.Black, X - size + 1, Y - size + 1, 1, 1);
-                        g.FillRectangle(Brushes.Black, X - size + 1, Y + size - 1, 1, 1);
-                        g.FillRectangle(Brushes.Black, X + size - 1, Y - size + 1, 1, 1);
-                        g.FillRectangle(Brushes.Black, X + size - 1, Y + size - 1, 1, 1);
-                    }
-#endif
                 }
             }
 
-#if false
-            switch (shape)
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void EraseInst(int X, int Y, int W, bool lines = true)
+        {
+            if (lines)
             {
-                // Instanced squares
+                float erOp = 1;
+
+                switch (eraseMode)
+                {
+                    case 0:
+                        erOp = 1.0f;
+                        break;
+
+                    case 1:
+                        erOp = myUtils.randFloat(rand);
+                        break;
+
+                    case 2:
+                        erOp  = eraseOpacity;
+                        break;
+                }
+
+                // hor top
+                myPrimitive._LineInst.setInstanceCoords(X, Y, X + W, Y);
+                myPrimitive._LineInst.setInstanceColor(0, 0, 0, erOp);
+
+                // vert right
+                myPrimitive._LineInst.setInstanceCoords(X + W, Y, X + W, Y + W);
+                myPrimitive._LineInst.setInstanceColor(0, 0, 0, erOp);
+
+                // hor bottom
+                myPrimitive._LineInst.setInstanceCoords(X, Y + W, X + W, Y + W);
+                myPrimitive._LineInst.setInstanceColor(0, 0, 0, erOp);
+
+                // vert left
+                myPrimitive._LineInst.setInstanceCoords(X, Y + W + 1, X, Y);
+                myPrimitive._LineInst.setInstanceColor(0, 0, 0, erOp);
+            }
+            else
+            {
+                myPrimitive._Rectangle.SetColor(0, 0, 0, 1);
+                myPrimitive._Rectangle.Draw(X - 2, Y - 1, 3, 3, true);
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void Erase(int X, int Y, int W)
+        {
+            switch (eraseMode)
+            {
                 case 0:
-                    var rectInst = inst as myRectangleInst;
-
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
+                    myPrimitive._Rectangle.SetColor(0, 0, 0, 1.0f);
                     break;
 
-                // Instanced triangles
                 case 1:
-                    var triangleInst = inst as myTriangleInst;
-
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._Rectangle.SetColor(0, 0, 0, myUtils.randFloat(rand));
                     break;
 
-                // Instanced circles
                 case 2:
-                    var ellipseInst = inst as myEllipseInst;
-
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced pentagons
-                case 3:
-                    var pentagonInst = inst as myPentagonInst;
-
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
-                case 4:
-                    var hexagonInst = inst as myHexagonInst;
-
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._Rectangle.SetColor(0, 0, 0, eraseOpacity);
                     break;
             }
-#endif
+
+            myPrimitive._Rectangle.Draw(X, Y, W, W, false);
+
+            // Additional fix for a missing corner
+            myPrimitive._Rectangle.Draw(X, Y + W, 1, 1, false);
+
+            if (true)
+            {
+                myPrimitive._Rectangle.Draw(X - 1, Y - 1, W + 2, W + 2, false);
+
+                myPrimitive._Rectangle.SetColor(R, G, B, A / 2);
+                myPrimitive._Rectangle.Draw(X, Y, W, W, false);
+            }
+
             return;
         }
 
@@ -373,6 +397,9 @@ namespace my
 
                 // Render Frame
                 {
+                    myPrimitive._LineInst.ResetBuffer();
+                    myPrimitive._RectangleInst.ResetBuffer();
+
                     for (int i = 0; i < list.Count; i++)
                     {
                         var obj = list[i] as myObj_170;
@@ -380,6 +407,11 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
+
+                    //Erase(1333, 1000, 333);
+
+                    myPrimitive._LineInst.Draw();
+                    myPrimitive._RectangleInst.Draw(true);
                 }
 
                 if (list.Count < N)
@@ -399,6 +431,9 @@ namespace my
         {
             myPrimitive.init_Rectangle();
             base.initShapes(shape, N, 0);
+
+            myPrimitive.init_LineInst(N*8);
+            myPrimitive.init_RectangleInst(N);
 
             if (drawMode == 2)
             {
