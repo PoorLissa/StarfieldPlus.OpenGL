@@ -121,6 +121,7 @@ namespace my
                             $"drawMode = {drawMode}\n" +
                             $"eraseMode = {eraseMode}\n" +
                             $"eraseOpacity = {eraseOpacity}\n" +
+                            $"file: {colorPicker.GetFileName()}" +
                             $""
                 ;
             return str;

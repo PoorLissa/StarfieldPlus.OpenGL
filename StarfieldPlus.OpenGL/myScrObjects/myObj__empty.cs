@@ -57,7 +57,9 @@ namespace my
             height = 800;
 
             string str = $"Obj = myObj_empty\n\n" +
-                            $"N = {N} ({list.Count})\n" +
+                            $"N = {list.Count} of {N}\n" +
+                            "" + 
+                            $"file: {colorPicker.GetFileName()}" +
                             $""
                 ;
             return str;
