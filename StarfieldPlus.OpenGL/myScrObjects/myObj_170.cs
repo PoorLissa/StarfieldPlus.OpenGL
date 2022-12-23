@@ -21,10 +21,10 @@ namespace my
         private float size, dSize, A, R, G, B;
         bool doDraw = false, isSizeChanged = false;
 
-        private static int N = 0, shape = 0, angle = 0, drawMode = 0, eraseMode = 0, t = 0, maxSize = 66;
-        private static int cellSize = 0, startX = 0, startY = 0;
+        private static int N = 0, shape = 0, drawMode = 0, eraseMode = 0, t = 0, maxSize = 66;
+        private static int cellSize = 0, cellOffset = 0, startX = 0, startY = 0;
         private static bool doLeaveTrace = false, doUseCells = false;
-        private static float largeDSize = 0.0f, eraseOpacity = 0;
+        private static float largeDSize = 0.0f, eraseOpacity = 0, dimAlpha = 0;
 
         private static myTexRectangle tex = null;
 
@@ -52,23 +52,27 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = false;
-            N = 666;
+            doClearBuffer = myUtils.randomBool(rand);
+            dimAlpha = myUtils.randFloat(rand) / 75;
+            N = myUtils.randomChance(rand, 1, 2)
+                ? 666
+                : rand.Next(666) + 222;
 
             // Grid-based set-up
             {
                 doUseCells = myUtils.randomChance(rand, 1, 2);
                 cellSize = 50 + rand.Next(151);
-                startX = (gl_Width  % cellSize) / 2;
-                startY = (gl_Height % cellSize) / 2;
+                cellOffset = rand.Next(13);
+                startX = (gl_Width  % (cellSize + cellOffset)) / 2;
+                startY = (gl_Height % (cellSize + cellOffset)) / 2;
             }
 
             t = rand.Next(50) + 1;
 
-            // Solid color is the default mode ('0')
-            drawMode = 0;
+            // Solid color is the default mode
+            drawMode = rand.Next(2);
 
-            // But when colorPicker has an image, the mode is set to '1' with the probability of 2/3
+            // But when colorPicker has an image, the mode is set to '2' with the probability of 2/3
             if (colorPicker.getMode() < 2)
                 if (rand.Next(3) > 0)
                     drawMode = 2;
@@ -118,9 +122,14 @@ namespace my
 
             string str = $"Obj = myObj_170\n\n" +
                             $"N = {list.Count} of {N}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"doUseCells = {doUseCells}\n" +
                             $"drawMode = {drawMode}\n" +
+                            $"cellSize = {cellSize}\n" +
+                            $"cellOffset = {cellOffset}\n" +
                             $"eraseMode = {eraseMode}\n" +
                             $"eraseOpacity = {eraseOpacity}\n" +
+                            $"dimAlpha = {dimAlpha}\n" +
                             $"file: {colorPicker.GetFileName()}" +
                             $""
                 ;
@@ -149,41 +158,26 @@ namespace my
 
             if (doUseCells)
             {
-                iSize = cellSize / 2;
+                iSize = (cellSize - cellOffset) / 2;
 
-                x = rand.Next(gl_Width);
-                y = rand.Next(gl_Height);
+                do {
 
-                if (x >= startX)
-                {
-                    x -= startX;
-                    x -= x % cellSize;
-                    x += startX;
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
                 }
-                else
-                {
-                    x = startX - cellSize;
-                }
+                while (x < startX || y < startY);
 
-                if (y >= startY)
-                {
-                    y -= startY;
-                    y -= y % cellSize;
-                    y += startY;
-                }
-                else
-                {
-                    y = startY - cellSize;
-                }
+                x -= x % (cellSize + cellOffset);
+                y -= y % (cellSize + cellOffset);
+
+                x += startX;
+                y += startY;
             }
             else
             {
                 x = iSize + rand.Next(gl_Width  - 2 * iSize);
                 y = iSize + rand.Next(gl_Height - 2 * iSize);
             }
-
-            x -= iSize;
-            y -= iSize;
 
             size = iSize;
 
@@ -421,6 +415,11 @@ namespace my
                 }
 
                 System.Threading.Thread.Sleep(renderDelay);
+
+                if (doClearBuffer)
+                {
+                    dimScreen(dimAlpha);
+                }
             }
 
             return;
