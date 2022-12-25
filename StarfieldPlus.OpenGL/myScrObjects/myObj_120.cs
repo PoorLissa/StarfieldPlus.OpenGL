@@ -60,18 +60,25 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
             dimAlpha = 0.05f;
 
-            mode = rand.Next(2);
+            mode = rand.Next(3);
             dirMode = rand.Next(16);
             freqMode = rand.Next(50);
             dtMode = rand.Next(3);
             dtMode = rand.Next(15);
 
-mode = 2;
-dirMode = 0;
-
-            if (mode == 1)
+            switch (mode)
             {
-                minLength = 333 + rand.Next(333);
+                case 0:
+                    break;
+
+                case 1:
+                    minLength = 333 + rand.Next(333);
+                    break;
+
+                case 2:
+                    N = 33 + rand.Next(123);
+                    di = rand.Next(10) + 10;
+                    break;
             }
 
             return;
@@ -438,23 +445,70 @@ dirMode = 0;
                     {
                         myPrimitive._LineInst.ResetBuffer();
 
-                        float oldx = 0, oldy = 0, newx = 0, newy = 0;
+                        if (dir == 0)
+                        {
+                            for (int i = (int)x; i < x2; i += di)
+                            {
+                                float newy = (float)Math.Sin(i / freqFactor) * size;
+
+                                //myPrimitive._LineInst.setInstanceCoords(i, y + newy, i, y - newy);
+                                //myPrimitive._LineInst.setInstanceCoords(i, y + newy/10, i, y - newy);
+
+                                myPrimitive._LineInst.setInstanceCoords(i, y + newy, i, y + newy * 1.25f);
+                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                            }
+                        }
+
+                        if (dir == 1)
+                        {
+                            for (int i = (int)x2; i < x; i += di)
+                            {
+                                float newy = (float)Math.Sin(i / freqFactor) * size;
+
+                                myPrimitive._LineInst.setInstanceCoords(i, y + newy, i, y + newy * 1.25f);
+                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                            }
+                        }
+
+                        if (dir == 2)
+                        {
+                            for (int i = (int)y; i < y2; i += di)
+                            {
+                                float newx = (float)Math.Sin(i / freqFactor) * size;
+
+                                myPrimitive._LineInst.setInstanceCoords(x + newx, i, x + newx * 1.25f, i);
+                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                            }
+                        }
+
+                        if (dir == 3)
+                        {
+                            for (int i = (int)y2; i < y; i += di)
+                            {
+                                float newx = (float)Math.Sin(i / freqFactor) * size;
+
+                                myPrimitive._LineInst.setInstanceCoords(x + newx, i, x + newx * 1.25f, i);
+                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                            }
+                        }
+
+                        myPrimitive._LineInst.Draw();
+                    }
+                    break;
+
+
+                case 333:
+                    {
+                        myPrimitive._LineInst.ResetBuffer();
 
                         if (dir == 0)
                         {
-                            oldx = x;
-                            oldy = y + (float)Math.Sin(x / freqFactor) * size;
-
                             for (int i = (int)x; i < x2; i += di)
                             {
-                                newx = i;
-                                newy = y + (float)Math.Sin(newx / freqFactor) * size;
+                                float newy = y + (float)Math.Sin(i / freqFactor) * size;
 
-                                myPrimitive._LineInst.setInstanceCoords(oldx, oldy, newx, newy);
+                                myPrimitive._LineInst.setInstanceCoords(i, newy, i+1, newy+1);
                                 myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                oldx = newx;
-                                oldy = newy;
                             }
                         }
 
