@@ -67,7 +67,7 @@ public class ScreenSaver
 
     private enum ids {
         myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
-        myObj_102, myObj_130, myObj_131, myObj_132, myObj_170, myObj_180,
+        myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330,
         myObj_999a
@@ -79,7 +79,7 @@ public class ScreenSaver
         id = ids.myObj_102;
         id = ids.myObj_132;
         id = ids.myObj_330;
-        id = ids.myObj_170;
+        id = ids.myObj_120;
 
         switch (id)
         {
@@ -131,6 +131,11 @@ public class ScreenSaver
             // Desktop 2: Random rectangles with a color from the underlying image (point-based or average)
             case ids.myObj_102:
                 _obj = new my.myObj_102();
+                break;
+
+            // Moving Lines (...)
+            case ids.myObj_120:
+                _obj = new my.myObj_120();
                 break;
 
             // Growing shapes -- Rain circles alike -- no buffer clearing
