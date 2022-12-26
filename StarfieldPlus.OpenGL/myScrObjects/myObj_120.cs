@@ -17,7 +17,7 @@ namespace my
         private int length, dir;
         private float x, y, dx, dy, size, freqFactor, A, R, G, B;
 
-        private static int N = 0, mode = 0, dirMode = 0, freqMode = 0, dtMode = 0, minLength = 100;
+        private static int N = 0, mode = 0, subMode = 0, dirMode = 0, freqMode = 0, dtMode = 0, minLength = 100;
         private static float dimAlpha = 0, t = 0, dt = 0.01f;
         private static bool doUseGradualSize = false;
 
@@ -63,41 +63,66 @@ namespace my
 
             doUseGradualSize = myUtils.randomChance(rand, 1, 2);
 
-            mode = rand.Next(6);
+            mode = rand.Next(7);
             dirMode = rand.Next(16);
             freqMode = rand.Next(50);
             dtMode = rand.Next(3);
             dtMode = rand.Next(15);
 
+#if false
+            N = 1111;
+            mode = 5;
+            dirMode = 0;
+            doUseGradualSize = true;
+            doClearBuffer = true;
+            freqMode = 30;
+            dtMode = 1;
+            di = 19;
+#endif
+
             switch (mode)
             {
-                // Straight lines
+                // Straight lines (long)
                 case 0:
                     break;
 
-                // Solid Sin
+                // Straight lines (short)
                 case 1:
+                    break;
+
+                // Solid Sin
+                case 2:
                     minLength = 333 + rand.Next(333);
                     break;
 
                 // Solid Sin, small size
-                case 2:
+                case 3:
                     minLength = 333 + rand.Next(666);
                     break;
 
-                // Lined Sin (vertical lines)
-                case 3:
+                // Lined Sin (vertical lines at each di point)
+                case 4:
                     N = 33 + rand.Next(123);
                     di = rand.Next(10) + 10;
+                    subMode = rand.Next(2);
                     break;
 
                 // Lined Sin/Cos (lines with offset)
-                case 4:
                 case 5:
+                case 6:
                     N = 33 + rand.Next(123);
                     di = rand.Next(300) + 10;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
                     break;
+            }
+
+            // Adjust render delay for higher N
+            if (N > 500 && mode > 1)
+            {
+                renderDelay -= 4 * N / 500;
+
+                if (renderDelay < 0)
+                    renderDelay = 0;
             }
 
             return;
@@ -114,10 +139,12 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"doUseGradualSize = {doUseGradualSize}\n" +
                             $"mode = {mode}\n" +
+                            $"subMode = {subMode}\n" +
                             $"dirMode = {dirMode}\n" +
                             $"freqMode = {freqMode}\n" +
                             $"dtMode = {dtMode}\n" +
                             $"di = {di}\n" +
+                            $"renderDelay = {renderDelay}\n" +
                             $"file: {colorPicker.GetFileName()}" +
                             $""
                 ;
@@ -150,15 +177,19 @@ namespace my
                     break;
 
                 case 1:
+                    length = rand.Next(66) + 11;
+                    break;
+
+                case 2:
                     if (length / size < 10)
                         size /= rand.Next(10) + 7;
                     break;
 
-                case 2:
+                case 3:
                     size = rand.Next(30) + 5;
                     break;
 
-                case 3:
+                case 4:
                     if (length / size < 10)
                         size /= rand.Next(10) + 7;
                     break;
@@ -192,27 +223,27 @@ namespace my
                     break;
 
                 case 1: if (myUtils.randomChance(rand, 1, 2))
-                    A *= mode == 0 ? 0.5f : 0.35f;
+                    A *= mode < 2 ? 0.5f : 0.35f;
                     break;
 
                 case 2: if (myUtils.randomChance(rand, 2, 3))
-                    A *= mode == 0 ? 0.5f : 0.35f;
+                    A *= mode < 2 ? 0.5f : 0.35f;
                     break;
 
                 case 3: if (myUtils.randomChance(rand, 3, 4))
-                    A *= mode == 0 ? 0.5f : 0.35f;
+                    A *= mode < 2 ? 0.5f : 0.35f;
                     break;
 
                 case 4: if (myUtils.randomChance(rand, 4, 5))
-                    A *= mode == 0 ? 0.5f : 0.35f;
+                    A *= mode < 2 ? 0.5f : 0.35f;
                     break;
 
                 case 5: if (myUtils.randomChance(rand, 5, 6))
-                    A *= mode == 0 ? 0.5f : 0.35f;
+                    A *= mode < 2 ? 0.5f : 0.35f;
                     break;
 
                 case 6: if (myUtils.randomChance(rand, 6, 7))
-                    A *= mode == 0 ? 0.5f : 0.35f;
+                    A *= mode < 2 ? 0.5f : 0.35f;
                     break;
 
                 default:
@@ -282,6 +313,9 @@ namespace my
                     freqFactor = (rand.Next(20) + 1) * 25;
                     break;
             }
+
+            // To be able to use multiplication instead of division in for-cycles
+            freqFactor = 1.0f / freqFactor;
 
             return;
         }
@@ -375,6 +409,14 @@ namespace my
                 dSize = 2 * di * size / length;
             }
 
+            void applyDSize()
+            {
+                Size += dSize;
+
+                if (Size > size && dSize > 0)
+                    dSize *= -1;
+            }
+
             switch (dir)
             {
                 case 0:
@@ -406,330 +448,315 @@ namespace my
                     myPrimitive._LineInst.setInstanceColor(R, G, B, A);
                     break;
 
-                // Sin function
                 case 1:
-                case 2:
+                    switch (dir)
                     {
-                        myPrimitive._LineInst.ResetBuffer();
+                        case 0:
+                        case 1:
+                            myPrimitive._LineInst.setInstanceCoords(x, y, x + length, y);
+                            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                            break;
 
-                        float oldx = 0, oldy = 0, newx = 0, newy = 0;
-
-                        if (dir == 0)
-                        {
-                            oldx = x;
-                            oldy = y + (float)Math.Sin(x / freqFactor) * Size;
-
-                            for (int i = (int)x; i < x2; i += di)
-                            {
-                                newx = i;
-                                newy = y + (float)Math.Sin(newx / freqFactor) * Size;
-
-                                myPrimitive._LineInst.setInstanceCoords(oldx, oldy, newx, newy);
-                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                oldx = newx;
-                                oldy = newy;
-
-                                if ((Size += dSize) > size && dSize > 0)
-                                    dSize *= -1;
-                            }
-                        }
-
-                        if (dir == 1)
-                        {
-                            oldx = x2;
-                            oldy = y2 + (float)Math.Sin(x2 / freqFactor) * Size;
-
-                            for (int i = (int)x2; i < x; i += di)
-                            {
-                                newx = i;
-                                newy = y2 + (float)Math.Sin(newx / freqFactor) * Size;
-
-                                myPrimitive._LineInst.setInstanceCoords(oldx, oldy, newx, newy);
-                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                oldx = newx;
-                                oldy = newy;
-
-                                if ((Size += dSize) > size && dSize > 0)
-                                    dSize *= -1;
-                            }
-                        }
-
-                        if (dir == 2)
-                        {
-                            oldy = y;
-                            oldx = x + (float)Math.Sin(y / freqFactor) * Size;
-
-                            for (int i = (int)y; i < y2; i += di)
-                            {
-                                newy = i;
-                                newx = x + (float)Math.Sin(newy / freqFactor) * Size;
-
-                                myPrimitive._LineInst.setInstanceCoords(oldx, oldy, newx, newy);
-                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                oldx = newx;
-                                oldy = newy;
-
-                                if ((Size += dSize) > size && dSize > 0)
-                                    dSize *= -1;
-                            }
-                        }
-
-                        if (dir == 3)
-                        {
-                            oldy = y2;
-                            oldx = x2 + (float)Math.Sin(y2 / freqFactor) * Size;
-
-                            for (int i = (int)y2; i < y; i += di)
-                            {
-                                newy = i;
-                                newx = x2 + (float)Math.Sin(newy / freqFactor) * Size;
-
-                                myPrimitive._LineInst.setInstanceCoords(oldx, oldy, newx, newy);
-                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                oldx = newx;
-                                oldy = newy;
-
-                                if ((Size += dSize) > size && dSize > 0)
-                                    dSize *= -1;
-                            }
-                        }
-
-                        myPrimitive._LineInst.Draw();
+                        case 2:
+                        case 3:
+                            myPrimitive._LineInst.setInstanceCoords(x, y, x, y + length);
+                            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                            break;
                     }
                     break;
 
+                // Sin function
+                case 2:
                 case 3:
                     {
-                        myPrimitive._LineInst.ResetBuffer();
+                        float oldx = 0, oldy = 0, newx = 0, newy = 0;
 
-                        if (dir == 0)
+                        switch (dir)
                         {
-                            for (int i = (int)x; i < x2; i += di)
-                            {
-                                float newy = (float)Math.Sin(i / freqFactor) * Size;
+                            case 0:
+                                if (x2 >= 0)
+                                {
+                                    int end = x2 > gl_Width ? gl_Width + 30 : (int)x2;
 
-                                //myPrimitive._LineInst.setInstanceCoords(i, y + newy, i, y - newy);
-                                //myPrimitive._LineInst.setInstanceCoords(i, y + newy/10, i, y - newy);
+                                    oldx = x;
+                                    oldy = y + (float)Math.Sin(x * freqFactor) * Size;
 
-                                myPrimitive._LineInst.setInstanceCoords(i, y + newy, i, y + newy * 1.25f);
-                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                                    for (int i = (int)x; i < end; i += di)
+                                    {
+                                        newx = i;
+                                        newy = y + (float)Math.Sin(newx * freqFactor) * Size;
 
-                                if ((Size += dSize) > size && dSize > 0)
-                                    dSize *= -1;
-                            }
+                                        myPrimitive._LineInst.autoDraw(oldx, oldy, newx, newy, R, G, B, A);
+
+                                        oldx = newx;
+                                        oldy = newy;
+
+                                        applyDSize();
+                                    }
+                                }
+                                break;
+
+                            case 1:
+                                if (x2 <= gl_Width)
+                                {
+                                    int end = x > gl_Width ? gl_Width + 30 : (int)x;
+
+                                    oldx = x2;
+                                    oldy = y2 + (float)Math.Sin(x2 * freqFactor) * Size;
+
+                                    for (int i = (int)x2; i < end; i += di)
+                                    {
+                                        newx = i;
+                                        newy = y2 + (float)Math.Sin(newx * freqFactor) * Size;
+
+                                        myPrimitive._LineInst.autoDraw(oldx, oldy, newx, newy, R, G, B, A);
+
+                                        oldx = newx;
+                                        oldy = newy;
+
+                                        applyDSize();
+                                    }
+                                }
+                                break;
+
+                            case 2:
+                                if (y2 >= 0)
+                                {
+                                    int end = y2 > gl_Height ? gl_Height + 30 : (int)y2;
+
+                                    oldy = y;
+                                    oldx = x + (float)Math.Sin(y * freqFactor) * Size;
+
+                                    for (int i = (int)y; i < end; i += di)
+                                    {
+                                        newy = i;
+                                        newx = x + (float)Math.Sin(newy * freqFactor) * Size;
+
+                                        myPrimitive._LineInst.autoDraw(oldx, oldy, newx, newy, R, G, B, A);
+
+                                        oldx = newx;
+                                        oldy = newy;
+
+                                        applyDSize();
+                                    }
+                                }
+                                break;
+
+                            case 3:
+                                if (y2 <= gl_Height)
+                                {
+                                    int end = y > gl_Height ? gl_Height + 30 : (int)y;
+
+                                    oldy = y2;
+                                    oldx = x2 + (float)Math.Sin(y2 * freqFactor) * Size;
+
+                                    for (int i = (int)y2; i < y; i += di)
+                                    {
+                                        newy = i;
+                                        newx = x2 + (float)Math.Sin(newy * freqFactor) * Size;
+
+                                        myPrimitive._LineInst.autoDraw(oldx, oldy, newx, newy, R, G, B, A);
+
+                                        oldx = newx;
+                                        oldy = newy;
+
+                                        applyDSize();
+                                    }
+                                }
+                                break;
                         }
-
-                        if (dir == 1)
-                        {
-                            for (int i = (int)x2; i < x; i += di)
-                            {
-                                float newy = (float)Math.Sin(i / freqFactor) * Size;
-
-                                myPrimitive._LineInst.setInstanceCoords(i, y + newy, i, y + newy * 1.25f);
-                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                if ((Size += dSize) > size && dSize > 0)
-                                    dSize *= -1;
-                            }
-                        }
-
-                        if (dir == 2)
-                        {
-                            for (int i = (int)y; i < y2; i += di)
-                            {
-                                float newx = (float)Math.Sin(i / freqFactor) * Size;
-
-                                myPrimitive._LineInst.setInstanceCoords(x + newx, i, x + newx * 1.25f, i);
-                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                if ((Size += dSize) > size && dSize > 0)
-                                    dSize *= -1;
-                            }
-                        }
-
-                        if (dir == 3)
-                        {
-                            for (int i = (int)y2; i < y; i += di)
-                            {
-                                float newx = (float)Math.Sin(i / freqFactor) * Size;
-
-                                myPrimitive._LineInst.setInstanceCoords(x + newx, i, x + newx * 1.25f, i);
-                                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                if ((Size += dSize) > size && dSize > 0)
-                                    dSize *= -1;
-                            }
-                        }
-
-                        myPrimitive._LineInst.Draw();
                     }
                     break;
 
                 case 4:
                     {
-                        myPrimitive._LineInst.ResetBuffer();
-
                         switch (dir)
                         {
                             case 0:
                                 for (int i = (int)x; i < x2; i += di)
                                 {
-                                    float newy1 = y + (float)Math.Sin(i / freqFactor) * Size;
-                                    float newx = di < 200 ? i - di : i - rand.Next(di);
-                                    float newy2 = y + (float)Math.Sin(newx / freqFactor) * Size;
+                                    float newy = (float)Math.Sin(i * freqFactor) * Size;
 
-                                    myPrimitive._LineInst.setInstanceCoords(i, newy1, newx, newy2);
-                                    //myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-                                    myPrimitive._LineInst.setInstanceColor(R, G, B, A * myUtils.randFloat(rand));
+                                    switch (subMode)
+                                    {
+                                        case 0: myPrimitive._LineInst.autoDraw(i, y + newy, i, y + newy * 1.25f, R, G, B, A);   break;
+                                        case 1: myPrimitive._LineInst.autoDraw(i, y + newy, i, y, R, G, B, A);                  break;
+                                    }
 
-                                    if ((Size += dSize) > size && dSize > 0)
-                                        dSize *= -1;
+                                    applyDSize();
                                 }
                                 break;
 
                             case 1:
                                 for (int i = (int)x2; i < x; i += di)
                                 {
-                                    float newy1 = y + (float)Math.Sin(i / freqFactor) * Size;
-                                    float newx = di < 200 ? i + di : i + rand.Next(di);
-                                    float newy2 = y + (float)Math.Sin(newx / freqFactor) * Size;
+                                    float newy = (float)Math.Sin(i * freqFactor) * Size;
 
-                                    myPrimitive._LineInst.setInstanceCoords(i, newy1, newx, newy2);
-                                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                    if ((Size += dSize) > size && dSize > 0)
-                                        dSize *= -1;
+                                    switch (subMode)
+                                    {
+                                        case 0: myPrimitive._LineInst.autoDraw(i, y + newy, i, y + newy * 1.25f, R, G, B, A);   break;
+                                        case 1: myPrimitive._LineInst.autoDraw(i, y + newy, i, y, R, G, B, A);                  break;
+                                    }
+                                    
+                                    applyDSize();
                                 }
                                 break;
 
                             case 2:
                                 for (int i = (int)y; i < y2; i += di)
                                 {
-                                    float newx1 = x + (float)Math.Sin(i / freqFactor) * Size;
-                                    float newy = di < 200 ? i - di : i - rand.Next(di);
-                                    float newx2 = x + (float)Math.Sin(newy / freqFactor) * Size;
+                                    float newx = (float)Math.Sin(i * freqFactor) * Size;
 
-                                    myPrimitive._LineInst.setInstanceCoords(newx1, i, newx2, newy);
-                                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                                    switch (subMode)
+                                    {
+                                        case 0: myPrimitive._LineInst.autoDraw(x + newx, i, x + newx * 1.25f, i, R, G, B, A);   break;
+                                        case 1: myPrimitive._LineInst.autoDraw(x + newx, i, x, i, R, G, B, A);                  break;
+                                    }
 
-                                    if ((Size += dSize) > size && dSize > 0)
-                                        dSize *= -1;
+                                    applyDSize();
                                 }
                                 break;
 
                             case 3:
                                 for (int i = (int)y2; i < y; i += di)
                                 {
-                                    float newx1 = x + (float)Math.Sin(i / freqFactor) * Size;
-                                    float newy = di < 200 ? i + di : i + rand.Next(di);
-                                    float newx2 = x + (float)Math.Sin(newy / freqFactor) * Size;
+                                    float newx = (float)Math.Sin(i * freqFactor) * Size;
 
-                                    myPrimitive._LineInst.setInstanceCoords(newx1, i, newx2, newy);
-                                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                                    switch (subMode)
+                                    {
+                                        case 0: myPrimitive._LineInst.autoDraw(x + newx, i, x + newx * 1.25f, i, R, G, B, A);   break;
+                                        case 1: myPrimitive._LineInst.autoDraw(x + newx, i, x, i, R, G, B, A); break;
+                                    }
 
-                                    if ((Size += dSize) > size && dSize > 0)
-                                        dSize *= -1;
+                                    applyDSize();
                                 }
                                 break;
                         }
-
-                        myPrimitive._LineInst.Draw();
                     }
                     break;
 
                 case 5:
                     {
-                        myPrimitive._LineInst.ResetBuffer();
-
                         switch (dir)
                         {
                             case 0:
                                 for (int i = (int)x; i < x2; i += di)
                                 {
-                                    float newy1 = y + (float)Math.Sin(i / freqFactor) * Size;
+                                    float newy1 = y + (float)Math.Sin(i * freqFactor) * Size;
                                     float newx = di < 200 ? i - di : i - rand.Next(di);
-                                    float newy2 = y + (float)Math.Cos(newx / freqFactor) * Size;
+                                    float newy2 = y + (float)Math.Sin(newx * freqFactor) * Size;
 
-                                    myPrimitive._LineInst.setInstanceCoords(i, newy1, newx, newy2);
-                                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                    if ((Size += dSize) > size && dSize > 0)
-                                        dSize *= -1;
+                                    myPrimitive._LineInst.autoDraw(i, newy1, newx, newy2, R, G, B, A * myUtils.randFloat(rand));
+                                    applyDSize();
                                 }
                                 break;
 
                             case 1:
                                 for (int i = (int)x2; i < x; i += di)
                                 {
-                                    float newy1 = y + (float)Math.Sin(i / freqFactor) * Size;
+                                    float newy1 = y + (float)Math.Sin(i * freqFactor) * Size;
                                     float newx = di < 200 ? i + di : i + rand.Next(di);
-                                    float newy2 = y + (float)Math.Cos(newx / freqFactor) * Size;
+                                    float newy2 = y + (float)Math.Sin(newx * freqFactor) * Size;
 
-                                    myPrimitive._LineInst.setInstanceCoords(i, newy1, newx, newy2);
-                                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                    if ((Size += dSize) > size && dSize > 0)
-                                        dSize *= -1;
+                                    myPrimitive._LineInst.autoDraw(i, newy1, newx, newy2, R, G, B, A * myUtils.randFloat(rand));
+                                    applyDSize();
                                 }
                                 break;
 
                             case 2:
                                 for (int i = (int)y; i < y2; i += di)
                                 {
-                                    float newx1 = x + (float)Math.Sin(i / freqFactor) * Size;
+                                    float newx1 = x + (float)Math.Sin(i * freqFactor) * Size;
                                     float newy = di < 200 ? i - di : i - rand.Next(di);
-                                    float newx2 = x + (float)Math.Cos(newy / freqFactor) * Size;
+                                    float newx2 = x + (float)Math.Sin(newy * freqFactor) * Size;
 
-                                    myPrimitive._LineInst.setInstanceCoords(newx1, i, newx2, newy);
-                                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                    if ((Size += dSize) > size && dSize > 0)
-                                        dSize *= -1;
+                                    myPrimitive._LineInst.autoDraw(newx1, i, newx2, newy, R, G, B, A * myUtils.randFloat(rand));
+                                    applyDSize();
                                 }
                                 break;
 
                             case 3:
                                 for (int i = (int)y2; i < y; i += di)
                                 {
-                                    float newx1 = x + (float)Math.Sin(i / freqFactor) * Size;
+                                    float newx1 = x + (float)Math.Sin(i * freqFactor) * Size;
                                     float newy = di < 200 ? i + di : i + rand.Next(di);
-                                    float newx2 = x + (float)Math.Cos(newy / freqFactor) * Size;
+                                    float newx2 = x + (float)Math.Sin(newy * freqFactor) * Size;
 
-                                    myPrimitive._LineInst.setInstanceCoords(newx1, i, newx2, newy);
-                                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                                    if ((Size += dSize) > size && dSize > 0)
-                                        dSize *= -1;
+                                    myPrimitive._LineInst.autoDraw(newx1, i, newx2, newy, R, G, B, A * myUtils.randFloat(rand));
+                                    applyDSize();
                                 }
                                 break;
                         }
-
-                        myPrimitive._LineInst.Draw();
                     }
                     break;
 
+                case 6:
+                    {
+                        switch (dir)
+                        {
+                            case 0:
+                                for (int i = (int)x; i < x2; i += di)
+                                {
+                                    float newy1 = y + (float)(Math.Sin(i * freqFactor) * Size);
+                                    float newx = di < 200 ? i - di : i - rand.Next(di);
+                                    float newy2 = y + (float)Math.Cos(newx * freqFactor) * Size;
 
+                                    myPrimitive._LineInst.autoDraw(i, newy1, newx, newy2, R, G, B, A);
+                                    applyDSize();
+                                }
+                                break;
+
+                            case 1:
+                                for (int i = (int)x2; i < x; i += di)
+                                {
+                                    float newy1 = y + (float)Math.Sin(i * freqFactor) * Size;
+                                    float newx = di < 200 ? i + di : i + rand.Next(di);
+                                    float newy2 = y + (float)Math.Cos(newx * freqFactor) * Size;
+
+                                    myPrimitive._LineInst.autoDraw(i, newy1, newx, newy2, R, G, B, A);
+                                    applyDSize();
+                                }
+                                break;
+
+                            case 2:
+                                for (int i = (int)y; i < y2; i += di)
+                                {
+                                    float newx1 = x + (float)Math.Sin(i * freqFactor) * Size;
+                                    float newy = di < 200 ? i - di : i - rand.Next(di);
+                                    float newx2 = x + (float)Math.Cos(newy * freqFactor) * Size;
+
+                                    myPrimitive._LineInst.autoDraw(newx1, i, newx2, newy, R, G, B, A);
+                                    applyDSize();
+                                }
+                                break;
+
+                            case 3:
+                                for (int i = (int)y2; i < y; i += di)
+                                {
+                                    float newx1 = x + (float)Math.Sin(i * freqFactor) * Size;
+                                    float newy = di < 200 ? i + di : i + rand.Next(di);
+                                    float newx2 = x + (float)Math.Cos(newy * freqFactor) * Size;
+
+                                    myPrimitive._LineInst.autoDraw(newx1, i, newx2, newy, R, G, B, A);
+                                    applyDSize();
+                                }
+                                break;
+                        }
+                    }
+                    break;
 
                 case 333:
                     {
-                        myPrimitive._LineInst.ResetBuffer();
-
                         if (dir == 0)
                         {
                             for (int i = (int)x; i < x2; i += di)
                             {
-                                float newy = y + (float)Math.Sin(i / freqFactor) * size;
+                                float newy = y + (float)Math.Sin(i * freqFactor) * size;
 
                                 myPrimitive._LineInst.setInstanceCoords(i, newy, i+1, newy+1);
                                 myPrimitive._LineInst.setInstanceColor(R, G, B, A);
                             }
                         }
-
-                        myPrimitive._LineInst.Draw();
                     }
                     break;
             }
@@ -810,7 +837,7 @@ namespace my
         {
             int lineInstQty = (gl_Width + gl_Height + minLength) / di + 3;
 
-            myPrimitive.init_LineInst(N > lineInstQty ? N : lineInstQty);
+            myPrimitive.init_LineInst(10 * N > lineInstQty ? 10 * N : lineInstQty);
             myPrimitive.init_Rectangle();
 
             return;

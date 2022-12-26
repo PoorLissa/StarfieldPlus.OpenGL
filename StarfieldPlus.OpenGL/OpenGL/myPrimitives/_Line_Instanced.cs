@@ -5,6 +5,8 @@ using System;
 
 public class myLineInst : myInstancedPrimitive
 {
+    private int autoDrawCnt;
+
     private static float[] vertices = null;
 
     private static uint vbo = 0, instVbo = 0, shaderProgram = 0;
@@ -27,10 +29,12 @@ public class myLineInst : myInstancedPrimitive
             vertices = new float[4];
             instanceArray = new float[maxInstCount * n];
 
+            autoDrawCnt = maxInstCount * n - 8;
+
             vertices[0] = -0.5f;
-            vertices[1] = 0.0f;
+            vertices[1] = +0.0f;
             vertices[2] = +0.5f;
-            vertices[3] = 0.0f;
+            vertices[3] = +0.0f;
 
             CreateProgram();
             glUseProgram(shaderProgram);
@@ -126,6 +130,30 @@ public class myLineInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Single-call Draw;
+    // Draws to screen automatically, when the buffer is about to be overflown
+    public void autoDraw(float x1, float y1, float x2, float y2, float r, float g, float b, float a)
+    {
+        if (instArrayPosition > autoDrawCnt)
+        {
+            Draw();
+            ResetBuffer();
+        }
+
+        instanceArray[instArrayPosition++] = x1;
+        instanceArray[instArrayPosition++] = y1;
+        instanceArray[instArrayPosition++] = x2;
+        instanceArray[instArrayPosition++] = y2;
+
+        instanceArray[instArrayPosition++] = r;
+        instanceArray[instArrayPosition++] = g;
+        instanceArray[instArrayPosition++] = b;
+        instanceArray[instArrayPosition++] = a;
+
+        return;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
 
     // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
     private static unsafe void updateVertices()
