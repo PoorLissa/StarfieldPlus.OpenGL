@@ -63,11 +63,13 @@ namespace my
 
             doUseGradualSize = myUtils.randomChance(rand, 1, 2);
 
-            mode = rand.Next(7);
+            mode = rand.Next(9);
             dirMode = rand.Next(16);
             freqMode = rand.Next(50);
             dtMode = rand.Next(3);
             dtMode = rand.Next(15);
+
+            mode = 2;
 
 #if false
             N = 1111;
@@ -90,34 +92,43 @@ namespace my
                 case 1:
                     break;
 
-                // Solid Sin
+                // Straight lines (short, repeating)
                 case 2:
+                    break;
+
+                // Solid Sin
+                case 3:
                     minLength = 333 + rand.Next(333);
                     break;
 
                 // Solid Sin, small size
-                case 3:
+                case 4:
                     minLength = 333 + rand.Next(666);
                     break;
 
                 // Lined Sin (vertical lines at each di point)
-                case 4:
+                case 5:
                     N = 33 + rand.Next(123);
                     di = rand.Next(10) + 10;
                     subMode = rand.Next(2);
                     break;
 
                 // Lined Sin/Cos (lines with offset)
-                case 5:
                 case 6:
+                case 7:
                     N = 33 + rand.Next(123);
                     di = rand.Next(300) + 10;
                     doClearBuffer = myUtils.randomChance(rand, 1, 5);
                     break;
+
+                // Lines Sin (lines of di/2)
+                case 8:
+                    di = rand.Next(33) + 10;
+                    break;
             }
 
             // Adjust render delay for higher N
-            if (N > 500 && mode > 1)
+            if (N > 500 && mode > 2)
             {
                 renderDelay -= 4 * N / 500;
 
@@ -182,14 +193,19 @@ namespace my
 
                 case 2:
                     if (length / size < 10)
-                        size /= rand.Next(10) + 7;
+                        length *= rand.Next(7) + 3;
                     break;
 
                 case 3:
-                    size = rand.Next(30) + 5;
+                    if (length / size < 10)
+                        size /= rand.Next(10) + 7;
                     break;
 
                 case 4:
+                    size = rand.Next(30) + 5;
+                    break;
+
+                case 5:
                     if (length / size < 10)
                         size /= rand.Next(10) + 7;
                     break;
@@ -223,27 +239,27 @@ namespace my
                     break;
 
                 case 1: if (myUtils.randomChance(rand, 1, 2))
-                    A *= mode < 2 ? 0.5f : 0.35f;
+                    A *= mode < 3 ? 0.5f : 0.35f;
                     break;
 
                 case 2: if (myUtils.randomChance(rand, 2, 3))
-                    A *= mode < 2 ? 0.5f : 0.35f;
+                    A *= mode < 3 ? 0.5f : 0.35f;
                     break;
 
                 case 3: if (myUtils.randomChance(rand, 3, 4))
-                    A *= mode < 2 ? 0.5f : 0.35f;
+                    A *= mode < 3 ? 0.5f : 0.35f;
                     break;
 
                 case 4: if (myUtils.randomChance(rand, 4, 5))
-                    A *= mode < 2 ? 0.5f : 0.35f;
+                    A *= mode < 3 ? 0.5f : 0.35f;
                     break;
 
                 case 5: if (myUtils.randomChance(rand, 5, 6))
-                    A *= mode < 2 ? 0.5f : 0.35f;
+                    A *= mode < 3 ? 0.5f : 0.35f;
                     break;
 
                 case 6: if (myUtils.randomChance(rand, 6, 7))
-                    A *= mode < 2 ? 0.5f : 0.35f;
+                    A *= mode < 3 ? 0.5f : 0.35f;
                     break;
 
                 default:
@@ -465,9 +481,38 @@ namespace my
                     }
                     break;
 
-                // Sin function
                 case 2:
+                    {
+                        int offset = doClearBuffer ? di/2 : di/5;
+
+                        switch (dir)
+                        {
+                            case 0:
+                                for (int i = (int)x; i < x2; i += di)
+                                    myPrimitive._LineInst.autoDraw(i, y, i + offset, y, R, G, B, A);
+                                break;
+
+                            case 1:
+                                for (int i = (int)x2; i < x; i += di)
+                                    myPrimitive._LineInst.autoDraw(i, y, i + offset, y, R, G, B, A);
+                                break;
+
+                            case 2:
+                                for (int i = (int)y; i < y2; i += di)
+                                    myPrimitive._LineInst.autoDraw(x, i, x, i + offset, R, G, B, A);
+                                break;
+
+                            case 3:
+                                for (int i = (int)y2; i < y; i += di)
+                                    myPrimitive._LineInst.autoDraw(x, i, x, i + offset, R, G, B, A);
+                                break;
+                        }
+                    }
+                    break;
+
+                // Sin function
                 case 3:
+                case 4:
                     {
                         float oldx = 0, oldy = 0, newx = 0, newy = 0;
 
@@ -568,7 +613,7 @@ namespace my
                     }
                     break;
 
-                case 4:
+                case 5:
                     {
                         switch (dir)
                         {
@@ -635,7 +680,7 @@ namespace my
                     }
                     break;
 
-                case 5:
+                case 6:
                     {
                         switch (dir)
                         {
@@ -690,7 +735,7 @@ namespace my
                     }
                     break;
 
-                case 6:
+                case 7:
                     {
                         switch (dir)
                         {
@@ -739,6 +784,45 @@ namespace my
 
                                     myPrimitive._LineInst.autoDraw(newx1, i, newx2, newy, R, G, B, A);
                                     applyDSize();
+                                }
+                                break;
+                        }
+                    }
+                    break;
+
+                case 8:
+                    {
+                        switch (dir)
+                        {
+                            case 0:
+                                for (int i = (int)x; i < x2; i += di)
+                                {
+                                    float newy = y + (float)Math.Sin(i * freqFactor) * size * myUtils.randFloat(rand) * rand.Next(10);
+                                    myPrimitive._LineInst.autoDraw(i, newy, i + di/2, newy, R, G, B, A);
+                                }
+                                break;
+
+                            case 1:
+                                for (int i = (int)x2; i < x; i += di)
+                                {
+                                    float newy = y + (float)Math.Sin(i * freqFactor) * size * myUtils.randFloat(rand) * rand.Next(10);
+                                    myPrimitive._LineInst.autoDraw(i, newy, i + di/2, newy, R, G, B, A);
+                                }
+                                break;
+
+                            case 2:
+                                for (int i = (int)y; i < y2; i += di)
+                                {
+                                    float newx = x + (float)Math.Sin(i * freqFactor) * size * myUtils.randFloat(rand) * rand.Next(10);
+                                    myPrimitive._LineInst.autoDraw(newx, i, newx, i + di/2, R, G, B, A);
+                                }
+                                break;
+
+                            case 3:
+                                for (int i = (int)y2; i < y; i += di)
+                                {
+                                    float newx = x + (float)Math.Sin(i * freqFactor) * size * myUtils.randFloat(rand) * rand.Next(10);
+                                    myPrimitive._LineInst.autoDraw(newx, i, newx, i + di / 2, R, G, B, A);
                                 }
                                 break;
                         }
@@ -839,6 +923,11 @@ namespace my
 
             myPrimitive.init_LineInst(10 * N > lineInstQty ? 10 * N : lineInstQty);
             myPrimitive.init_Rectangle();
+
+            if (mode == 8)
+            {
+                //base.initShapes(shape, 10 * N > lineInstQty ? 10 * N : lineInstQty, 0);
+            }
 
             return;
         }
