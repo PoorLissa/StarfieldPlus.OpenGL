@@ -81,6 +81,8 @@ public class ScreenSaver
         id = ids.myObj_330;
         id = ids.myObj_120;
 
+        id = (ids)(new Random()).Next((int)ids.myObj_999a);
+
         switch (id)
         {
             // Stars: kind of working, but needs finishing the migration
@@ -133,7 +135,7 @@ public class ScreenSaver
                 _obj = new my.myObj_102();
                 break;
 
-            // Moving Lines (...)
+            // Moving Lines (4 directions, striight lines or sin/cos lines)
             case ids.myObj_120:
                 _obj = new my.myObj_120();
                 break;

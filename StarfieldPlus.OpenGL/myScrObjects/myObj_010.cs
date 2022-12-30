@@ -112,7 +112,7 @@ namespace my
 */
 
             string str = $"Obj = myObj_010\n\n" +
-                            $"N = {N}\n" +
+                            $"N = {list.Count} of {N}\n" +
                             $"renderDelay = {renderDelay}\n" +
                             $"shapeType = {shapeType}\n" + 
                             $"rotationMode = {rotationMode}\n" +
