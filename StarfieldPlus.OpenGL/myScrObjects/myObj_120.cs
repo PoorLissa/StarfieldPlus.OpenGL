@@ -69,8 +69,6 @@ namespace my
             dtMode = rand.Next(3);
             dtMode = rand.Next(15);
 
-            mode = 2;
-
 #if false
             N = 1111;
             mode = 5;
