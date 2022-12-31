@@ -48,7 +48,7 @@ namespace my
                 // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
                 rotationMode = rand.Next(4);
                 shapeType    = rand.Next(5);
-                connectType  = rand.Next(10);
+                connectType  = rand.Next(11);
                 gravityMode  = rand.Next(3);
                 connectColorType = rand.Next(2);
 
@@ -120,6 +120,7 @@ namespace my
             string str = $"Obj = myObj_010\n\n" +
                             $"N = {list.Count} of {N}\n" +
                             $"renderDelay = {renderDelay}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n" +
                             $"shapeType = {shapeType}\n" + 
                             $"rotationMode = {rotationMode}\n" +
                             $"rotationSubMode = {rotationSubMode}\n" +
@@ -341,16 +342,21 @@ namespace my
 
         protected override void Process(Window window)
         {
+            int obj0x = 0, obj0y = 0;
             uint cnt = 0;
             initShapes();
 
             myPrimitive.init_Line();
 
-            if (doClearBuffer == false)
+            if (doClearBuffer)
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+                glClearColor(0, 0, 0, 1);
+            }
+            else
             {
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
-
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -360,18 +366,14 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                // Dim the screen constantly
-                if (doClearBuffer == false)
+                if (doClearBuffer)
                 {
-                    myPrimitive._Rectangle.SetAngle(0);
-                    // Shift background color just a bit, to hide long lasting traces of shapes
-                    myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha);
-                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                    glClear(GL_COLOR_BUFFER_BIT);
                 }
                 else
                 {
-                    glClearColor(0, 0, 0, 1);
-                    glClear(GL_COLOR_BUFFER_BIT);
+                    // Dim the screen constantly
+                    dimScreen(dimAlpha, doShiftColor: true);
                 }
 
                 inst.ResetBuffer();
@@ -400,6 +402,12 @@ namespace my
                                 g = obj.G;
                                 b = obj.B;
                                 break;
+                        }
+
+                        if (i == 0)
+                        {
+                            obj0x = (int)obj.x;
+                            obj0y = (int)obj.y;
                         }
 
                         switch (connectType)
@@ -433,7 +441,7 @@ namespace my
                             case 5:
                             case 6:
                                 myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj.xOrig, obj.yOrig);
-                                myPrimitive._LineInst.setInstanceColor(r, g, b, 0.066f);
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, doClearBuffer ? 0.066f : 0.025f);
                                 break;
 
                             // Connect particle to its last reflection point - 1
@@ -445,12 +453,18 @@ namespace my
                             // Connect particle to its last reflection point - 2
                             case 8:
                                 myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj.xOld, obj.yOld);
-                                myPrimitive._LineInst.setInstanceColor(r, g, b, 0.1f);
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, doClearBuffer ? 0.1f : 0.025f);
                                 break;
 
                             // Connect particle to its last reflection point - 3
                             case 9:
                                 myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj.xOld, obj.yOld);
+                                myPrimitive._LineInst.setInstanceColor(r, g, b, obj.A * 0.1f);
+                                break;
+
+                            // Connect each particle to the particle number 0
+                            case 10:
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, obj0x, obj0y);
                                 myPrimitive._LineInst.setInstanceColor(r, g, b, obj.A * 0.1f);
                                 break;
                         }
