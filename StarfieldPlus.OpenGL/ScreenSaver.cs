@@ -83,6 +83,8 @@ public class ScreenSaver
 
         id = (ids)(new Random()).Next((int)ids.myObj_999a);
 
+        id = ids.myObj_010;
+
         switch (id)
         {
             // Stars: kind of working, but needs finishing the migration

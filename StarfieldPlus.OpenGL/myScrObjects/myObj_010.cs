@@ -16,8 +16,8 @@ namespace my
         private float x, y, dx, dy, Size, angle, dAngle, xOld, yOld, xOrig, yOrig;
         private float A = 0, R = 0, G = 0, B = 0;
 
-        private static bool doClearBuffer = false, doFillShapes = false, doConnect = false, doUseGravityAnomaly = false;
-        private static int x0, y0, minX = 0, minY = 0, maxX = 0, maxY = 0, maxSize = 0, N = 1;
+        private static bool doFillShapes = false, doConnect = false, doUseGravityAnomaly = false;
+        private static int x0, y0, minX = 0, minY = 0, maxX = 0, maxY = 0, maxSize = 0, N = 1, moveMode = 0;
         private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, connectType = 0, connectColorType = 0, gravityMode = 0;
         private static float dimAlpha = 0.25f;
         static float radius = gl_Height / 3;
@@ -38,6 +38,8 @@ namespace my
                     showMode = rand.Next(2);
                 }
 */
+                moveMode = rand.Next(3);
+
                 doClearBuffer = myUtils.randomBool(rand);
                 doFillShapes  = myUtils.randomBool(rand);
                 doConnect     = myUtils.randomBool(rand);
@@ -58,7 +60,22 @@ namespace my
                 }
 
                 // In case the border is wider than the screen's bounds, the movement looks a bit different (no bouncing)
-                int offset = rand.Next(2) == 0 ? 0 : 100 + rand.Next(500);
+                int offset = 0;
+
+                switch (rand.Next(3))
+                {
+                    case 0:
+                        offset = 0;
+                        break;
+
+                    case 1:
+                        offset = 100 + rand.Next(500);
+                        break;
+
+                    case 2:
+                        offset = -rand.Next(500);
+                        break;
+                }
 
                 minX = 0 - offset;
                 minY = 0 - offset;
@@ -100,17 +117,6 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-/*
-            string str = $"Obj = myObj_010\n\n" +
-                            $"N = {N}\n" +
-                            $"renderDelay = {renderDelay}\n" +
-                            $"moveType = {moveType}\n" +
-                            $"shapeType = {shapeType}\n" +
-                            $"rotationMode = {rotationMode}\n" +
-                            $"rotationSubMode = {rotationSubMode}\n" +
-                            $"colorMode = {colorMode}";
-*/
-
             string str = $"Obj = myObj_010\n\n" +
                             $"N = {list.Count} of {N}\n" +
                             $"renderDelay = {renderDelay}\n" +
@@ -141,6 +147,20 @@ namespace my
 
             dx = 0.01f * (rand.Next(maxSpeed) + 1) * myUtils.randomSign(rand);
             dy = 0.01f * (rand.Next(maxSpeed) + 1) * myUtils.randomSign(rand);
+
+            if (moveMode == 2)
+            {
+                switch (rand.Next(2))
+                {
+                    case 0:
+                        dx = 0;
+                        break;
+
+                    case 1:
+                        dy = 0;
+                        break;
+                }
+            }
 
             Size = rand.Next(maxSize) + 1;
 
@@ -214,18 +234,58 @@ namespace my
                 }
             }
 
-            if (x < minX || x > maxX)
+            switch (moveMode)
             {
-                dx *= -1;
-                xOld = x;
-                yOld = y;
-            }
+                case 0:
+                    {
+                        if (x < minX || x > maxX)
+                        {
+                            dx *= -1;
+                            xOld = x;
+                            yOld = y;
+                        }
 
-            if (y < minY || y > maxY)
-            {
-                dy *= -1;
-                xOld = x;
-                yOld = y;
+                        if (y < minY || y > maxY)
+                        {
+                            dy *= -1;
+                            xOld = x;
+                            yOld = y;
+                        }
+                    }
+                    break;
+
+                case 1:
+                case 2:
+                    {
+                        if (x < minX)
+                        {
+                            dx += myUtils.randFloat(rand, 0.1f) * 0.1f;
+                            xOld = x;
+                            yOld = y;
+                        }
+
+                        if (x > maxX)
+                        {
+                            dx -= myUtils.randFloat(rand, 0.1f) * 0.1f;
+                            xOld = x;
+                            yOld = y;
+                        }
+
+                        if (x < minY)
+                        {
+                            dy += myUtils.randFloat(rand, 0.1f) * 0.1f;
+                            xOld = x;
+                            yOld = y;
+                        }
+
+                        if (y > maxY)
+                        {
+                            dy -= myUtils.randFloat(rand, 0.1f) * 0.1f;
+                            xOld = x;
+                            yOld = y;
+                        }
+                    }
+                    break;
             }
 
             return;
