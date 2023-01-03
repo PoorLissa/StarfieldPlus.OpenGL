@@ -6,13 +6,46 @@ using System.Windows.Forms;
 public class ScreenSaver
 {
     private my.myObject _obj = null;
+    private int _mode;
+
+    private enum ids
+    {
+        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
+        myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_170, myObj_180,
+        myObj_200, myObj_210, myObj_220, myObj_230,
+        myObj_300, myObj_310, myObj_320, myObj_330,
+        myObj_999a
+    };
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public ScreenSaver(int Width, int Height)
+    public ScreenSaver()
     {
-        my.myObject.gl_Width  = Width;
-        my.myObject.gl_Height = Height;
+        my.myObject.gl_Width  = 0;
+        my.myObject.gl_Height = 0;
+
+        myOGL.getDesktopResolution(ref my.myObject.gl_Width, ref my.myObject.gl_Height);
+
+#if DEBUG
+        bool isWindowed = false;
+        _mode = 1;
+
+        if (isWindowed)
+        {
+            _mode = 2;
+            my.myObject.gl_Width  = 1920;
+            my.myObject.gl_Height = 1200;
+        }
+#else
+        _mode = 1;
+#endif
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public int GetMode()
+    {
+        return _mode;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -65,25 +98,18 @@ public class ScreenSaver
     // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving towards the point where pt2 has been at the moment of generation
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
 
-    private enum ids {
-        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
-        myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_170, myObj_180,
-        myObj_200, myObj_210, myObj_220, myObj_230,
-        myObj_300, myObj_310, myObj_320, myObj_330,
-        myObj_999a
-    };
-
     public void selectObject()
     {
+#if DEBUG
         ids id = (ids)0;
         id = ids.myObj_102;
         id = ids.myObj_132;
         id = ids.myObj_330;
         id = ids.myObj_120;
-
-        id = (ids)(new Random()).Next((int)ids.myObj_999a);
-
         id = ids.myObj_010;
+#else
+        ids id = (ids)(new Random()).Next((int)ids.myObj_999a);
+#endif
 
         switch (id)
         {

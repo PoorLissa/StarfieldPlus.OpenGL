@@ -45,42 +45,48 @@ class myOGL
     /// <param name="width">The width of the client area, in pixels.</param>
     /// <param name="height">The height of the client area, in pixels.</param>
     /// <returns>A handle to the created window.</returns>
-    public static Window CreateWindow(ref int width, ref int height, string Title, bool trueFullScreen = false)
+    public static Window CreateWindow(ref int width, ref int height, string Title, int windowMode)
     {
         // Create window, make the OpenGL context current on the thread, and import graphics functions
 
         Window window;
 
-        if (trueFullScreen)
+        var mode = Glfw.GetVideoMode(Glfw.PrimaryMonitor);
+
+        switch (windowMode)
         {
-            // Set monitor to real full screen mode (which might take a long time in some cases -- maybe, dual monitor problem?..)
-            var mode = Glfw.GetVideoMode(Glfw.PrimaryMonitor);
-            width  = mode.Width;
-            height = mode.Height;
-            window = Glfw.CreateWindow(width, height, Title, Glfw.PrimaryMonitor, Window.None);
-        }
-        else
-        {
-            if (width == 0 && height == 0)
-            {
-                // Create window that fully covers the entire monitor at its current resolution
-                var mode = Glfw.GetVideoMode(Glfw.PrimaryMonitor);
+            // True full screen mode
+            // Sets monitor to real full screen mode (which might take a long time in some cases -- maybe, dual monitor problem?..)
+            case 0:
+                width  = mode.Width;
+                height = mode.Height;
+                window = Glfw.CreateWindow(width, height, Title, Glfw.PrimaryMonitor, Window.None);
+                break;
+
+            // Windowed full screen mode
+            // Create window that fully covers the entire monitor at its current resolution
+            case 1:
                 width  = mode.Width;
                 height = mode.Height;
                 window = Glfw.CreateWindow(width, height, Title, Monitor.None, Window.None);
-            }
-            else
-            {
-                // Create window with user defined size
+                break;
+
+            // Windowed mode
+            // Create window with user-defined size
+            case 2:
                 window = Glfw.CreateWindow(width, height, Title, Monitor.None, Window.None);
 
                 // Center window
                 var screen = Glfw.PrimaryMonitor.WorkArea;
-                var x = (screen.Width  -  width) / 2;
+                var x = (screen.Width  - width ) / 2;
                 var y = (screen.Height - height) / 2;
 
                 Glfw.SetWindowPosition(window, x, y);
-            }
+                break;
+
+            default:
+                throw new System.Exception("Unsupported window mode");
+                break;
         }
 
         Glfw.MakeContextCurrent(window);

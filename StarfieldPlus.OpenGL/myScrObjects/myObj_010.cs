@@ -31,13 +31,6 @@ namespace my
                 colorPicker = new myColorPicker(gl_Width, gl_Height);
                 list = new List<myObject>();
 
-                // In case the colorPicker points to an image, try something different
-/*
-                if (colorPicker.getMode() < 2)
-                {
-                    showMode = rand.Next(2);
-                }
-*/
                 moveMode = rand.Next(3);
 
                 doClearBuffer = myUtils.randomBool(rand);

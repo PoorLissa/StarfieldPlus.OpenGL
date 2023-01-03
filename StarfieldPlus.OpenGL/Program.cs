@@ -101,10 +101,7 @@ namespace StarfieldPlus.OpenGL
         {
             try
             {
-                int w = 0, h = 0;
-                myOGL.getDesktopResolution(ref w, ref h);
-
-                ScreenSaver scr = new ScreenSaver(w, h);
+                ScreenSaver scr = new ScreenSaver();
 
                 scr.selectObject();
                 scr.Show();

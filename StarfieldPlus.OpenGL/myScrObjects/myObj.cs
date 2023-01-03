@@ -168,28 +168,11 @@ namespace my
         {
             try
             {
-                Window openGL_Window;
-                gl_Width  = 0;
-                gl_Height = 0;
-
                 // Set context creation hints
                 myOGL.PrepareContext();
 
                 // Create window
-                {
-#if RELEASE
-                    gl_Width  = 0;
-                    gl_Height = 0;
-#else
-                    if (false)
-                    {
-                        gl_Width  = 1920;
-                        gl_Height = 1200;
-                    }
-#endif
-
-                    openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", trueFullScreen: false);
-                }
+                Window openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", scr.GetMode());
 
                 // Set Blend mode
                 if (true)
