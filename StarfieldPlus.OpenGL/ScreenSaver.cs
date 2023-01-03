@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using System.Windows.Forms;
 
 
@@ -6,12 +6,12 @@ using System.Windows.Forms;
 public class ScreenSaver
 {
     private my.myObject _obj = null;
-    private int _mode;
+    private byte _mode;
 
     private enum ids
     {
         myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043,
-        myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_170, myObj_180,
+        myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330,
         myObj_999a
@@ -43,7 +43,7 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public int GetMode()
+    public byte GetMode()
     {
         return _mode;
     }
@@ -106,7 +106,7 @@ public class ScreenSaver
         id = ids.myObj_132;
         id = ids.myObj_330;
         id = ids.myObj_120;
-        id = ids.myObj_010;
+        id = ids.myObj_150;
 #else
         ids id = (ids)(new Random()).Next((int)ids.myObj_999a);
 #endif
@@ -181,6 +181,11 @@ public class ScreenSaver
             // Splines
             case ids.myObj_132:
                 _obj = new my.myObj_132();
+                break;
+
+            // Conway's Life
+            case ids.myObj_150:
+                _obj = new my.myObj_150();
                 break;
 
             // Desktop: Diminishing pieces

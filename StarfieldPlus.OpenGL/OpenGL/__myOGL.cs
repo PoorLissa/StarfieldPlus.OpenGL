@@ -45,7 +45,7 @@ class myOGL
     /// <param name="width">The width of the client area, in pixels.</param>
     /// <param name="height">The height of the client area, in pixels.</param>
     /// <returns>A handle to the created window.</returns>
-    public static Window CreateWindow(ref int width, ref int height, string Title, int windowMode)
+    public static Window CreateWindow(ref int width, ref int height, string Title, byte windowMode)
     {
         // Create window, make the OpenGL context current on the thread, and import graphics functions
 
