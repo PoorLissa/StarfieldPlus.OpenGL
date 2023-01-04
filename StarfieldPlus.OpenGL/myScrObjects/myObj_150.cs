@@ -19,7 +19,8 @@ namespace my
         private bool alive = false;
         private int liveCnt = 0, lifeSpanCnt = 0;
 
-        private static int N = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0;
+        private static bool doUseRandBgr = false;
+        private static int N = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0, frameRate = 5;
         private static float bgrR = 0, bgrG = 0, bgrB = 0, borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
 
         static myTexRectangle tex = null;
@@ -55,11 +56,14 @@ namespace my
             N = 0;
             step = rand.Next(33) + 25;
             cellOffset = rand.Next(4);
+            frameRate = 1 + (myUtils.randomChance(rand, 2, 3) ? rand.Next(13) : rand.Next(66));
 
             // In case the colorPicker targets an image, drawMode could be 3
             drawMode = colorPicker.getMode() < 2 ? rand.Next(4) : rand.Next(3);     // Draw cells mode
             lightMode = rand.Next(2);                                               // Light (0) vs Dark (1) theme
             clearMode = rand.Next(2);                                               // The way dead cells behave
+
+            doUseRandBgr = myUtils.randomBool(rand);                                // If true, the cells will be cleared with bgr color that is slightly randomly offset (where applicable)
 
             if (drawMode == 3)
                 clearMode = rand.Next(5);
@@ -137,7 +141,9 @@ namespace my
                             $"drawMode = {drawMode}\n" +
                             $"clearMode = {clearMode}\n" +
                             $"lightMode = {lightMode}\n" +
+                            $"doUseRandBgr = {doUseRandBgr}\n" +
                             $"colorSteps: {colorSteps}\n" +
+                            $"frameRate = {frameRate}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -258,12 +264,29 @@ namespace my
 
                 if (doErase)
                 {
-                    myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                    setClearingColor();
                     myPrimitive._Rectangle.Draw(drawX, drawY, drawW + 1, drawW + 1, true);
                 }
 
                 tex.setOpacity(opacity);
                 tex.Draw(drawX, drawY, drawW, drawW, drawX, drawY, drawW, drawW);
+            }
+
+            void setClearingColor()
+            {
+                if (doUseRandBgr)
+                {
+                    // Slightly offset clearing color
+                    float r = myUtils.randFloat(rand) * 0.025f * myUtils.randomSign(rand);
+                    float g = myUtils.randFloat(rand) * 0.025f * myUtils.randomSign(rand);
+                    float b = myUtils.randFloat(rand) * 0.025f * myUtils.randomSign(rand);
+
+                    myPrimitive._Rectangle.SetColor(bgrR + r, bgrG + g, bgrB + b, 1.0f);
+                }
+                else
+                {
+                    myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                }
             }
 
             if (alive)
@@ -310,7 +333,7 @@ namespace my
                         if (R > 0)
                         {
                             R = -1;
-                            myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                            setClearingColor();
                             myPrimitive._Rectangle.Draw(x, y + 1, step - 1, step - 1, true);
                         }
                         break;
@@ -338,7 +361,7 @@ namespace my
                                 else
                                 {
                                     R = -1;
-                                    myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                                    setClearingColor();
                                 }
                             }
                             else
@@ -360,7 +383,7 @@ namespace my
                                 else
                                 {
                                     R = -1;
-                                    myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                                    setClearingColor();
                                 }
                             }
 
@@ -370,7 +393,7 @@ namespace my
                             }
                             else
                             {
-                                myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
+                                myPrimitive._Rectangle.Draw(x + a, y + b, drawW, drawW, true);
                             }
                         }
                         break;
@@ -496,7 +519,7 @@ namespace my
                 Glfw.PollEvents();
 
                 // Render Frame
-                if (cnt % 5 == 0)
+                if (cnt % frameRate == 0)
                 {
                     for (int i = 0; i < list.Count; i++)
                     {
@@ -593,6 +616,16 @@ namespace my
                 while (cellR + cellG + cellB < bgrR + bgrG + bgrB);
 
                 myPrimitive._Line.SetColor(0.25f, 0.25f, 0.25f, 1.0f);
+            }
+
+            // Sometimes use random color for the grid
+            if (myUtils.randomChance(rand, 1, 10))
+            {
+                float r = myUtils.randFloat(rand);
+                float g = myUtils.randFloat(rand);
+                float b = myUtils.randFloat(rand);
+
+                myPrimitive._Line.SetColor(r, g, b, 1.0f);
             }
 
             myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
