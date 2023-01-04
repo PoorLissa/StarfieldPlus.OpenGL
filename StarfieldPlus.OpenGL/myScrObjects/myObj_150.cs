@@ -16,7 +16,7 @@ namespace my
         private int x, y;
         private float A, R, G, B;
 
-        private bool alive = false, clear = false;
+        private bool alive = false;
         private int liveCnt = 0, lifeSpanCnt = 0;
 
         private static int N = 0, shape = 0;
@@ -27,7 +27,6 @@ namespace my
         public myObj_150()
         {
             alive = false;
-            clear = false;
 
             liveCnt = -1;
             lifeSpanCnt = 0;
@@ -38,7 +37,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
             initLocal();
@@ -96,6 +95,8 @@ drawMode = 0;
 
             x += startX - (x % step);
             y += startY - (y % step);
+
+            R = -1;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -168,25 +169,40 @@ drawMode = 0;
                 {
                     // Single solid color
                     case 0:
-                        myPrimitive._Rectangle.SetColor(0.35f, 0.35f, 0.35f, 1.0f);
+                        R = 0.35f;
+                        G = 0.35f;
+                        B = 0.35f;
+
+                        colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+
+                        myPrimitive._Rectangle.SetColor(R, G, B, 1);
                         myPrimitive._Rectangle.Draw(x + a, y + b, step - c, step - d, true);
 
-                        myPrimitive._Rectangle.SetColor(0.5f, 0.25f, 0.25f, 1.0f);
+                        myPrimitive._Rectangle.SetColor(0.5f, 0.25f, 0.25f, 1);
                         myPrimitive._Rectangle.Draw(x + a + 1, y + b, step - c - 1, step - d - 1, false);
                         break;
                 }
-
-                clear = false;
             }
             else
             {
-                if (!clear)
+                if (R > 0)
                 {
-                    myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                    if (R > bgrR && G > bgrG && B > bgrB)
+                    {
+                        myPrimitive._Rectangle.SetColor(R, G, B, 1);
+                        R -= 0.01f;
+                        G -= 0.01f;
+                        B -= 0.01f;
+                    }
+                    else
+                    {
+                        R = -1;
+                        myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                    }
+
                     myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
                 }
-
-                clear = true;
             }
             
             return;
@@ -254,7 +270,7 @@ drawMode = 0;
                 Glfw.PollEvents();
 
                 // Render Frame
-                if (cnt % 20 == 0)
+                if (cnt % 5 == 0)
                 {
                     for (int i = 0; i < list.Count; i++)
                     {
