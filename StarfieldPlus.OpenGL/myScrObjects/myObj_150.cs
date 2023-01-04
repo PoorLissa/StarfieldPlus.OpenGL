@@ -1,6 +1,5 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
 
 
@@ -13,28 +12,32 @@ namespace my
 {
     public class myObj_150 : myObject
     {
-        private int x, y;
+        private int x, y, ix, jy;
         private float R, G, B;
 
         private bool alive = false;
         private int liveCnt = 0, lifeSpanCnt = 0;
 
-        private static bool doUseRandBgr = false;
+        private static bool doUseRandBgr = false, doUseRandCellColor = false;
         private static int N = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0, frameRate = 5;
+        private static int stepsInWidth = 0;
         private static float bgrR = 0, bgrG = 0, bgrB = 0, borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
 
         static myTexRectangle tex = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_150()
+        public myObj_150(int i = 0, int j = 0)
         {
             alive = false;
 
             liveCnt = -1;
             lifeSpanCnt = 0;
 
-            R = G = B = -1;
+            x = i;
+            y = j;
+
+            generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -64,6 +67,7 @@ namespace my
             clearMode = rand.Next(2);                                               // The way dead cells behave
 
             doUseRandBgr = myUtils.randomBool(rand);                                // If true, the cells will be cleared with bgr color that is slightly randomly offset (where applicable)
+            doUseRandCellColor = myUtils.randomBool(rand);                          // The same, but for the main cell color
 
             if (drawMode == 3)
                 clearMode = rand.Next(5);
@@ -122,6 +126,8 @@ namespace my
             clearMode = 1;
     #endif
 #endif
+            // Optimization for getObj()
+            stepsInWidth = 2 + gl_Width / step;
 
             return;
         }
@@ -142,6 +148,7 @@ namespace my
                             $"clearMode = {clearMode}\n" +
                             $"lightMode = {lightMode}\n" +
                             $"doUseRandBgr = {doUseRandBgr}\n" +
+                            $"doUseRandCellColor = {doUseRandCellColor}\n" +
                             $"colorSteps: {colorSteps}\n" +
                             $"frameRate = {frameRate}\n" +
                             $"file: {colorPicker.GetFileName()}"
@@ -165,13 +172,10 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            ix = x / step + 1;
+            jy = y / step + 1;
 
-            x += startX - (x % step);
-            y += startY - (y % step);
-
-            R = -1;
+            R = G = B = -1;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -180,15 +184,12 @@ namespace my
         {
             if (liveCnt == -1)
             {
-                // 1st iteration: observe neighbours
+                // 1st iteration: count neighbours
                 liveCnt = alive ? -1 : 0;
-                int x = -1, y = -1;
 
-                getCoords(ref x, ref y);
-
-                for (int i = x - 1; i < x + 2; i++)
+                for (int i = ix - 1; i < ix + 2; i++)
                 {
-                    for (int j = y - 1; j < y + 2; j++)
+                    for (int j = jy - 1; j < jy + 2; j++)
                     {
                         var obj = getObj(i, j) as myObj_150;
 
@@ -201,7 +202,7 @@ namespace my
             }
             else
             {
-                // 2nd iteration: make life decision
+                // 2nd iteration: see if the cell stays alive
                 if (alive)
                 {
                     alive = false;
@@ -289,29 +290,41 @@ namespace my
                 }
             }
 
+            void setCellColor()
+            {
+                R = cellR;
+                G = cellG;
+                B = cellB;
+
+                // Slightly offset clearing color
+                if (doUseRandCellColor)
+                {
+                    R += myUtils.randFloat(rand) * 0.025f * myUtils.randomSign(rand);
+                    G += myUtils.randFloat(rand) * 0.025f * myUtils.randomSign(rand);
+                    B += myUtils.randFloat(rand) * 0.025f * myUtils.randomSign(rand);
+                }
+            }
+
             if (alive)
             {
                 switch (drawMode)
                 {
                     // Single solid color (predefined) -- border
                     case 0:
-                        R = cellR;
-                        G = cellG;
-                        B = cellB;
+                        setCellColor();
                         drawBorder(true);
                         break;
 
                     // Single solid color (predefined) -- full cell
                     case 1:
-                        R = cellR;
-                        G = cellG;
-                        B = cellB;
+                        setCellColor();
                         drawCell();
                         break;
 
                     // Solid color from the colorPicker
                     case 2:
                         colorPicker.getColor(x, y, ref R, ref G, ref B);
+                        setCellColor();
                         drawCell();
                         break;
 
@@ -460,16 +473,12 @@ namespace my
             {
                 for (int i = startX - step; i < step * w; i += step)
                 {
-                    var obj = new myObj_150();
-
-                    obj.x = i;
-                    obj.y = j;
-
-                    list.Add(obj);
+                    list.Add(new myObj_150(i, j));
                 }
             }
 
             // Set some of the objects to be alive
+            if (true)
             {
                 int Cnt = list.Count / 7;
                 Cnt = rand.Next(Cnt / 2) + Cnt;
@@ -496,6 +505,23 @@ namespace my
                     processInput(window);
                     Glfw.PollEvents();
                 }
+            }
+
+            if (false)
+            {
+                int[] arr = { 10, 5, 11, 5, 10, 6, 11, 6, 12, 5, 13, 5, 12, 6, 13, 6, 11, 4, 12, 7 };
+
+                //int[] arr = { 10, 5, 11, 5, 12, 5, 13, 5, 14, 5, 15, 5, 10, 6, 11, 6, 12, 6, 13, 6, 14, 6, 15, 6,   11, 4, 14, 7 };
+
+                for (int i = 0; i < arr.Length; i+=2)
+                {
+                    var obj = getObj(arr[i+0], arr[i+1]) as myObj_150;
+                    obj.alive = true;
+                    obj.Show();
+                }
+
+                Glfw.SwapBuffers(window);
+                frameRate = 1;
             }
 
             cnt = 123;
@@ -642,9 +668,10 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private myObject getObj(int x, int y)
+        // Get linear index of an object in the list and return this object
+        private myObject getObj(int i, int j)
         {
-            int index = y * (gl_Width / step + 2) + x;
+            int index = j * stepsInWidth + i;
 
             if (index >= 0 && index < list.Count)
             {
@@ -652,16 +679,6 @@ namespace my
             }
 
             return null;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        private void getCoords(ref int X, ref int Y)
-        {
-            X = x / step + 1;
-            Y = y / step + 1;
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

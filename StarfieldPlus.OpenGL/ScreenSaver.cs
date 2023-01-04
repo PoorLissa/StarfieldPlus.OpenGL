@@ -68,6 +68,7 @@ public class ScreenSaver
     // todo from the old StarfieldPlus:
     // - divide the screen in squares and swap them randomly
     // - gravity
+    // - gravity towards center, but the particles also bounce off the borders of the screen
     // - sort all the screen pixels
     // - moving stripes (from top to bottom, for example)
     // - gravity, where the color of a pixel is its mass
@@ -97,6 +98,7 @@ public class ScreenSaver
     // - like a starfield, but points moving line originates not from the center, but from a center-offset position -- should look like a vortex of sorts (see myObj_000_Star : myObj_000 : generateNew())
     // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving towards the point where pt2 has been at the moment of generation
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
+    // - get colors from image and slightly offset the colors. Then put color spots (grid or not) on the screen
 
     public void selectObject()
     {
