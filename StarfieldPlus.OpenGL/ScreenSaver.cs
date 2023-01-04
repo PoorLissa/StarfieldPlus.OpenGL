@@ -27,7 +27,7 @@ public class ScreenSaver
         myOGL.getDesktopResolution(ref my.myObject.gl_Width, ref my.myObject.gl_Height);
 
 #if DEBUG
-        bool isWindowed = true;
+        bool isWindowed = false;
         _mode = 1;
 
         if (isWindowed)

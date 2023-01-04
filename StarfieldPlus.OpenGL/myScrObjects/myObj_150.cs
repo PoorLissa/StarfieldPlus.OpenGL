@@ -19,8 +19,11 @@ namespace my
         private bool alive = false;
         private int liveCnt = 0, lifeSpanCnt = 0;
 
-        private static int N = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, cellOffset = 0;
+        private static int N = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0;
         private static float bgrR = 0, bgrG = 0, bgrB = 0, borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
+
+        static myTexRectangle tex = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_150()
@@ -49,23 +52,55 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            drawMode  = rand.Next(2);                           // Draw cells mode
-            lightMode = rand.Next(2);                           // Light vs Dark theme
-            clearMode = rand.Next(2);                           // The way dead cells behave
+            N = 0;
 
-            step = rand.Next(30) + 25;
+            // In case the colorPicker targets an image, drawMode could be 2
+            drawMode = colorPicker.getMode() < 2 ? rand.Next(3) : rand.Next(2);     // Draw cells mode
+            lightMode = rand.Next(2);                                               // Light (0) vs Dark (1) theme
+            clearMode = rand.Next(2);                                               // The way dead cells behave
+
+            if (drawMode == 2)
+                clearMode = rand.Next(5);
+
+            step = rand.Next(33) + 25;
             cellOffset = rand.Next(4);
 
-            // In case the colorPicker does not taget any image, exclude unsupported drawing mode (mode #3)
-            //drawMode = colorPicker.getMode() < 2 ? rand.Next(3) : rand.Next(2);
-
-            while (borderR  + borderG + borderB < 0.5f)
+            // Drawing offsets
             {
-                borderR = myUtils.randFloat(rand, 0.1f);
-                borderG = myUtils.randFloat(rand, 0.1f);
-                borderB = myUtils.randFloat(rand, 0.1f);
-            };
+                // These offsets give us a gap of 2 pixels on each side of the square;
+                // This works fine in case the rect is not adjusted for a missing BL angle (float fx = 2.0f * x / (Width) - 1.0f;)
+                a = 2 + cellOffset;
+                b = 3 + cellOffset;
+                c = 5 + cellOffset * 2;
+                d = 5 + cellOffset * 2;
+                drawW = step - c;
+            }
 
+            // Cell border color
+            switch (lightMode)
+            {
+                case 0:
+                    do
+                    {
+                        borderR = myUtils.randFloat(rand, 0.05f);
+                        borderG = myUtils.randFloat(rand, 0.05f);
+                        borderB = myUtils.randFloat(rand, 0.05f);
+                    }
+                    while (borderR + borderG + borderB > 0.5f);
+                    break;
+
+                case 1:
+                    do
+                    {
+                        borderR = myUtils.randFloat(rand, 0.05f);
+                        borderG = myUtils.randFloat(rand, 0.05f);
+                        borderB = myUtils.randFloat(rand, 0.05f);
+                    }
+                    while (borderR + borderG + borderB < 0.5f);
+                    break;
+            }
+
+            // Color changing steps
             if (myUtils.randomChance(rand, 1, 2))
             {
                 colorStepR = myUtils.randFloat(rand, 0.1f) * 0.1f;
@@ -78,9 +113,9 @@ namespace my
             }
 
 #if DEBUG
-#if true
-            //step = 60;
-            //drawMode = 0;
+    #if false
+            step = 60;
+            drawMode = 1;
             clearMode = 1;
     #endif
 #endif
@@ -96,11 +131,12 @@ namespace my
 
             string colorSteps = (colorStepR == colorStepG && colorStepR == colorStepB) ? "The same" : "Different";
 
-            string str = $"Obj = myObj_150\n\n" +
-                            $"N = {list.Count} of {N}\n" +
+            string str = $"Obj = myObj_150 -- Conway's Life\n\n" +
+                            $"N = {list.Count}\n" +
                             $"step = {step}\n" +
                             $"cellOffset = {cellOffset}\n" +
                             $"drawMode = {drawMode}\n" +
+                            $"clearMode = {clearMode}\n" +
                             $"lightMode = {lightMode}\n" +
                             $"colorSteps: {colorSteps}\n" +
                             $"file: {colorPicker.GetFileName()}"
@@ -113,7 +149,11 @@ namespace my
         // 
         protected override void setNextMode()
         {
+            var oldStep = step;
+
             initLocal();
+
+            step = oldStep;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -186,12 +226,34 @@ namespace my
 
         protected override void Show()
         {
-            // These offsets give us a gap of 2 pixels on each side of the square;
-            // This works fine in case the rect is not adjusted for a missing BL angle (float fx = 2.0f * x / (Width) - 1.0f;)
-            int a = 2 + cellOffset;
-            int b = 3 + cellOffset;
-            int c = 5 + cellOffset * 2;
-            int d = 5 + cellOffset * 2;
+            void drawCell()
+            {
+                int drawX = x + a;
+                int drawY = y + b;
+
+                // Draw the cell
+                myPrimitive._Rectangle.SetColor(R, G, B, 1);
+                myPrimitive._Rectangle.Draw(drawX, drawY, drawW, drawW, true);
+
+                // Draw cell's border
+                myPrimitive._Rectangle.SetColor(borderR, borderG, borderB, 1);
+                myPrimitive._Rectangle.Draw(drawX + 1, drawY, drawW - 1, drawW - 1, false);
+            }
+
+            void drawTex(float opacity, bool doErase)
+            {
+                int drawX = x + a;
+                int drawY = y + b;
+
+                if (doErase)
+                {
+                    myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                    myPrimitive._Rectangle.Draw(drawX, drawY, drawW + 1, drawW + 1, true);
+                }
+
+                tex.setOpacity(opacity);
+                tex.Draw(drawX, drawY, drawW, drawW, drawX, drawY, drawW, drawW);
+            }
 
             if (alive)
             {
@@ -202,21 +264,22 @@ namespace my
                         R = cellR;
                         G = cellG;
                         B = cellB;
+                        drawCell();
                         break;
 
-                    // Solid color from the background
+                    // Solid color from the colorPicker
                     case 1:
                         colorPicker.getColor(x, y, ref R, ref G, ref B);
+                        drawCell();
+                        break;
+
+                    case 2:
+                        R = cellR;
+                        G = cellG;
+                        B = cellB;
+                        drawTex(1.0f, false);
                         break;
                 }
-
-                // Draw the cell
-                myPrimitive._Rectangle.SetColor(R, G, B, 1);
-                myPrimitive._Rectangle.Draw(x + a, y + b, step - c, step - d, true);
-
-                // Draw cell's border
-                myPrimitive._Rectangle.SetColor(borderR, borderG, borderB, 1);
-                myPrimitive._Rectangle.Draw(x + a + 1, y + b, step - c - 1, step - d - 1, false);
             }
             else
             {
@@ -284,6 +347,44 @@ namespace my
                             myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
                         }
                         break;
+
+                    // Draw underlying image with low opacity (once) -- only for the tex modes
+                    case 2:
+                        if (R >= 0)
+                        {
+                            R = -1;
+                            drawTex(0.25f, true);
+                        }
+                        break;
+
+                    // Draw underlying image with gradually decreasing opacity -- only for the tex modes
+                    case 3:
+                    case 4:
+                        if (R >= 0)
+                        {
+                            if (R < 10)
+                            {
+                                // First erase iteration only
+                                R = 11;                         // Flag to enter this block only once
+                                G = 0.05f;                      // Opacity step
+                                B = 1.0f;                       // Opacity
+                            }
+
+                            B -= G;
+
+                            if (B > 0)
+                            {
+                                drawTex(B, true);
+                            }
+                            else
+                            {
+                                // The only difference between modes 3 and 4: the texture will be removed completely
+                                if (clearMode == 4)
+                                    drawTex(0, true);
+                                R = -1;
+                            }
+                        }
+                        break;
                 }
             }
             
@@ -347,6 +448,16 @@ namespace my
                 }
             }
 
+            cnt = 123;
+
+            while (!Glfw.WindowShouldClose(window) && cnt > 0)
+            {
+                processInput(window);
+                Glfw.PollEvents();
+                System.Threading.Thread.Sleep(10);
+                cnt--;
+            }
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -401,6 +512,12 @@ namespace my
         {
             myPrimitive.init_Line();
             myPrimitive.init_Rectangle();
+
+            if (drawMode == 2)
+            {
+                tex = new myTexRectangle(colorPicker.getImg());
+                tex.setAngle(0);
+            }
 
             return;
         }
