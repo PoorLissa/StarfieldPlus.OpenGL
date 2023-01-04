@@ -53,17 +53,16 @@ namespace my
         private void initLocal()
         {
             N = 0;
+            step = rand.Next(33) + 25;
+            cellOffset = rand.Next(4);
 
-            // In case the colorPicker targets an image, drawMode could be 2
-            drawMode = colorPicker.getMode() < 2 ? rand.Next(3) : rand.Next(2);     // Draw cells mode
+            // In case the colorPicker targets an image, drawMode could be 3
+            drawMode = colorPicker.getMode() < 2 ? rand.Next(4) : rand.Next(3);     // Draw cells mode
             lightMode = rand.Next(2);                                               // Light (0) vs Dark (1) theme
             clearMode = rand.Next(2);                                               // The way dead cells behave
 
-            if (drawMode == 2)
+            if (drawMode == 3)
                 clearMode = rand.Next(5);
-
-            step = rand.Next(33) + 25;
-            cellOffset = rand.Next(4);
 
             // Drawing offsets
             {
@@ -226,6 +225,18 @@ namespace my
 
         protected override void Show()
         {
+            void drawBorder(bool setColor)
+            {
+                int drawX = x + a;
+                int drawY = y + b;
+
+                // Draw cell's border
+                if (setColor)
+                    myPrimitive._Rectangle.SetColor(R, G, B, 1);
+
+                myPrimitive._Rectangle.Draw(drawX + 1, drawY, drawW - 1, drawW - 1, false);
+            }
+
             void drawCell()
             {
                 int drawX = x + a;
@@ -259,8 +270,16 @@ namespace my
             {
                 switch (drawMode)
                 {
-                    // Single solid color (predefined)
+                    // Single solid color (predefined) -- border
                     case 0:
+                        R = cellR;
+                        G = cellG;
+                        B = cellB;
+                        drawBorder(true);
+                        break;
+
+                    // Single solid color (predefined) -- full cell
+                    case 1:
                         R = cellR;
                         G = cellG;
                         B = cellB;
@@ -268,12 +287,13 @@ namespace my
                         break;
 
                     // Solid color from the colorPicker
-                    case 1:
+                    case 2:
                         colorPicker.getColor(x, y, ref R, ref G, ref B);
                         drawCell();
                         break;
 
-                    case 2:
+                    // Image texture
+                    case 3:
                         R = cellR;
                         G = cellG;
                         B = cellB;
@@ -285,13 +305,13 @@ namespace my
             {
                 switch (clearMode)
                 {
-                    // Just paint the cell (once) with a bgr color
+                    // Just clear the cell (once) with a background color
                     case 0:
                         if (R > 0)
                         {
                             R = -1;
                             myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
-                            myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
+                            myPrimitive._Rectangle.Draw(x, y + 1, step - 1, step - 1, true);
                         }
                         break;
 
@@ -344,7 +364,14 @@ namespace my
                                 }
                             }
 
-                            myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
+                            if (drawMode == 0)
+                            {
+                                drawBorder(false);
+                            }
+                            else
+                            {
+                                myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
+                            }
                         }
                         break;
 
@@ -513,7 +540,7 @@ namespace my
             myPrimitive.init_Line();
             myPrimitive.init_Rectangle();
 
-            if (drawMode == 2)
+            if (drawMode == 3)
             {
                 tex = new myTexRectangle(colorPicker.getImg());
                 tex.setAngle(0);
