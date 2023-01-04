@@ -14,14 +14,13 @@ namespace my
     public class myObj_150 : myObject
     {
         private int x, y;
-        private float A, R, G, B;
+        private float R, G, B;
 
         private bool alive = false;
         private int liveCnt = 0, lifeSpanCnt = 0;
 
-        private static int N = 0, shape = 0;
-        private static int step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0;
-        private static float bgrR = 0, bgrG = 0, bgrB = 0;
+        private static int N = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, cellOffset = 0;
+        private static float bgrR = 0, bgrG = 0, bgrB = 0, borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_150()
@@ -30,6 +29,8 @@ namespace my
 
             liveCnt = -1;
             lifeSpanCnt = 0;
+
+            R = G = B = -1;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -37,7 +38,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
             initLocal();
@@ -48,17 +49,41 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            N = (N == 0) ? 10 + rand.Next(10) : N;
-
-            lightMode = rand.Next(2);
+            drawMode  = rand.Next(2);                           // Draw cells mode
+            lightMode = rand.Next(2);                           // Light vs Dark theme
+            clearMode = rand.Next(2);                           // The way dead cells behave
 
             step = rand.Next(30) + 25;
+            cellOffset = rand.Next(4);
 
             // In case the colorPicker does not taget any image, exclude unsupported drawing mode (mode #3)
-            drawMode = colorPicker.getMode() < 2 ? rand.Next(3) : rand.Next(2);
+            //drawMode = colorPicker.getMode() < 2 ? rand.Next(3) : rand.Next(2);
 
-//step = 67;
-drawMode = 0;
+            while (borderR  + borderG + borderB < 0.5f)
+            {
+                borderR = myUtils.randFloat(rand, 0.1f);
+                borderG = myUtils.randFloat(rand, 0.1f);
+                borderB = myUtils.randFloat(rand, 0.1f);
+            };
+
+            if (myUtils.randomChance(rand, 1, 2))
+            {
+                colorStepR = myUtils.randFloat(rand, 0.1f) * 0.1f;
+                colorStepG = myUtils.randFloat(rand, 0.1f) * 0.1f;
+                colorStepB = myUtils.randFloat(rand, 0.1f) * 0.1f;
+            }
+            else
+            {
+                colorStepR = colorStepG = colorStepB = myUtils.randFloat(rand, 0.1f) * 0.1f;
+            }
+
+#if DEBUG
+#if true
+            //step = 60;
+            //drawMode = 0;
+            clearMode = 1;
+    #endif
+#endif
 
             return;
         }
@@ -69,11 +94,16 @@ drawMode = 0;
         {
             height = 800;
 
+            string colorSteps = (colorStepR == colorStepG && colorStepR == colorStepB) ? "The same" : "Different";
+
             string str = $"Obj = myObj_150\n\n" +
                             $"N = {list.Count} of {N}\n" +
-                            "" + 
-                            $"file: {colorPicker.GetFileName()}" +
-                            $""
+                            $"step = {step}\n" +
+                            $"cellOffset = {cellOffset}\n" +
+                            $"drawMode = {drawMode}\n" +
+                            $"lightMode = {lightMode}\n" +
+                            $"colorSteps: {colorSteps}\n" +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -158,50 +188,102 @@ drawMode = 0;
         {
             // These offsets give us a gap of 2 pixels on each side of the square;
             // This works fine in case the rect is not adjusted for a missing BL angle (float fx = 2.0f * x / (Width) - 1.0f;)
-            int a = 2;
-            int b = 3;
-            int c = 5;
-            int d = 5;
+            int a = 2 + cellOffset;
+            int b = 3 + cellOffset;
+            int c = 5 + cellOffset * 2;
+            int d = 5 + cellOffset * 2;
 
             if (alive)
             {
                 switch (drawMode)
                 {
-                    // Single solid color
+                    // Single solid color (predefined)
                     case 0:
-                        R = 0.35f;
-                        G = 0.35f;
-                        B = 0.35f;
+                        R = cellR;
+                        G = cellG;
+                        B = cellB;
+                        break;
 
+                    // Solid color from the background
+                    case 1:
                         colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-
-                        myPrimitive._Rectangle.SetColor(R, G, B, 1);
-                        myPrimitive._Rectangle.Draw(x + a, y + b, step - c, step - d, true);
-
-                        myPrimitive._Rectangle.SetColor(0.5f, 0.25f, 0.25f, 1);
-                        myPrimitive._Rectangle.Draw(x + a + 1, y + b, step - c - 1, step - d - 1, false);
                         break;
                 }
+
+                // Draw the cell
+                myPrimitive._Rectangle.SetColor(R, G, B, 1);
+                myPrimitive._Rectangle.Draw(x + a, y + b, step - c, step - d, true);
+
+                // Draw cell's border
+                myPrimitive._Rectangle.SetColor(borderR, borderG, borderB, 1);
+                myPrimitive._Rectangle.Draw(x + a + 1, y + b, step - c - 1, step - d - 1, false);
             }
             else
             {
-                if (R > 0)
+                switch (clearMode)
                 {
-                    if (R > bgrR && G > bgrG && B > bgrB)
-                    {
-                        myPrimitive._Rectangle.SetColor(R, G, B, 1);
-                        R -= 0.01f;
-                        G -= 0.01f;
-                        B -= 0.01f;
-                    }
-                    else
-                    {
-                        R = -1;
-                        myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
-                    }
+                    // Just paint the cell (once) with a bgr color
+                    case 0:
+                        if (R > 0)
+                        {
+                            R = -1;
+                            myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                            myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
+                        }
+                        break;
 
-                    myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
+                    // Gradually change cell's color until it blends with background
+                    case 1:
+                        if (R >= 0)
+                        {
+                            if (lightMode == 0)
+                            {
+                                if (R < bgrR)
+                                    R += colorStepR;
+
+                                if (G < bgrG)
+                                    G += colorStepG;
+
+                                if (B < bgrB)
+                                    B += colorStepB;
+
+                                // While any RGB component is darker than the bgr, draw the cell
+                                if (R < bgrR || G < bgrG || B < bgrB)
+                                {
+                                    myPrimitive._Rectangle.SetColor(R, G, B, 1);
+                                }
+                                else
+                                {
+                                    R = -1;
+                                    myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                                }
+                            }
+                            else
+                            {
+                                if (R > bgrR)
+                                    R -= colorStepR;
+
+                                if (G > bgrG)
+                                    G -= colorStepG;
+
+                                if (B > bgrB)
+                                    B -= colorStepB;
+
+                                // While any RGB component is lighter than the bgr, draw the cell
+                                if (R > bgrR || G > bgrG || B > bgrB)
+                                {
+                                    myPrimitive._Rectangle.SetColor(R, G, B, 1);
+                                }
+                                else
+                                {
+                                    R = -1;
+                                    myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
+                                }
+                            }
+
+                            myPrimitive._Rectangle.Draw(x + a, y + b, step - c + 1, step - d + 1, true);
+                        }
+                        break;
                 }
             }
             
@@ -212,7 +294,7 @@ drawMode = 0;
 
         protected override void Process(Window window)
         {
-            int t = 500, Cnt = 0, cnt = 0;
+            int t = 500, cnt = 0;
             int w = 1 + gl_Width  / step;
             int h = 1 + gl_Height / step;
 
@@ -237,25 +319,31 @@ drawMode = 0;
             }
 
             // Set some of the objects to be alive
-            Cnt = list.Count / 7;
-            Cnt = rand.Next(Cnt / 2) + Cnt;
-
-            for (int i = 0; i < Cnt; i++)
             {
-                int index = rand.Next(list.Count);
+                int Cnt = list.Count / 7;
+                Cnt = rand.Next(Cnt / 2) + Cnt;
 
-                var obj = list[index] as myObj_150;
-
-                if (!obj.alive)
+                for (int i = 0; i < Cnt; i++)
                 {
-                    obj.alive = true;
-                    obj.Show();
-                }
+                    if (Glfw.WindowShouldClose(window))
+                        break;
 
-                if (i % 3 == 0)
-                {
-                    Glfw.SwapBuffers(window);
-                    System.Threading.Thread.Sleep(3);
+                    var obj = list[rand.Next(list.Count)] as myObj_150;
+
+                    if (!obj.alive)
+                    {
+                        obj.alive = true;
+                        obj.Show();
+                    }
+
+                    if (i % 3 == 0)
+                    {
+                        Glfw.SwapBuffers(window);
+                        System.Threading.Thread.Sleep(3);
+                    }
+
+                    processInput(window);
+                    Glfw.PollEvents();
                 }
             }
 
@@ -288,20 +376,16 @@ drawMode = 0;
                 }
 
                 // Add some new random cells
-                if (false && cnt > 101)
+                if (cnt > 500)
                 {
                     cnt = 0;
 
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < rand.Next(100); i++)
                     {
-                        int index = rand.Next(list.Count);
-
-                        var obj = list[index] as myObj_150;
+                        var obj = list[rand.Next(list.Count)] as myObj_150;
 
                         if (!obj.alive)
-                        {
                             obj.alive = true;
-                        }
                     }
                 }
 
@@ -317,13 +401,14 @@ drawMode = 0;
         {
             myPrimitive.init_Line();
             myPrimitive.init_Rectangle();
-            base.initShapes(shape, N, 0);
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Draw the grid and initilize all the static colors;
+        // Normally, should be called only once
         private void drawGrid()
         {
             startX = (gl_Width  % step) / 2;
@@ -331,17 +416,37 @@ drawMode = 0;
 
             if (lightMode == 0)
             {
-                bgrR = 1 - myUtils.randFloat(rand) * 0.1f;
-                bgrG = 1 - myUtils.randFloat(rand) * 0.1f;
-                bgrB = 1 - myUtils.randFloat(rand) * 0.1f;
+                float lightFactor = myUtils.randFloat(rand) * 0.33f;
 
-                myPrimitive._Line.SetColor(0.25f, 0.25f, 0.25f, 1.0f);
+                bgrR = 1 - myUtils.randFloat(rand) * lightFactor;
+                bgrG = 1 - myUtils.randFloat(rand) * lightFactor;
+                bgrB = 1 - myUtils.randFloat(rand) * lightFactor;
+
+                do
+                {
+                    cellR = myUtils.randFloat(rand);
+                    cellG = myUtils.randFloat(rand);
+                    cellB = myUtils.randFloat(rand);
+                }
+                while (cellR + cellG + cellB > bgrR + bgrG + bgrB);
+
+                myPrimitive._Line.SetColor(0.75f, 0.75f, 0.75f, 1.0f);
             }
             else
             {
-                bgrR = myUtils.randFloat(rand) * 0.1f;
-                bgrG = myUtils.randFloat(rand) * 0.1f;
-                bgrB = myUtils.randFloat(rand) * 0.1f;
+                float darkFactor = myUtils.randFloat(rand) * 0.33f;
+
+                bgrR = myUtils.randFloat(rand) * darkFactor;
+                bgrG = myUtils.randFloat(rand) * darkFactor;
+                bgrB = myUtils.randFloat(rand) * darkFactor;
+
+                do
+                {
+                    cellR = myUtils.randFloat(rand);
+                    cellG = myUtils.randFloat(rand);
+                    cellB = myUtils.randFloat(rand);
+                }
+                while (cellR + cellG + cellB < bgrR + bgrG + bgrB);
 
                 myPrimitive._Line.SetColor(0.25f, 0.25f, 0.25f, 1.0f);
             }
