@@ -478,51 +478,7 @@ namespace my
             }
 
             // Set some of the objects to be alive
-            if (true)
-            {
-                int Cnt = list.Count / 7;
-                Cnt = rand.Next(Cnt / 2) + Cnt;
-
-                for (int i = 0; i < Cnt; i++)
-                {
-                    if (Glfw.WindowShouldClose(window))
-                        break;
-
-                    var obj = list[rand.Next(list.Count)] as myObj_150;
-
-                    if (!obj.alive)
-                    {
-                        obj.alive = true;
-                        obj.Show();
-                    }
-
-                    if (i % 3 == 0)
-                    {
-                        Glfw.SwapBuffers(window);
-                        System.Threading.Thread.Sleep(3);
-                    }
-
-                    processInput(window);
-                    Glfw.PollEvents();
-                }
-            }
-
-            if (false)
-            {
-                int[] arr = { 10, 5, 11, 5, 10, 6, 11, 6, 12, 5, 13, 5, 12, 6, 13, 6, 11, 4, 12, 7 };
-
-                //int[] arr = { 10, 5, 11, 5, 12, 5, 13, 5, 14, 5, 15, 5, 10, 6, 11, 6, 12, 6, 13, 6, 14, 6, 15, 6,   11, 4, 14, 7 };
-
-                for (int i = 0; i < arr.Length; i+=2)
-                {
-                    var obj = getObj(arr[i+0], arr[i+1]) as myObj_150;
-                    obj.alive = true;
-                    obj.Show();
-                }
-
-                Glfw.SwapBuffers(window);
-                frameRate = 1;
-            }
+            populate(window);
 
             cnt = 123;
 
@@ -679,6 +635,328 @@ namespace my
             }
 
             return null;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void populate(Window window)
+        {
+            myObj_150 obj = null;
+
+            int W = gl_Width  / step;
+            int H = gl_Height / step;
+
+            int mode = rand.Next(8);
+
+            switch (mode)
+            {
+                // Fille the field with random cells
+                case 0:
+                    {
+                        int Cnt = list.Count / 7;
+                        Cnt = rand.Next(Cnt / 2) + Cnt;
+
+                        for (int i = 0; i < Cnt; i++)
+                        {
+                            if (Glfw.WindowShouldClose(window))
+                                break;
+
+                            obj = list[rand.Next(list.Count)] as myObj_150;
+
+                            if (!obj.alive)
+                            {
+                                obj.alive = true;
+                                obj.Show();
+                            }
+
+                            if (i % 3 == 0)
+                            {
+                                Glfw.SwapBuffers(window);
+                                System.Threading.Thread.Sleep(3);
+                            }
+
+                            processInput(window);
+                            Glfw.PollEvents();
+                        }
+                    }
+                    break;
+
+                // Fill a random rectangle with random cells
+                case 1:
+                    {
+                        int xx = 3 + rand.Next(W / 2);
+                        int yy = 3 + rand.Next(H / 2);
+                        int ww = 3 + rand.Next(W / 2);
+                        int hh = 3 + rand.Next(H / 2);
+
+                        int Cnt = ww * hh / 3;
+
+                        for (int i = 0; i < Cnt; i++)
+                        {
+                            if (Glfw.WindowShouldClose(window))
+                                break;
+
+                            obj = getObj(xx + rand.Next(ww), yy + rand.Next(hh)) as myObj_150;
+
+                            if (obj != null)
+                            {
+                                obj.alive = true;
+                                obj.Show();
+
+                                Glfw.SwapBuffers(window);
+                                System.Threading.Thread.Sleep(3);
+                            }
+
+                            processInput(window);
+                            Glfw.PollEvents();
+                        }
+                    }
+                    break;
+
+                // Fill the field with squares
+                case 2:
+                    {
+                        int stepx = 3 + rand.Next(7);
+                        int stepy = 3 + rand.Next(5);
+                        int offsetMode = rand.Next(3);
+
+                        for (int j = 1; j < H; j += stepy)
+                        {
+                            int i = 0;
+
+                            switch (offsetMode)
+                            {
+                                case 0: i = 1; break;
+                                case 1: i = j % 2 == 0 ? 1 : 2; break;
+                                case 2: i = rand.Next(5); break;
+                            }
+
+                            for (; i < W; i += stepx)
+                            {
+                                if (Glfw.WindowShouldClose(window))
+                                    return;
+
+                                // Make a square
+                                for (int k = i; k < i + 2; k++)
+                                {
+                                    for (int n = j; n < j + 2; n++)
+                                    {
+                                        obj = getObj(k, n) as myObj_150;
+
+                                        if (obj != null)
+                                        {
+                                            obj.alive = true;
+                                            obj.Show();
+                                        }
+                                    }
+                                }
+
+                                Glfw.SwapBuffers(window);
+                                Glfw.PollEvents();
+                                processInput(window);
+                            }
+                        }
+                    }
+                    break;
+
+                // Fill the field with solid horizontal lines
+                case 3:
+                    {
+                        int stepy = rand.Next(6);
+
+                        for (int j = 1; j < H; j += stepy > 0 ? stepy : rand.Next(5) + 1)
+                        {
+                            for (int i = 1; i < W; i++)
+                            {
+                                obj = getObj(i, j) as myObj_150;
+
+                                if (obj != null)
+                                {
+                                    obj.alive = true;
+                                    obj.Show();
+                                }
+                            }
+
+                            Glfw.SwapBuffers(window);
+                        }
+                    }
+                    break;
+
+                // Fill the field with breaking horizontal lines
+                case 4:
+                    {
+                        int stepy = rand.Next(6);
+
+                        for (int j = 1; j < H; j += stepy > 0 ? stepy : rand.Next(5) + 1)
+                        {
+                            for (int i = 1; i < W; i++)
+                            {
+                                for (int k = i; k < rand.Next(13) + i; i++, k++)
+                                {
+                                    if (k == W)
+                                        break;
+
+                                    obj = getObj(k, j) as myObj_150;
+
+                                    if (obj != null)
+                                    {
+                                        obj.alive = true;
+                                        obj.Show();
+                                    }
+                                }
+
+                                Glfw.SwapBuffers(window);
+                            }
+                        }
+                    }
+                    break;
+
+                // Draw random rectangle
+                case 5:
+                    {
+                        int xx = 3 + rand.Next(W / 2);
+                        int yy = 3 + rand.Next(H / 2);
+                        int ww = 3 + rand.Next(W / 2);
+                        int hh = 3 + rand.Next(H / 2);
+
+                        for (int i = 0; i < ww; i++)
+                        {
+                            obj = getObj(xx + i, yy) as myObj_150;
+
+                            if (obj != null)
+                            {
+                                obj.alive = true;
+                                obj.Show();
+                            }
+
+                            obj = getObj(xx + i, yy + hh) as myObj_150;
+
+                            if (obj != null)
+                            {
+                                obj.alive = true;
+                                obj.Show();
+                            }
+
+                            Glfw.SwapBuffers(window);
+                        }
+
+                        System.Threading.Thread.Sleep(333);
+
+                        for (int j = 0; j < hh; j++)
+                        {
+                            obj = getObj(xx, yy + j) as myObj_150;
+
+                            if (obj != null)
+                            {
+                                obj.alive = true;
+                                obj.Show();
+                            }
+
+                            obj = getObj(xx + ww - 1, yy + j) as myObj_150;
+
+                            if (obj != null)
+                            {
+                                obj.alive = true;
+                                obj.Show();
+                            }
+
+                            Glfw.SwapBuffers(window);
+                        }
+                    }
+                    break;
+
+                // Draw 3-dot lines (to become crosses)
+                case 6:
+                    {
+                        bool isRnd = myUtils.randomBool(rand);
+
+                        int stepx = 4 + rand.Next(3);
+                        int stepy = 4 + rand.Next(3);
+
+                        void drawH(int i, int j)
+                        {
+                            for (int k = 0; k < 3; k++)
+                            {
+                                obj = getObj(k + i, j) as myObj_150;
+
+                                if (obj != null)
+                                {
+                                    obj.alive = true;
+                                    obj.Show();
+                                }
+                            }
+                        }
+
+                        void drawV(int i, int j)
+                        {
+                            for (int k = 0; k < 3; k++)
+                            {
+                                obj = getObj(i + 1, k + j - 1) as myObj_150;
+
+                                if (obj != null)
+                                {
+                                    obj.alive = true;
+                                    obj.Show();
+                                }
+                            }
+                        }
+
+                        for (int j = stepy/2; j < H; j += stepy)
+                        {
+                            for (int i = stepx/2; i < W; i += stepx)
+                            {
+                                // Draw cross
+                                if (isRnd)
+                                {
+                                    if (myUtils.randomBool(rand))
+                                        drawH(i, j);
+                                    else
+                                        drawV(i, j);
+                                }
+                                else
+                                {
+                                    drawH(i, j);
+                                }
+
+                                Glfw.SwapBuffers(window);
+                            }
+                        }
+                    }
+                    break;
+
+                // Draw single horizontal line
+                case 7:
+                    {
+                        int off = 3 + rand.Next(W/3);
+
+                        for (int i = off; i < W - off; i++)
+                        {
+                            obj = getObj(i, H/2) as myObj_150;
+                            obj.alive = true;
+                            obj.Show();
+                            Glfw.SwapBuffers(window);
+                        }
+                    }
+                    break;
+
+                case 999:
+                    {
+                        int[] arr = { 10, 5, 11, 5, 10, 6, 11, 6, 12, 5, 13, 5, 12, 6, 13, 6, 11, 4, 12, 7 };
+
+                        //int[] arr = { 10, 5, 11, 5, 12, 5, 13, 5, 14, 5, 15, 5, 10, 6, 11, 6, 12, 6, 13, 6, 14, 6, 15, 6,   11, 4, 14, 7 };
+
+                        for (int i = 0; i < arr.Length; i += 2)
+                        {
+                            obj = getObj(arr[i + 0], arr[i + 1]) as myObj_150;
+                            obj.alive = true;
+                            obj.Show();
+                        }
+
+                        Glfw.SwapBuffers(window);
+                        frameRate = 1;
+                    }
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
