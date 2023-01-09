@@ -643,7 +643,7 @@ namespace my
         {
             myObj_150 obj = null;
 
-            int mode = rand.Next(8);
+            int mode = rand.Next(9);
 
             switch (mode)
             {
@@ -932,6 +932,26 @@ namespace my
                             obj.alive = true;
                             obj.Show();
                             Glfw.SwapBuffers(window);
+                        }
+                    }
+                    break;
+
+                case 8:
+                    {
+                        int i = 0;
+
+                        for (int j = 0; j < H; j++)
+                        {
+                            obj = getObj(i, j) as myObj_150;
+                            obj.alive = true;
+                            obj.Show();
+
+                            obj = getObj(W - i - 1, j) as myObj_150;
+                            obj.alive = true;
+                            obj.Show();
+
+                            Glfw.SwapBuffers(window);
+                            i++;
                         }
                     }
                     break;
