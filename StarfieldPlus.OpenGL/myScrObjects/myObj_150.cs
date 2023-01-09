@@ -19,8 +19,8 @@ namespace my
         private int liveCnt = 0, lifeSpanCnt = 0;
 
         private static bool doUseRandBgr = false, doUseRandCellColor = false;
-        private static int N = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0, frameRate = 5;
-        private static int stepsInWidth = 0;
+        private static int N = 0, W = 0, H = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0;
+        private static int cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0, frameRate = 5;
         private static float bgrR = 0, bgrG = 0, bgrB = 0, borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
 
         static myTexRectangle tex = null;
@@ -58,6 +58,7 @@ namespace my
         {
             N = 0;
             step = rand.Next(33) + 25;
+
             cellOffset = rand.Next(4);
             frameRate = 1 + (myUtils.randomChance(rand, 2, 3) ? rand.Next(13) : rand.Next(66));
 
@@ -126,8 +127,6 @@ namespace my
             clearMode = 1;
     #endif
 #endif
-            // Optimization for getObj()
-            stepsInWidth = 2 + gl_Width / step;
 
             return;
         }
@@ -172,8 +171,8 @@ namespace my
 
         protected override void generateNew()
         {
-            ix = x / step + 1;
-            jy = y / step + 1;
+            ix = (x - startX) / step;
+            jy = (y - startY) / step;
 
             R = G = B = -1;
         }
@@ -459,23 +458,13 @@ namespace my
         protected override void Process(Window window)
         {
             int t = 500, cnt = 0;
-            int w = 1 + gl_Width  / step;
-            int h = 1 + gl_Height / step;
 
             initShapes();
 
             glDrawBuffer(GL_FRONT_AND_BACK);
 
+            // Draw grid and create an object for every cell out there
             drawGrid();
-
-            // Create an object for every cell out there
-            for (int j = startY - step; j < step * h; j += step)
-            {
-                for (int i = startX - step; i < step * w; i += step)
-                {
-                    list.Add(new myObj_150(i, j));
-                }
-            }
 
             // Set some of the objects to be alive
             populate(window);
@@ -560,8 +549,33 @@ namespace my
         // Normally, should be called only once
         private void drawGrid()
         {
+            W = gl_Width  / step;
+            H = gl_Height / step;
+
             startX = (gl_Width  % step) / 2;
             startY = (gl_Height % step) / 2;
+
+            if (startX > 0)
+            {
+                startX -= step;
+                W += 2;
+            }
+
+            if (startY > 0)
+            {
+                startY -= step;
+                H += 2;
+            }
+
+            // Create an object for every cell out there
+            for (int j = 0; j < step * H; j += step)
+            {
+                for (int i = 0; i < step * W; i += step)
+                {
+                    var obj = new myObj_150(startX + i, startY + j);
+                    list.Add(obj);
+                }
+            }
 
             if (lightMode == 0)
             {
@@ -613,10 +627,10 @@ namespace my
             myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, 1.0f);
             myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
 
-            for (int i = startX; i < gl_Width; i += step)
+            for (int i = startX; i <= gl_Width; i += step)
                 myPrimitive._Line.Draw(i, 0, i, gl_Height);
 
-            for (int i = startY; i < gl_Height; i += step)
+            for (int i = startY; i <= gl_Height; i += step)
                 myPrimitive._Line.Draw(0, i, gl_Width, i);
 
             return;
@@ -624,33 +638,16 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // Get linear index of an object in the list and return this object
-        private myObject getObj(int i, int j)
-        {
-            int index = j * stepsInWidth + i;
-
-            if (index >= 0 && index < list.Count)
-            {
-                return list[index];
-            }
-
-            return null;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
+        // Set a number of cells to be alive
         private void populate(Window window)
         {
             myObj_150 obj = null;
-
-            int W = gl_Width  / step;
-            int H = gl_Height / step;
 
             int mode = rand.Next(8);
 
             switch (mode)
             {
-                // Fille the field with random cells
+                // Fill the field with random cells
                 case 0:
                     {
                         int Cnt = list.Count / 7;
@@ -957,6 +954,24 @@ namespace my
                     }
                     break;
             }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Get linear index of an object in the list and return this object
+        private myObject getObj(int i, int j)
+        {
+            if (i < 0 || j < 0 || i >= W || j >= H)
+                return null;
+
+            int index = j * W + i;
+
+            if (index >= 0 && index < list.Count)
+            {
+                return list[index];
+            }
+
+            return null;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
