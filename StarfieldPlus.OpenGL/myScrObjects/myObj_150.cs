@@ -61,7 +61,7 @@ namespace my
             step = rand.Next(33) + 25;
 
             cellOffset = rand.Next(4);
-            frameRate = 1 + (myUtils.randomChance(rand, 2, 3) ? rand.Next(13) : rand.Next(66));
+            frameRate = 1 + (myUtils.randomChance(rand, 2, 3) ? rand.Next(11) : rand.Next(33));
 
             // In case the colorPicker targets an image, drawMode could be 3
             drawMode = colorPicker.getMode() < 2 ? rand.Next(4) : rand.Next(3);     // Draw cells mode
@@ -531,19 +531,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void Put(int x, int y)
-        {
-            var obj = getObj(x, y) as myObj_150;
-
-            if (obj != null)
-            {
-                obj.alive = true;
-                obj.Show();
-            }
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
         private void initShapes()
         {
             myPrimitive.init_Line();
@@ -658,7 +645,7 @@ namespace my
         {
             myObj_150 obj = null;
 
-            int mode = rand.Next(10);
+            int mode = rand.Next(16);
 
             switch (mode)
             {
@@ -778,7 +765,7 @@ namespace my
 
                         for (int j = 1; j < H; j += stepy > 0 ? stepy : rand.Next(5) + 1)
                         {
-                            for (int i = 1; i < W; i++)
+                            for (int i = 0; i < W; i++)
                             {
                                 obj = getObj(i, j) as myObj_150;
 
@@ -1015,20 +1002,131 @@ namespace my
                     }
                     break;
 
-                case 999:
+                // Draw random short lines
+                case 10:
                     {
-                        int[] arr = { 10, 5, 11, 5, 10, 6, 11, 6, 12, 5, 13, 5, 12, 6, 13, 6, 11, 4, 12, 7 };
-                        //int[] arr = { 10, 5, 11, 5, 12, 5, 13, 5, 14, 5, 15, 5, 10, 6, 11, 6, 12, 6, 13, 6, 14, 6, 15, 6,   11, 4, 14, 7 };
-
-                        for (int i = 0; i < arr.Length; i += 2)
+                        void drawLine(int x, int y, int size)
                         {
-                            obj = getObj(arr[i + 0], arr[i + 1]) as myObj_150;
-                            obj.alive = true;
-                            obj.Show();
+                            for (int i = 0; i < size; i++)
+                                Put(x + i, y);
                         }
 
-                        Glfw.SwapBuffers(window);
-                        frameRate = 1;
+                        for (int i = 0; i < rand.Next(50) + 3; i++)
+                        {
+                            drawLine(rand.Next(W), rand.Next(H), rand.Next(9) + 2);
+                            Glfw.SwapBuffers(window);
+                        }
+
+                        System.Threading.Thread.Sleep(500);
+                    }
+                    break;
+
+                // Draw random doughnuts
+                case 11:
+                    {
+                        void drawDoughnut(int x, int y, int size)
+                        {
+                            for (int i = 0; i < size; i++)
+                            {
+                                Put(x + i, y);
+                                Put(x + i, y + size + 1);
+                            }
+
+                            for (int i = 0; i < size; i++)
+                            {
+                                Put(x + size, y + i + 1);
+                                Put(x - 1, y + i + 1);
+                            }
+
+                            Glfw.SwapBuffers(window);
+                        }
+
+                        for (int i = 0; i < rand.Next(50) + 5; i++)
+                        {
+                            drawDoughnut(rand.Next(W), rand.Next(H), rand.Next(9) + 3);
+                        }
+
+                        System.Threading.Thread.Sleep(500);
+                    }
+                    break;
+
+                // Draw R-Pentomino
+                case 12:
+                    {
+                        void drawRPentomino(int x, int y)
+                        {
+                            int[] arr = { 0, 1, 1, 0, 1, 1, 1, 2, 2, 0 };
+
+                            for (int i = 0; i < arr.Length; i += 2)
+                            {
+                                Put(x + arr[i], y + arr[i+1]);
+                            }
+
+                            Glfw.SwapBuffers(window);
+                        }
+
+                        drawRPentomino(2*W/3, H/2);
+                        System.Threading.Thread.Sleep(500);
+                    }
+                    break;
+
+                // Draw Diehard
+                case 13:
+                    {
+                        void drawDieHard(int x, int y)
+                        {
+                            int[] arr = { 0, 3, 1, 3, 1, 4, 5, 4, 6, 4, 7, 4, 6, 2 };
+
+                            for (int i = 0; i < arr.Length; i += 2)
+                                Put(x + arr[i], y + arr[i + 1]);
+
+                            Glfw.SwapBuffers(window);
+                        }
+
+                        for (int i = 0; i < rand.Next(11) + 1; i++)
+                            drawDieHard(rand.Next(W), rand.Next(H));
+
+                        System.Threading.Thread.Sleep(500);
+                    }
+                    break;
+
+                // Draw Acorn
+                case 14:
+                    {
+                        void drawAcorn(int x, int y)
+                        {
+                            int[] arr = { 0, 2, 1, 0, 1, 2, 3, 1, 4, 2, 5, 2, 6, 2 };
+
+                            for (int i = 0; i < arr.Length; i += 2)
+                                Put(x + arr[i], y + arr[i + 1]);
+
+                            Glfw.SwapBuffers(window);
+                        }
+
+                        drawAcorn(W/2, H/2);
+                        System.Threading.Thread.Sleep(500);
+                    }
+                    break;
+
+                // Draw Gosper Glider Gun
+                case 15:
+                    {
+                        void drawGosperGliderGun(int x, int y)
+                        {
+                            int[] arr = { 1, 4, 2, 4, 1, 5, 2, 5, 11, 4, 11, 5, 11, 6, 12, 3, 12, 7, 13, 2, 13, 8, 14, 2,
+                                          14, 8, 15, 5, 16, 3, 16, 7, 17, 4, 17, 5, 17, 6, 18, 5,
+                                          21, 2, 21, 3, 21, 4, 22, 2, 22, 3, 22, 4, 23, 1, 23, 5, 25, 1, 25, 0, 25, 5, 25, 6,
+                                          35, 2, 35, 3, 36, 2, 36, 3
+                            };
+
+                            for (int i = 0; i < arr.Length; i += 2)
+                                Put(x + arr[i], y + arr[i + 1]);
+
+                            Glfw.SwapBuffers(window);
+                        }
+
+                        drawGosperGliderGun(W/5, H/4);
+                        System.Threading.Thread.Sleep(500);
                     }
                     break;
             }
@@ -1050,6 +1148,20 @@ namespace my
             }
 
             return null;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Make the cell alive and draw it
+        private void Put(int x, int y)
+        {
+            var obj = getObj(x, y) as myObj_150;
+
+            if (obj != null)
+            {
+                obj.alive = true;
+                obj.Show();
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
