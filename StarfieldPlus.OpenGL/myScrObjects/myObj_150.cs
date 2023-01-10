@@ -19,7 +19,7 @@ namespace my
         private int liveCnt = 0, lifeSpanCnt = 0;
 
         private static bool doUseRandBgr = false, doUseRandCellColor = false;
-        private static int N = 0, W = 0, H = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0;
+        private static int N = 0, W = 0, H = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, populateMode = 0;
         private static int cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0, frameRate = 5;
         private static float bgrR = 0, bgrG = 0, bgrB = 0, borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
         private static string extraInfo = "";
@@ -58,7 +58,15 @@ namespace my
         private void initLocal()
         {
             N = 0;
-            step = rand.Next(33) + 25;
+
+            if (myUtils.randomChance(rand, 4, 5))
+            {
+                step = rand.Next(33) + 25;
+            }
+            else
+            {
+                step = rand.Next(23) + 10;
+            }
 
             cellOffset = rand.Next(4);
             frameRate = 1 + (myUtils.randomChance(rand, 2, 3) ? rand.Next(11) : rand.Next(33));
@@ -147,6 +155,7 @@ namespace my
                             $"drawMode = {drawMode}\n" +
                             $"clearMode = {clearMode}\n" +
                             $"lightMode = {lightMode}\n" +
+                            $"populateMode = {populateMode}\n" +
                             $"doUseRandBgr = {doUseRandBgr}\n" +
                             $"doUseRandCellColor = {doUseRandCellColor}\n" +
                             $"colorSteps: {colorSteps}\n" +
@@ -459,7 +468,7 @@ namespace my
 
         protected override void Process(Window window)
         {
-            int t = 500, cnt = 0;
+            int cnt = 0;
 
             initShapes();
 
@@ -469,7 +478,7 @@ namespace my
             drawGrid();
 
             // Set some of the objects to be alive
-            populate(window);
+            populate(window, ref populateMode);
 
             cnt = 123;
 
@@ -641,13 +650,13 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Set a number of cells to be alive
-        private void populate(Window window)
+        private void populate(Window window, ref int populateMode)
         {
             myObj_150 obj = null;
 
-            int mode = rand.Next(16);
+            populateMode = rand.Next(17);
 
-            switch (mode)
+            switch (populateMode)
             {
                 // Fill the field with random cells
                 case 0:
@@ -1021,7 +1030,7 @@ namespace my
                     }
                     break;
 
-                // Draw random doughnuts
+                // Draw random doughnuts of random size
                 case 11:
                     {
                         void drawDoughnut(int x, int y, int size)
@@ -1042,16 +1051,43 @@ namespace my
                         }
 
                         for (int i = 0; i < rand.Next(50) + 5; i++)
-                        {
                             drawDoughnut(rand.Next(W), rand.Next(H), rand.Next(9) + 3);
+
+                        System.Threading.Thread.Sleep(500);
+                    }
+                    break;
+
+                // Draw random doughnuts of the same size
+                case 12:
+                    {
+                        void drawDoughnut(int x, int y, int size)
+                        {
+                            for (int i = 0; i < size; i++)
+                            {
+                                Put(x + i, y);
+                                Put(x + i, y + size + 1);
+                            }
+
+                            for (int i = 0; i < size; i++)
+                            {
+                                Put(x + size, y + i + 1);
+                                Put(x - 1, y + i + 1);
+                            }
+
+                            Glfw.SwapBuffers(window);
                         }
+
+                        int Size = rand.Next(5) + 1;
+
+                        for (int i = 0; i < rand.Next(35) + 15; i++)
+                            drawDoughnut(rand.Next(W), rand.Next(H), Size);
 
                         System.Threading.Thread.Sleep(500);
                     }
                     break;
 
                 // Draw R-Pentomino
-                case 12:
+                case 13:
                     {
                         void drawRPentomino(int x, int y)
                         {
@@ -1071,7 +1107,7 @@ namespace my
                     break;
 
                 // Draw Diehard
-                case 13:
+                case 14:
                     {
                         void drawDieHard(int x, int y)
                         {
@@ -1091,7 +1127,7 @@ namespace my
                     break;
 
                 // Draw Acorn
-                case 14:
+                case 15:
                     {
                         void drawAcorn(int x, int y)
                         {
@@ -1109,7 +1145,7 @@ namespace my
                     break;
 
                 // Draw Gosper Glider Gun
-                case 15:
+                case 16:
                     {
                         void drawGosperGliderGun(int x, int y)
                         {
