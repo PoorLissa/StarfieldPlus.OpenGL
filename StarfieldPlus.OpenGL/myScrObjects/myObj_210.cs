@@ -15,7 +15,7 @@ namespace my
 {
     public class myObj_210 : myObject
     {
-        private static bool doClearBuffer = false, doChangeBgrColor = false, randomDrad = false, isCenter = true;
+        private static bool doChangeBgrColor = false, randomDrad = false, isCenter = true;
         private static int x0, y0, shapeType = 0, moveType = 0, dimMode = 0, t = 25, N = 1, daBase = 0;
         private static float baseDt = 1.0f, dimAlpha = 0.025f;
 

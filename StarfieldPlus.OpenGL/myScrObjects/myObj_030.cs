@@ -19,7 +19,7 @@ namespace my
         private bool isSlow = false, isFalling = true;
 
         private static float dimAlpha = 0;
-        private static bool doClearBuffer = true, doFillShapes = false;
+        private static bool doFillShapes = false;
         private static int N = 1, shapeType = 0, rotationMode = 0, rotationSubMode = 0, connectionMode = 0, moveMode = 0;
 
         // ---------------------------------------------------------------------------------------------------------------

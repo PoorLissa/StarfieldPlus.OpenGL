@@ -15,7 +15,6 @@ namespace my
 {
     public class myObj_220 : myObject
     {
-        private static bool doClearBuffer = false;
         private static int N = 1;
         private static float baseDt = 1.0f;
 

@@ -20,7 +20,6 @@ namespace my
 
         protected static int drawMode = 0;
         private static int N = 0, staticStarsN = 0, shape = 0;
-        private static bool doFillShapes = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 

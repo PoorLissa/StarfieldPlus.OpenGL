@@ -22,6 +22,7 @@ namespace my
         private static int N = 0, W = 0, H = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0;
         private static int cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0, frameRate = 5;
         private static float bgrR = 0, bgrG = 0, bgrB = 0, borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
+        private static string extraInfo = "";
 
         static myTexRectangle tex = null;
 
@@ -150,6 +151,7 @@ namespace my
                             $"doUseRandCellColor = {doUseRandCellColor}\n" +
                             $"colorSteps: {colorSteps}\n" +
                             $"frameRate = {frameRate}\n" +
+                            $"extraInfo: {extraInfo}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -529,6 +531,19 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private void Put(int x, int y)
+        {
+            var obj = getObj(x, y) as myObj_150;
+
+            if (obj != null)
+            {
+                obj.alive = true;
+                obj.Show();
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         private void initShapes()
         {
             myPrimitive.init_Line();
@@ -643,7 +658,7 @@ namespace my
         {
             myObj_150 obj = null;
 
-            int mode = rand.Next(9);
+            int mode = rand.Next(10);
 
             switch (mode)
             {
@@ -936,8 +951,10 @@ namespace my
                     }
                     break;
 
+                // Draw criss-cross lines
                 case 8:
                     {
+                        bool bothWays = myUtils.randomBool(rand);
                         int i = 0;
 
                         for (int j = 0; j < H; j++)
@@ -950,8 +967,50 @@ namespace my
                             obj.alive = true;
                             obj.Show();
 
+                            if (bothWays)
+                            {
+                                obj = getObj(i, H - j - 1) as myObj_150;
+                                obj.alive = true;
+                                obj.Show();
+
+                                obj = getObj(W - i - 1, H - j - 1) as myObj_150;
+                                obj.alive = true;
+                                obj.Show();
+                            }
+
                             Glfw.SwapBuffers(window);
                             i++;
+                        }
+                    }
+                    break;
+
+                // Draw pulsars at random positions
+                case 9:
+                    {
+                        void drawPulsar(int x, int y)
+                        {
+                            int[] arr = { 4, 7, 5, 7, 6, 7, 7, 6, 7, 5, 7, 4, 4, 2, 5, 2, 6, 2, 2, 4, 2, 5, 2, 6 };
+
+                            for (int i = 0; i < arr.Length; i += 2)
+                            {
+                                Put(x + arr[i], y + arr[i + 1]);
+                                Put(x + 8 + (8 - arr[i]), y + arr[i + 1]);
+                                Put(x + arr[i], y + 7 + (9 - arr[i + 1]));
+                                Put(x + 8 + (8 - arr[i]), y + 7 + (9 - arr[i + 1]));
+                            }
+
+                            Glfw.SwapBuffers(window);
+                        }
+
+                        int n = 1 + rand.Next(10);
+                        extraInfo = $"pulsars qty = {n}";
+
+                        for (int i = 0; i < n; i++)
+                        {
+                            int x = rand.Next(W);
+                            int y = rand.Next(H);
+
+                            drawPulsar(x, y);
                         }
                     }
                     break;
@@ -959,7 +1018,6 @@ namespace my
                 case 999:
                     {
                         int[] arr = { 10, 5, 11, 5, 10, 6, 11, 6, 12, 5, 13, 5, 12, 6, 13, 6, 11, 4, 12, 7 };
-
                         //int[] arr = { 10, 5, 11, 5, 12, 5, 13, 5, 14, 5, 15, 5, 10, 6, 11, 6, 12, 6, 13, 6, 14, 6, 15, 6,   11, 4, 14, 7 };
 
                         for (int i = 0; i < arr.Length; i += 2)

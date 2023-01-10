@@ -18,7 +18,7 @@ namespace my
 
         private static float dX = 0, dY = 0;
         private static int N = 0, shape = 0, rotationMode = 0, moveMode = 0, dxdyMode = 0, dxdyFactor = 1, daMode = 0;
-        private static bool doClearBuffer = true, doFillShapes = false;
+        private static bool doFillShapes = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 

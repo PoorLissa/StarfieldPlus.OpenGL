@@ -24,7 +24,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         private static int N = 1, pN = 1, borderOffset = 0;
-        private static bool doClearBuffer = false, doCleanOnce = false;
+        private static bool doCleanOnce = false;
         private static float dimAlpha = 0.01f, t = 0;
 
         private int Cnt;

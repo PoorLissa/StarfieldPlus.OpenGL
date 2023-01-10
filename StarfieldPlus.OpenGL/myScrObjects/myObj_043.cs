@@ -27,7 +27,7 @@ namespace my
 
         static int x0 = 0, y0 = 0, moveMode = -1, speedMode = -1, colorMode = -1, connectionMode = -1, t = -1, shape = 0;
         static bool generationAllowed = false, isRandomMove = false, isBorderScared = false, isFirstIteration = true, doUpdateConstants = true;
-        static bool doClearBuffer = false, doFillShapes = false, doUseOffCenterStart = false;
+        static bool doFillShapes = false, doUseOffCenterStart = false;
         static float time_global = 0, dtGlobal = 0, dtCommon = 0;
 
         static int si1 = 0, si2 = 0, moveModeCnt = 124;

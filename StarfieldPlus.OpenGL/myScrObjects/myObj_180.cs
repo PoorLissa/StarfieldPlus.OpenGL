@@ -13,7 +13,7 @@ namespace my
 {
     public class myObj_180 : myObject
     {
-        private static bool doClearBuffer = false, doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
+        private static bool doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,
                             doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true, doRandomizeCenter = false,
                             doUseTestFunc = false;

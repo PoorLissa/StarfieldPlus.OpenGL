@@ -19,7 +19,7 @@ namespace my
 
         private static int N = 0, shape = 0, moveMode = 0, growMode = 0, rotationMode = 0, renderDelayOld = -1;
         private static int globalCounter = 0, moveSetUp = 0, moveParam1 = 0, moveParam2 = 0, moveParam3 = 0, moveParam4 = 0, moveParam5 = 0;
-        private static bool doClearBuffer = false, doFillShapes = false;
+        private static bool doFillShapes = false;
         private static float dimAlpha = 0.0f, aFill = 0, bgrR = -1, bgrG = -1, bgrB = -1;
 
         // ---------------------------------------------------------------------------------------------------------------

@@ -20,7 +20,7 @@ namespace my
         private ParticleType type;
 
         private static int N = 0, shape = 0;
-        private static bool doClearBuffer = false, doFillShapes = true, doUseRandomMass = false;
+        private static bool doFillShapes = true, doUseRandomMass = false;
         private static float dimAlpha = 0.05f;
 
         private static int border = 3;

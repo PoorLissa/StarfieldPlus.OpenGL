@@ -25,7 +25,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static bool doClearBuffer = false, doFillShapes = false, doUseCenterRepel = false,
+        private static bool doFillShapes = false, doUseCenterRepel = false,
                             doUseBorderRepel = false, doGenerateAtCenter = false, doAddObjGradually = false, doShowConnections = false;
         private static int x0, y0, N = 1, gravityRate = 0, maxParticles = 25, maxSize = 6;
         private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0, colorMode = 0;
