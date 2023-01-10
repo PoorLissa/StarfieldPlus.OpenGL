@@ -25,7 +25,7 @@ namespace my
         private int dt1Counter = 0, dt1CounterMax = 0;
         private float ddt1 = 0;
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_210()
         {
@@ -37,6 +37,7 @@ namespace my
                 colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.RANDOM);
                 list = new List<myObject>();
 
+                doClearBuffer = myUtils.randomBool(rand);
                 doChangeBgrColor = myUtils.randomBool(rand);
                 randomDrad = myUtils.randomBool(rand);
                 shapeType = rand.Next(4);
@@ -93,7 +94,21 @@ namespace my
             generateNew();
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override string CollectCurrentInfo(ref int width, ref int height)
+        {
+            height = 800;
+
+            string str = $"Obj = myObj_210\n\n" +
+                            $"N = {list.Count} of {N}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
+            return str;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
@@ -134,7 +149,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Move()
         {
@@ -182,7 +197,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Show()
         {
@@ -221,7 +236,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Process(Window window)
         {
@@ -235,7 +250,17 @@ namespace my
 
             float dimR = 0, dimG = 0, dimB = 0;
 
-            if (doClearBuffer == false)
+            if (doClearBuffer)
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+
+                float r = (float)rand.NextDouble() / 11;
+                float g = (float)rand.NextDouble() / 11;
+                float b = (float)rand.NextDouble() / 11;
+
+                glClearColor(r, g, b, 1.0f);
+            }
+            else
             {
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
@@ -255,16 +280,12 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                foreach (myObj_210 obj in list)
-                {
-                    obj.Show();
-                    obj.Move();
-                }
-
-                System.Threading.Thread.Sleep(t);
-
                 // Dim the screen constantly
-                if (doClearBuffer == false)
+                if (doClearBuffer)
+                {
+                    glClear(GL_COLOR_BUFFER_BIT);
+                }
+                else
                 {
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.SetColor(dimR, dimG, dimB, dimAlpha);
@@ -286,6 +307,14 @@ namespace my
                     }
                 }
 
+                foreach (myObj_210 obj in list)
+                {
+                    obj.Show();
+                    obj.Move();
+                }
+
+                System.Threading.Thread.Sleep(t);
+
                 // Oscillate dim speed
                 if (dimMode == 2)
                 {
@@ -295,5 +324,7 @@ namespace my
 
             return;
         }
+
+        // ---------------------------------------------------------------------------------------------------------------
     }
 };

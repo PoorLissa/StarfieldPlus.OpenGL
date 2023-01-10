@@ -100,15 +100,16 @@ public class ScreenSaver
 
     public void selectObject()
     {
+        ids id = (ids)(new System.Random()).Next((int)ids.myObj_999a);
+
 #if DEBUG
-        ids id = (ids)0;
+        id = (ids)0;
         id = ids.myObj_102;
         id = ids.myObj_132;
         id = ids.myObj_330;
         id = ids.myObj_120;
         id = ids.myObj_150;
-#else
-        ids id = (ids)(new Random()).Next((int)ids.myObj_999a);
+        id = (ids)(new System.Random()).Next((int)ids.myObj_999a);
 #endif
 
         switch (id)
