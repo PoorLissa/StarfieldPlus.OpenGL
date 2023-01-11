@@ -17,6 +17,7 @@ namespace my
 
         private static int _W = -1, _H = -1, gl_R = -1, gl_G = -1, gl_B = -1, gl_r = -1, gl_g = -1, gl_b = -1;
         private static bool isRlocked = false, isGlocked = false, isBlocked = false;
+        private static float color255f = 1.0f / 255.0f;
 
         private enum scaleParams { scaleToWidth, scaleToHeight };
         public enum  colorMode { SNAPSHOT, IMAGE, SINGLE_RANDOM, RANDOM, TEXTURE, GRAY, SNAPSHOT_OR_IMAGE };
@@ -157,21 +158,21 @@ namespace my
         {
             getColor(_rand.Next(_W), _rand.Next(_H), ref gl_r, ref gl_g, ref gl_b);
 
-            R = gl_r / 255.0f;
-            G = gl_g / 255.0f;
-            B = gl_b / 255.0f;
+            R = gl_r * color255f;
+            G = gl_g * color255f;
+            B = gl_b * color255f;
         }
 
         // -------------------------------------------------------------------------
 
-        // Get color at a random point, as float R-G-B ([0..1]-[0..1]-[0..1][0..1])
+        // Get color at a random point, as float R-G-B-A ([0..1]-[0..1]-[0..1][0..1])
         public void getColorRand(ref float R, ref float G, ref float B, ref float A)
         {
             getColor(_rand.Next(_W), _rand.Next(_H), ref gl_r, ref gl_g, ref gl_b);
 
-            R = gl_r / 255.0f;
-            G = gl_g / 255.0f;
-            B = gl_b / 255.0f;
+            R = gl_r * color255f;
+            G = gl_g * color255f;
+            B = gl_b * color255f;
             A = (float)_rand.NextDouble();
         }
 
@@ -182,9 +183,9 @@ namespace my
         {
             getColor((int)x, (int)y, ref gl_r, ref gl_g, ref gl_b);
 
-            R = gl_r / 255.0f;
-            G = gl_g / 255.0f;
-            B = gl_b / 255.0f;
+            R = gl_r * color255f;
+            G = gl_g * color255f;
+            B = gl_b * color255f;
         }
 
         // -------------------------------------------------------------------------
@@ -199,9 +200,9 @@ namespace my
                 for (int j = 0; j < height; j++)
                 {
                     getColor((int)x + i, (int)y + j, ref gl_r, ref gl_g, ref gl_b);
-                    R += gl_r / 255.0f;
-                    G += gl_g / 255.0f;
-                    B += gl_b / 255.0f;
+                    R += gl_r * color255f;
+                    G += gl_g * color255f;
+                    B += gl_b * color255f;
                 }
             }
 
