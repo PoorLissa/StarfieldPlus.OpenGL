@@ -27,7 +27,7 @@ namespace my
         private static bool doCleanOnce = false, doAddAtOnce = false;
         private static float dimAlpha = 0.01f, t = 0, maxOpacity = 0;
 
-        private int Cnt;
+        private int Cnt, x0, y0, rad;
         private float R, G, B, A, r, g, b;
         private List<myObj_011_Particle> particles = null;
 
@@ -123,18 +123,23 @@ namespace my
                 while (particles.Count < pN)
                     particles.Add(new myObj_011_Particle());
 
-            int X = 0, Y = 0;
-
             foreach (myObj_011_Particle item in particles)
             {
                 item.x = rand.Next(gl_Width);
                 item.y = rand.Next(gl_Height);
 
-                X += (int)item.x;
-                Y += (int)item.y;
+                switch (moveMode)
+                {
+                    case 00: case 01:
+                        item.dx = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
+                        item.dy = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
+                        break;
 
-                item.dx = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
-                item.dy = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
+                    case 02:
+                        item.dx = myUtils.randFloat(rand) * rand.Next(1234);
+                        item.dy = myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                        break;
+                }
 
                 item.count = 0;
             }
@@ -146,6 +151,10 @@ namespace my
             A = maxOpacity / stepsPerFrame;
 
             Cnt = rand.Next(1000) + 1000;
+
+            x0 = rand.Next(gl_Width);
+            y0 = rand.Next(gl_Height);
+            rad = rand.Next(666) + 123;
 
             return;
         }
@@ -166,8 +175,6 @@ namespace my
 
             foreach (myObj_011_Particle item in particles)
             {
-                item.x += item.dx;
-                item.y += item.dy;
 /*
                 if (item.cnt > 0)
                 {
@@ -183,6 +190,9 @@ namespace my
                     // Bounce off the borders
                     case 00:
                         {
+                            item.x += item.dx;
+                            item.y += item.dy;
+
                             if (item.x < 0 - borderOffset || item.x > gl_Width + borderOffset)
                             {
                                 item.dx *= -1;
@@ -200,6 +210,9 @@ namespace my
                     // Slowly change speed vector
                     case 01:
                         {
+                            item.x += item.dx;
+                            item.y += item.dy;
+
                             if (item.x < 0 - borderOffset)
                                 item.dx += 0.01f;
 
@@ -211,6 +224,14 @@ namespace my
 
                             if (item.y > gl_Height + borderOffset)
                                 item.dy -= 0.01f;
+                        }
+                        break;
+
+                    case 02:
+                        {
+                            item.x = x0 + (int)(Math.Sin(item.dx) * (rand.Next(rad) + rad));
+                            item.y = y0 + (int)(Math.Cos(item.dx) * (rand.Next(rad) + rad));
+                            item.dx += item.dy;
                         }
                         break;
                 }
