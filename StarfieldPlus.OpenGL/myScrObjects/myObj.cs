@@ -27,13 +27,13 @@ namespace my
 
         protected uint id { get; private set; } = 0;
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public static int gl_Width, gl_Height, gl_x0, gl_y0, renderDelay = 25;
         private static uint s_id = uint.MaxValue;
         private static double cursorx = 0, cursory = 0;
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected static Random rand = new Random((int)DateTime.Now.Ticks);
         protected static List<myObject> list = null;
@@ -42,10 +42,11 @@ namespace my
 
         protected static BgrDrawMode bgrDrawMode = BgrDrawMode.NEVER;
         protected static float       bgrOpacity = 0.01f;
+        protected static float       bgrR = 0.0f, bgrG = 0.0f, bgrB = 0.0f;
 
         protected static bool doClearBuffer = true;
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public myObject()
         {
@@ -61,32 +62,32 @@ namespace my
             }
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Override this function to perform one-time initialization upon creating the first object of a derived class
         protected virtual void initGlobal()
         {
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected virtual void generateNew()
         {
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected virtual void Move()
         {
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected virtual void Show()
         {
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Override it for every derived class to implement the logic
         protected virtual string CollectCurrentInfo(ref int width, ref int height)
@@ -94,21 +95,21 @@ namespace my
             return string.Empty;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Override it for every derived class to implement the logic
         protected virtual void setNextMode()
         {
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Override it for every derived class to implement the logic
         protected virtual void Process(Window window)
         {
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected void processInput(Window window)
         {
@@ -161,7 +162,7 @@ namespace my
             }
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Base Process method which calls for overriden classe's Process method
         public void Process(ScreenSaver scr)
@@ -204,7 +205,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected void Log(string str)
         {
@@ -223,7 +224,7 @@ namespace my
 #endif
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Instantiate instanced primitive
         protected void initShapes(int shape, int cnt, int rotationSubMode)
@@ -264,7 +265,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Get info string from the concrete object and display this info in a separate window
         private void displayInfo()
@@ -324,7 +325,27 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Set RGB colors to use in dimScreen() function
+        protected void dimScreenRGB_Set(float r, float g, float b)
+        {
+            bgrR = r;
+            bgrG = g;
+            bgrB = b;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Set RGB colors to use in dimScreen() function
+        protected void dimScreenRGB_Adjust(float factor)
+        {
+            bgrR += myUtils.randFloat(rand) * myUtils.randomSign(rand) * factor;
+            bgrG += myUtils.randFloat(rand) * myUtils.randomSign(rand) * factor;
+            bgrB += myUtils.randFloat(rand) * myUtils.randomSign(rand) * factor;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Dim the screen constantly
         protected virtual void dimScreen(float dimAlpha, bool doShiftColor = false, bool useStrongerDimFactor = false)
@@ -350,7 +371,7 @@ namespace my
             }
             else
             {
-                myPrimitive._Rectangle.SetColor(0, 0, 0, dimAlpha * dimFactor);
+                myPrimitive._Rectangle.SetColor(bgrR, bgrG, bgrB, dimAlpha * dimFactor);
             }
 
             myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
@@ -358,7 +379,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
     };
 };
 

@@ -77,7 +77,7 @@ namespace my
                             $"angleMode = {angleMode}\n"                +
                             $"opacityMode = {opacityMode}\n"            +
                             $"file: {colorPicker.GetFileName()}"
-                            ;
+                ;
             return str;
         }
 

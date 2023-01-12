@@ -33,7 +33,7 @@ namespace my
         static int si1 = 0, si2 = 0, moveModeCnt = 124;
         static float sf2 = 0, sf3 = 0;
         static float R, G, B, a = 0.0f, b = 0.0f, c = 0.0f, daBase = 1.0f/256, da = 0.01f, lineA = 0.1f;
-        static float dimAlpha = 0.05f, dimAlphaOld = 0;
+        static float dimAlpha = 0.05f, dimAlphaOld = 0, dimAlphaFactor = 1;
 
         static trigonometricFunc trigFunc1 = null;
         static trigonometricFunc trigFunc2 = null;
@@ -43,30 +43,34 @@ namespace my
 
         public myObj_043()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                dimAlphaOld = dimAlpha;
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
         {
-            gl_x0 = x0 = gl_Width  / 2;
-            gl_y0 = y0 = gl_Height / 2;
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            dimAlphaOld = dimAlpha;
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            x0 = gl_x0;
+            y0 = gl_y0;
 
             shape = rand.Next(5);
             moveMode = rand.Next(moveModeCnt + 1);
 
+            doClearBuffer = false;
             doFillShapes = myUtils.randomBool(rand);
             connectionMode = rand.Next(9);
 
@@ -84,6 +88,8 @@ namespace my
 
             lineA += (float)rand.NextDouble() / 8;
             da = daBase;
+
+            dimAlphaFactor = rand.Next(11) + 1;
 
             if (myUtils.randomChance(rand, 1, 10))
             {
@@ -113,17 +119,18 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = myObj_043\n\n" +
-                            $"N = {N} ({list.Count})\n" +
+                            $"N = {list.Count} of {N}\n" +
                             $"shape = {shape}\n" +
+                            $"moveMode = {moveMode}\n" +
+                            $"connectionMode = {connectionMode}\n" +
                             $"colorMode = {colorMode}\n" +
                             $"RGB = {R}, {G}, {B}\n" +
                             $"da = {da}\n" +
-                            $"moveMode = {moveMode}\n" +
-                            $"connectionMode = {connectionMode}\n" +
                             $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}; si2 = {si2}\n sf2 = {sf2}\n sf3 = {sf3}\n" +
                             $"renderDelay = {renderDelay}\n" +
-                            $"dimAlpha = {dimAlpha}\n"
-;
+                            $"dimAlpha = {dimAlpha}\n" +
+                            $"dimAlphaFactor = {dimAlphaFactor}\n"
+                ;
             return str;
         }
 
@@ -134,7 +141,7 @@ namespace my
         {
             var oldShape = shape;
 
-            init();
+            initLocal();
 
             shape = oldShape;
         }
@@ -1120,21 +1127,31 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0, sleepCnt = 0;
-            int threshold = 200;
+            uint cnt = 0, sleepCnt = 0, threshold = 200;
+
             initShapes();
 
             // Disable VSYNC if needed
             //Glfw.SwapInterval(0);
 
-            if (doClearBuffer)
             {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK);
+                // Bgr color is close to black
+                float lightnessFactor = 11;
+
+                float r = myUtils.randFloat(rand) / lightnessFactor;
+                float g = myUtils.randFloat(rand) / lightnessFactor;
+                float b = myUtils.randFloat(rand) / lightnessFactor;
+
+                if (doClearBuffer)
+                {
+                    glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+                    glClearColor(r, g, b, 1.0f);
+                }
+                else
+                {
+                    dimScreenRGB_Set(r, g, b);
+                    glDrawBuffer(GL_FRONT_AND_BACK);
+                }
             }
 
             while (list.Count < N)
@@ -1165,7 +1182,8 @@ namespace my
                 }
                 else
                 {
-                    dimScreen(dimAlpha/10, false);
+                    // Dim beween frames
+                    dimScreen(dimAlpha/dimAlphaFactor, false);
                 }
 
                 // Render frame
@@ -1173,7 +1191,7 @@ namespace my
                     inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i != list.Count; i++)
                     {
                         var obj = list[i] as myObj_043;
 
@@ -1205,6 +1223,7 @@ namespace my
                 // Wait untill every object finishes, then start from new point
                 if (++cnt > threshold)
                 {
+                    // Disable generation of new particles
                     generationAllowed = false;
 
                     if (cntActive == 0)
@@ -1222,10 +1241,13 @@ namespace my
                         cnt = 0;
                         generationAllowed = true;
 
-                        // Dim traces constantly
-                        dimScreen(dimAlpha/3, false);
+                        // Dim before the new object starts showing
+                        dimScreen(dimAlpha, false);
 
-                        threshold = rand.Next(100) + 50;
+                        // Adjust dim color
+                        dimScreenRGB_Adjust(0.05f);
+
+                        threshold = (uint)rand.Next(100) + 50 + (dimAlphaFactor < 5 ? (uint)(5 - dimAlphaFactor) : 0) * 11;
                         sleepCnt = 66 + (uint)rand.Next(166);
                     }
                 }
@@ -1244,27 +1266,6 @@ namespace my
             myPrimitive.init_LineInst(N);
 
             base.initShapes(shape, N, 0);
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Dim the screen constantly
-        private void dimScreen(float dimAlpha, bool useStrongerDimFactor = false)
-        {
-            int rnd = rand.Next(101), dimFactor = 1;
-
-            if (useStrongerDimFactor && rnd < 11)
-            {
-                dimFactor = (rnd == 0) ? 5 : 2;
-            }
-
-            myPrimitive._Rectangle.SetAngle(0);
-
-            // Shift background color just a bit, to hide long lasting traces of shapes
-            myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
-            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
 
             return;
         }

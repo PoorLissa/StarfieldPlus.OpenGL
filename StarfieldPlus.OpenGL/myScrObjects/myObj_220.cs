@@ -15,25 +15,17 @@ namespace my
 {
     public class myObj_220 : myObject
     {
-        private static int N = 1;
-        private static float baseDt = 1.0f;
-
         private int lifeCounter = 0, type = 0;
         private float x, y, Rad, rad, time1 = 0, dt1 = 0, time2 = 0, dt2 = 0, R, G, B, A;
 
-        // -------------------------------------------------------------------------
+        private static int N = 1;
+        private static float baseDt = 1.0f, dimAlpha = 0.025f;
+        private static bool doOscillateDimRate = false;
+
+        // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_220()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                N = 3333;
-                renderDelay = 10;
-            }
-
             dt1 = baseDt * (rand.Next(1000) + 1);                   // Rotation
             dt2 = baseDt * 0.1f * (rand.Next(100) + 1);             // Radius
 
@@ -45,16 +37,50 @@ namespace my
             generateNew();
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            N = 3333;
+            renderDelay = 10;
+
+            doOscillateDimRate = myUtils.randomBool(rand);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override string CollectCurrentInfo(ref int width, ref int height)
+        {
+            string str = $"Obj = myObj_220\n\n" +
+                            $"N = {list.Count} of {N}\n" +
+                            $"renderDelay = {renderDelay}\n" +
+                            $"doOscillateDimRate = {doOscillateDimRate}\n" +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
+            return str;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height + 333) - 333;
 
-            A = (float)rand.NextDouble() + 0.1f;
-
             colorPicker.getColor(x, y, ref R, ref G, ref B);
+            A = myUtils.randFloat(rand, 0.1f);
 
             lifeCounter = 100 + rand.Next(200);
 
@@ -63,7 +89,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Move()
         {
@@ -97,7 +123,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Show()
         {
@@ -124,7 +150,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Process(Window window)
         {
@@ -137,6 +163,7 @@ namespace my
 
             if (doClearBuffer == false)
             {
+                dimScreenRGB_Set(myUtils.randFloat(rand) / 11, myUtils.randFloat(rand) / 11, myUtils.randFloat(rand) / 11);
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
     
@@ -166,16 +193,25 @@ namespace my
                 // Dim the screen constantly
                 if (doClearBuffer == false)
                 {
-                    float alpha = 0.025f  + (float)Math.Sin(0.001f * cnt) / 100;
+                    if (cnt % 250 == 0)
+                    {
+                        dimScreenRGB_Adjust(0.05f);
+                    }
 
-                    myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.SetColor(0, 0, 0, alpha);
-                    //myPrimitive._Rectangle.SetColor(0, 0, 0, 0.025f);
-                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                    if (doOscillateDimRate)
+                    {
+                        dimScreen(dimAlpha + (float)Math.Sin(0.001f * cnt) / 100, false);
+                    }
+                    else
+                    {
+                        dimScreen(dimAlpha, false);
+                    }
                 }
             }
 
             return;
         }
+
+        // ---------------------------------------------------------------------------------------------------------------
     }
 };

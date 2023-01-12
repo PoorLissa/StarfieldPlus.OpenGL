@@ -1,8 +1,6 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Collections.Generic;
 
 
@@ -16,7 +14,7 @@ namespace my
     public class myObj_210 : myObject
     {
         private static bool doChangeBgrColor = false, randomDrad = false, isCenter = true;
-        private static int x0, y0, shapeType = 0, moveType = 0, dimMode = 0, t = 25, N = 1, daBase = 0;
+        private static int shapeType = 0, moveType = 0, dimMode = 0, N = 1, daBase = 0;
         private static float baseDt = 1.0f, dimAlpha = 0.025f;
 
         private float x, y, Rad, rad, drad, time1 = 0, dt1 = 0, time2 = 0, dt2 = 0, R, G, B, A, dA, lineTh, shape = 0;
@@ -31,9 +29,6 @@ namespace my
         {
             if (colorPicker == null)
             {
-                x0 = gl_Width  / 2;
-                y0 = gl_Height / 2;
-
                 colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.RANDOM);
                 list = new List<myObject>();
 
@@ -70,7 +65,7 @@ namespace my
                     case 4: daBase = 50000; break;
                 }
 
-                t = 1;
+                renderDelay = 1;
             }
 
             dt1 = baseDt * (rand.Next(1000) + 1);                   // Rotation
@@ -103,6 +98,7 @@ namespace my
             string str = $"Obj = myObj_210\n\n" +
                             $"N = {list.Count} of {N}\n" +
                             $"doClearBuffer = {doClearBuffer}\n" +
+                            $"isCenter = {isCenter}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -114,8 +110,8 @@ namespace my
         {
             if (isCenter)
             {
-                x = x0;
-                y = y0;
+                x = gl_x0;
+                y = gl_y0;
             }
             else
             {
@@ -313,7 +309,7 @@ namespace my
                     obj.Move();
                 }
 
-                System.Threading.Thread.Sleep(t);
+                System.Threading.Thread.Sleep(renderDelay);
 
                 // Oscillate dim speed
                 if (dimMode == 2)
