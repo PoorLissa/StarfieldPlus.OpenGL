@@ -12,11 +12,11 @@ namespace my
 {
     public class myObj_050 : myObject
     {
-        private int x, y, sizeX, sizeY;
+        private int x, y, sizeX, sizeY, sizeDst, sizeSrc;
         private bool isVertical;
 
-        private static bool doShowImage = false;
-        private static int N = 0, mode = 0, opacityMode = 0;
+        private static bool doShowImage = false, doShowInPlace = false;
+        private static int N = 0, mode = 0, opacityMode = 0, angleMode = 0, compressMode = 0;
 
         static myTexRectangle tex = null;
 
@@ -45,10 +45,14 @@ namespace my
         {
             doClearBuffer = myUtils.randomBool(rand);
             doShowImage = myUtils.randomBool(rand);
+            doShowInPlace = myUtils.randomChance(rand, 1, 5);
+
             N = rand.Next(3) + 1;
 
             mode = rand.Next(3);
             opacityMode = rand.Next(7);
+            angleMode = rand.Next(6);
+            compressMode = rand.Next(4);
 
             return;
         }
@@ -62,8 +66,13 @@ namespace my
             string str = $"Obj = myObj_050\n\n" +
                             $"N = {list.Count} of {N}\n" +
                             $"doClearBuffer = {doClearBuffer}\n" +
+                            $"doShowInPlace = {doShowInPlace}\n" +
                             $"mode = {mode}\n" +
                             $"opacityMode = {opacityMode}\n" +
+                            $"angleMode = {angleMode}\n" +
+                            $"compressMode = {compressMode}\n" +
+                            $"sizeX = {sizeX}\n" +
+                            $"sizeY = {sizeY}\n" +
                             $"file: {colorPicker.GetFileName()}" +
                             $""
                 ;
@@ -82,8 +91,9 @@ namespace my
 
         protected override void generateNew()
         {
-            sizeX = rand.Next(11) + 1;
-            sizeY = rand.Next(11) + 1;
+            // If the size is greater than 10, the dest image is going to be compressed
+            sizeX = rand.Next(25) + 1;
+            sizeY = rand.Next(25) + 1;
 
             return;
         }
@@ -96,19 +106,21 @@ namespace my
             {
                 case 0:
                     {
-                        x = rand.Next(gl_Height / sizeY);
-                        y = rand.Next(gl_Height / sizeY);
-                        x *= sizeY;
-                        y *= sizeY;
+                        x = rand.Next(gl_Height);
+                        y = rand.Next(gl_Height);
+
+                        if (doShowInPlace)
+                            x = y;
                     }
                     break;
 
                 case 1:
                     {
-                        x = rand.Next(gl_Width / sizeX);
-                        y = rand.Next(gl_Width / sizeX);
-                        x *= sizeX;
-                        y *= sizeX;
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Width);
+
+                        if (doShowInPlace)
+                            x = y;
                     }
                     break;
 
@@ -135,6 +147,30 @@ namespace my
 
         protected override void Show()
         {
+            switch (angleMode)
+            {
+                case 0:
+                case 1:
+                    tex.setAngle(0);
+                    break;
+
+                case 2:
+                    tex.setAngle(myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.01f);
+                    break;
+
+                case 3:
+                    tex.setAngle(myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.02f);
+                    break;
+
+                case 4:
+                    tex.setAngle(myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.03f);
+                    break;
+
+                case 5:
+                    tex.setAngle(myUtils.randomSign(rand) * myUtils.randFloat(rand));
+                    break;
+            }
+
             switch (opacityMode)
             {
                 case 0:
@@ -164,23 +200,33 @@ namespace my
             {
                 // Draw a horizontal line at a random y
                 case 0:
-                    tex.Draw(0, (int)x, gl_Width, sizeY, 0, (int)y, gl_Width, sizeY);
+                    sizeDst = sizeSrc = sizeY;
+
+                    if (sizeDst > 10)
+                        sizeDst /= 3;
+
+                    tex.Draw(0, (int)x, gl_Width, sizeDst, 0, (int)y, gl_Width, sizeSrc);
                     break;
 
                 // Draw a vertical line at a random x
                 case 1:
-                    tex.Draw((int)x, 0, sizeX, gl_Height, (int)y, 0, sizeX, gl_Height);
+                    sizeDst = sizeSrc = sizeX;
+
+                    if (sizeDst > 10)
+                        sizeDst /= 3;
+
+                    tex.Draw((int)x, 0, sizeDst, gl_Height, (int)y, 0, sizeSrc, gl_Height);
                     break;
 
                 // Draw horizontal or vertical line
                 case 2:
                     if (isVertical)
                     {
-                        tex.Draw((int)x, 0, sizeX, gl_Height, (int)y, 0, sizeX, gl_Height);
+                        goto case 1;
                     }
                     else
                     {
-                        tex.Draw(0, (int)x, gl_Width, sizeY, 0, (int)y, gl_Width, sizeY);
+                        goto case 0;
                     }
                     break;
 
