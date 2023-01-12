@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 /*
     1. moving vertical and horizontal lines
-    2. moving vertical and horizontal sin/cos functions
+    2. moving vertical and horizontal sin/cos curves
 */
 
 

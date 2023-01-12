@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Desktop pieces swapping
+    - Desktop pieces get swapped
 */
 
 

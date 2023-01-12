@@ -41,9 +41,6 @@ namespace my
         // One-time initialization
         private void init()
         {
-            gl_x0 = gl_Width  / 2;
-            gl_y0 = gl_Height / 2;
-
             N = (N == 0) ? 100 + rand.Next(100) : N;
             staticStarsN = rand.Next(333) + 333;
             N += staticStarsN;
@@ -98,7 +95,7 @@ namespace my
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
+                    rectInst.setInstanceCoords(x - size/2, y - size/2, size, size);
                     rectInst.setInstanceColor(R, G, B, A);
                     rectInst.setInstanceAngle(angle);
                     break;
@@ -107,7 +104,7 @@ namespace my
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
+                    triangleInst.setInstanceCoords(x, y, size, angle);
                     triangleInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -482,6 +479,8 @@ namespace my
 
         protected override void Move()
         {
+            //angle += 0.01f;
+
             if (doMove)
             {
                 x += dx;
