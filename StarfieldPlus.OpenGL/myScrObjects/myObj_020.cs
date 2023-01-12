@@ -13,41 +13,52 @@ namespace my
 {
     public class myObj_020 : myObject
     {
-        private float x, y, dx, dy, Size, dSize, angle, dAngle, A = 0, R = 0, G = 0, B = 0;
+        private float x, y, dx, dy, Size, dSize, angle, dAngle, angleRate, A = 0, R = 0, G = 0, B = 0;
         int lifeCounter = 0;
 
-        private static int shape = 0, N = 0, shapeCnt = 1;
+        private static int shape = 0, N = 0, shapeCnt = 1, angleMode = 0, opacityMode = 0;
         private static bool doFillShapes = false;
-        private static float spdConst = 0;
+        private static float spdConst = 0, dimAlpha = 0.1f, colorShiftRateR = 0, colorShiftRateG = 0, colorShiftRateB = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_020()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
         {
             N = 3333 + rand.Next(6666);
             renderDelay = 10;
-            spdConst = (float)(rand.Next(50) + 1) / 1000;
+            spdConst = (rand.Next(50) + 1) / 1000.0f;
 
             doFillShapes = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomBool(rand);
+            dimAlpha = myUtils.randFloat(rand, 0.1f);
 
             shape = rand.Next(5);
             shapeCnt = (myUtils.randomChance(rand, 1, 3) ? rand.Next(15) : rand.Next(5)) + 1;
+            angleMode = rand.Next(7);
+            opacityMode = rand.Next(2);
+
+            colorShiftRateR = myUtils.randFloat(rand) * 0.1f;
+            colorShiftRateG = myUtils.randFloat(rand) * 0.1f;
+            colorShiftRateB = myUtils.randFloat(rand) * 0.1f;
 
             return;
         }
@@ -56,11 +67,18 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            return $"Obj = myObj_020\n\n" +
-                            $"N = {N}\n" +
-                            $"spdConst = {spdConst}\n" +
-                            $"shapeCnt = {shapeCnt}\n"
+            string str = $"Obj = myObj_020\n\n"                         +
+                            $"N = {list.Count} of {N}\n"                +
+                            $"doClearBuffer = {doClearBuffer}\n"        +
+                            $"dimAlpha = {dimAlpha.ToString("0.00")}\n" +
+                            $"shape = {shape}\n"                        +
+                            $"spdConst = {spdConst}\n"                  +
+                            $"shapeCnt = {shapeCnt}\n"                  +
+                            $"angleMode = {angleMode}\n"                +
+                            $"opacityMode = {opacityMode}\n"            +
+                            $"file: {colorPicker.GetFileName()}"
                             ;
+            return str;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -70,13 +88,13 @@ namespace my
             lifeCounter = rand.Next(100) + 100;
 
             int x0 = rand.Next(gl_Width);
-            int y0 = rand.Next(gl_Height);
+            int y0 = rand.Next(gl_Width);
             int speed = rand.Next(2000) + 10;
 
             do
             {
                 x = rand.Next(gl_Width);
-                y = rand.Next(gl_Height);
+                y = rand.Next(gl_Width);
             }
             while (x == x0 && y == y0);
 
@@ -89,10 +107,11 @@ namespace my
             Size = 1;
             dSize = 0.0005f * (rand.Next(1000) + 1);
 
-            A = (float)rand.NextDouble();
+            A = myUtils.randFloat(rand);
 
             angle = 0;
             dAngle = myUtils.randomSign(rand) * (float)rand.NextDouble() * 0.1f;
+            angleRate = rand.Next(5) + 1;
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -135,48 +154,74 @@ namespace my
         {
             if (Size > 0)
             {
-                float oldSize = Size;
+                float oldSize = Size, newAngle = 0, sizeX2, a = 1;
+                float sizeTmp = oldSize / shapeCnt;
 
-                for (int i = 1; i < shapeCnt + 1; i++)
+                for (int i = 1; i != (shapeCnt + 1); i++)
                 {
-                    Size = oldSize - (oldSize * (i-1) / shapeCnt);
+                    Size = oldSize - (sizeTmp * (i-1));
+                    sizeX2 = Size * 2;
+
+                    switch (opacityMode)
+                    {
+                        // Outer shape is the most visible
+                        case 0:
+                            a = A / i;
+                            break;
+
+                        // Inner shape is the most visible
+                        case 1:
+                            a = A / (shapeCnt - i + 1);
+                            break;
+                    }
+
+                    switch (angleMode)
+                    {
+                        case 0: newAngle = angle; break;
+                        case 1: newAngle = angle / i / angleRate; break;
+                        case 2: newAngle = angle - i * dAngle * angleRate; break;
+                        case 3: newAngle = angle - i * i * dAngle * angleRate; break;
+                        case 4: newAngle = i == 1 ? angle : myUtils.randFloat(rand); break;
+                        case 5: newAngle = i == 1 ? angle : angle * Size / 5 / angleRate; break;
+                        case 6: newAngle = i == 1 ? angle : angle * Size / 25 / angleRate; break;
+                    }
 
                     switch (shape)
                     {
                         case 0:
                             var rectInst = inst as myRectangleInst;
 
-                            rectInst.setInstanceCoords(x - Size, y - Size, 2 * Size, 2 * Size);
-                            rectInst.setInstanceColor(R, G, B, A/i);
-                            rectInst.setInstanceAngle(angle/i);
+                            rectInst.setInstanceCoords(x - Size, y - Size, sizeX2, sizeX2);
+                            rectInst.setInstanceColor(R + i * colorShiftRateR, G + i * colorShiftRateG, B + i * colorShiftRateB, a);
+                            rectInst.setInstanceAngle(newAngle);
                             break;
 
                         case 1:
                             var triangleInst = inst as myTriangleInst;
 
-                            triangleInst.setInstanceCoords(x, y, Size, angle/i);
-                            triangleInst.setInstanceColor(R, G, B, A/i);
+                            triangleInst.setInstanceCoords(x, y, Size, newAngle);
+                            triangleInst.setInstanceColor(R + i * colorShiftRateR, G + i * colorShiftRateG, B + i * colorShiftRateB, a);
                             break;
 
                         case 2:
                             var ellipseInst = inst as myEllipseInst;
 
-                            ellipseInst.setInstanceCoords(x, y, 2 * Size, angle/i);
-                            ellipseInst.setInstanceColor(R, G, B, A/i);
+                            ellipseInst.setInstanceCoords(x, y, sizeX2, newAngle);
+                            ellipseInst.setInstanceColor(R + i * colorShiftRateR, G + i * colorShiftRateG, B + i * colorShiftRateB, a);
                             break;
 
                         case 3:
                             var pentagonInst = inst as myPentagonInst;
 
-                            pentagonInst.setInstanceCoords(x, y, 2 * Size, angle/i);
-                            pentagonInst.setInstanceColor(R, G, B, A/i);
+                            pentagonInst.setInstanceCoords(x, y, sizeX2, newAngle);
+                            pentagonInst.setInstanceColor(R + i * colorShiftRateR, G + i * colorShiftRateG, B + i * colorShiftRateB, a);
                             break;
 
                         case 4:
                             var hexagonInst = inst as myHexagonInst;
 
-                            hexagonInst.setInstanceCoords(x, y, 2 * Size, angle/i);
-                            hexagonInst.setInstanceColor(R, G, B, A/i);
+                            hexagonInst.setInstanceCoords(x, y, sizeX2, newAngle);
+                            hexagonInst.setInstanceColor(R + i * colorShiftRateR, G + i * colorShiftRateG, B + i * colorShiftRateB, a);
                             break;
                     }
                 }
@@ -194,6 +239,30 @@ namespace my
             uint cnt = 0;
             initShapes();
 
+            if (doClearBuffer)
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+
+                // Bgr color is close to black
+                float lightnessFactor = 11;
+
+                // Make bgr color lighter sometimes
+                if (myUtils.randomChance(rand, 1, 11))
+                {
+                    lightnessFactor = 2 + rand.Next(7);
+                }
+
+                float r = (float)rand.NextDouble() / lightnessFactor;
+                float g = (float)rand.NextDouble() / lightnessFactor;
+                float b = (float)rand.NextDouble() / lightnessFactor;
+
+                glClearColor(r, g, b, 1.0f);
+            }
+            else
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK);
+            }
+
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
@@ -202,38 +271,46 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                glClearColor(0, 0, 0, 1);
-                glClear(GL_COLOR_BUFFER_BIT);
-
-                inst.ResetBuffer();
-
-                for (int i = 0; i < list.Count; i++)
+                if (doClearBuffer)
                 {
-                    var obj = list[i] as myObj_020;
-
-                    obj.Show();
-                    obj.Move();
+                    glClear(GL_COLOR_BUFFER_BIT);
+                }
+                else
+                {
+                    dimScreen(dimAlpha, true);
                 }
 
-                if (doFillShapes)
+                // Render Frame
                 {
-                    // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                    inst.SetColorA(-0.5f);
-                    inst.Draw(true);
-                }
+                    inst.ResetBuffer();
 
-                // Tell the fragment shader to do nothing with the existing instance opacity:
-                inst.SetColorA(0);
-                inst.Draw(false);
+                    for (int i = 0; i != list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_020;
+
+                        obj.Show();
+                        obj.Move();
+                    }
+
+                    if (doFillShapes)
+                    {
+                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                        inst.SetColorA(-0.5f);
+                        inst.Draw(true);
+                    }
+
+                    // Tell the fragment shader to do nothing with the existing instance opacity:
+                    inst.SetColorA(0);
+                    inst.Draw(false);
+                }
 
                 if (list.Count < N)
                 {
                     list.Add(new myObj_020());
                 }
 
-                cnt++;
-
                 System.Threading.Thread.Sleep(renderDelay);
+                cnt++;
             }
 
             return;
