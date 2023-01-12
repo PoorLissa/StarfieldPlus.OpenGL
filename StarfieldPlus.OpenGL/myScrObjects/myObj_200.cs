@@ -16,7 +16,7 @@ namespace my
 {
     public class myObj_200 : myObject
     {
-        private static bool doChangeBgrColor = false, randomDrad = false;
+        private static bool doChangeBgrColor = false, randomDrad = false, varLineWidth = false;
         private static int shapeType = 0, moveType = 0, rotationType = 0, dimMode = 0, N = 1;
         private static float baseDt = 1.0f, dimAlpha = 0.025f;
 
@@ -64,6 +64,7 @@ namespace my
 
             doChangeBgrColor = myUtils.randomBool(rand);
             randomDrad = myUtils.randomBool(rand);
+            varLineWidth = myUtils.randomBool(rand);
             shapeType = rand.Next(6);
 
             moveType = rand.Next(3);
@@ -114,6 +115,7 @@ namespace my
                             $"moveType = {moveType}\n" +
                             $"rotationType = {rotationType}\n" +
                             $"dimMode = {dimMode}\n" +
+                            $"varLineWidth = {varLineWidth}\n" +
                             $"renderDelay = {renderDelay}\n" +
                             $"dimAlpha = {dimAlpha}\n"
             ;
@@ -169,14 +171,20 @@ namespace my
 
                 // Spiraling to the center, but the center coordinates are randomized a bit
                 case 1:
+                    {
+                        // Somewhere here exception is thrown
 
-                    if (shape == 1 || shape == 2)
-                        zzz = 33;
+                        if (shape == 1 || shape == 2)
+                            zzz = 33;
 
-                    zzz = rad > zzz ? zzz : (int)rad;
+                        if (rad < zzz && rad >= 0)
+                        {
+                            zzz = (int)rad;
+                        }
 
-                    x = gl_x0 + (zzz - rand.Next(2*zzz));
-                    y = gl_y0 + (zzz - rand.Next(2*zzz));
+                        x = gl_x0 + (zzz - rand.Next(2 * zzz));
+                        y = gl_y0 + (zzz - rand.Next(2 * zzz));
+                    }
                     break;
 
                 // Spiraling to the center, but the center coordinates are moving ellptically
@@ -196,6 +204,15 @@ namespace my
 
         protected override void Show()
         {
+            if (varLineWidth && rad > 100)
+            {
+                glLineWidth(rad/100);
+            }
+            else
+            {
+                glLineWidth(1);
+            }
+
             switch (shape)
             {
                 case 0:

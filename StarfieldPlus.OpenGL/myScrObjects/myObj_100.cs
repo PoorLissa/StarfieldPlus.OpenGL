@@ -42,9 +42,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            gl_x0 = gl_Width  / 2;
-            gl_y0 = gl_Height / 2;
-
             N = (N == 0) ? 10 + rand.Next(10) : N;
 
             return;
