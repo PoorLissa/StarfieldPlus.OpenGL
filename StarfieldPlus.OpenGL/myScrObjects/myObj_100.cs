@@ -174,6 +174,7 @@ namespace my
             // This mode provides very nice even distribution;
             // USe also old mode with [x0, y0] in the center,
             // and also add a mode where [x0, y0] is not in the center, but is offset somewhere
+            // and also a mode where [x0, y0] is rotating around the center
 
             int W = gl_Width * 4;
             int x0 = rand.Next(W);
