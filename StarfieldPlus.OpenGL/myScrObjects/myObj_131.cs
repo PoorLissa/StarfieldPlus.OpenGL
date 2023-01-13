@@ -1,6 +1,5 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
 
 
@@ -13,38 +12,45 @@ namespace my
 {
     public class myObj_131 : myObject
     {
-        private int maxSize;
+        private int maxSize, sizeStep;
         private float x, y, dx, dy, size, dSize, A, R, G, B, angle, dA, dAngle;
 
         private static float dX = 0, dY = 0;
-        private static int N = 0, shape = 0, rotationMode = 0, moveMode = 0, dxdyMode = 0, dxdyFactor = 1, daMode = 0;
-        private static bool doFillShapes = false;
+        private static int N = 0, shape = 0, shapeN = 1, rotationMode = 0, moveMode = 0, dxdyMode = 0, dxdyFactor = 1, daMode = 0;
+        private static bool doFillShapes = false, doShake = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_131()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
         {
             dX = (float)rand.NextDouble();
             dY = (float)rand.NextDouble();
 
             if (N == 0)
             {
+                // Number of shapes drawn per object;
+                // Min is 2, because we start drawing at '1'
+                shapeN = rand.Next(5) + 2;
+
                 switch (rand.Next(7))
                 {
                     case 0:
@@ -62,7 +68,8 @@ namespace my
                 }
             }
 
-            doFillShapes = myUtils.randomChance(rand, 1, 3);
+            doClearBuffer = myUtils.randomChance(rand, 2, 3);
+            doFillShapes  = myUtils.randomChance(rand, 1, 3);
             moveMode = rand.Next(8);
             dxdyMode = rand.Next(3);
 
@@ -71,11 +78,11 @@ namespace my
             shape = rand.Next(6) - 1;
             shape = (shape < 0) ? 2 : shape;
 
-            rotationMode = rand.Next(3);
-
+            rotationMode = rand.Next(4);
             daMode = rand.Next(3);
+            renderDelay = rand.Next(23);
 
-            //renderDelay = 10;
+            doShake = (shape == 2) && (shapeN > 4) && myUtils.randomChance(rand, 1, 3);
 
             if (false)
             {
@@ -91,13 +98,17 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = myObj_131\n\n" +
-                            $"N = {N} ({list.Count})\n" +
+                            $"N = {list.Count} of {N} x {shapeN - 1}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"doFillShapes = {doFillShapes}\n" +
                             $"shape = {shape}\n" +
                             $"moveMode = {moveMode}\n" +
+                            $"rotationMode = {rotationMode}\n" +
                             $"daMode = {daMode}\n" +
                             $"dxdyMode = {dxdyMode}\n" +
                             $"dxdyFactor = {dxdyFactor}\n" +
-                            $""
+                            $"renderDelay = {renderDelay}\n" +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -109,7 +120,7 @@ namespace my
         {
             var oldShape = shape;
 
-            init();
+            initLocal();
 
             shape = oldShape;
         }
@@ -123,18 +134,25 @@ namespace my
 
             size = 0;
             maxSize = rand.Next(333) + 111;
+            sizeStep = rand.Next(25) + 3;
             dSize = 0.01f * (rand.Next(111) + 1);
 
             angle = 0;
 
+            // Starting angle is not zero
             if (rotationMode > 0)
                 angle = (float)rand.NextDouble();
 
+            // Slow rotation
             if (rotationMode > 1)
                 dAngle = (float)rand.NextDouble() / 11 * myUtils.randomSign(rand);
 
+            // Fast rotation
+            if (rotationMode > 2)
+                dAngle = 0.5f * (myUtils.randFloat(rand, 1.0f)) * myUtils.randomSign(rand);
+
             colorPicker.getColor(x, y, ref R, ref B, ref G);
-            A = 0.85f + (float)rand.NextDouble() / 4;
+            A = 0.85f + myUtils.randFloat(rand) * 0.25f;
 
             // dA affects the life expectancy of the particle (and its final size as well)
             switch (daMode)
@@ -225,12 +243,13 @@ namespace my
             // Decrease opacity until fully invisible
             A -= dA;
 
+            // Rotate
+            angle += dAngle;
+
             if (A < 0)
             {
                 generateNew();
             }
-
-            angle += dAngle;
 
             return;
         }
@@ -239,47 +258,85 @@ namespace my
 
         protected override void Show()
         {
+            float size2x = size * 2;
+
             switch (shape)
             {
                 // Instanced squares
                 case 0:
-                    var rectInst = inst as myRectangleInst;
+                    {
+                        var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
+                        for (int i = 1; i != shapeN; i++)
+                        {
+                            rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                            rectInst.setInstanceColor(R, G, B, A);
+                            rectInst.setInstanceAngle(angle/i);
+                        }
+                    }
                     break;
 
                 // Instanced triangles
                 case 1:
-                    var triangleInst = inst as myTriangleInst;
+                    {
+                        var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
+                        for (int i = 1; i != shapeN; i++)
+                        {
+                            triangleInst.setInstanceCoords(x, y, size2x, angle/i);
+                            triangleInst.setInstanceColor(R, G, B, A);
+                        }
+                    }
                     break;
 
                 // Instanced circles
                 case 2:
-                    var ellipseInst = inst as myEllipseInst;
+                    {
+                        var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, 0);
-                    ellipseInst.setInstanceColor(R, G, B, A);
+                        for (int i = 1; i != shapeN; i++)
+                        {
+                            if (doShake)
+                            {
+                                float xx = x + rand.Next(3) - 1;
+                                float yy = y + rand.Next(3) - 1;
+
+                                ellipseInst.setInstanceCoords(xx, yy, size2x - i * sizeStep, 0);
+                                ellipseInst.setInstanceColor(R, G, B, A / i);
+                            }
+                            else
+                            {
+                                ellipseInst.setInstanceCoords(x, y, size2x - i * sizeStep, 0);
+                                ellipseInst.setInstanceColor(R, G, B, A / i);
+                            }
+                        }
+                    }
                     break;
 
                 // Instanced pentagons
                 case 3:
-                    var pentagonInst = inst as myPentagonInst;
+                    {
+                        var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
+                        for (int i = 1; i != shapeN; i++)
+                        {
+                            pentagonInst.setInstanceCoords(x, y, size2x, angle/i);
+                            pentagonInst.setInstanceColor(R, G, B, A);
+                        }
+                    }
                     break;
 
                 // Instanced hexagons
                 case 4:
-                    var hexagonInst = inst as myHexagonInst;
+                    {
+                        var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
+                        for (int i = 1; i != shapeN; i++)
+                        {
+                            hexagonInst.setInstanceCoords(x, y, size2x, angle/i);
+                            hexagonInst.setInstanceColor(R, G, B, A);
+                        }
+                    }
                     break;
             }
 
@@ -293,12 +350,28 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            //Glfw.SwapInterval(0);
+            // Glfw.SwapInterval(0);
 
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
+
+                float lightnessFactor = 11;
+
+                // Make bgr color lighter sometimes
+                if (myUtils.randomChance(rand, 1, 5))
+                    lightnessFactor = 2 + rand.Next(7);
+
+                float r = (float)rand.NextDouble() / lightnessFactor;
+                float g = (float)rand.NextDouble() / lightnessFactor;
+                float b = (float)rand.NextDouble() / lightnessFactor;
+
+                glClearColor(r, g, b, 1.0f);
+            }
+            else
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK);
+                dimScreenRGB_SetRandom(0.1f);
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -307,13 +380,17 @@ namespace my
 
                 processInput(window);
 
-                // Swap fore/back framebuffers, and poll for operating system events.
+                // Swap fore/back framebuffers, and poll for operating system events
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
                 if (doClearBuffer)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
+                }
+                else
+                {
+                    dimScreen(0.25f, false);
                 }
 
                 // Render Frame
@@ -345,7 +422,10 @@ namespace my
                     list.Add(new myObj_131());
                 }
 
-                System.Threading.Thread.Sleep(renderDelay);
+                if (renderDelay > 0)
+                {
+                    System.Threading.Thread.Sleep(renderDelay);
+                }
             }
 
             return;
@@ -356,7 +436,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
-            base.initShapes(shape, N, 0);
+            base.initShapes(shape, N * (shapeN - 1), 0);
         }
 
         // ---------------------------------------------------------------------------------------------------------------

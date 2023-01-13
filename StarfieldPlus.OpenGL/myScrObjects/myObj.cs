@@ -338,6 +338,25 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Set RGB colors to use in dimScreen() function
+        protected void dimScreenRGB_SetRandom(float factor, bool ligtmMode = false)
+        {
+            if (ligtmMode)
+            {
+                bgrR = 1.0f - myUtils.randFloat(rand) * factor;
+                bgrG = 1.0f - myUtils.randFloat(rand) * factor;
+                bgrB = 1.0f - myUtils.randFloat(rand) * factor;
+            }
+            else
+            {
+                bgrR = myUtils.randFloat(rand) * factor;
+                bgrG = myUtils.randFloat(rand) * factor;
+                bgrB = myUtils.randFloat(rand) * factor;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Set RGB colors to use in dimScreen() function
         protected void dimScreenRGB_Adjust(float factor)
         {
             bgrR += myUtils.randFloat(rand) * myUtils.randomSign(rand) * factor;
