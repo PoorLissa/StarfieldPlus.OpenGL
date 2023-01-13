@@ -13,11 +13,13 @@ namespace my
 {
     public class myObj_100 : myObject
     {
-        private int x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float x, y, dx, dy, angle, dAngle, size, A, R, G, B;
+        private int cnt, lifeCounter, max, color;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
+        private static int N = 0, shape = 0, colorMode = 0, maxLife = 500, maxSpeed = 0, explosionSpeed = 0, dustNum = 666, offCenterRad = 1, dyFactor = 1;
+        private static bool doFillShapes = false, isExplosionMode = false, doUseAcceleration = false, doShowZeroSize = true;
+        private static bool doUseDiscreetSpeed = true, doUseFastDeath = false, doUseBackSuction = false, doUseDyFactor = false;
+        private static float accelerationFactor = 1.0f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -34,6 +36,56 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
+            shape = rand.Next(5);
+            dustNum = 666;
+            N = 1234;
+
+            switch (rand.Next(7))
+            {
+                case 0:
+                    dustNum += rand.Next(666);
+                    N += rand.Next(1234);
+                    break;
+
+                case 1:
+                    renderDelay = 20;
+                    dustNum += rand.Next(3210);
+                    N += rand.Next(1234);
+                    break;
+
+                case 2:
+                    renderDelay = 10;
+                    dustNum += rand.Next(43210);
+                    N += rand.Next(12345);
+                    break;
+
+                case 3:
+                    renderDelay = 3;
+                    dustNum += rand.Next(543210);
+                    N += rand.Next(123456);
+                    break;
+
+                case 4:
+                    renderDelay = 20;
+                    dustNum += rand.Next(1234);
+                    N += rand.Next(3210);
+                    break;
+
+                case 5:
+                    renderDelay = 10;
+                    dustNum += rand.Next(12345);
+                    N += rand.Next(43210);
+                    break;
+
+                case 6:
+                    renderDelay = 3;
+                    dustNum += rand.Next(123456);
+                    N += rand.Next(543210);
+                    break;
+            }
+
+            N += dustNum;
+
             initLocal();
         }
 
@@ -42,7 +94,40 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            N = (N == 0) ? 10 + rand.Next(10) : N;
+            doClearBuffer      = myUtils.randomBool(rand);
+            doFillShapes       = myUtils.randomBool(rand);
+            doUseBackSuction   = myUtils.randomBool(rand);          // Particles are born not in the center, but rathe on the opposite side of it
+            doUseDyFactor      = myUtils.randomChance(rand, 1, 3);  // dy gets divided by factor
+            doShowZeroSize     = myUtils.randomBool(rand);          // Particles of zero size are still drawn
+            doUseFastDeath     = myUtils.randomBool(rand);          // The particle dies when the counter reaches 0, OR also when the particle reaches the border
+            doUseAcceleration  = myUtils.randomBool(rand);          // The particles receive additional acceleration
+            doUseDiscreetSpeed = myUtils.randomBool(rand);          // The initial speed is generated using int or float variable
+
+            maxSpeed = rand.Next(11);
+            explosionSpeed = rand.Next(333) + 33;
+            colorMode = rand.Next(2);
+            accelerationFactor = 1.0f + myUtils.randFloat(rand) * 0.02f;
+            offCenterRad = rand.Next(121) - 60;
+            dyFactor = rand.Next(11) + 1;
+
+            switch (rand.Next(7))
+            {
+                // Original mode with very slow expansion -- no explosion
+                case 0:
+                    maxSpeed = 0;
+                    explosionSpeed = 0;
+                    break;
+
+                // Original mode with very slow expansion -- plus explosion
+                case 1:
+                    maxSpeed = 0;
+                    break;
+
+                // No Explosion
+                case 2:
+                    maxSpeed = 0;
+                    break;
+            }
 
             return;
         }
@@ -55,9 +140,21 @@ namespace my
 
             string str = $"Obj = myObj_100\n\n" +
                             $"N = {list.Count} of {N}\n" +
-                            "" + 
-                            $"file: {colorPicker.GetFileName()}" +
-                            $""
+                            $"starNum = {N - dustNum}\n" +
+                            $"dustNum = {dustNum}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"doUseDiscreetSpeed = {doUseDiscreetSpeed}\n" +
+                            $"doUseFastDeath = {doUseFastDeath}\n" +
+                            $"doUseBackSuction = {doUseBackSuction}\n" +
+                            $"doUseAcceleration = {doUseAcceleration}\n" +
+                            $"accelerationFactor = {accelerationFactor.ToString("0.000")}\n" +
+                            $"doShowZeroSize = {doShowZeroSize}\n" +
+                            $"maxSpeed = {maxSpeed}\n" +
+                            $"explosionSpeed = {explosionSpeed}\n" +
+                            $"offCenterRad = {offCenterRad}\n" +
+                            $"colorMode = {colorMode}\n" +
+                            $"renderDelay = {renderDelay}\n" +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -74,15 +171,152 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            // This mode provides very nice even distribution;
+            // USe also old mode with [x0, y0] in the center,
+            // and also add a mode where [x0, y0] is not in the center, but is offset somewhere
 
-            size = rand.Next(11) + 3;
+            int W = gl_Width * 4;
+            int x0 = rand.Next(W);
+            int y0 = rand.Next(W);
 
-            A = 1;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
+            // As X and Y are generated within a square [Width x Width],
+            // both dx and dy will be calculated using point [x0, x0]
+            x = rand.Next(W);
+            y = rand.Next(W);
+
+            size = 0;
+            cnt = 0;
+            angle = 0;
+            dAngle = myUtils.randFloat(rand) * 0.01f * myUtils.randomSign(rand);
+            lifeCounter = rand.Next(maxLife) + maxLife;
+            max = rand.Next(200) + 100;
+
+            A = 0.65f + myUtils.randFloat(rand) * 0.2f;
+            color = rand.Next(50);
+
+            if (color < 6)
+            {
+                switch (colorMode)
+                {
+                    // Colors from the colorPicker
+                    case 0:
+                        colorPicker.getColorRand(ref R, ref G, ref B);
+                        break;
+
+                    // Colors from the original implementation
+                    case 1:
+                        switch (color)
+                        {
+                            case 0: R = 1.00f; G = 0.00f; B = 0.00f; break;             // Red
+                            case 1: R = 1.00f; G = 1.00f; B = 0.00f; break;             // Yellow
+                            case 2: R = 0.00f; G = 0.00f; B = 1.00f; break;             // Blue
+                            case 3: R = 1.00f; G = 0.65f; B = 0.00f; break;             // Orange
+                            case 4: R = 0.00f; G = 1.00f; B = 1.00f; break;             // Aqua
+                            case 5: R = 0.93f; G = 0.51f; B = 0.93f; break;             // Violet
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                R = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                G = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                B = 1.0f - myUtils.randFloat(rand) * 0.1f;
+            }
+
+            int iSpeed = 1;
+            float fSpeed = myUtils.randFloat(rand, 0.1f) + myUtils.randFloat(rand, 0.1f);
+
+            if (id < dustNum)
+            {
+                // Dust particles (no acceleration, size == 1, low alpha)
+                size = 1;
+
+                if (doUseDiscreetSpeed)
+                {
+                    iSpeed += rand.Next(maxSpeed);
+                }
+                else
+                {
+                    fSpeed += rand.Next(maxSpeed);
+                }
+
+                lifeCounter += lifeCounter / 3;
+                A = 0.01f;
+            }
+            else
+            {
+                // Normal particles
+                if (isExplosionMode)
+                {
+                    size = 1;
+
+                    if (doUseDiscreetSpeed)
+                    {
+                        iSpeed += rand.Next(explosionSpeed) + explosionSpeed / 100;
+                    }
+                    else
+                    {
+                        fSpeed += rand.Next(explosionSpeed) + explosionSpeed / 100;
+                    }
+                }
+                else
+                {
+                    if (doUseDiscreetSpeed)
+                    {
+                        iSpeed += rand.Next(maxSpeed);
+                    }
+                    else
+                    {
+                        fSpeed += rand.Next(maxSpeed);
+                    }
+                }
+            }
+
+            double sp_dist, dist = Math.Sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
+
+            if (doUseDiscreetSpeed)
+            {
+                sp_dist = iSpeed / dist;
+            }
+            else
+            {
+                sp_dist = fSpeed / dist;
+            }
+
+            dx = (float)((x - x0) * sp_dist);
+            dy = (float)((y - y0) * sp_dist);
+
+            if (doUseDyFactor)
+            {
+                dy /= dyFactor;
+            }
+
+            // Move each start to the starting point:
+            if (doUseBackSuction)
+            {
+                if (offCenterRad >= 0)
+                {
+                    x = gl_x0 - offCenterRad * dx;
+                    y = gl_y0 - offCenterRad * dy;
+                }
+                else
+                {
+                    x = gl_x0 - rand.Next(-offCenterRad) * dx;
+                    y = gl_y0 - rand.Next(-offCenterRad) * dy;
+                }
+            }
+            else
+            {
+                x = gl_x0;
+                y = gl_y0;
+            }
+
+            if (isExplosionMode)
+            {
+                size = rand.Next(3) + 1;
+                lifeCounter = rand.Next(100) + 33;
+            }
 
             return;
         }
@@ -91,6 +325,93 @@ namespace my
 
         protected override void Move()
         {
+            lifeCounter--;
+
+            x += dx;
+            y += dy;
+
+            angle += dAngle;
+
+            // Accelerate
+            if (doUseAcceleration && id >= dustNum)
+            {
+                dx *= accelerationFactor * (size + 1);
+                dy *= accelerationFactor * (size + 1);
+            }
+
+            bool isDead = lifeCounter == 0;
+
+            if (!isDead && doUseFastDeath)
+            {
+                if (x < 0 || y < 0 || x > gl_Width || y > gl_Height)
+                    isDead = true;
+            }
+
+            if (isDead)
+            {
+                generateNew();
+            }
+            else
+            {
+                if (id >= dustNum)
+                {
+                    if (cnt++ > max)
+                    {
+                        cnt = 0;
+                        size = rand.Next(5) + 1;
+
+                        if (doUseDyFactor)
+                        {
+                            if (dy < 0)
+                            {
+                                size = rand.Next(3) + 1;
+                                dy *= 0.999999f;
+                            }
+                            else
+                            {
+                                dy *= 1.000001f;
+                                size += 1;
+                            }
+                        }
+                    }
+
+                    // Change opacity sometimes
+                    if (cnt % 100 == 0)
+                    {
+                        A = 0.65f + myUtils.randFloat(rand) * 0.2f;
+
+                        if (doUseDyFactor)
+                        {
+                            if (dy < 0)
+                                A *= 0.5f;
+                        }
+
+                        // Dim the star sometimes
+                        if (rand.Next(11) == 0)
+                        {
+                            A /= (rand.Next(5) + 1);
+                        }
+                    }
+                }
+                else
+                {
+                    if (doClearBuffer)
+                    {
+                        if (A < 0.23f)
+                        {
+                            A += 0.01f;
+                        }
+                    }
+                    else
+                    {
+                        if (A < 0.17f)
+                        {
+                            A += 0.01f;
+                        }
+                    }
+                }
+            }
+
             return;
         }
 
@@ -98,14 +419,23 @@ namespace my
 
         protected override void Show()
         {
+            int Size = (int)size;
+            float a = A;
+
+            if (size == 0 && doShowZeroSize)
+            {
+                Size = 1;
+                a = 0.23f;
+            }
+
             switch (shape)
             {
                 // Instanced squares
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(R, G, B, A);
+                    rectInst.setInstanceCoords(x, y, Size, Size);
+                    rectInst.setInstanceColor(R, G, B, a);
                     rectInst.setInstanceAngle(angle);
                     break;
 
@@ -113,32 +443,32 @@ namespace my
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
+                    triangleInst.setInstanceCoords(x, y, Size, angle);
+                    triangleInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced circles
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
+                    ellipseInst.setInstanceCoords(x, y, Size, 0);
+                    ellipseInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced pentagons
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
+                    pentagonInst.setInstanceCoords(x, y, Size, angle);
+                    pentagonInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced hexagons
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
+                    hexagonInst.setInstanceCoords(x, y, Size, angle);
+                    hexagonInst.setInstanceColor(R, G, B, a);
                     break;
             }
 
@@ -158,12 +488,27 @@ namespace my
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
+
+                float r = (float)rand.NextDouble() / (rand.Next(11) + 11);
+                float g = (float)rand.NextDouble() / (rand.Next(11) + 11);
+                float b = (float)rand.NextDouble() / (rand.Next(11) + 11);
+
+                glClearColor(r, g, b, 1.0f);
             }
             else
             {
+                dimScreenRGB_SetRandom(0.1f);
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
+
+            isExplosionMode = true;
+
+            while (list.Count < N)
+            {
+                list.Add(new myObj_100());
+            }
+
+            isExplosionMode = false;
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -178,6 +523,10 @@ namespace my
                 if (doClearBuffer)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
+                }
+                else
+                {
+                    dimScreen(0.1f, false);
                 }
 
                 // Render Frame
@@ -209,7 +558,10 @@ namespace my
                     list.Add(new myObj_100());
                 }
 
-                System.Threading.Thread.Sleep(renderDelay);
+                if (renderDelay > 0)
+                {
+                    System.Threading.Thread.Sleep(renderDelay);
+                }
             }
 
             return;

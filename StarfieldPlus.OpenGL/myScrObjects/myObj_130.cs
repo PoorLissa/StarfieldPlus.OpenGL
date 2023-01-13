@@ -46,9 +46,6 @@ namespace my
         {
             renderDelay = renderDelayOld;
 
-            gl_x0 = gl_Width  / 2;
-            gl_y0 = gl_Height / 2;
-
             if (N == 0)
             {
                 switch (rand.Next(3))
