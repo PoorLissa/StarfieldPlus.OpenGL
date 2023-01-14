@@ -1361,6 +1361,10 @@ namespace my
             else
             {
                 glDrawBuffer(GL_FRONT_AND_BACK);
+
+                // This combination does not result in blinking on the higher number of particles
+                // That is, in Win7
+                glDrawBuffer(GL_DEPTH_BUFFER_BIT);
             }
 
             while (!Glfw.WindowShouldClose(window))
