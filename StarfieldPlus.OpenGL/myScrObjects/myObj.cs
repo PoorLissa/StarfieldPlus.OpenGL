@@ -114,7 +114,9 @@ namespace my
         protected void processInput(Window window)
         {
             // Exit via mouse move
-            if (false)
+#if DEBUG
+            ;
+#else
             {
                 double xpos, ypos;
                 Glfw.GetCursorPosition(window, out xpos, out ypos);
@@ -130,6 +132,7 @@ namespace my
                 cursorx = xpos;
                 cursory = ypos;
             }
+#endif
 
             // Exit via Esc Key press
             if (Glfw.GetKey(window, GLFW.Keys.Escape) == GLFW.InputState.Press)
