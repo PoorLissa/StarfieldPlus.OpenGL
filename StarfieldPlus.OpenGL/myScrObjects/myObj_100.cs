@@ -484,7 +484,7 @@ namespace my
             initShapes();
 
             // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
+            //Glfw.SwapInterval(0);
 
             if (doClearBuffer)
             {
@@ -499,7 +499,9 @@ namespace my
             else
             {
                 dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
+
+                // This combination does not result in blinking on the higher number of particles
+                glDrawBuffer(GL_DEPTH_BUFFER_BIT);
             }
 
             isExplosionMode = true;
