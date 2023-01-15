@@ -17,9 +17,10 @@ namespace my
         private int cnt, lifeCounter, max, color;
 
         private static int N = 0, shape = 0, colorMode = 0, maxLife = 500, maxSpeed = 0, explosionSpeed = 0, dustNum = 666, offCenterRad = 1, dyFactor = 1;
+        private static int centerGenMode = 0, x0off = -1, y0off = -1;
         private static bool doFillShapes = false, isExplosionMode = false, doUseAcceleration = false, doShowZeroSize = true;
         private static bool doUseDiscreetSpeed = true, doUseFastDeath = false, doUseBackSuction = false, doUseDyFactor = false;
-        private static float accelerationFactor = 1.0f;
+        private static float accelerationFactor = 1.0f, t = 0, aMin = 0.65f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -100,9 +101,10 @@ namespace my
             doUseDyFactor      = myUtils.randomChance(rand, 1, 3);  // dy gets divided by factor
             doShowZeroSize     = myUtils.randomBool(rand);          // Particles of zero size are still drawn
             doUseFastDeath     = myUtils.randomBool(rand);          // The particle dies when the counter reaches 0, OR also when the particle reaches the border
-            doUseAcceleration  = myUtils.randomBool(rand);          // The particles receive additional acceleration
+            doUseAcceleration  = myUtils.randomChance(rand, 1, 3);  // The particles receive additional acceleration
             doUseDiscreetSpeed = myUtils.randomBool(rand);          // The initial speed is generated using int or float variable
 
+            centerGenMode = rand.Next(4);
             maxSpeed = rand.Next(11);
             explosionSpeed = rand.Next(333) + 33;
             colorMode = rand.Next(2);
@@ -171,20 +173,6 @@ namespace my
 
         protected override void generateNew()
         {
-            // This mode provides very nice even distribution;
-            // USe also old mode with [x0, y0] in the center,
-            // and also add a mode where [x0, y0] is not in the center, but is offset somewhere
-            // and also a mode where [x0, y0] is rotating around the center
-
-            int W = gl_Width * 4;
-            int x0 = rand.Next(W);
-            int y0 = rand.Next(W);
-
-            // As X and Y are generated within a square [Width x Width],
-            // both dx and dy will be calculated using point [x0, x0]
-            x = rand.Next(W);
-            y = rand.Next(W);
-
             size = 0;
             cnt = 0;
             angle = 0;
@@ -192,7 +180,24 @@ namespace my
             lifeCounter = rand.Next(maxLife) + maxLife;
             max = rand.Next(200) + 100;
 
-            A = 0.65f + myUtils.randFloat(rand) * 0.2f;
+            if (N > 10000)
+            {
+                aMin = 0.50f;
+            }
+            else if (N > 50000)
+            {
+                aMin = 0.35f;
+            }
+            else if (N > 100000)
+            {
+                aMin = 0.20f;
+            }
+            else if (N > 200000)
+            {
+                aMin = 0.11f;
+            }
+
+            A = aMin + myUtils.randFloat(rand) * 0.2f;
             color = rand.Next(50);
 
             if (color < 6)
@@ -274,6 +279,60 @@ namespace my
                 }
             }
 
+            if (isExplosionMode)
+            {
+                size = rand.Next(3) + 1;
+                lifeCounter = rand.Next(100) + 33;
+            }
+
+            // and also add a mode where [x0, y0] is not in the center, but is offset somewhere
+            // and also a mode where [x0, y0] is rotating around the center
+
+            int W = 0, x0 = 0, y0 = 0;
+
+            switch (centerGenMode)
+            {
+                case 0:
+                    W = gl_Width;
+                    x0 = gl_x0;
+                    y0 = gl_x0;
+                    break;
+
+                case 1:
+                    W = gl_Width * 4;
+                    x0 = rand.Next(W);
+                    y0 = rand.Next(W);
+                    break;
+
+                // Central point is not in the center
+                case 2:
+                    {
+                        W = gl_Width * 4;
+
+                        if (x0off == -1 && y0off == -1)
+                        {
+                            x0off = rand.Next(W/3);
+                            y0off = rand.Next(W/3);
+                        }
+
+                        x0 = rand.Next(W) - x0off;
+                        y0 = rand.Next(W) - y0off;
+                    }
+                    break;
+
+                case 3:
+                    W = gl_Width;
+                    x0 = gl_x0 + (int)(Math.Sin(t) * 333);
+                    y0 = gl_x0 + (int)(Math.Cos(t) * 333);
+                    t += 0.01f;
+                    break;
+            }
+
+            // As X and Y are generated within a square [Width x Width],
+            // both dx and dy will be calculated using point [x0, x0]
+            x = rand.Next(W);
+            y = rand.Next(W);
+
             double sp_dist, dist = Math.Sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
 
             if (doUseDiscreetSpeed)
@@ -293,7 +352,7 @@ namespace my
                 dy /= dyFactor;
             }
 
-            // Move each start to the starting point:
+            // Move each object to the starting point:
             if (doUseBackSuction)
             {
                 if (offCenterRad >= 0)
@@ -311,12 +370,6 @@ namespace my
             {
                 x = gl_x0;
                 y = gl_y0;
-            }
-
-            if (isExplosionMode)
-            {
-                size = rand.Next(3) + 1;
-                lifeCounter = rand.Next(100) + 33;
             }
 
             return;
