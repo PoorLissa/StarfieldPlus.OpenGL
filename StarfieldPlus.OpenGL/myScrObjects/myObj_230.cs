@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Gravity
+    - Gravity, unfinished
 */
 
 
@@ -27,32 +27,33 @@ namespace my
         private static float reverseFactor = 0.99999f;
         private static float resistFactor = 0.99999f;
 
+        static int aaa = 1;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_230()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
         {
-            gl_x0 = gl_Width / 2;
-            gl_y0 = gl_Height / 2;
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
 
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
             N = (N == 0) ? 100 + rand.Next(100) : N;
-
-            N = 3333;
+            N = 2345;
 
             doUseRandomMass = myUtils.randomBool(rand);
 
@@ -75,7 +76,7 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            init();
+            initLocal();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -391,8 +392,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        static int aaa = 1;
-
         protected override void Process(Window window)
         {
             uint cnt = 0;
@@ -413,7 +412,7 @@ namespace my
             }
 
             int nTaskCount = Environment.ProcessorCount;
-            nTaskCount = 100;
+            //nTaskCount = 100;
             var taskList = new System.Threading.Tasks.Task[nTaskCount];
 
             // Define a delegate that prints and returns the system tick count
@@ -481,7 +480,7 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    // Wait untill all the tasks have finished
+                    // Wait until all the tasks have finished
                     System.Threading.Tasks.Task.WaitAll(taskList);
 
                     // Draw everything to the Inst
