@@ -8,7 +8,7 @@ public class ScreenSaver
 
     private enum ids
     {
-        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_100,
+        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
         myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330,
@@ -108,7 +108,7 @@ public class ScreenSaver
         id = ids.myObj_132;
         id = ids.myObj_330;
         id = (ids)(new System.Random()).Next((int)ids.myObj_999a);
-        id = ids.myObj_230;
+        id = ids.myObj_070;
 #endif
 
         switch (id)
@@ -161,6 +161,11 @@ public class ScreenSaver
             // Desktop pieces get swapped
             case ids.myObj_050:
                 _obj = new my.myObj_050();
+                break;
+
+            // Desktop pieces falling off -- 1
+            case ids.myObj_070:
+                _obj = new my.myObj_070();
                 break;
 
             // Big Bang

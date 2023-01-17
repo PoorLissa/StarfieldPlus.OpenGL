@@ -28,6 +28,8 @@ namespace my
         {
         }
 
+        // -------------------------------------------------------------------------
+
         public myColorPicker(int Width, int Height, int mode = -1)
         {
             _W = Width;
@@ -130,7 +132,7 @@ namespace my
         public void setPixel(int x, int y, int A = 255)
         {
             if (x > -1 && y > -1 && x < _img.Width && y < _img.Height)
-                _img.SetPixel(x, y, Color.FromArgb(A, 0, 0, 0));
+                _img.SetPixel(x, y, Color.FromArgb(255, 255, 255, 255));
         }
 
         // -------------------------------------------------------------------------
@@ -755,5 +757,12 @@ namespace my
         }
 
         // -------------------------------------------------------------------------
+
+        public void zzz(Bitmap src, int x, int y)
+        {
+            var destRect = new Rectangle(x, y, src.Width, src.Height);
+
+            _g.DrawImage(src, destRect, 0, 0, src.Width, src.Height, GraphicsUnit.Pixel);
+        }
     }
 };

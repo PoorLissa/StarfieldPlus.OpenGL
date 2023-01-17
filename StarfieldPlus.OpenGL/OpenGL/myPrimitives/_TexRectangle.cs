@@ -86,6 +86,14 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Replace the image in the texture
+    public void reloadImg(Bitmap bmp)
+    {
+        myOGL.loadTexture(tex, bmp);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     // Render the texture on the screen.
     //  x, y, w, h          -- rectangle on the screen to fill with texture
     //  ptx, pty, ptw, pth  -- optional rectangle to sample pixels from

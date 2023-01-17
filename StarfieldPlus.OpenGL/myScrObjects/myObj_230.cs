@@ -76,7 +76,9 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = myObj_230\n\n" +
-                            $"N = {list.Count} of {N}\n"
+                            $"N = {list.Count} of {N}\n" +
+                            $"nTaskCount = {nTaskCount}\n" +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
