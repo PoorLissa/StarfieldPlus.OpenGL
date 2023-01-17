@@ -23,11 +23,10 @@ namespace my
         private static bool doFillShapes = true, doUseRandomMass = false;
         private static float dimAlpha = 0.05f;
 
-        private static int border = 3;
+        private static int border = 3, nTaskCount = 1, activeThreads = 1;
+        private static bool threadsAreRunning = true;
         private static float reverseFactor = 0.99999f;
         private static float resistFactor = 0.99999f;
-
-        static int aaa = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -44,6 +43,8 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
+            nTaskCount = Environment.ProcessorCount - 1;
+
             initLocal();
         }
 
@@ -54,8 +55,18 @@ namespace my
         {
             N = (N == 0) ? 100 + rand.Next(100) : N;
             N = 2345;
+            N = 3333;
 
             doUseRandomMass = myUtils.randomBool(rand);
+
+            // Determine the number of threads we need
+            {
+                if (nTaskCount > 0)
+                {
+                    int n = (N / 200) + 1;
+                    nTaskCount = n < nTaskCount ? n : nTaskCount;
+                }
+            }
 
             return;
         }
@@ -65,8 +76,7 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = myObj_230\n\n" +
-                            $"N = {N} ({list.Count})\n" +
-                            $""
+                            $"N = {list.Count} of {N}\n"
                 ;
             return str;
         }
@@ -152,7 +162,7 @@ namespace my
             {
                 R = 1.0f / 250 * 245 + (float)(rand.NextDouble() * 0.10);
                 G = 1.0f / 250 * 180 + (float)(rand.NextDouble() * 0.10);
-                B = 1.0f / 250 * 40 + (float)(rand.NextDouble() * 0.10);
+                B = 1.0f / 250 * 040 + (float)(rand.NextDouble() * 0.10);
             }
 
             return;
@@ -164,13 +174,19 @@ namespace my
 
         protected override void Move()
         {
+            myObj_230 obj;
             float DX = 0, DY = 0, dist = 0, F = 0, factor = 0;
+            float anotherResistFactor = 1.0f - 0.00001f;
 
-            for (int i = 0; i < list.Count; i++)
+            for (int i = 0; i != list.Count; i++)
             {
-                var obj = (myObj_230)(list[i]);
+                obj = (myObj_230)(list[i]);
+
+                // test this for speed
+                // or should i just remove this if? the same obj will be discarded as dist == 0 -- which could be faster than making this if every time
 
                 if (obj != this)
+                //if (obj.id != id)
                 {
                     factor = 0.000001f;
 
@@ -282,9 +298,9 @@ namespace my
                             dy -= F * DY;
                         }
 
-                        // Another resisting force
-                        dx *= (1.0f - 0.00001f);
-                        dy *= (1.0f - 0.00001f);
+                        // Another resisting force ---- WTF is this here and not outside the loop?
+                        dx *= anotherResistFactor;
+                        dy *= anotherResistFactor;
 
 #if false
                         // Optional resisting force
@@ -326,13 +342,12 @@ namespace my
                         dy *= reverseFactor;
                     }
 #endif
-                }
-            }
+                }   // end of 'if (obj != this)'
+            }       // end of 'for' loop
 
-            /*
-                        For 2 points, the center of masses MC lies somewhere on the line between them.
-                        The distance from pt1 to MC, d = DIST / (m1/m2 + 1);
-             */
+            // For 2 points, the center of masses MC lies somewhere on the line between them.
+            // The distance from pt1 to MC, d = DIST / (m1/m2 + 1);
+
             return;
         }
 
@@ -394,11 +409,61 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
             // Disable VSYNC if needed
             Glfw.SwapInterval(0);
+
+            // Threading
+            {
+                int proc = 2;
+
+                if (nTaskCount == 0)
+                {
+                    proc = 0;
+                }
+
+                switch (proc)
+                {
+                    case 0:
+                        process0(window);
+                        break;
+
+                    case 1:
+                        process1(window);   // old threads
+                        break;
+
+                    case 2:
+                        process2(window);   // new threads
+                        break;
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void initShapes()
+        {
+            myPrimitive.init_Rectangle();
+            base.initShapes(shape, N, 0);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void process0(Window window)
+        {
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void process1(Window window)
+        {
+            uint cnt = 0;
 
             if (doClearBuffer)
             {
@@ -411,8 +476,6 @@ namespace my
                 list.Add(new myObj_230());
             }
 
-            int nTaskCount = Environment.ProcessorCount;
-            //nTaskCount = 100;
             var taskList = new System.Threading.Tasks.Task[nTaskCount];
 
             // Define a delegate that prints and returns the system tick count
@@ -441,26 +504,6 @@ namespace my
             {
                 cnt++;
 
-                if (cnt == 3000)
-                {
-                    aaa = -10000;
-                }
-
-                if (cnt == 3100)
-                {
-                    aaa = 1;
-                    cnt = 0;
-                }
-
-                /*
-                                if (cnt == 1000)
-                                {
-                                    var tDiff = (System.DateTime.Now.Ticks - t1);
-                                    TimeSpan elapsedSpan = new TimeSpan(tDiff);
-                                    System.Windows.Forms.MessageBox.Show($"{elapsedSpan.TotalMilliseconds}", $"fps = {1000 * cnt/ elapsedSpan.TotalMilliseconds}", System.Windows.Forms.MessageBoxButtons.OK);
-                                    break;
-                                }
-                */
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -473,7 +516,7 @@ namespace my
                 }
                 else
                 {
-                    dimScreen(false);
+                    dimScreen(dimAlpha, false);
                 }
 
                 // Render Frame
@@ -516,35 +559,149 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void initShapes()
+        private void process2(Window window)
         {
-            myPrimitive.init_Rectangle();
-            base.initShapes(shape, N, 0);
+            uint cnt = 0;
+            object thLock = new object();
 
-            return;
-        }
+            var thList = new System.Threading.Thread[nTaskCount];
+            var threadState = new bool[nTaskCount];
 
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Dim the screen constantly
-        private void dimScreen(bool useStrongerDimFactor = false)
-        {
-            int rnd = rand.Next(101), dimFactor = 1;
-
-            if (useStrongerDimFactor && rnd < 11)
             {
-                dimFactor = (rnd == 0) ? 5 : 2;
+                glDrawBuffer(GL_FRONT | GL_DEPTH_BUFFER_BIT);
+
+                float r = (float)rand.NextDouble() / 11;
+                float g = (float)rand.NextDouble() / 11;
+                float b = (float)rand.NextDouble() / 11;
+
+                glClearColor(r, g, b, 1);
             }
 
-            myPrimitive._Rectangle.SetAngle(0);
+            while (list.Count < N)
+            {
+                list.Add(new myObj_230());
+            }
 
-            // Shift background color just a bit, to hide long lasting traces of shapes
-            myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
-            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+            // Initialize and start all the threads
+            {
+                activeThreads = nTaskCount;
+
+                for (int k = 0; k < nTaskCount; k++)
+                {
+                    thList[k] = new System.Threading.Thread(
+                        new System.Threading.ParameterizedThreadStart(thFunc))
+                        {
+                            Name = $"th_{k.ToString("000")}",
+                            Priority = System.Threading.ThreadPriority.Normal
+                        };
+                    threadState[k] = true;
+                    thList[k].Start(k);
+                }
+            }
+
+            // Thread function
+            void thFunc(object obj)
+            {
+                int threadId = (int)obj;
+
+                int beg = (threadId + 0) * list.Count / nTaskCount;
+                int end = (threadId + 1) * list.Count / nTaskCount;
+
+                while (threadsAreRunning)
+                {
+                    int sleepMode = 0;
+
+                    while (threadState[threadId] == false)
+                    {
+                        switch (sleepMode)
+                        {
+                            case 0:
+                                System.Threading.Thread.Sleep(0);
+                                break;
+
+                            case 1:
+                                System.Threading.Thread.SpinWait(1);
+                                break;
+
+                            case 2:
+                                System.Threading.Thread.Yield();
+                                break;
+                        }
+
+                        if (threadsAreRunning == false)
+                            return;
+                    }
+
+                    for (int i = beg; i < end; i++)
+                    {
+                        (list[i] as myObj_230).Move();
+                    }
+
+                    // Presumably this is an atomic operation => thread safe
+                    threadState[threadId] = false;
+
+                    lock (thLock)
+                    {
+                        // When activeThreads == 0, the main thread will know it's time to render the frame
+                        activeThreads--;
+                    }
+                }
+            }
+
+            while (!Glfw.WindowShouldClose(window))
+            {
+                processInput(window);
+
+                // Wait until all the threads have finished
+                if (activeThreads == 0)
+                {
+                    cnt++;
+                    activeThreads = nTaskCount;
+
+                    // Swap fore/back framebuffers, and poll for operating system events.
+                    Glfw.SwapBuffers(window);
+                    Glfw.PollEvents();
+
+                    glClear(GL_COLOR_BUFFER_BIT);
+
+                    // Render Frame
+                    {
+                        inst.ResetBuffer();
+
+                        // Draw everything to the Inst
+                        for (int i = 0; i < list.Count; i++)
+                        {
+                            (list[i] as myObj_230).Show();
+                        }
+
+                        // Restart all the tasks
+                        {
+                            for (int k = 0; k < nTaskCount; k++)
+                                threadState[k] = true;
+                        }
+
+                        if (doFillShapes)
+                        {
+                            // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                            inst.SetColorA(-0.5f);
+                            inst.Draw(true);
+                        }
+
+                        // Tell the fragment shader to do nothing with the existing instance opacity:
+                        inst.SetColorA(0);
+                        inst.Draw(false);
+                    }
+                }
+            }
+
+            // Stop all the threads
+            {
+                threadsAreRunning = false;
+                foreach (System.Threading.Thread th in thList)
+                    th.Join();
+            }
 
             return;
         }
-
-        // ---------------------------------------------------------------------------------------------------------------
     }
 };
