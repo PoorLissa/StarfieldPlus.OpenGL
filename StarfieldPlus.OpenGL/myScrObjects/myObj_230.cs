@@ -374,7 +374,7 @@ doUseRandomMass = false;
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
+                    triangleInst.setInstanceCoords(x, y, size2x, angle);
                     triangleInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -382,7 +382,7 @@ doUseRandomMass = false;
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
                     ellipseInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -390,7 +390,7 @@ doUseRandomMass = false;
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
                     pentagonInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -398,7 +398,7 @@ doUseRandomMass = false;
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
             }
@@ -417,7 +417,7 @@ doUseRandomMass = false;
 
             // Threading
             {
-                int proc = 1;
+                int proc = 2;
 
                 if (nTaskCount == 0)
                 {
@@ -566,7 +566,7 @@ doUseRandomMass = false;
             object thLock = new object();
 
             var thList = new System.Threading.Thread[nTaskCount];
-            var threadState = new bool[nTaskCount];
+            var pauseEvents = new System.Threading.ManualResetEvent[nTaskCount];
 
             {
                 glDrawBuffer(GL_FRONT | GL_DEPTH_BUFFER_BIT);
@@ -587,7 +587,7 @@ doUseRandomMass = false;
             {
                 activeThreads = nTaskCount;
 
-                for (int k = 0; k < nTaskCount; k++)
+                for (int k = 0; k != nTaskCount; k++)
                 {
                     thList[k] = new System.Threading.Thread(
                         new System.Threading.ParameterizedThreadStart(thFunc))
@@ -595,56 +595,38 @@ doUseRandomMass = false;
                             Name = $"th_{k.ToString("000")}",
                             Priority = System.Threading.ThreadPriority.Normal
                         };
-                    threadState[k] = true;
+                    pauseEvents[k] = new System.Threading.ManualResetEvent(true);   // Threads are initially NOT blocked
                     thList[k].Start(k);
                 }
-            }
 
-            // Thread function
-            void thFunc(object obj)
-            {
-                int threadId = (int)obj;
-
-                int beg = (threadId + 0) * list.Count / nTaskCount;
-                int end = (threadId + 1) * list.Count / nTaskCount;
-
-                while (threadsAreRunning)
+                // Thread function
+                void thFunc(object obj)
                 {
-                    int sleepMode = 0;
+                    int threadId = (int)obj;
 
-                    while (threadState[threadId] == false)
+                    int beg = (threadId + 0) * list.Count / nTaskCount;
+                    int end = (threadId + 1) * list.Count / nTaskCount;
+
+                    var pauseEvent = pauseEvents[threadId];
+
+                    while (threadsAreRunning)
                     {
-                        switch (sleepMode)
-                        {
-                            case 0:
-                                System.Threading.Thread.Sleep(0);
-                                break;
-
-                            case 1:
-                                System.Threading.Thread.SpinWait(25);
-                                break;
-
-                            case 2:
-                                System.Threading.Thread.Yield();
-                                break;
-                        }
+                        // Wait while the thread is blocked
+                        pauseEvent.WaitOne(System.Threading.Timeout.Infinite);
 
                         if (threadsAreRunning == false)
                             return;
-                    }
 
-                    for (int i = beg; i < end; i++)
-                    {
-                        (list[i] as myObj_230).Move();
-                    }
+                        for (int i = beg; i != end; i++)
+                        {
+                            (list[i] as myObj_230).Move();
+                        }
 
-                    // Presumably this is an atomic operation => thread safe
-                    threadState[threadId] = false;
-
-                    lock (thLock)
-                    {
-                        // When activeThreads == 0, the main thread will know it's time to render the frame
-                        activeThreads--;
+                        lock (thLock)
+                        {
+                            pauseEvent.Reset();         // Block the thread
+                            activeThreads--;
+                        }
                     }
                 }
             }
@@ -652,12 +634,20 @@ doUseRandomMass = false;
             while (!Glfw.WindowShouldClose(window))
             {
                 // Wait until all the threads have finished
+#if true
+                // try -1, 0, 1, and also new TimeSpan(0, 0, 0, 0, 1)
+                // try true and false -- don't know the diff -- the manual says there's no diff in my case
+                // try using while and using just a call
+                //while (!System.Threading.WaitHandle.WaitAll(pauseEvents, 0, true))
+                    ;
+#else
                 while (activeThreads != 0)
                     ;
+#endif
 
                 processInput(window);
 
-                //if (activeThreads == 0)
+                if (activeThreads == 0)
                 {
                     cnt++;
 
@@ -681,8 +671,8 @@ doUseRandomMass = false;
                         lock (thLock)
                         {
                             activeThreads = nTaskCount;
-                            for (int k = 0; k < nTaskCount; k++)
-                                threadState[k] = true;
+                            for (int k = 0; k != nTaskCount; k++)
+                                pauseEvents[k].Set();
                         }
 
                         if (doFillShapes)
@@ -702,6 +692,11 @@ doUseRandomMass = false;
             // Stop all the threads
             {
                 threadsAreRunning = false;
+
+                // Unblock all the threads first, to let them stop gracefully
+                foreach (System.Threading.ManualResetEvent e in pauseEvents)
+                    e.Set();
+
                 foreach (System.Threading.Thread th in thList)
                     th.Join();
             }
