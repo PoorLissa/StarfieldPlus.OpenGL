@@ -55,9 +55,10 @@ namespace my
         {
             N = (N == 0) ? 100 + rand.Next(100) : N;
             N = 2345;
-            N = 3333;
+            //N = 3333;
 
             doUseRandomMass = myUtils.randomBool(rand);
+doUseRandomMass = false;
 
             // Determine the number of threads we need
             {
@@ -177,28 +178,24 @@ namespace my
         protected override void Move()
         {
             myObj_230 obj;
-            float DX = 0, DY = 0, dist = 0, F = 0, factor = 0;
+            float DX = 0, DY = 0, dist = 0, F = 0, factor = 0, d2 = 0;
             float anotherResistFactor = 1.0f - 0.00001f;
 
             for (int i = 0; i != list.Count; i++)
             {
                 obj = (myObj_230)(list[i]);
 
-                // test this for speed
-                // or should i just remove this if? the same obj will be discarded as dist == 0 -- which could be faster than making this if every time
-
-                if (obj != this)
-                //if (obj.id != id)
                 {
                     factor = 0.000001f;
 
                     DX = x - obj.x;
                     DY = y - obj.y;
+                    d2 = DX * DX + DY * DY;
 
-                    dist = (float)Math.Sqrt(DX * DX + DY * DY);
-
-                    if (dist > 0)
+                    if (d2 > 0)
                     {
+                        dist = (float)Math.Sqrt(d2);
+
                         if (type == obj.type)
                         {
                             if (dist < 20)
@@ -360,13 +357,15 @@ namespace my
             x += dx;
             y += dy;
 
+            float size2x = size * 2;
+
             switch (shape)
             {
                 // Instanced squares
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
+                    rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
                     rectInst.setInstanceColor(R, G, B, A);
                     rectInst.setInstanceAngle(angle);
                     break;
@@ -418,7 +417,7 @@ namespace my
 
             // Threading
             {
-                int proc = 2;
+                int proc = 1;
 
                 if (nTaskCount == 0)
                 {
@@ -432,7 +431,7 @@ namespace my
                         break;
 
                     case 1:
-                        process1(window);   // old threads
+                        process1(window);   // old threads -- seems to be faster
                         break;
 
                     case 2:
@@ -622,7 +621,7 @@ namespace my
                                 break;
 
                             case 1:
-                                System.Threading.Thread.SpinWait(1);
+                                System.Threading.Thread.SpinWait(25);
                                 break;
 
                             case 2:
@@ -652,13 +651,15 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                // Wait until all the threads have finished
+                while (activeThreads != 0)
+                    ;
+
                 processInput(window);
 
-                // Wait until all the threads have finished
-                if (activeThreads == 0)
+                //if (activeThreads == 0)
                 {
                     cnt++;
-                    activeThreads = nTaskCount;
 
                     // Swap fore/back framebuffers, and poll for operating system events.
                     Glfw.SwapBuffers(window);
@@ -671,13 +672,15 @@ namespace my
                         inst.ResetBuffer();
 
                         // Draw everything to the Inst
-                        for (int i = 0; i < list.Count; i++)
+                        for (int i = 0; i != list.Count; i++)
                         {
                             (list[i] as myObj_230).Show();
                         }
 
                         // Restart all the tasks
+                        lock (thLock)
                         {
+                            activeThreads = nTaskCount;
                             for (int k = 0; k < nTaskCount; k++)
                                 threadState[k] = true;
                         }
