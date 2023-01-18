@@ -758,11 +758,20 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        public void zzz(Bitmap src, int x, int y)
+        // Update source image from bmp image
+        // need to reload the texture image then
+        public void updateSrcImg(Bitmap bmp, int x, int y)
         {
-            var destRect = new Rectangle(x, y, src.Width, src.Height);
+            if (false)
+            {
+                for (int i = 0; i < _img.Width; i++)
+                    for (int j = 0; j < _img.Height; j++)
+                        _img.SetPixel(i, j, Color.Black);
+            }
 
-            _g.DrawImage(src, destRect, 0, 0, src.Width, src.Height, GraphicsUnit.Pixel);
+            var destRect = new Rectangle(x, y, bmp.Width, bmp.Height);
+
+            _g.DrawImage(bmp, destRect, 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel);
         }
     }
 };

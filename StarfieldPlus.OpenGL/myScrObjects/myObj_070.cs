@@ -38,7 +38,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT);
             list = new List<myObject>();
 
             initLocal();
@@ -129,35 +129,22 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void drawToOrigin(int x, int y, int size)
-        {
-            System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(size, size);
-
-            for (int i = 0; i < size; i++)
-            {
-                for (int j = 0; j < size; j++)
-                {
-                    bmp.SetPixel(i, j, System.Drawing.Color.Red);
-                }
-            }
-
-            colorPicker.zzz(bmp, x, y);
-            tex.reloadImg(colorPicker.getImg());
-        }
-
         protected override void Show()
         {
             if (isFirstStep)
             {
                 isFirstStep = false;
-
+/*
                 // Dim the tile on the src image
-                drawToOrigin((int)x, (int)y, 33);
+                myPrimitive._Rectangle.SetAngle(0);
+                myPrimitive._Rectangle.SetColor(myUtils.randFloat(rand), myUtils.randFloat(rand), myUtils.randFloat(rand), 0.75f);
+                myPrimitive._Rectangle.Draw(x, y, size, size, true);
 
-                // new a new method, update texture from desktop;
-                // the method must access the buffer https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
-                // and copy the needed piece into original colorPicker image
-                // then it needs to call reload texture tex.reloadImg(colorPicker.getImg());
+                var bmp = myOGL.copyScreenBuffer((int)x, (int)(y + gl_Height - size), (int)size, (int)size);
+
+                colorPicker.updateSrcImg(bmp, (int)x, (int)y);
+                tex.reloadImg(colorPicker.getImg());
+*/
             }
             else
             {

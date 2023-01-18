@@ -178,4 +178,25 @@ class myOGL
     }
 
     // -------------------------------------------------------------------------------------------------------------------
+
+    // Copy rectangle area from the screen to a bmp
+    // usage: var bmp = myOGL.copyScreenBuffer(x, (y + gl_Height - size), size, size);
+    public static Bitmap copyScreenBuffer(int x, int y, int width, int height)
+    {
+        Bitmap bmp = new Bitmap(width, height);
+
+        var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+
+        glReadBuffer(GL_FRONT_AND_BACK);
+        glReadPixels(x, y, width, height, GL_BGRA, GL_UNSIGNED_BYTE, data.Scan0);
+
+        bmp.UnlockBits(data);
+
+        // Image is upside down, need to flip it:
+        bmp.RotateFlip(rotateFlipType: RotateFlipType.Rotate180FlipX);
+
+        return bmp;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
 }
