@@ -340,6 +340,16 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Get the RGB colors that are currently used in dimScreen() function
+        protected void dimScreenRGB_Get(ref float r, ref float g, ref float b)
+        {
+            r = bgrR;
+            g = bgrG;
+            b = bgrB;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         // Set RGB colors to use in dimScreen() function
         protected void dimScreenRGB_SetRandom(float factor, bool ligtmMode = false)
         {
