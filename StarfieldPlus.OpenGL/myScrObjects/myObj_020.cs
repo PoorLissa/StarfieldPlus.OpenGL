@@ -48,7 +48,7 @@ namespace my
             spdConst = (rand.Next(50) + 1) / 1000.0f;
 
             doFillShapes = myUtils.randomBool(rand);
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomChance(rand, 1, 3);
             dimAlpha = myUtils.randFloat(rand, 0.1f);
 
             shape = rand.Next(5);
@@ -76,6 +76,7 @@ namespace my
                             $"shapeCnt = {shapeCnt}\n"                  +
                             $"angleMode = {angleMode}\n"                +
                             $"opacityMode = {opacityMode}\n"            +
+                            $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -260,24 +261,27 @@ namespace my
             }
             else
             {
-                glDrawBuffer(GL_FRONT_AND_BACK);
+                dimScreenRGB_SetRandom(0.1f);
+                //glDrawBuffer(GL_FRONT_AND_BACK);
+                glDrawBuffer(GL_DEPTH_BUFFER_BIT);
             }
+
+
 
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
-
-                // Swap fore/back framebuffers, and poll for operating system events.
-                Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
                 if (doClearBuffer)
                 {
+                    Glfw.SwapBuffers(window);
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
                 else
                 {
-                    dimScreen(dimAlpha, true);
+                    dimScreen(dimAlpha, false);
+                    Glfw.SwapBuffers(window);
                 }
 
                 // Render Frame

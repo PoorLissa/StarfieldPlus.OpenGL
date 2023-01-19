@@ -28,6 +28,8 @@ namespace my
         private static float reverseFactor = 0.99999f;
         private static float resistFactor = 0.99999f;
 
+        private static int proc = 0;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_230()
@@ -55,10 +57,12 @@ namespace my
         {
             N = (N == 0) ? 100 + rand.Next(100) : N;
             N = 2345;
-            //N = 3333;
+            N = 3333;
 
             doUseRandomMass = myUtils.randomBool(rand);
-doUseRandomMass = false;
+
+            //doUseRandomMass = false;
+            proc = 2;
 
             // Determine the number of threads we need
             {
@@ -79,6 +83,7 @@ doUseRandomMass = false;
             string str = $"Obj = myObj_230\n\n" +
                             $"N = {list.Count} of {N}\n" +
                             $"nTaskCount = {nTaskCount}\n" +
+                            $"proc = {proc}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -417,8 +422,6 @@ doUseRandomMass = false;
 
             // Threading
             {
-                int proc = 2;
-
                 if (nTaskCount == 0)
                 {
                     proc = 0;
@@ -551,8 +554,6 @@ doUseRandomMass = false;
                     inst.SetColorA(0);
                     inst.Draw(false);
                 }
-
-                //System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -633,17 +634,8 @@ doUseRandomMass = false;
 
             while (!Glfw.WindowShouldClose(window))
             {
-                // Wait until all the threads have finished
-#if true
-                // try -1, 0, 1, and also new TimeSpan(0, 0, 0, 0, 1)
-                // try true and false -- don't know the diff -- the manual says there's no diff in my case
-                // try using while and using just a call
-                //while (!System.Threading.WaitHandle.WaitAll(pauseEvents, 0, true))
+                while (System.Threading.WaitHandle.WaitAll(pauseEvents, 0, true))
                     ;
-#else
-                while (activeThreads != 0)
-                    ;
-#endif
 
                 processInput(window);
 
