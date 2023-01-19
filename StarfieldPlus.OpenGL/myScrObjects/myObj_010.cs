@@ -158,8 +158,7 @@ namespace my
 
             Size = rand.Next(maxSize) + 1;
 
-            A = (float)rand.NextDouble();
-
+            A = myUtils.randFloat(rand);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             angle = 0;
@@ -361,12 +360,59 @@ namespace my
 
                 if (doClearBuffer)
                 {
+                    // Clear the screen completely
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
                 else
                 {
-                    // Dim the screen constantly
-                    dimScreen(dimAlpha, doShiftColor: true);
+                    // Dim the screen
+#if false
+                    if (false)
+                    {
+                        // what seems to be working: but not very well
+                        glBlendColor(0.15f, 0.15f, 0.15f, 0.0001f);
+                        glBlendEquation(GL_FUNC_ADD);
+                        glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_CONSTANT_COLOR);
+                    }
+
+                    // d = dest == img in the buffer
+                    // s = sorc == new pixels to add
+
+                    if (false)
+                    {
+                        glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);      // Res = Rd*dR - Rs*sR;
+                        //glBlendEquation(GL_FUNC_SUBTRACT);            // Res = Rs*sR - Rd*dR;
+
+                        glBlendEquation(GL_FUNC_ADD);
+                        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                        glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+                    }
+
+                    switch (cnt % 3)
+                    {
+                        case 0:
+                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                            break;
+
+                        case 1:
+                            glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+                            break;
+
+                        case 2:
+                            glBlendColor(0.1f, 0.1f, 0.1f, 0.01f);
+                            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_CONSTANT_COLOR);
+                            break;
+                    }
+
+                    myPrimitive._Rectangle.SetColor(0, 0, 0, dimAlpha);
+                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+
+                    // Restore the default blending mode
+                    glBlendEquation(GL_FUNC_ADD);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#else
+                    dimScreen(dimAlpha);
+#endif
                 }
 
                 inst.ResetBuffer();
@@ -508,6 +554,7 @@ namespace my
             }
 
             myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrCleaner();
 
             if (doConnect)
             {
