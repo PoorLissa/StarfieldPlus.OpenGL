@@ -15,10 +15,10 @@ namespace my
     {
         private int x, y, dx, dy, oldx, oldy, iterCounter, colorCounter;
         private float size, A, R, G, B, dR, dG, dB;
-        private bool isStatic = false, doClearScreen = false;
+        private bool isStatic = false;
 
         private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
-        private static int sinRepeater = 1, sinConst1_i = 1, sinConst2 = 0, sinConstCnt = 0;
+        private static int sinRepeater = 1, sinConst1_i = 1, sinConst2 = 0, sinConstCnt = 0, stepsPerFrame = 1;
         private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, sinConst1_f = 0, dRstatic, dGstatic, dBstatic;
         private static bool showStatics = false, reuseStatics = false, doIncrementSinConst = false;
 
@@ -42,11 +42,12 @@ namespace my
         // One-time initialization
         private void init()
         {
-            gl_x0 = gl_Width  / 2;
-            gl_y0 = gl_Height / 2;
+            doClearBuffer = false;
 
             N = (N == 0) ? 333 + rand.Next(111) : N;
-            renderDelay = 2;
+
+            stepsPerFrame = rand.Next(5) + 1;
+            renderDelay = 1 + stepsPerFrame;
 
             dimAlpha = 0.001f * (rand.Next(10) + 1);
 
@@ -133,7 +134,6 @@ namespace my
 
             init();
 
-            doClearScreen = true;
             shape = oldShape;
         }
 
@@ -142,7 +142,7 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             return $"Obj = myObj_042\n\n" +
-                            $"N = {N}\n" +
+                            $"N = {list.Count} of {N}\n" +
                             $"shape = {shape}\n" +
                             $"moveMode = {moveMode}\n" +
                             $"colorMode = {colorMode}\n" +
@@ -157,6 +157,7 @@ namespace my
                             $"baseSize = {baseSize}\n" +
                             $"showStatics = {showStatics}\n" +
                             $"reuseStatics = {reuseStatics}\n" +
+                            $"stepsPerFrame = {stepsPerFrame}\n" +
                             $"renderDelay = {renderDelay}";
             }
 
@@ -628,7 +629,9 @@ namespace my
             Glfw.SwapInterval(0);
 
             for (int i = 0; i < N; i++)
+            {
                 list.Add(new myObj_042());
+            }
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -641,29 +644,29 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                dimScreen(useStrongerDimFactor: dimAlpha < 0.05f);
+                dimScreen(dimAlpha, useStrongerDimFactor: dimAlpha < 0.05f);
 
-                if (doClearScreen)
+                // Render frame
                 {
-                    doClearScreen = false;
-                    glClear(GL_COLOR_BUFFER_BIT);
+                    inst.ResetBuffer();
+
+                    for (int step = 0; step != stepsPerFrame; step++)
+                    {
+                        for (int i = 0; i != list.Count; i++)
+                        {
+                            var obj = list[i] as myObj_042;
+
+                            if (obj.isStatic)
+                                staticsCnt++;
+
+                            obj.Show();
+                            obj.Move();
+                        }
+                    }
+
+                    inst.SetColorA(0);
+                    inst.Draw(false);
                 }
-
-                inst.ResetBuffer();
-
-                for (int i = 0; i < list.Count; i++)
-                {
-                    var obj = list[i] as myObj_042;
-
-                    obj.Show();
-                    obj.Move();
-
-                    if (obj.isStatic)
-                        staticsCnt++;
-                }
-
-                inst.SetColorA(0);
-                inst.Draw(false);
 
                 cnt++;
 
@@ -691,30 +694,9 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
-            myPrimitive.init_LineInst(N);
+            //myPrimitive.init_LineInst(N * stepsPerFrame);
 
-            base.initShapes(shape, N, 0);
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Dim the screen constantly
-        private void dimScreen(bool useStrongerDimFactor = false)
-        {
-            int rnd = rand.Next(101), dimFactor = 1;
-
-            if (useStrongerDimFactor && rnd < 11)
-            {
-                dimFactor = (rnd == 0) ? 5 : 2;
-            }
-
-            myPrimitive._Rectangle.SetAngle(0);
-
-            // Shift background color just a bit, to hide long lasting traces of shapes
-            myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
-            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+            base.initShapes(shape, N * stepsPerFrame, 0);
 
             return;
         }
