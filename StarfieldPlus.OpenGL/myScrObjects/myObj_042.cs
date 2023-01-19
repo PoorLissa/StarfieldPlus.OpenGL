@@ -20,27 +20,30 @@ namespace my
         private static int N = 0, moveMode = 0, colorMode = 0, shape = 0, baseSize = 0, spd = 0, divider = 0, angle = 0, divX = 1, divY = 1, divMax = 1;
         private static int sinRepeater = 1, sinConst1_i = 1, sinConst2 = 0, sinConstCnt = 0, stepsPerFrame = 1;
         private static float moveConst = 0.0f, time = 0.0f, dimAlpha = 0.0f, maxA = 0.33f, sinConst1_f = 0, dRstatic, dGstatic, dBstatic;
-        private static bool showStatics = false, reuseStatics = false, doIncrementSinConst = false;
+        private static bool showStatics = false, reuseStatics = false, doIncrementSinConst = false, doVaryOpacity = true, doUseStrongDim = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_042()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
         {
             doClearBuffer = false;
 
@@ -56,10 +59,12 @@ namespace my
             shape = rand.Next(5);
             divMax = 111 + rand.Next(3333);
             moveMode = rand.Next(34);
-            colorMode = rand.Next(4);
+            colorMode = rand.Next(6);
             sinRepeater = rand.Next(10) + 1;
 
             doIncrementSinConst = myUtils.randomChance(rand, 1, 5);
+            doVaryOpacity       = myUtils.randomChance(rand, 3, 5);
+            doUseStrongDim      = dimAlpha >= 0.05f ? false : myUtils.randomChance(rand, 1, 2);
 
             if (doIncrementSinConst)
             {
@@ -119,10 +124,12 @@ namespace my
             }
 
 #if false
+            moveMode = 2;
+            divMax = 123;
             moveConst = 4.01f;
             divider = 2;
+            shape = 0;
 #endif
-
             return;
         }
 
@@ -132,7 +139,7 @@ namespace my
         {
             var oldShape = shape;
 
-            init();
+            initLocal();
 
             shape = oldShape;
         }
@@ -142,22 +149,23 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             return $"Obj = myObj_042\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"shape = {shape}\n" +
-                            $"moveMode = {moveMode}\n" +
-                            $"colorMode = {colorMode}\n" +
-                            $"moveConst = {moveConst}\n" +
-                            $"divider = {divider}\n" +
-                            $"sinRepeater = {sinRepeater}\n" +
-                            $"sinConst1_i = {sinConst1_i} (doIncrement = {doIncrementSinConst})\n" +
-                            $"sinConst1_f = {sinConst1_f} (doIncrement = {doIncrementSinConst})\n" +
-                            $"spd = {spd}\n" +
-                            $"divMax = {divMax}\n" +
-                            $"dimAlpha = {dimAlpha}\n" +
-                            $"baseSize = {baseSize}\n" +
-                            $"showStatics = {showStatics}\n" +
-                            $"reuseStatics = {reuseStatics}\n" +
-                            $"stepsPerFrame = {stepsPerFrame}\n" +
+                            $"N = {list.Count} of {N}\n"                                            +
+                            $"shape = {shape}\n"                                                    +
+                            $"baseSize = {baseSize}\n"                                              +
+                            $"dimAlpha = {dimAlpha}\n"                                              +
+                            $"moveMode = {moveMode}\n"                                              +
+                            $"colorMode = {colorMode}\n"                                            +
+                            $"moveConst = {moveConst}\n"                                            +
+                            $"divider = {divider}\n"                                                +
+                            $"sinRepeater = {sinRepeater}\n"                                        +
+                            $"sinConst1_i = {sinConst1_i} (doIncrement = {doIncrementSinConst})\n"  +
+                            $"sinConst1_f = {sinConst1_f} (doIncrement = {doIncrementSinConst})\n"  +
+                            $"spd = {spd}\n"                                                        +
+                            $"divMax = {divMax}\n"                                                  +
+                            $"showStatics = {showStatics}\n"                                        +
+                            $"reuseStatics = {reuseStatics}\n"                                      +
+                            $"doVaryOpacity = {doVaryOpacity}\n"                                    +
+                            $"stepsPerFrame = {stepsPerFrame}\n"                                    +
                             $"renderDelay = {renderDelay}";
             }
 
@@ -168,9 +176,9 @@ namespace my
             dx = 0;
             dy = 0;
 
-            R = 1;
-            G = 1;
-            B = 1;
+            R = 1.0f - myUtils.randFloat(rand) / 11;
+            G = 1.0f - myUtils.randFloat(rand) / 11;
+            B = 1.0f - myUtils.randFloat(rand) / 11;
 
             A = maxA;
             size = baseSize;
@@ -191,6 +199,8 @@ namespace my
 
                 int dist = (int)Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0));
 
+                // dx and dy are not used in every moveMode;
+                // also, their impact is questionable
                 dx = (x - gl_x0) * speed / dist;
                 dy = (y - gl_y0) * speed / dist;
 
@@ -294,6 +304,32 @@ namespace my
                         B += colorMode == 3 ? dB : dBstatic;
                         colorCounter++;
                         break;
+                    }
+                    break;
+
+                // Randomly change only one of the R-G-B components
+                case 5:
+                    {
+                        if (myUtils.randomChance(rand, 1, 101))
+                        {
+                            switch (rand.Next(3))
+                            {
+                                case 0:
+                                    R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                                    R = R < 0 ? 0 : R;
+                                    break;
+
+                                case 1:
+                                    G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                                    G = G < 0 ? 0 : G;
+                                    break;
+
+                                case 2:
+                                    B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                                    B = B < 0 ? 0 : B;
+                                    break;
+                            }
+                        }
                     }
                     break;
             }
@@ -573,13 +609,24 @@ namespace my
         {
             if (!isStatic || showStatics)
             {
+                //size = 0.3675f; // min for shape 0-1-3-4
+                //size = 0.725f;  // min for shape 2
+
+                float size2x = size * 2;
+                float a = A;
+
+                if (doVaryOpacity)
+                {
+                    a = A + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.33f;
+                }
+
                 switch (shape)
                 {
                     case 0:
                         var rectInst = inst as myRectangleInst;
 
-                        rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                        rectInst.setInstanceColor(R, G, B, A);
+                        rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        rectInst.setInstanceColor(R, G, B, a);
                         rectInst.setInstanceAngle(angle);
                         break;
 
@@ -593,21 +640,21 @@ namespace my
                     case 2:
                         var ellipseInst = inst as myEllipseInst;
 
-                        ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                        ellipseInst.setInstanceCoords(x, y, size2x, angle);
                         ellipseInst.setInstanceColor(R, G, B, A);
                         break;
 
                     case 3:
                         var pentagonInst = inst as myPentagonInst;
 
-                        pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                        pentagonInst.setInstanceCoords(x, y, size2x, angle);
                         pentagonInst.setInstanceColor(R, G, B, A);
                         break;
 
                     case 4:
                         var hexagonInst = inst as myHexagonInst;
 
-                        hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                        hexagonInst.setInstanceCoords(x, y, size2x, angle);
                         hexagonInst.setInstanceColor(R, G, B, A);
                         break;
                 }
@@ -644,7 +691,7 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                dimScreen(dimAlpha, useStrongerDimFactor: dimAlpha < 0.05f);
+                dimScreen(dimAlpha, doUseStrongDim);
 
                 // Render frame
                 {
