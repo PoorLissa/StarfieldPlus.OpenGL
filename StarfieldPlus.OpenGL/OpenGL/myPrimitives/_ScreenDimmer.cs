@@ -11,13 +11,17 @@ public class myScrDimmer : myPrimitive
     private static float[] vertices = null;
     private static int locationColor = 0;
 
+    private const int verticesLength = 12;
+    private const int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
+    private const int sizeofFloat_x_3 = sizeof(float) * 3;
+
     // -------------------------------------------------------------------------------------------------------------------
 
     public myScrDimmer()
     {
         if (vertices == null)
         {
-            vertices = new float[12];
+            vertices = new float[verticesLength];
 
             CreateProgram();
             glUseProgram(shaderProgram);
@@ -48,21 +52,29 @@ public class myScrDimmer : myPrimitive
 
     public void Draw()
     {
-        unsafe void __draw()
+        glUseProgram(shaderProgram);
+        glUniform4f(locationColor, _r, _g, _b, _a);
+
+        // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
+        unsafe
         {
+            // Bind a buffer;
+            // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            {
+                // Copy user-defined data into the currently bound buffer:
+                fixed (float* v = &vertices[0])
+                    glBufferData(GL_ARRAY_BUFFER, sizeofFloat_x_verticesLength, v, GL_STREAM_DRAW);
+            }
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeofFloat_x_3, NULL);
+            glEnableVertexAttribArray(0);
+
+            // Draw
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
         }
-
-        // ---------------------------------------------------------------------------------------
-
-        glUseProgram(shaderProgram);
-        glUniform4f(locationColor, _r, _g, _b, _a);
-
-        updateVertices();
-
-        __draw();
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -91,24 +103,6 @@ public class myScrDimmer : myPrimitive
         glDeleteShader(fragment);
 
         return;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
-    private static unsafe void updateVertices()
-    {
-        // Bind a buffer;
-        // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        {
-            // Copy user-defined data into the currently bound buffer:
-            fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_STATIC_COPY);
-        }
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
-        glEnableVertexAttribArray(0);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
