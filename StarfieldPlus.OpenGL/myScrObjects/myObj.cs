@@ -29,7 +29,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public static int gl_Width, gl_Height, gl_x0, gl_y0, renderDelay = 25;
+        public static int gl_Width, gl_Height, gl_x0, gl_y0, renderDelay = 25, stepsPerFrame = 1;
         private static uint s_id = uint.MaxValue;
         private static double cursorx = 0, cursory = 0;
 

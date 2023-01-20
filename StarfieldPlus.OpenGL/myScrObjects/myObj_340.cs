@@ -1,28 +1,27 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
 
 
 /*
-    - Empty object. Use as a template to create new objects
+    - Grid covered with hexagons -- unfinished yet
 */
 
 
 namespace my
 {
-    public class myObj_empty : myObject
+    public class myObj_340 : myObject
     {
         private int x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, baseSize = 0, zzz = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_empty()
+        public myObj_340()
         {
             generateNew();
         }
@@ -37,7 +36,9 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
+                N = 1;
+                shape = 4;
+                doClearBuffer = false;
             }
 
             initLocal();
@@ -48,7 +49,13 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            baseSize = 100;
+
+            dimAlpha = 0.01f;
+
+            zzz = rand.Next(50) + 23;
+
+            doFillShapes = myUtils.randomBool(rand);
 
             return;
         }
@@ -59,7 +66,7 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_empty\n\n" +
+            string str = $"Obj = myObj_340\n\n" +
                             $"N = {list.Count} of {N}\n" +
                             "" + 
                             $"file: {colorPicker.GetFileName()}" +
@@ -80,15 +87,16 @@ namespace my
 
         protected override void generateNew()
         {
+            size = baseSize;
+
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            size = rand.Next(11) + 3;
+            x -= x % (zzz);
+            y -= y % (zzz);
 
-            A = 1;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
+            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            A = myUtils.randFloat(rand, 0.25f);
 
             return;
         }
@@ -97,6 +105,8 @@ namespace my
 
         protected override void Move()
         {
+            generateNew();
+
             return;
         }
 
@@ -104,49 +114,10 @@ namespace my
 
         protected override void Show()
         {
-            switch (shape)
-            {
-                // Instanced squares
-                case 0:
-                    var rectInst = inst as myRectangleInst;
+            var hexagonInst = inst as myHexagonInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-                    break;
-
-                // Instanced triangles
-                case 1:
-                    var triangleInst = inst as myTriangleInst;
-
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced circles
-                case 2:
-                    var ellipseInst = inst as myEllipseInst;
-
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced pentagons
-                case 3:
-                    var pentagonInst = inst as myPentagonInst;
-
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
-                case 4:
-                    var hexagonInst = inst as myHexagonInst;
-
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
-                    break;
-            }
+            hexagonInst.setInstanceCoords(x, y, size * 2, angle);
+            hexagonInst.setInstanceColor(R, G, B, A);
 
             return;
         }
@@ -174,13 +145,14 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                cnt++;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                // Dim screen
                 {
                     if (doClearBuffer)
                     {
@@ -198,7 +170,7 @@ namespace my
 
                     for (int i = 0; i < list.Count; i++)
                     {
-                        var obj = list[i] as myObj_empty;
+                        var obj = list[i] as myObj_340;
 
                         obj.Show();
                         obj.Move();
@@ -207,7 +179,7 @@ namespace my
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
+                        inst.SetColorA(-0.1f);
                         inst.Draw(true);
                     }
 
@@ -218,10 +190,9 @@ namespace my
 
                 if (list.Count < N)
                 {
-                    list.Add(new myObj_empty());
+                    list.Add(new myObj_340());
                 }
 
-                cnt++;
                 System.Threading.Thread.Sleep(renderDelay);
             }
 

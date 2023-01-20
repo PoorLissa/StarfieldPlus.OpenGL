@@ -19,7 +19,7 @@ namespace my
 
         private static int N = 0, moveMode = 0, colorMode = 0, sizeMode = 0;
         private static int shape = 0, baseSize = 0, spd = 0, divider = 0, divX = 1, divY = 1, divMax = 1;
-        private static int sinRepeater = 1, sinConst1_i = 1, sinConst2 = 0, sinConstCnt = 0, stepsPerFrame = 1;
+        private static int sinRepeater = 1, sinConst1_i = 1, sinConst2 = 0, sinConstCnt = 0;
         private static float moveConst = 0.0f, dimAlpha = 0.0f, maxOpacity = 0.33f, sinConst1_f = 0, dRstatic, dGstatic, dBstatic, secondOpacityFactor = 1;
         private static bool doShowStatics = false, doReuseStatics = false, doIncrementSinConst = false, doVaryOpacity = true, doUseStrongDim = false;
         private static bool doRotate = false, doDrawTwice = true;

@@ -16,48 +16,54 @@ namespace my
         private int dxi, dyi, oldX, oldY;
         private float dxf = 0, dyf = 0, x = 0, y = 0, time = 0, size = 0, A = 0, dA = 0, angle, dAngle;
 
-        static float dimAlpha = 0.0f, R = 1, G = 1, B = 1;
-        static int N = 0, x0 = 0, y0 = 0, moveMode = -1, shape = -1, speedMode = -1, t = -1, fillMode = 0, lineMode = 0, maxRnd = 0;
+        private static float dimAlpha = 0.0f, R = 1, G = 1, B = 1;
+        private static int N = 0, x0 = 0, y0 = 0;
+        private static int moveMode = 0, shape = 0, speedMode = 0, fillMode = 0, lineMode = 0, colorMode = 0, maxRnd = 0;
+        private static bool doUseStrongerDim = true;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_041()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                init();
-            }
-
             generateNew();
-
-            time = 0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
         {
-            gl_x0 = gl_Width / 2;
-            gl_y0 = gl_Height / 2;
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
 
-            N = (N == 0) ? 1111 + rand.Next(333) : N;
+            // Global immutable consts
+            {
+                doClearBuffer = false;
+
+                N = 1111 + rand.Next(333);
+                shape = rand.Next(5);
+            }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
             renderDelay = 10;
 
             maxRnd = rand.Next(20) + 1;
 
-            shape = rand.Next(5);
-            lineMode = rand.Next(5);
-            moveMode = rand.Next(19);
+            lineMode  = rand.Next(5);
+            moveMode  = rand.Next(19);
             speedMode = rand.Next(2);
-            fillMode = rand.Next(3);
-            t = rand.Next(15) + 1;
+            fillMode  = rand.Next(3);
+            colorMode = rand.Next(2);
 
-            x0 = gl_Width / 2;
-            y0 = gl_Height / 2;
+            x0 = gl_x0;
+            y0 = gl_y0;
 
             x0 += rand.Next(gl_Width) - x0;
 
@@ -76,6 +82,8 @@ namespace my
                     break;
             }
 
+            doUseStrongerDim = dimAlpha < 0.05f;
+
             return;
         }
 
@@ -83,20 +91,27 @@ namespace my
 
         protected override void setNextMode()
         {
+            list.Clear();
+
+            initLocal();
+
+            dimScreen(0.5f);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            return $"Obj = myObj_041\n\n" +
-                            $"N = {N}\n" +
-                            $"moveMode = {moveMode}\n" +
-                            $"dimAlpha = {dimAlpha}\n" +
-                            $"fillMode = {fillMode}\n" +
-                            $"lineMode = {lineMode}\n" +
+            return $"Obj = myObj_041\n\n"                               +
+                            $"N = {list.Count} of {N}\n"                +
+                            $"doClearBuffer = {doClearBuffer}\n"        +
+                            $"dimAlpha = {dimAlpha.ToString("0.00")}\n" +
+                            $"moveMode = {moveMode}\n"                  +
+                            $"colorMode = {colorMode}\n"                +
+                            $"fillMode = {fillMode}\n"                  +
+                            $"lineMode = {lineMode}\n"                  +
                             $"maxRnd = {maxRnd}\n"
-                            ;
+                ;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -135,6 +150,19 @@ namespace my
 
             oldX = (int)x;
             oldY = (int)y;
+
+            switch (colorMode)
+            {
+                case 0:
+                    R = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                    G = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                    B = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                    break;
+
+                case 1:
+                    colorPicker.getColorRand(ref R, ref G, ref B);
+                    break;
+            }
 
             A = 0;
             dA = 0.0001f * (rand.Next(100) + 1);
@@ -300,11 +328,6 @@ namespace my
             A += dA;
             angle += dAngle;
 
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height || A < 0)
-            {
-                generateNew();
-            }
-
             if (A > 3.0f && dA > 0)
             {
                 dA *= -1.25f;
@@ -316,6 +339,11 @@ namespace my
                 y0 += rand.Next(11) - 5;
             }
 
+            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height || A < 0)
+            {
+                generateNew();
+            }
+
             return;
         }
 
@@ -323,12 +351,14 @@ namespace my
 
         protected override void Show()
         {
+            float size2x = size * 2;
+
             switch (shape)
             {
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
+                    rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
                     rectInst.setInstanceColor(R, G, B, A);
                     rectInst.setInstanceAngle(angle);
                     break;
@@ -343,26 +373,26 @@ namespace my
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
                     ellipseInst.setInstanceColor(R, G, B, A);
                     break;
 
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
                     pentagonInst.setInstanceColor(R, G, B, A);
                     break;
 
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
             }
 
-            if (lineMode > 0)
+            if (lineMode != 0)
             {
                 myPrimitive._LineInst.setInstanceCoords(x, y, oldX, oldY);
 
@@ -387,8 +417,10 @@ namespace my
 
         protected override void Process(Window window)
         {
+            int i;
             initShapes();
 
+            dimScreenRGB_SetRandom(0.1f);
             glDrawBuffer(GL_FRONT_AND_BACK);
 
             while (!Glfw.WindowShouldClose(window))
@@ -399,29 +431,48 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                dimScreen(useStrongerDimFactor: dimAlpha < 0.05f);
-
-                inst.ResetBuffer();
-                myPrimitive._LineInst.ResetBuffer();
-
-                for (int i = 0; i < list.Count; i++)
+                // Dim screen
                 {
-                    var obj = list[i] as myObj_041;
+                    // Modify background color occasionally
+                    if (myUtils.randomChance(rand, 1, 10001))
+                    {
+                        dimScreenRGB_Adjust(0.1f);
+                    }
 
-                    obj.Show();
-                    obj.Move();
+                    dimScreen(dimAlpha, false, doUseStrongerDim);
                 }
 
-                myPrimitive._LineInst.Draw();
-
-                if (fillMode > 0)
+                // Render frame
                 {
-                    inst.SetColorA(-0.25f);
-                    inst.Draw(true);
-                }
+                    inst.ResetBuffer();
 
-                inst.SetColorA(0);
-                inst.Draw(false);
+                    if (lineMode != 0)
+                    {
+                        myPrimitive._LineInst.ResetBuffer();
+                    }
+
+                    for (i = 0; i < list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_041;
+
+                        obj.Show();
+                        obj.Move();
+                    }
+
+                    if (lineMode != 0)
+                    {
+                        myPrimitive._LineInst.Draw();
+                    }
+
+                    if (fillMode > 0)
+                    {
+                        inst.SetColorA(-0.25f);
+                        inst.Draw(true);
+                    }
+
+                    inst.SetColorA(0);
+                    inst.Draw(false);
+                }
 
                 if (list.Count < N)
                 {
@@ -440,31 +491,10 @@ namespace my
         {
             int lineN = N;
 
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(lineN);
 
             base.initShapes(shape, N, 0);
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Dim the screen constantly
-        private void dimScreen(bool useStrongerDimFactor = false)
-        {
-            int rnd = rand.Next(101), dimFactor = 1;
-
-            if (useStrongerDimFactor && rnd < 11)
-            {
-                dimFactor = (rnd == 0) ? 5 : 2;
-            }
-
-            myPrimitive._Rectangle.SetAngle(0);
-
-            // Shift background color just a bit, to hide long lasting traces of shapes
-            myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
-            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
 
             return;
         }

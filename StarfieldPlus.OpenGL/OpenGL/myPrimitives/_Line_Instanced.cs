@@ -11,6 +11,7 @@ public class myLineInst : myInstancedPrimitive
 
     private static uint vbo = 0, instVbo = 0, shaderProgram = 0;
     private static int locationScrSize = 0;
+    private static int floatTimesN = 0;
     private static float _angle = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ public class myLineInst : myInstancedPrimitive
             instanceArray = new float[maxInstCount * n];
 
             autoDrawCnt = maxInstCount * n - 8;
+            floatTimesN = sizeof(float) * n;
 
             vertices[0] = -0.5f;
             vertices[1] = +0.0f;
@@ -186,10 +188,10 @@ public class myLineInst : myInstancedPrimitive
                     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, a, GL_DYNAMIC_COPY);
 
                 glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 4, GL_FLOAT, false, n * sizeof(float), NULL);
+                glVertexAttribPointer(1, 4, GL_FLOAT, false, floatTimesN, NULL);
 
                 glEnableVertexAttribArray(2);
-                glVertexAttribPointer(2, 4, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
+                glVertexAttribPointer(2, 4, GL_FLOAT, false, floatTimesN, new IntPtr(1 * 4 * sizeof(float)));
 
                 // Tell OpenGL this is an instanced vertex attribute
                 glVertexAttribDivisor(1, 1);

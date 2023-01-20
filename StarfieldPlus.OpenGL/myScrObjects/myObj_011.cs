@@ -23,7 +23,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static int N = 1, pN = 1, moveMode = 0, borderOffset = 0, stepsPerFrame = 1;
+        private static int N = 1, pN = 1, moveMode = 0, borderOffset = 0;
         private static bool doCleanOnce = false, doAddAtOnce = false;
         private static float dimAlpha = 0.01f, t = 0, maxOpacity = 0;
 
@@ -291,6 +291,7 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
+            int step, i;
             float bgrR = myUtils.randFloat(rand) * 0.05f;
             float bgrG = myUtils.randFloat(rand) * 0.05f;
             float bgrB = myUtils.randFloat(rand) * 0.05f;
@@ -339,9 +340,9 @@ namespace my
                 {
                     myPrimitive._LineInst.ResetBuffer();
 
-                    for (int step = 0; step < stepsPerFrame; step++)
+                    for (step = 0; step < stepsPerFrame; step++)
                     {
-                        for (int i = 0; i < list.Count; i++)
+                        for (i = 0; i < list.Count; i++)
                         {
                             var obj = list[i] as myObj_011;
                             obj.Show();

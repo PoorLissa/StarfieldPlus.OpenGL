@@ -20,7 +20,7 @@ namespace my
 
         private enum ScreenMode { Active, Start = 10, ManualSwitch = 33, Transition = 125 };
 
-        private static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0, repeatMode = 1;
+        private static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0;
         private static int [] prm_i = new int[5];
         private static bool isDimmableGlobal = true, isDimmableLocal = false;
         private static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
@@ -46,7 +46,10 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
-            doClearBuffer = false;
+            // Global immutable consts
+            {
+                doClearBuffer = false;
+            }
 
             initLocal();
         }
@@ -75,16 +78,15 @@ namespace my
                 str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
             }
 
-            string str = $"Obj = myObj_132\n\n" +
-                            $"N = {N} of {list.Count}\n" +
-                            $"mode = {mode}\n" +
-                            $"repeatMode = {repeatMode}\n" +
-                            $"dimAlpha = {dimAlpha}\n" +
-                            $"dSize = {dSize}\n" +
-                            $"fLifeCnt = {fLifeCnt}\n" +
-                            $"param: [{str_params}]\n\n" +
-                            $"file: {colorPicker.GetFileName()}" +
-                            $""
+            string str = $"Obj = myObj_132\n\n"                  +
+                            $"N = {list.Count} of {N}\n"         +
+                            $"mode = {mode}\n"                   +
+                            $"stepsPerFrame = {stepsPerFrame}\n" +
+                            $"dimAlpha = {dimAlpha}\n"           +
+                            $"dSize = {dSize}\n"                 +
+                            $"fLifeCnt = {fLifeCnt}\n"           +
+                            $"param: [{str_params}]\n\n"         +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -119,21 +121,21 @@ namespace my
             // Number of particle iterations between 2 consequent frame renders
             if (myUtils.randomChance(rand, 1, 13))
             {
-                repeatMode = rand.Next(123) + 1;
+                stepsPerFrame = rand.Next(123) + 1;
             }
             else
             {
-                repeatMode = rand.Next(7) + 1;
+                stepsPerFrame = rand.Next(7) + 1;
             }
 
             // Adjust dimming rate for the repeating speed
             if (myUtils.randomChance(rand, 1, 2))
             {
-                dimAlpha /= repeatMode;
+                dimAlpha /= stepsPerFrame;
             }
             else
             {
-                dimAlpha *= repeatMode;
+                dimAlpha *= stepsPerFrame;
             }
 
             x = rand.Next(gl_Width);
@@ -435,7 +437,7 @@ namespace my
 
                 move_0();
 
-                if ((fLifeCnt -= fdLifeCnt / repeatMode) < 0)
+                if ((fLifeCnt -= fdLifeCnt / stepsPerFrame) < 0)
                 {
                     generateNew();
                 }
@@ -1616,6 +1618,8 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
+            int i, step;
+
             initShapes();
 
             list.Add(new myObj_132());
@@ -1630,10 +1634,9 @@ namespace my
             }
             else
             {
+                dimScreenRGB_SetRandom(0.1f);
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
-
-            float ddalpha = 0.0001f;
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -1645,30 +1648,29 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                if (doClearBuffer)
+                // Dim screen
                 {
-                    glClear(GL_COLOR_BUFFER_BIT);
-                }
-                else
-                {
-                    dimScreen(dimAlpha, doShiftColor: true);
-/*
-                    dimAlpha -= ddalpha;
-
-                    if (dimAlpha < 0 || dimAlpha > 0.01f )
-                        ddalpha *= -1;
-*/
+                    if (doClearBuffer)
+                    {
+                        glClear(GL_COLOR_BUFFER_BIT);
+                    }
+                    else
+                    {
+                        dimScreen(dimAlpha);
+                    }
                 }
 
                 // Render Frame
-                for (int repeat = 0; repeat < repeatMode; repeat++)
                 {
-                    for (int i = 0; i < list.Count; i++)
+                    for (step = 0; step < stepsPerFrame; step++)
                     {
-                        var obj = list[i] as myObj_132;
+                        for (i = 0; i < list.Count; i++)
+                        {
+                            var obj = list[i] as myObj_132;
 
-                        obj.Show();
-                        obj.Move();
+                            obj.Show();
+                            obj.Move();
+                        }
                     }
                 }
 

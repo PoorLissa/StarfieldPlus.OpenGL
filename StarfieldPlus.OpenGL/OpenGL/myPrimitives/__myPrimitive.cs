@@ -170,6 +170,11 @@ public class myInstancedPrimitive : myPrimitive
     public void ResetBuffer()
     {
         instArrayPosition = 0;
+
+        // Reset N as well;
+        // In case we don't do that,
+        // ResetBuffer() followed by immediate Draw(), will still draw everything what's in the current buffer
+        N = 0;
     }
 
     // ---------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Branches/snakes moving outwards
+    - Snake-like branches moving outwards from the center
 */
 
 
@@ -14,43 +14,64 @@ namespace my
     public class myObj_040 : myObject
     {
         private float x, y, dx, dy, size, dSize, R, G, B, A, dA, angle, dAngle;
-        int angleMode = 0, signX, signY, oldX = 0, oldY = 0;
+        private int angleMode = 0, signX, signY, oldX = 0, oldY = 0;
 
-        static float dimAlpha = 0;
-        static int N = 0, rndMax = 0, shape = 0, moveType = 0, dimRate = 0, maxSize = 0, lineMode = 0, fillMode = 0;
+        private static float dimAlpha = 0;
+        private static int N = 0, rndMax = 0, shape = 0, moveType = 0, dimRate = 0, maxSize = 0, offX = 0, offY = 0,
+                           lineMode = 0, fillMode = 0, centerGenMode = 0, tailLength = 0;
+        static bool doUseStrongerDimFactor = false, doDrawTwice = true, doAdjustOpacity = true, doAdjustSpeed = true;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_040()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
         {
-            gl_x0 = gl_Width  / 2;
-            gl_y0 = gl_Height / 2;
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
 
-            N = (N == 0) ? 1111 + rand.Next(333) : N;
+            // Global immutable consts
+            {
+                doClearBuffer = false;
+                doDrawTwice   = myUtils.randomBool(rand);
+
+                shape = rand.Next(5);
+                N = 1111 + rand.Next(333);
+                stepsPerFrame = rand.Next(5) + 1;
+            }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
             renderDelay = 10;
 
-            shape = rand.Next(5);
             moveType = rand.Next(14);
-            lineMode = rand.Next(5);
+            lineMode = rand.Next(13);                               // Draw straigh line from (x, y) to (xOld, yOld)
             fillMode = rand.Next(3);
+            centerGenMode = rand.Next(3);                           // How dx/dy are generated, also, position of center
+            doAdjustOpacity = myUtils.randomChance(rand, 2, 3);     // If true, reduce opacity for multi-step modes
+            doAdjustSpeed   = myUtils.randomChance(rand, 1, 2);     // If true, reduce dx and dy for multi-step modes
 
+            tailLength = myUtils.randomChance(rand, 1, 2) ? rand.Next(11) : 0;
             rndMax = rand.Next(800) + 100;
+
+            // Coordinates to offset the center
+            if (centerGenMode == 2)
+            {
+                offX = myUtils.randomSign(rand) * rand.Next(gl_x0);
+                offY = myUtils.randomSign(rand) * rand.Next(gl_y0);
+            }
 
             switch (rand.Next(3))
             {
@@ -67,6 +88,8 @@ namespace my
                     break;
             }
 
+            doUseStrongerDimFactor = dimAlpha < 0.05f;
+
             return;
         }
 
@@ -74,54 +97,100 @@ namespace my
 
         protected override void setNextMode()
         {
-            // Keep shape type and connection mode, as changing those requires also reinitializing other primitives;
-            // todo: fix this sometimes later
-            var oldShapeType = shape;
-
             list.Clear();
 
-            init();
-            shape = oldShapeType;
+            initLocal();
+
+            dimScreen(0.5f);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            return $"Obj = myObj_040\n\n" +
-                            $"N = {N}\n" + 
-                            $"moveType = {moveType}\n" +
-                            $"dimAlpha = {dimAlpha}\n" + 
-                            $"rndMax = {rndMax}\n" +
-                            $"fillMode = {fillMode}\n" + 
-                            $"lineMode = {lineMode}"
-                            ;
+            return $"Obj = myObj_040\n\n"                                           +
+                            $"N = {list.Count} of {N}\n"                            +
+                            $"doClearBuffer = {doClearBuffer}\n"                    +
+                            $"doDrawTwice = {doDrawTwice}\n"                        +
+                            $"doUseStrongerDimFactor = {doUseStrongerDimFactor}\n"  +
+                            $"doAdjustOpacity = {doAdjustOpacity}\n"                +
+                            $"doAdjustSpeed = {doAdjustSpeed}\n"                    +
+                            $"moveType = {moveType}\n"                              +
+                            $"dimAlpha = {dimAlpha}\n"                              +
+                            $"tailLength = {tailLength}\n"                          +
+                            $"rndMax = {rndMax}\n"                                  +
+                            $"fillMode = {fillMode}\n"                              +
+                            $"lineMode = {lineMode}\n"                              +
+                            $"centerGenMode = {centerGenMode}\n"                    +
+                            $"stepsPerFrame = {stepsPerFrame}\n"
+                ;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
-            dx = 0;
-            dy = 0;
+            // Calculate x, y, dx, dy
+            {
+                int x0 = 0, y0 = 0;
 
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+                switch (centerGenMode)
+                {
+                    case 0:
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+                        x0 = gl_x0;
+                        y0 = gl_y0;
+                        break;
 
-            oldX = (int)x;
-            oldY = (int)y;
+                    case 1: case 2:
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Width);
+                        x0 = gl_x0;
+                        y0 = gl_x0;
+                        break;
+                }
 
-            float speed = 1.5f + 0.1f * rand.Next(30);
-            float dist = (float)(Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0)));
+                float speed = 1.5f + 0.1f * rand.Next(30);
+                float dist = (float)(Math.Sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0)));
 
-            if (dimRate == 1)
-                speed *= 2.0f;
+                // todo: Not used?..
+                switch (dimRate)
+                {
+                    case 0:                 break;
+                    case 1: speed *= 2.0f;  break;
+                    case 2: speed *= 1.33f; break;
+                }
 
-            if (dimRate == 2)
-                speed *= 1.33f;
+                float factor = speed / dist;
 
-            dx = (x - gl_x0) * speed / dist;
-            dy = (y - gl_y0) * speed / dist;
+                dx = (x - x0) * factor;
+                dy = (y - y0) * factor;
+
+                // Adjust overall speed for multi-step modes
+                if (doAdjustSpeed)
+                {
+                    dx /= stepsPerFrame;
+                    dy /= stepsPerFrame;
+                }
+
+                switch (centerGenMode)
+                {
+                    case 0:
+                        break;
+
+                    case 1:
+                        y -= (gl_Width - gl_Height) / 2;
+                        break;
+
+                    case 2:
+                        y -= (gl_Width - gl_Height) / 2;
+
+                        x += offX;
+                        y += offY;
+                        break;
+                }
+            }
 
             signX = dx > 0 ? 1 : -1;
             signY = dy > 0 ? 1 : -1;
@@ -132,14 +201,20 @@ namespace my
             dAngle = 0.001f * rand.Next(111) * myUtils.randomSign(rand);
             angleMode = rand.Next(3);
 
-            R = 1;
-            G = 1;
-            B = 1;
-            A = 0;
+            R = G = B = A = 0;
 
             dA = 0.0001f * (rand.Next(100) + 1);
 
+            // Adjust overall opacity for multi-step modes
+            if (doAdjustOpacity)
+            {
+                dA /= stepsPerFrame;
+            }
+
             colorPicker.getColorRand(ref R, ref G, ref B);
+
+            oldX = (int)x;
+            oldY = (int)y;
 
             return;
         }
@@ -169,18 +244,18 @@ namespace my
                 case 13: move13(); break;
             }
 
+            switch (angleMode)
+            {
+                case 1: angle += dAngle;                 break;
+                case 2: angle = myUtils.randFloat(rand); break;
+            }
+
+            A += dA;
+
             if (y < 0 || y > gl_Height || x < 0 || x > gl_Width || A < 0)
             {
                 generateNew();
             }
-
-            switch (angleMode)
-            {
-                case 1: angle += dAngle; break;
-                case 2: angle = (float)rand.NextDouble(); break;
-            }
-
-            A += dA;
 
             return;
         }
@@ -189,57 +264,123 @@ namespace my
 
         protected override void Show()
         {
+            float size2x = size * 2;
+
             switch (shape)
             {
                 case 0:
-                    var rectInst = inst as myRectangleInst;
+                    {
+                        var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
+                        rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        rectInst.setInstanceColor(R, G, B, A);
+                        rectInst.setInstanceAngle(angle);
+
+                        if (doDrawTwice)
+                        {
+                            size2x += 2;
+                            rectInst.setInstanceCoords(x - size - 1, y - size - 1, size2x, size2x);
+                            rectInst.setInstanceColor(R, G, B, A * 0.33f);
+                            rectInst.setInstanceAngle(angle);
+                        }
+                    }
                     break;
 
                 case 1:
-                    var triangleInst = inst as myTriangleInst;
+                    {
+                        var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
+                        triangleInst.setInstanceCoords(x, y, size, angle);
+                        triangleInst.setInstanceColor(R, G, B, A);
+
+                        if (doDrawTwice)
+                        {
+                            triangleInst.setInstanceCoords(x, y, size + 2, angle);
+                            triangleInst.setInstanceColor(R, G, B, A * 0.33f);
+                        }
+                    }
                     break;
 
                 case 2:
-                    var ellipseInst = inst as myEllipseInst;
+                    {
+                        var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
+                        ellipseInst.setInstanceCoords(x, y, size2x, angle);
+                        ellipseInst.setInstanceColor(R, G, B, A);
+
+                        if (doDrawTwice)
+                        {
+                            ellipseInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            ellipseInst.setInstanceColor(R, G, B, A * 0.33f);
+                        }
+                    }
                     break;
 
                 case 3:
-                    var pentagonInst = inst as myPentagonInst;
+                    {
+                        var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
+                        pentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        pentagonInst.setInstanceColor(R, G, B, A * 0.33f);
+
+                        if (doDrawTwice)
+                        {
+                            pentagonInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            pentagonInst.setInstanceColor(R, G, B, A * 0.33f);
+                        }
+                    }
                     break;
 
                 case 4:
-                    var hexagonInst = inst as myHexagonInst;
+                    {
+                        var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
+                        hexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        hexagonInst.setInstanceColor(R, G, B, A);
+
+                        if (doDrawTwice)
+                        {
+                            hexagonInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            hexagonInst.setInstanceColor(R, G, B, A * 0.33f);
+                        }
+                    }
                     break;
             }
 
-            if (lineMode > 0)
+            if (lineMode != 0)
             {
-                myPrimitive._LineInst.setInstanceCoords(x, y, oldX, oldY);
+                myPrimitive._LineInst.setInstanceCoords(x, y, oldX - dx * tailLength, oldY - dy * tailLength);
 
                 switch (lineMode)
                 {
+                    // White, opacity = A
                     case 1: case 2:
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, A);
+                        myPrimitive._LineInst.setInstanceColor(1.0f, 1.0f, 1.0f, A);
                         break;
 
+                    // White, opacity = 1
                     case 3: case 4:
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 1);
+                        myPrimitive._LineInst.setInstanceColor(1.0f, 1.0f, 1.0f, 1.0f);
+                        break;
+
+                    // Black , opacity = A
+                    case 5: case 6:
+                        myPrimitive._LineInst.setInstanceColor(0, 0, 0, A);
+                        break;
+
+                    // Black , opacity = 1
+                    case 7: case 8:
+                        myPrimitive._LineInst.setInstanceColor(0, 0, 0, 1.0f);
+                        break;
+
+                    // RGB, opacity = A
+                    case 9: case 10:
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // RGB, opacity = 1
+                    case 11: case 12:
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, 1.0f);
                         break;
                 }
             }
@@ -252,8 +393,10 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
+            int step, i;
             initShapes();
 
+            dimScreenRGB_SetRandom(0.1f);
             glDrawBuffer(GL_FRONT_AND_BACK);
 
             while (!Glfw.WindowShouldClose(window))
@@ -264,29 +407,51 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                dimScreen(useStrongerDimFactor: dimAlpha < 0.05f);
-
-                inst.ResetBuffer();
-                myPrimitive._LineInst.ResetBuffer();
-
-                for (int i = 0; i < list.Count; i++)
+                // Dim screen
                 {
-                    var obj = list[i] as myObj_040;
+                    // Modify background color occasionally
+                    if (myUtils.randomChance(rand, 1, 10001))
+                    {
+                        dimScreenRGB_Adjust(0.1f);
+                    }
 
-                    obj.Show();
-                    obj.Move();
+                    dimScreen(dimAlpha, false, doUseStrongerDimFactor);
                 }
 
-                myPrimitive._LineInst.Draw();
-
-                if (fillMode > 0)
+                // Render frame
                 {
-                    inst.SetColorA(-0.25f);
-                    inst.Draw(true);
-                }
+                    inst.ResetBuffer();
 
-                inst.SetColorA(0);
-                inst.Draw(false);
+                    if (lineMode != 0)
+                    {
+                        myPrimitive._LineInst.ResetBuffer();
+                    }
+
+                    for (step = 0; step < stepsPerFrame; step++)
+                    {
+                        for (i = 0; i != list.Count; i++)
+                        {
+                            var obj = list[i] as myObj_040;
+
+                            obj.Show();
+                            obj.Move();
+                        }
+                    }
+
+                    if (lineMode != 0)
+                    {
+                        myPrimitive._LineInst.Draw();
+                    }
+
+                    if (fillMode > 0)
+                    {
+                        inst.SetColorA(-0.25f);
+                        inst.Draw(true);
+                    }
+
+                    inst.SetColorA(0);
+                    inst.Draw(false);
+                }
 
                 if (list.Count < N)
                 {
@@ -294,9 +459,10 @@ namespace my
                 }
 
                 cnt++;
-
                 System.Threading.Thread.Sleep(renderDelay);
             }
+
+            list.Clear();
 
             return;
         }
@@ -305,33 +471,12 @@ namespace my
 
         private void initShapes()
         {
-            int lineN = N, shapeN = N;
+            int lineN = N;
 
-            myPrimitive.init_Rectangle();
-            myPrimitive.init_LineInst(lineN);
+            myPrimitive.init_ScrDimmer();
+            myPrimitive.init_LineInst(lineN * stepsPerFrame);
 
-            base.initShapes(shape, N, 0);
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Dim the screen constantly
-        private void dimScreen(bool useStrongerDimFactor = false)
-        {
-            int rnd = rand.Next(101), dimFactor = 1;
-
-            if (useStrongerDimFactor && rnd < 11)
-            {
-                dimFactor = (rnd == 0) ? 5 : 2;
-            }
-
-            myPrimitive._Rectangle.SetAngle(0);
-
-            // Shift background color just a bit, to hide long lasting traces of shapes
-            myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
-            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+            base.initShapes(shape, N * stepsPerFrame * (doDrawTwice ? 2 : 1), 0);
 
             return;
         }

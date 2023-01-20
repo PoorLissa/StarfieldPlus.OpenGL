@@ -11,7 +11,7 @@ public class ScreenSaver
         myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
         myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
-        myObj_300, myObj_310, myObj_320, myObj_330,
+        myObj_300, myObj_310, myObj_320, myObj_330, myObj_340,
         myObj_999a
     };
 
@@ -108,7 +108,7 @@ public class ScreenSaver
         id = ids.myObj_132;
         id = ids.myObj_330;
         id = (ids)(new System.Random()).Next((int)ids.myObj_999a);
-        //id = ids.myObj_180;
+        id = ids.myObj_340;
 #endif
 
         switch (id)
@@ -138,7 +138,7 @@ public class ScreenSaver
                 _obj = new my.myObj_030();
                 break;
 
-            // Lines 1: Branches/snakes moving outwards
+            // Lines 1: Snake-like branches moving outwards from the center
             case ids.myObj_040:
                 _obj = new my.myObj_040();
                 break;
@@ -251,6 +251,11 @@ public class ScreenSaver
             // Textures, Take 1
             case ids.myObj_330:
                 _obj = new my.myObj_330();
+                break;
+
+            // Grid consisting of hexagons
+            case ids.myObj_340:
+                _obj = new my.myObj_340();
                 break;
 
             default:
