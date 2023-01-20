@@ -2,18 +2,18 @@
 
 
 
-public class myScreenCleaner : myPrimitive
+public class myScrDimmer : myPrimitive
 {
     // Vbo (Vertex Buffer Object) -- Manages memory buffer on the GPU
     // Ebo (Element Buffer Object) is a buffer that stores indices that are used to decide what vertices to draw (and in what order)
 
-    private static uint vbo = 0, ebo_fill = 0, shaderProgram = 0;
+    private static uint vbo = 0, ebo = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static int locationColor = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myScreenCleaner()
+    public myScrDimmer()
     {
         if (vertices == null)
         {
@@ -23,8 +23,8 @@ public class myScreenCleaner : myPrimitive
             glUseProgram(shaderProgram);
             locationColor = glGetUniformLocation(shaderProgram, "myColor");
 
-            vbo      = glGenBuffer();
-            ebo_fill = glGenBuffer();
+            vbo = glGenBuffer();
+            ebo = glGenBuffer();
 
             updateIndices();
 
@@ -51,7 +51,7 @@ public class myScreenCleaner : myPrimitive
         unsafe void __draw()
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
         }
 
@@ -104,7 +104,7 @@ public class myScreenCleaner : myPrimitive
         {
             // Copy user-defined data into the currently bound buffer:
             fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_STATIC_COPY);
         }
 
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
@@ -119,7 +119,7 @@ public class myScreenCleaner : myPrimitive
     {
         int usage = GL_STATIC_DRAW;
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         {
             var indicesFill = new uint[]
             {

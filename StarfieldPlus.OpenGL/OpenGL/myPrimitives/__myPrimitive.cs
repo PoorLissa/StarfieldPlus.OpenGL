@@ -13,7 +13,7 @@ public class myPrimitive
     // ---------------------------------------------------------------------------------------
 
     // Predefined Static Primitives: Standard
-    public static myScreenCleaner _Scr     = null;
+    public static myScrDimmer    _Scr      = null;
     public static myLine        _Line      = null;
     public static myTriangle    _Triangle  = null;
     public static myRectangle   _Rectangle = null;
@@ -34,7 +34,7 @@ public class myPrimitive
     // ---------------------------------------------------------------------------------------
 
     // Quick Initialization of the Predefined Static Standard Primitives
-    public static void init_ScrCleaner(){ if (_Scr       == null) _Scr       = new myScreenCleaner(); }
+    public static void init_ScrDimmer() { if (_Scr       == null) _Scr       = new myScrDimmer();   }
     public static void init_Line()      { if (_Line      == null) _Line      = new myLine();        }
     public static void init_Triangle()  { if (_Triangle  == null) _Triangle  = new myTriangle();    }
     public static void init_Rectangle() { if (_Rectangle == null) _Rectangle = new myRectangle();   }

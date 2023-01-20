@@ -261,6 +261,7 @@ namespace my
         {
             uint cnt = 0;
 
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_Triangle();
             myPrimitive.init_Rectangle();
             myPrimitive.init_Pentagon();

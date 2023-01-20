@@ -845,7 +845,7 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
 //          myPrimitive.init_LineInst(N * stepsPerFrame);
 
             base.initShapes(shape, N * stepsPerFrame * (doDrawTwice ? 2 : 1), 0);

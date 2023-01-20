@@ -71,8 +71,10 @@ namespace my
             rotationMode = rand.Next(3);
             moveMode = rand.Next(10);
             growMode = rand.Next(2);
+            doClearBuffer = false;
             doFillShapes = myUtils.randomChance(rand, 1, 3);
 
+            // todo: not used, make a use of it
             if (bgrR < 0 && bgrG < 0 && bgrB < 0)
             {
                 if (myUtils.randomChance(rand, 1, 7))
@@ -107,7 +109,8 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = myObj_130\n\n" +
-                            $"N = {N} ({list.Count})\n" +
+                            $"N = {list.Count} of {N}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n" +
                             $"shape = {shape}\n" +
                             $"rotationMode = {rotationMode}\n" +
                             $"moveMode = {moveMode}\n" +
@@ -115,8 +118,7 @@ namespace my
                             $"bgr = [{bgrR}, {bgrG}, {bgrB}]\n" +
                             $"dimAlpha = {dimAlpha}\n" +
                             $"aFill = {aFill}\n" +
-                            $"doFillShapes = {doFillShapes}\n" +
-                            $""
+                            $"doFillShapes = {doFillShapes}\n"
                 ;
             return str;
         }
@@ -467,7 +469,7 @@ namespace my
                 }
                 else
                 {
-                    dimScreen(useStrongerDimFactor: dimAlpha < 0.05f);
+                    dimScreen(dimAlpha, useStrongerDimFactor: dimAlpha < 0.05f);
                 }
 
                 // Render Frame
@@ -509,29 +511,8 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, rotationSubMode: 0);
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Dim the screen constantly
-        private void dimScreen(bool useStrongerDimFactor = false)
-        {
-            int rnd = rand.Next(101), dimFactor = 1;
-
-            if (useStrongerDimFactor && rnd < 11)
-            {
-                dimFactor = (rnd == 0) ? 5 : 2;
-            }
-
-            myPrimitive._Rectangle.SetAngle(0);
-
-            // Shift background color just a bit, to hide long lasting traces of shapes
-            myPrimitive._Rectangle.SetColor(bgrR + rand.Next(5) * 0.01f, bgrG + rand.Next(5) * 0.01f, bgrB + rand.Next(5) * 0.01f, dimAlpha * dimFactor);
-            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
 
             return;
         }

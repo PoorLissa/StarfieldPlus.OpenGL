@@ -101,6 +101,15 @@ namespace my
                 }
 
                 renderDelay = 10;
+
+#if false
+                N = 66;
+                shapeType = 0;
+                doClearBuffer = false;
+                doConnect = false;
+                doUseGravityAnomaly = false;
+                doFillShapes = true;
+#endif
             }
 
             generateNew();
@@ -160,6 +169,7 @@ namespace my
 
             A = myUtils.randFloat(rand);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
+A = 1;
 
             angle = 0;
             dAngle = rotationMode < 2 ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
@@ -366,6 +376,7 @@ namespace my
                 else
                 {
                     // Dim the screen
+
 #if false
                     if (false)
                     {
@@ -404,8 +415,7 @@ namespace my
                             break;
                     }
 
-                    myPrimitive._Rectangle.SetColor(0, 0, 0, dimAlpha);
-                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                    dimScreen(dimAlpha);
 
                     // Restore the default blending mode
                     glBlendEquation(GL_FUNC_ADD);
@@ -544,6 +554,8 @@ namespace my
 
         private void initShapes()
         {
+            myPrimitive.init_ScrDimmer();
+
             // Find out how many lines do we need to connect each particle with the rest of them
             int totalLines = N;
             if (connectType == 0)
@@ -552,9 +564,6 @@ namespace my
                 for (int i = 0; i < N; i++)
                     totalLines += i;
             }
-
-            myPrimitive.init_Rectangle();
-            myPrimitive.init_ScrCleaner();
 
             if (doConnect)
             {

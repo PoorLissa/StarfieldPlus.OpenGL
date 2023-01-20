@@ -628,7 +628,7 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
             return;

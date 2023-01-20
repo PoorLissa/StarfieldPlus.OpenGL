@@ -16,7 +16,7 @@ namespace my
         private static bool doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,
                             doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true, doRandomizeCenter = false,
-                            doUseTestFunc = false;
+                            doUseTestFunc = false, doDrawTwice = true;
 
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0,
                            shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, rateBase = 50, rateMode = 0,
@@ -28,7 +28,7 @@ namespace my
 
         private int     lifeCnt = 0, shape = 0;
         private bool    isLive = false;
-        private float   x, y, r, g, b, a, dx, dy, size = 0, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f;
+        private float   x, y, r, g, b, a, dx, dy, size = 0, size2x, angle = 0, dAngle = 0, dispersionRateX = 1.0f, dispersionRateY = 1.0f;
 
         // Function Generation Params
         static int argmode1, argmode2, argmode3, argmode4, argmode5, argmode6;
@@ -57,8 +57,8 @@ namespace my
         // One-time initialization
         private void init()
         {
-            x0 = gl_Width  / 2;
-            y0 = gl_Height / 2;
+            x0 = gl_x0;
+            y0 = gl_y0;
 
             dXYgenerationMode = -1;
             startDispersionRate = 5;
@@ -67,6 +67,7 @@ namespace my
             doFillShapes            = myUtils.randomBool(rand);
             doUseRandomSpeed        = myUtils.randomBool(rand);
             doClearBuffer           = myUtils.randomChance(rand, 4, 5);
+            doDrawTwice             = myUtils.randomChance(rand, 1, 2);
             doUseDispersion         = myUtils.randomChance(rand, 1, 3);
             doUseStartDispersion    = myUtils.randomChance(rand, 1, 3);
             doUseXOffset            = myUtils.randomChance(rand, 1, 7);
@@ -181,7 +182,7 @@ namespace my
             }
 
             // Set number of objects N:
-            N = 100000;
+            N = 100000 + rand.Next(250000);
             renderDelay = 1;
 
 #if DEBUG && false
@@ -240,14 +241,16 @@ namespace my
                 return $"\n Short: {res}";
             }
 
-            string str = $"Obj = myObj_180\n\n" +
-                            $"N = {N}\n" +
-                            $"deadCnt = {deadCnt}\n" + 
-                            $"renderDelay = {renderDelay}\n" +
-                            $"shapeType = {shapeType}\n" +
-                            $"rotationMode = {rotationMode}\n" +
-                            $"rotationSubMode = {rotationSubMode}\n" +
-                            $"doUseDispersion = {doUseDispersion}\n" +
+            string str = $"Obj = myObj_180\n\n"                             +
+                            $"N = {N}\n"                                    +
+                            $"doClearBuffer = {doClearBuffer}\n"            +
+                            $"doDrawTwice = {doDrawTwice}\n"                +
+                            $"deadCnt = {deadCnt}\n"                        + 
+                            $"renderDelay = {renderDelay}\n"                +
+                            $"shapeType = {shapeType}\n"                    +
+                            $"rotationMode = {rotationMode}\n"              +
+                            $"rotationSubMode = {rotationSubMode}\n"        +
+                            $"doUseDispersion = {doUseDispersion}\n"        +
                             $"doUseStartDispersion = {doUseStartDispersion}\n" +
                             $"dispersionMode = {dispersionMode}\n" +
                             $"dispersionConst = {dispersionConst}\n" +
@@ -419,47 +422,91 @@ namespace my
 
         protected override void Show()
         {
+            size2x = size * 2;
+
             switch (shape)
             {
                 // Instanced squares
                 case 0:
-                    var rectInst = inst as myRectangleInst;
+                    {
+                        var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
-                    rectInst.setInstanceColor(r, g, b, a);
-                    rectInst.setInstanceAngle(angle);
+                        rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        rectInst.setInstanceColor(r, g, b, a);
+                        rectInst.setInstanceAngle(angle);
+
+                        if (doDrawTwice)
+                        {
+                            size2x += 2;
+                            rectInst.setInstanceCoords(x - size - 1, y - size - 1, size2x, size2x);
+                            rectInst.setInstanceColor(r, g, b, a * 0.33f);
+                            rectInst.setInstanceAngle(angle);
+                        }
+                    }
                     break;
 
                 // Instanced triangles
                 case 1:
-                    var triangleInst = inst as myTriangleInst;
+                    {
+                        var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
-                    triangleInst.setInstanceColor(r, g, b, a);
+                        triangleInst.setInstanceCoords(x, y, size2x, angle);
+                        triangleInst.setInstanceColor(r, g, b, a);
+
+                        if (doDrawTwice)
+                        {
+                            triangleInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            triangleInst.setInstanceColor(r, g, b, a * 0.33f);
+                        }
+                    }
                     break;
 
                 // Instanced circles
                 case 2:
-                    var ellipseInst = inst as myEllipseInst;
+                    {
+                        var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
-                    ellipseInst.setInstanceColor(r, g, b, a);
+                        ellipseInst.setInstanceCoords(x, y, size2x, angle);
+                        ellipseInst.setInstanceColor(r, g, b, a);
+
+                        if (doDrawTwice)
+                        {
+                            ellipseInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            ellipseInst.setInstanceColor(r, g, b, a * 0.33);
+                        }
+                    }
                     break;
 
                 // Instanced pentagons
                 case 3:
-                    var pentagonInst = inst as myPentagonInst;
+                    {
+                        var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    pentagonInst.setInstanceColor(r, g, b, a);
+                        pentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        pentagonInst.setInstanceColor(r, g, b, a);
+
+                        if (doDrawTwice)
+                        {
+                            pentagonInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            pentagonInst.setInstanceColor(r, g, b, a * 0.33f);
+                        }
+                    }
                     break;
 
                 // Instanced hexagons
                 case 4:
-                    var hexagonInst = inst as myHexagonInst;
+                    {
+                        var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
-                    hexagonInst.setInstanceColor(r, g, b, a);
+                        hexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        hexagonInst.setInstanceColor(r, g, b, a);
+
+                        if (doDrawTwice)
+                        {
+                            hexagonInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            hexagonInst.setInstanceColor(r, g, b, a * 0.33f);
+                        }
+                    }
                     break;
             }
 
@@ -471,6 +518,7 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
+            int i = 0;
             int rate = rateBase;
             int waveSize = doUseIncreasingWaveSize ? 1 : waveSizeBase;
             int dWaveSize = doUseIncreasingWaveSize ? rand.Next(17) + 1 : 0;
@@ -491,6 +539,10 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0, 0, 0, 1);
             }
+            else
+            {
+
+            }
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -509,13 +561,7 @@ namespace my
                 else
                 {
                     // Dim the screen constantly;
-                    // Shift background color just a bit, to hide long lasting traces of shapes
-                    float r = (float)Math.Sin(cnt * 0.001f) * 0.03f;
-                    float g = (float)Math.Cos(cnt * 0.002f) * 0.03f;
-                    float b = (float)Math.Sin(cnt * 0.003f) * 0.03f;
-                    myPrimitive._Rectangle.SetColor(r, g, b, dimAlpha);
-                    myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                    dimScreen(dimAlpha);
                 }
 
                 // Render Frame
@@ -544,8 +590,8 @@ namespace my
 
                         if (doRandomizeCenter)
                         {
-                            x0 = gl_Width  / 2 + rand.Next(centerRandSize) - rand.Next(centerRandSize/2);
-                            y0 = gl_Height / 2 + rand.Next(centerRandSize) - rand.Next(centerRandSize/2);
+                            x0 = gl_x0 + rand.Next(centerRandSize) - rand.Next(centerRandSize/2);
+                            y0 = gl_y0 + rand.Next(centerRandSize) - rand.Next(centerRandSize/2);
                         }
 
                         // Vary rate:
@@ -564,7 +610,7 @@ namespace my
                         }
                     }
 
-                    for (int i = 0; i < list.Count; i++)
+                    for (i = 0; i != list.Count; i++)
                     {
                         var obj = list[i] as myObj_180;
 
@@ -635,12 +681,12 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
 
             if (connectionMode > 2)
                 myPrimitive.init_LineInst(N);
 
-            base.initShapes(shapeType, N, rotationSubMode);
+            base.initShapes(shapeType, N * (doDrawTwice ? 2 : 1), rotationSubMode);
 
             return;
         }

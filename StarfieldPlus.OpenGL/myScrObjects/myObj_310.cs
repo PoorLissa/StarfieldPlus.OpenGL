@@ -1015,12 +1015,8 @@ namespace my
                 a = 0;
 
             // Render connecting lines
-#if true
             int Count = list.Count;
             for (int i = 0; i != Count; i++)
-#else
-            for (int i = 0; i < list.Count; i++)
-#endif
             {
                 var obj = list[i] as myObj_310;
 
@@ -1360,6 +1356,8 @@ namespace my
             }
             else
             {
+                dimScreenRGB_SetRandom(0.1f);
+
                 glDrawBuffer(GL_FRONT_AND_BACK);
 
                 // This combination does not result in blinking on the higher number of particles
@@ -1443,6 +1441,7 @@ namespace my
 
         private void initShapes()
         {
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
             myPrimitive.init_LineInst(N * (N-1) + N * 2);
 

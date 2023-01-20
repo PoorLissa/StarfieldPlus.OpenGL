@@ -73,8 +73,7 @@ namespace my
                             $"compressMode = {compressMode}\n" +
                             $"sizeX = {sizeX}\n" +
                             $"sizeY = {sizeY}\n" +
-                            $"file: {colorPicker.GetFileName()}" +
-                            $""
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -302,7 +301,7 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
 
             tex = new myTexRectangle(colorPicker.getImg());
         }

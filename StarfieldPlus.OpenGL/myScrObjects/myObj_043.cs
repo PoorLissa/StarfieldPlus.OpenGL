@@ -124,8 +124,8 @@ namespace my
                             $"moveMode = {moveMode}\n" +
                             $"connectionMode = {connectionMode}\n" +
                             $"colorMode = {colorMode}\n" +
-                            $"RGB = {R}, {G}, {B}\n" +
-                            $"da = {da}\n" +
+                            $"RGB = {R.ToString("0.00")} - {G.ToString("0.00")} - {B.ToString("0.00")}\n" +
+                            $"da = {da.ToString("0.00000")}\n" +
                             $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}; si2 = {si2}\n sf2 = {sf2}\n sf3 = {sf3}\n" +
                             $"renderDelay = {renderDelay}\n" +
                             $"dimAlpha = {dimAlpha}\n" +
@@ -1262,7 +1262,7 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(N);
 
             base.initShapes(shape, N, 0);

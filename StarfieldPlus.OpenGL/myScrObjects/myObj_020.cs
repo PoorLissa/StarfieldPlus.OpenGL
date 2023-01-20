@@ -326,6 +326,7 @@ namespace my
         {
             int lineN = N * 3, shapeN = N * shapeCnt;
 
+			myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
             //myPrimitive.init_LineInst(lineN);
 

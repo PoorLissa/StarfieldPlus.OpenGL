@@ -1683,6 +1683,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Line();
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
             myPrimitive.init_Ellipse();
 

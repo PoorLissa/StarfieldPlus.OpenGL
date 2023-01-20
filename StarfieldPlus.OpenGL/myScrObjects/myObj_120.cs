@@ -920,7 +920,7 @@ namespace my
             int lineInstQty = (gl_Width + gl_Height + minLength) / di + 3;
 
             myPrimitive.init_LineInst(10 * N > lineInstQty ? 10 * N : lineInstQty);
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
 
             if (mode == 8)
             {

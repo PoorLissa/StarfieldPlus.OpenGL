@@ -45,6 +45,11 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
+            doClearBuffer = false;
+
+            N = 1111 + rand.Next(2345);
+            renderDelay = 10;
+
             initLocal();
         }
 
@@ -53,9 +58,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            N = 3333;
-            renderDelay = 10;
-
             doOscillateDimRate = myUtils.randomBool(rand);
         }
 
@@ -63,10 +65,11 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_220\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"renderDelay = {renderDelay}\n" +
-                            $"doOscillateDimRate = {doOscillateDimRate}\n" +
+            string str = $"Obj = myObj_220\n\n"                             +
+                            $"N = {list.Count} of {N}\n"                    +
+                            $"doClearBuffer = {doClearBuffer}\n"            +
+                            $"renderDelay = {renderDelay}\n"                +
+                            $"doOscillateDimRate = {doOscillateDimRate}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -156,14 +159,11 @@ namespace my
         {
             uint cnt = 0;
 
-            myPrimitive.init_Rectangle();
-            myPrimitive.init_Line();
-
-            doClearBuffer = false;
+            initShapes();
 
             if (doClearBuffer == false)
             {
-                dimScreenRGB_Set(myUtils.randFloat(rand) / 11, myUtils.randFloat(rand) / 11, myUtils.randFloat(rand) / 11);
+                dimScreenRGB_SetRandom(0.1f, ligtmMode: myUtils.randomChance(rand, 1, 11));
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
     
@@ -208,6 +208,16 @@ namespace my
                     }
                 }
             }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void initShapes()
+        {
+            myPrimitive.init_ScrDimmer();
+            myPrimitive.init_Line();
 
             return;
         }

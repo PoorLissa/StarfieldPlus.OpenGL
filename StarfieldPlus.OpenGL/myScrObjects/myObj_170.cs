@@ -429,6 +429,7 @@ namespace my
 
         private void initShapes()
         {
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
             base.initShapes(shape, N, 0);
 

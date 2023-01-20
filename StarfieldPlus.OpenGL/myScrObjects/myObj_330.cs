@@ -64,8 +64,9 @@ namespace my
         private void initLocal()
         {
             mode = rand.Next(66);
-            mode = 65;
-
+#if DEBUG
+            //mode = 65;
+#endif
             // Reset parameter values
             {
                 for (int i = 0; i < prm_i.Length; i++)
@@ -827,18 +828,18 @@ namespace my
                 str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
             }
 
-            string str = $"Obj = myObj_330\n\n" +
-                            $"mode = {mode}\n\n" +
-                            $"N = {N} ({list.Count})\n" +
-                            $"dimAlpha = {dimAlpha}\n" +
-                            $"max = {max}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"doSampleOnce  = {doSampleOnce}\n" +
-                            $"opacityFactor = {opacityFactor}\n" +
-                            $"doUseRandDxy  = {doUseRandDxy}\n" +
-                            $"param: [{str_params}]\n\n" +
+            string str = $"Obj = myObj_330\n\n"                             +
+                            $"mode = {mode}\n\n"                            +
+                            $"N = {list.Count} of {N}\n"                    +
+                            $"dimAlpha = {dimAlpha.ToString("0.000")}\n"    +
+                            $"max = {max}\n"                                +
+                            $"opacityFactor = {opacityFactor}\n"            +
+                            $"doClearBuffer = {doClearBuffer}\n"            +
+                            $"doSampleOnce  = {doSampleOnce}\n"             +
+                            $"doUseRandDxy  = {doUseRandDxy}\n"             +
+                            $"param: [{str_params}]\n\n"                    +
                             $"file: {colorPicker.GetFileName()}"
-            ;
+                ;
             return str;
         }
 
@@ -4948,29 +4949,9 @@ namespace my
                 myPrimitive.init_LineInst(N * 10);
             }
 
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
             tex = new myTexRectangle(colorPicker.getImg());
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Dim the screen constantly
-        private void dimScreen(float dimAlpha, bool useStrongerDimFactor = false)
-        {
-            int rnd = rand.Next(101), dimFactor = 1;
-
-            if (useStrongerDimFactor && rnd < 11)
-            {
-                dimFactor = (rnd == 0) ? 5 : 2;
-            }
-
-            myPrimitive._Rectangle.SetAngle(0);
-
-            // Shift background color just a bit, to hide long lasting traces of shapes
-            myPrimitive._Rectangle.SetColor(rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, rand.Next(5) * 0.01f, dimAlpha * dimFactor);
-            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

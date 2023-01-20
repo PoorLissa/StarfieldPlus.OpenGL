@@ -34,18 +34,6 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
-            initLocal();
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // One-time local initialization
-        private void initLocal()
-        {
-            dX = (float)rand.NextDouble();
-            dY = (float)rand.NextDouble();
-
-            if (N == 0)
             {
                 // Number of shapes drawn per object;
                 // Min is 2, because we start drawing at '1'
@@ -66,7 +54,21 @@ namespace my
                         N = 333 + rand.Next(111);
                         break;
                 }
+
+                shape = rand.Next(6) - 1;
+                shape = (shape < 0) ? 2 : shape;
             }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            dX = (float)rand.NextDouble();
+            dY = (float)rand.NextDouble();
 
             doClearBuffer = myUtils.randomChance(rand, 2, 3);
             doFillShapes  = myUtils.randomChance(rand, 1, 3);
@@ -74,9 +76,6 @@ namespace my
             dxdyMode = rand.Next(3);
 
             dxdyFactor = rand.Next(7) + 1;
-
-            shape = rand.Next(6) - 1;
-            shape = (shape < 0) ? 2 : shape;
 
             rotationMode = rand.Next(4);
             daMode = rand.Next(3);
@@ -118,11 +117,7 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            var oldShape = shape;
-
             initLocal();
-
-            shape = oldShape;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -435,7 +430,7 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N * (shapeN - 1), 0);
         }
 
