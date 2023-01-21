@@ -217,6 +217,9 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
+            myPrimitive.init_Line();
+
+
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
@@ -242,6 +245,29 @@ namespace my
                         dimScreen(dimAlpha);
                     }
                 }
+
+#if false
+                {
+                    int size = 200, h = gl_Height;
+
+                    while (size > 0)
+                    {
+                        for (int i = 0; i < size; i++)
+                        {
+                            int h1 = rand.Next(5) - 2;
+                            int h2 = rand.Next(5) - 2;
+
+                            myPrimitive._Line.SetColor(1, 1, 1, 0.005f);
+                            myPrimitive._Line.Draw(0, h + h1, gl_Width, h + h2);
+                        }
+
+                        size -= 15;
+                        h -= size;
+                    }
+
+                    continue;
+                }
+#endif
 
                 // Render Frame
                 {
