@@ -16,8 +16,8 @@ namespace my
         private int x, y, lifeCounter;
         private float size, A, R, G, B;
 
-        private static int N = 0, shape = 0, baseSize = 0, sizeOff = 0, dSize = 0, mode = 0;
-        private static bool doFillShapes = true, doUseRotation = true, doReduceSize = true, doUseLifeCounter = true;
+        private static int N = 0, nActive = 0, shape = 0, baseSize = 0, sizeOff = 0, dSize = 0, mode = 0, lifeCntMode = 0, lifeCntBase = 0;
+        private static bool doFillShapes = true, doUseRotation = true, doReduceSize = true;
         private static float dimAlpha = 0.05f, t = 0, dt = 0, sinPi3 = 0, lineWidth = 1;
 
         private static myHexagonInst hexInst = null;
@@ -39,7 +39,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 33;
+                N = 100;
                 shape = 4;
                 doClearBuffer = false;
 
@@ -54,22 +54,26 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            // Only even numbers work somehow
+            // Number of active object for this session
+            nActive = rand.Next(N-3) + 3;
+
+            // Grid size: Only even numbers work somehow
             baseSize = (rand.Next(77) + 3) * 2;
 
             mode = rand.Next(2);
+            lifeCntMode = rand.Next(3);
+            lifeCntBase = rand.Next(10) + 1;
 
             dt = myUtils.randFloat(rand, 0.1f) * 0.1f;
 
             doFillShapes     = myUtils.randomBool(rand);
             doUseRotation    = myUtils.randomBool(rand);
             doReduceSize     = myUtils.randomBool(rand);
-            doUseLifeCounter = myUtils.randomBool(rand);
 
-            lineWidth = 0.01f * (rand.Next(666) + 1);
-            sizeOff = 3 + rand.Next(baseSize/3);
-            dSize = rand.Next(7) + 1;
-            dimAlpha = 0.005f * (rand.Next(11) + 1);
+            lineWidth = 0.01f * (rand.Next(666) + 1);           // Width of line
+            sizeOff = 3 + rand.Next(baseSize/3);                // Size offset
+            dSize = rand.Next(7) + 1;                           // Size changing speed
+            dimAlpha = 0.005f * (rand.Next(11) + 1);            //
 
             return;
         }
@@ -81,12 +85,12 @@ namespace my
             height = 800;
 
             string str = $"Obj = myObj_340\n\n"                             +
-                            $"N = {list.Count} of {N}\n"                    +
+                            $"N = {list.Count} of {N}; active: {nActive}\n" +
                             $"mode = {mode}\n"                              +
+                            $"lifeCntMode = {lifeCntMode}\n"                +
                             $"baseSize = {baseSize}\n"                      +
                             $"doUseRotation = {doUseRotation}\n"            +
                             $"doReduceSize = {doReduceSize}\n"              +
-                            $"doUseLifeCounter = {doUseLifeCounter}\n"      +
                             $"dimAlpha = {dimAlpha.ToString("0.000")}\n"    +
                             $"lineWidth = {lineWidth.ToString("0.000")}\n"  +
                             $"file: {colorPicker.GetFileName()}"
@@ -136,13 +140,19 @@ namespace my
             colorPicker.getColor(x, y, ref R, ref G, ref B);
             A = myUtils.randFloat(rand, 0.25f);
 
-            if (doUseLifeCounter)
+            switch (lifeCntMode)
             {
-                lifeCounter = rand.Next(33) + 1;
-            }
-            else
-            {
-                lifeCounter = 1;
+                case 0:
+                    lifeCounter = 1;
+                    break;
+
+                case 1:
+                    lifeCounter = rand.Next(33) + 1;
+                    break;
+
+                case 2:
+                    lifeCounter = lifeCntBase;
+                    break;
             }
 
             return;
@@ -239,10 +249,17 @@ namespace my
 
                     for (int i = 0; i != list.Count; i++)
                     {
-                        var obj = list[i] as myObj_340;
+                        if (i == nActive)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            var obj = list[i] as myObj_340;
 
-                        obj.Show();
-                        obj.Move();
+                            obj.Show();
+                            obj.Move();
+                        }
                     }
 
                     if (doFillShapes)
