@@ -1,4 +1,5 @@
 ﻿using GLFW;
+using System;
 using static OpenGL.GL;
 using System.Collections.Generic;
 
@@ -12,12 +13,14 @@ namespace my
 {
     public class myObj_340 : myObject
     {
-        private int x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private int x, y, lifeCounter;
+        private float size, A, R, G, B;
 
-        private static int N = 0, shape = 0, baseSize = 0, zzz = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, shape = 0, baseSize = 0, sizeOff = 0, dSize = 0, mode = 0;
+        private static bool doFillShapes = true, doUseRotation = true, doReduceSize = true, doUseLifeCounter = true;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0, sinPi3 = 0, lineWidth = 1;
+
+        private static myHexagonInst hexInst = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -36,9 +39,11 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 1;
+                N = 33;
                 shape = 4;
                 doClearBuffer = false;
+
+                sinPi3 = (float)Math.Sin(Math.PI / 3);
             }
 
             initLocal();
@@ -49,13 +54,22 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            baseSize = 100;
+            // Only even numbers work somehow
+            baseSize = (rand.Next(77) + 3) * 2;
 
-            dimAlpha = 0.01f;
+            mode = rand.Next(2);
 
-            zzz = rand.Next(50) + 23;
+            dt = myUtils.randFloat(rand, 0.1f) * 0.1f;
 
-            doFillShapes = myUtils.randomBool(rand);
+            doFillShapes     = myUtils.randomBool(rand);
+            doUseRotation    = myUtils.randomBool(rand);
+            doReduceSize     = myUtils.randomBool(rand);
+            doUseLifeCounter = myUtils.randomBool(rand);
+
+            lineWidth = 0.01f * (rand.Next(666) + 1);
+            sizeOff = 3 + rand.Next(baseSize/3);
+            dSize = rand.Next(7) + 1;
+            dimAlpha = 0.005f * (rand.Next(11) + 1);
 
             return;
         }
@@ -66,11 +80,16 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_340\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            "" + 
-                            $"file: {colorPicker.GetFileName()}" +
-                            $""
+            string str = $"Obj = myObj_340\n\n"                             +
+                            $"N = {list.Count} of {N}\n"                    +
+                            $"mode = {mode}\n"                              +
+                            $"baseSize = {baseSize}\n"                      +
+                            $"doUseRotation = {doUseRotation}\n"            +
+                            $"doReduceSize = {doReduceSize}\n"              +
+                            $"doUseLifeCounter = {doUseLifeCounter}\n"      +
+                            $"dimAlpha = {dimAlpha.ToString("0.000")}\n"    +
+                            $"lineWidth = {lineWidth.ToString("0.000")}\n"  +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -81,22 +100,50 @@ namespace my
         protected override void setNextMode()
         {
             initLocal();
+
+            dimScreen(0.1f);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
-            size = baseSize;
+            // Aligh to hex grid
+            {
+                x = rand.Next(gl_Width  + 100);
+                y = rand.Next(gl_Height + 200);
 
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+                x -= x % (3 * baseSize / 2);
+                y -= y % (int)(baseSize * sinPi3 * 2);
 
-            x -= x % (zzz);
-            y -= y % (zzz);
+                if (x % baseSize / 2 != 0)
+                {
+                    y -= (int)(baseSize * sinPi3);
+                }
+            }
+
+            switch (mode)
+            {
+                case 0:
+                    size = baseSize - sizeOff;
+                    break;
+
+                case 1:
+                    size = rand.Next(baseSize - 3) + 3;
+                    break;
+            }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
             A = myUtils.randFloat(rand, 0.25f);
+
+            if (doUseLifeCounter)
+            {
+                lifeCounter = rand.Next(33) + 1;
+            }
+            else
+            {
+                lifeCounter = 1;
+            }
 
             return;
         }
@@ -105,7 +152,18 @@ namespace my
 
         protected override void Move()
         {
-            generateNew();
+            t += dt;
+            lifeCounter--;
+
+            if (doReduceSize && size > dSize)
+            {
+                size -= dSize;
+            }
+
+            if (lifeCounter == 0)
+            {
+                generateNew();
+            }
 
             return;
         }
@@ -114,10 +172,16 @@ namespace my
 
         protected override void Show()
         {
-            var hexagonInst = inst as myHexagonInst;
+            if (doUseRotation)
+            {
+                hexInst.setInstanceCoords(x, y, size * 2, t);
+            }
+            else
+            {
+                hexInst.setInstanceCoords(x, y, size * 2, 0);
+            }
 
-            hexagonInst.setInstanceCoords(x, y, size * 2, angle);
-            hexagonInst.setInstanceColor(R, G, B, A);
+            hexInst.setInstanceColor(R, G, B, A);
 
             return;
         }
@@ -145,14 +209,19 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
-                cnt++;
-
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
+                if (cnt == 1001)
+                {
+                    cnt = 0;
+                    setNextMode();
+                }
+
+                // Dim screen
                 {
                     if (doClearBuffer)
                     {
@@ -168,7 +237,7 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i != list.Count; i++)
                     {
                         var obj = list[i] as myObj_340;
 
@@ -183,6 +252,8 @@ namespace my
                         inst.Draw(true);
                     }
 
+                    glLineWidth(lineWidth);
+
                     // Tell the fragment shader to do nothing with the existing instance opacity:
                     inst.SetColorA(0);
                     inst.Draw(false);
@@ -193,6 +264,7 @@ namespace my
                     list.Add(new myObj_340());
                 }
 
+                cnt++;
                 System.Threading.Thread.Sleep(renderDelay);
             }
 
@@ -205,6 +277,9 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
+
+            // Only single shape is used
+            hexInst = inst as myHexagonInst;
 
             return;
         }
