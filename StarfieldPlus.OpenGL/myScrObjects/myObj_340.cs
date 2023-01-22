@@ -54,11 +54,22 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            // Number of active object for this session
-            nActive = rand.Next(N-3) + 3;
-
             // Grid size: Only even numbers work somehow
-            baseSize = (rand.Next(77) + 3) * 2;
+            baseSize = (rand.Next(77) + 5) * 2;
+
+            // Number of active object for this session
+            if (baseSize < 20)
+            {
+                nActive = rand.Next(N - 20) + 20;
+            }
+            else if (baseSize < 50)
+            {
+                nActive = rand.Next(N - 10) + 10;
+            }
+            else
+            {
+                nActive = rand.Next(N - 3) + 3;
+            }
 
             mode = rand.Next(2);
             lifeCntMode = rand.Next(3);
