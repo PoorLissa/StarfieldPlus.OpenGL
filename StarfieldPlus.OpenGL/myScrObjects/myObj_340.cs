@@ -71,7 +71,7 @@ namespace my
                 nActive = rand.Next(N - 3) + 3;
             }
 
-            mode = rand.Next(2);
+            mode = rand.Next(5);
             lifeCntMode = rand.Next(3);
             lifeCntBase = rand.Next(10) + 1;
 
@@ -85,6 +85,19 @@ namespace my
             sizeOff = 3 + rand.Next(baseSize/3);                // Size offset
             dSize = rand.Next(7) + 1;                           // Size changing speed
             dimAlpha = 0.005f * (rand.Next(11) + 1);            //
+
+            if (myUtils.randomChance(rand, 1, 3))
+            {
+                dimAlpha *= myUtils.randFloat(rand) * 0.5f;
+            }
+
+            switch (mode)
+            {
+                case 4:
+                    sizeOff = rand.Next(5) + 1;
+                    baseSize = baseSize > 50 ? baseSize/2 : baseSize;
+                    break;
+            }
 
             return;
         }
@@ -145,6 +158,18 @@ namespace my
 
                 case 1:
                     size = rand.Next(baseSize - 3) + 3;
+                    break;
+
+                case 2:
+                    size = baseSize + sizeOff;
+                    break;
+
+                case 3:
+                    size = baseSize * rand.Next(5) + 1;
+                    break;
+
+                case 4:
+                    size = baseSize * sizeOff;
                     break;
             }
 
