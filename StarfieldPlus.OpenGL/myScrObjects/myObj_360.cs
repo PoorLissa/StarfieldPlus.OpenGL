@@ -11,59 +11,25 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_350 : myObject
+    public class myObj_360 : myObject
     {
-        private List<myObj_350> children = null;
-        private myObj_350 parent = null;
+        private int[] others = null;
 
-        private int level;
+        private int nOthers;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0, gravityRate;
+        private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, levelBase = 0, maxChildren = 0, childMoveMode = 0;
-        private static bool doFillShapes = false, doUseOpacityAsSpeed = true;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, shape = 0;
+        private static bool doFillShapes = false;
+        private static float dimAlpha = 0.05f, changeFactor = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_350()
+        public myObj_360()
         {
-            level = levelBase;
+            others = new int[5];
+
             generateNew();
-
-            if (level == 0)
-            {
-                children = new List<myObj_350>();
-
-                levelBase++;
-
-                int n = rand.Next(maxChildren) + 3;
-
-                for (int i = 0; i < n; i++)
-                {
-                    var obj = new myObj_350();
-
-                    obj.parent = this;
-
-                    obj.x = x;
-                    obj.y = y;
-
-                    obj.size = 3;
-                    obj.gravityRate = gravityRate;
-
-                    obj.R = R;
-                    obj.G = G;
-                    obj.B = B;
-                    obj.A = A;
-
-                    obj.dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * (rand.Next(3) + 1);
-                    obj.dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * (rand.Next(3) + 1);
-
-                    children.Add(obj);
-                }
-
-                levelBase--;
-            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -76,8 +42,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(100) + 13;
-                maxChildren = rand.Next(13);
+                N = 1234;
                 shape = rand.Next(5);
             }
 
@@ -90,13 +55,9 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
-            doUseOpacityAsSpeed = myUtils.randomBool(rand);
+            dimAlpha = 0.01f + myUtils.randFloat(rand) * 0.1f;
 
-            dimAlpha = 0.1f + myUtils.randFloat(rand) * 0.5f;
-
-            childMoveMode = rand.Next(4);
-
-            doUseOpacityAsSpeed = true;
+            changeFactor = myUtils.randFloat(rand) * rand.Next(11);
 
             return;
         }
@@ -107,11 +68,10 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_350\n\n"                         +
+            string str = $"Obj = myObj_360\n\n"                         +
                             $"N = {list.Count} of {N}\n"                +
                             $"shape = {shape}\n"                        +
-                            $"maxChildren = {maxChildren}\n"            +
-                            $"childMoveMode = {childMoveMode}\n"        +
+                            $"changeFactor = {changeFactor}\n"          +
                             $"dimAlpha = {dimAlpha.ToString("0.000")}\n"+
                             $"file: {colorPicker.GetFileName()}"        +
                             $""
@@ -131,31 +91,27 @@ namespace my
 
         protected override void generateNew()
         {
-            if (id != uint.MaxValue)
+            if (myUtils.randomChance(rand, 1, 3))
             {
-                if (level == 0)
-                {
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
+                nOthers = rand.Next(3) + 1;
 
-                    size = 20 + rand.Next(50);
-                    dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.5f) * (rand.Next(5) + 3);
-                    dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.5f) * (rand.Next(5) + 3);
-
-                    A = (float)rand.NextDouble();
-                    colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-                    gravityRate = myUtils.randFloat(rand, 0.1f) * (rand.Next(2) + 1);
-
-                    if (doUseOpacityAsSpeed)
-                    {
-                        dx *= A;
-                        dy *= A;
-
-                        //gravityRate /= A;
-                    }
-                }
+                for (int i = 0; i < nOthers; i++)
+                    others[i] = rand.Next(list.Count);
             }
+            else
+            {
+                nOthers = 0;
+            }
+
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
+
+            size = 3;
+            dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.5f) * (rand.Next(5) + 3);
+            dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.5f) * (rand.Next(5) + 3);
+
+            A = (float)rand.NextDouble();
+            colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
         }
@@ -167,99 +123,22 @@ namespace my
             x += dx;
             y += dy;
 
-            if (parent == null)
+            if (myUtils.randomChance(rand, 1, 11))
             {
-                if (x < 100)
-                    dx += 0.1f;
-
-                if (y < 100)
-                    dy += 0.1f;
-
-                if (x > gl_Width - 100)
-                    dx -= 0.1f;
-
-                if (y > gl_Height - 100)
-                    dy -= 0.1f;
-
-                foreach (myObj_350 child in children)
+                if (myUtils.randomChance(rand, 1, 2))
                 {
-                    child.Move();
+                    dx += myUtils.randomSign(rand) * myUtils.randFloat(rand) * changeFactor;
+                }
+
+                if (myUtils.randomChance(rand, 1, 2))
+                {
+                    dy += myUtils.randomSign(rand) * myUtils.randFloat(rand) * changeFactor;
                 }
             }
-            else
+
+            if (x < 0 || y < 0 || x > gl_Width || y > gl_Height)
             {
-                switch (childMoveMode)
-                {
-                    case 0:
-                        {
-                            if (x < parent.x - parent.size && dx < 0)
-                                dx *= -1;
-
-                            if (y < parent.y - parent.size && dy < 0)
-                                dy *= -1;
-
-                            if (x > parent.x + parent.size && dx > 0)
-                                dx *= -1;
-
-                            if (y > parent.y + parent.size && dy > 0)
-                                dy *= -1;
-                        }
-                        break;
-
-                    case 1:
-                        {
-                            x += parent.dx;
-                            y += parent.dy;
-
-                            if (x < parent.x - parent.size && dx < 0)
-                                dx *= -1;
-
-                            if (y < parent.y - parent.size && dy < 0)
-                                dy *= -1;
-
-                            if (x > parent.x + parent.size && dx > 0)
-                                dx *= -1;
-
-                            if (y > parent.y + parent.size && dy > 0)
-                                dy *= -1;
-                        }
-                        break;
-
-                    case 2:
-                        {
-                            if (x < parent.x - parent.size)
-                                dx += gravityRate;
-
-                            if (y < parent.y - parent.size)
-                                dy += gravityRate;
-
-                            if (x > parent.x + parent.size)
-                                dx -= gravityRate;
-
-                            if (y > parent.y + parent.size)
-                                dy -= gravityRate;
-                        }
-                        break;
-
-                    case 3:
-                        {
-                            x += parent.dx;
-                            y += parent.dy;
-
-                            if (x < parent.x - parent.size)
-                                dx += gravityRate;
-
-                            if (y < parent.y - parent.size)
-                                dy += gravityRate;
-
-                            if (x > parent.x + parent.size)
-                                dx -= gravityRate;
-
-                            if (y > parent.y + parent.size)
-                                dy -= gravityRate;
-                        }
-                        break;
-                }
+                generateNew();
             }
 
             return;
@@ -269,25 +148,12 @@ namespace my
 
         protected override void Show()
         {
-            // Show all children
-            if (parent == null)
+            for (int i = 0; i < nOthers; i++)
             {
-                for (int i = 0; i < children.Count; i++)
-                {
-                    var obj = children[i] as myObj_350;
+                var other = list[others[i]] as myObj_360;
 
-                    for (int j = i+1; j < children.Count; j++)
-                    {
-                        var other = children[j] as myObj_350;
-
-                        myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, other.x, other.y);
-                        myPrimitive._LineInst.setInstanceColor(R, G, B, 0.175f);
-                    }
-
-                    obj.Show();
-                }
-
-                return;
+                myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                myPrimitive._LineInst.setInstanceColor(R, G, B, 0.175f);
             }
 
             switch (shape)
@@ -385,7 +251,7 @@ namespace my
 
                     for (int i = 0; i < list.Count; i++)
                     {
-                        var obj = list[i] as myObj_350;
+                        var obj = list[i] as myObj_360;
 
                         obj.Show();
                         obj.Move();
@@ -407,7 +273,7 @@ namespace my
 
                 if (list.Count < N)
                 {
-                    list.Add(new myObj_350());
+                    list.Add(new myObj_360());
                 }
 
                 cnt++;
@@ -421,11 +287,9 @@ namespace my
 
         private void initShapes()
         {
-            int nChildren = maxChildren + 3;
-
             myPrimitive.init_ScrDimmer();
-            myPrimitive.init_LineInst(N * nChildren * (nChildren - 1));
-            base.initShapes(shape, N * (nChildren + 1), 0);
+            myPrimitive.init_LineInst(N * 5);
+            base.initShapes(shape, N, 0);
 
             return;
         }
