@@ -21,7 +21,7 @@ namespace my
 
         private static bool doClearOnce = false, doUseGrid = false, doUseRandSize = false;
         private static int N = 0, angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0,
-                           borderMode = 0, randSizeFactor = 1, colorStep = 1;
+                           borderMode = 0, borderOffset = 0, randSizeFactor = 1, colorStep = 1;
         private static float A = 1, lineWidth = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -64,12 +64,13 @@ namespace my
             doUseGrid     = myUtils.randomBool(rand);
             doUseRandSize = myUtils.randomBool(rand);
 
-            shapeMode  = rand.Next(6);
-            colorMode  = rand.Next(2);
-            borderMode = rand.Next(6);
-            angleMode  = rand.Next(13);
+            shapeMode      = rand.Next(6);
+            colorMode      = rand.Next(2);
+            borderMode     = rand.Next(7);
+            borderOffset   = rand.Next(13) - 6;                 // Offset to the size of the border (-6 .. +6)
+            angleMode      = rand.Next(13);
             randSizeFactor = rand.Next(3) + 1;
-            colorStep = rand.Next(5) + 1;
+            colorStep      = rand.Next(5) + 1;
 
             lineWidth = myUtils.randFloat(rand) * 2;
 
@@ -125,7 +126,7 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             width = 500;
-            height = 500;
+            height = 600;
 
             string str = $"Obj = myObj_102\n\n"                  +
                             $"N = {list.Count} of {N}\n"         +
@@ -136,6 +137,7 @@ namespace my
                             $"colorMode = {colorMode}\n"         +
                             $"angleMode = {angleMode}\n"         +
                             $"borderMode = {borderMode}\n"       +
+                            $"borderOffset = {borderOffset}\n"   +
                             $"baseSize = {baseSize}\n"           +
                             $"gridSize = {gridSize}\n"           +
                             $"opacity = {A.ToString("0.000")}\n" +
@@ -278,80 +280,6 @@ randShape:
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void drawBorder()
-        {
-            if (borderMode != 0)
-            {
-                float r = 0, g = 0, b = 0;
-
-                switch (borderMode)
-                {
-                    case 1:
-                        r = R;
-                        g = G;
-                        b = B;
-                        break;
-
-                    case 2:
-                        r = 0;
-                        g = 0;
-                        b = 0;
-                        break;
-
-                    case 3:
-                        r = myUtils.randFloat(rand) * 0.1f;
-                        g = myUtils.randFloat(rand) * 0.1f;
-                        b = myUtils.randFloat(rand) * 0.1f;
-                        break;
-
-                    case 4:
-                        r = 1;
-                        g = 1;
-                        b = 1;
-                        break;
-
-                    case 5:
-                        r = 1.0f - myUtils.randFloat(rand) * 0.1f;
-                        g = 1.0f - myUtils.randFloat(rand) * 0.1f;
-                        b = 1.0f - myUtils.randFloat(rand) * 0.1f;
-                        break;
-                }
-
-                switch (shapeMode)
-                {
-                    case 0:
-                        myPrimitive._Rectangle.SetColor(r, g, b, 0.5f);
-                        myPrimitive._Rectangle.Draw(x - size, y - size, 2 * size, 2 * size, false);
-                        break;
-
-                    case 1:
-                        myPrimitive._Ellipse.SetColor(r, g, b, 0.5f);
-                        myPrimitive._Ellipse.setLineThickness(1);
-                        myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, false);
-                        break;
-
-                    case 2:
-                        myPrimitive._Triangle.SetColor(r, g, b, 0.5f);
-                        myPrimitive._Triangle.Draw(x, y - size, x - 5 * size / 6, y + size / 2, x + 5 * size / 6, y + size / 2, false);
-                        break;
-
-                    case 3:
-                        myPrimitive._Hexagon.SetColor(r, g, b, 0.5f);
-                        myPrimitive._Hexagon.Draw(x, y, size, false);
-                        break;
-
-                    case 4:
-                        myPrimitive._Pentagon.SetColor(r, g, b, 0.5f);
-                        myPrimitive._Pentagon.Draw(x, y, size, false);
-                        break;
-                }
-            }
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
         protected override void Process(Window window)
         {
             uint cnt = 0;
@@ -426,6 +354,90 @@ randShape:
             myPrimitive.init_Hexagon();
             myPrimitive.init_Triangle();
             myPrimitive.init_Pentagon();
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Draw a border around the shape
+        private void drawBorder()
+        {
+            if (borderMode != 0)
+            {
+                float r = 0, g = 0, b = 0;
+
+                switch (borderMode)
+                {
+                    // The same color as the shape
+                    case 1:
+                        r = R; g = G; b = B;
+                        break;
+
+                    // The same color as the shape, but slightly offset randomly
+                    case 2:
+                        r = R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        g = G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        b = B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        break;
+
+                    // Black
+                    case 3:
+                        r = 0; g = 0; b = 0;
+                        break;
+
+                    // Dark Random
+                    case 4:
+                        r = myUtils.randFloat(rand) * 0.1f;
+                        g = myUtils.randFloat(rand) * 0.1f;
+                        b = myUtils.randFloat(rand) * 0.1f;
+                        break;
+
+                    // White
+                    case 5:
+                        r = 1; g = 1; b = 1;
+                        break;
+
+                    // Light Random
+                    case 6:
+                        r = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                        g = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                        b = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                        break;
+                }
+
+                int bSize = size - borderOffset;
+                int bSize2x = bSize * 2;
+
+                switch (shapeMode)
+                {
+                    case 0:
+                        myPrimitive._Rectangle.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Rectangle.Draw(x - bSize, y - bSize, bSize2x, bSize2x, false);
+                        break;
+
+                    case 1:
+                        myPrimitive._Ellipse.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Ellipse.setLineThickness(1);
+                        myPrimitive._Ellipse.Draw(x - bSize, y - bSize, bSize2x, bSize2x, false);
+                        break;
+
+                    case 2:
+                        myPrimitive._Triangle.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Triangle.Draw(x, y - bSize, x - 5 * bSize / 6, y + bSize / 2, x + 5 * bSize / 6, y + bSize / 2, false);
+                        break;
+
+                    case 3:
+                        myPrimitive._Hexagon.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Hexagon.Draw(x, y, bSize, false);
+                        break;
+
+                    case 4:
+                        myPrimitive._Pentagon.SetColor(r, g, b, 0.5f);
+                        myPrimitive._Pentagon.Draw(x, y, bSize, false);
+                        break;
+                }
+            }
 
             return;
         }

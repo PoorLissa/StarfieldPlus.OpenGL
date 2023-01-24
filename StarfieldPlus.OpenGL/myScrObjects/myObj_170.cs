@@ -10,8 +10,6 @@ using System.Collections.Generic;
     Variations:
         - grid-based
         - leaving traces
-
-    todo: add a mode where it is grid based, and the initial cell size is larger than the grid step
 */
 
 
@@ -62,7 +60,7 @@ namespace my
 
             // Grid-based set-up
             {
-                doUseCells = myUtils.randomChance(rand, 1, 2);
+                doUseCells = myUtils.randomChance(rand, 1, 2);              // All of the objects are tied to grid
                 cellSize = 50 + rand.Next(151);
                 cellOffset = rand.Next(13);
                 startX = (gl_Width  % (cellSize + cellOffset)) / 2;
@@ -120,20 +118,19 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            height = 800;
+            height = 600;
 
-            string str = $"Obj = myObj_170\n\n" +
-                            $"N = {list.Count} of {N}\n" +
+            string str = $"Obj = myObj_170\n\n"                  +
+                            $"N = {list.Count} of {N}\n"         +
                             $"doClearBuffer = {doClearBuffer}\n" +
-                            $"doUseCells = {doUseCells}\n" +
-                            $"drawMode = {drawMode}\n" +
-                            $"cellSize = {cellSize}\n" +
-                            $"cellOffset = {cellOffset}\n" +
-                            $"eraseMode = {eraseMode}\n" +
-                            $"eraseOpacity = {eraseOpacity}\n" +
-                            $"dimAlpha = {dimAlpha}\n" +
-                            $"file: {colorPicker.GetFileName()}" +
-                            $""
+                            $"doUseCells = {doUseCells}\n"       +
+                            $"drawMode = {drawMode}\n"           +
+                            $"cellSize = {cellSize}\n"           +
+                            $"cellOffset = {cellOffset}\n"       +
+                            $"eraseMode = {eraseMode}\n"         +
+                            $"eraseOpacity = {eraseOpacity}\n"   +
+                            $"dimAlpha = {dimAlpha}\n"           +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
