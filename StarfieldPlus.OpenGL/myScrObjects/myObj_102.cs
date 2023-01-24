@@ -1,6 +1,5 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
 
 
@@ -17,8 +16,9 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static bool doCleanOnce = false, doUseGrid = false, doUseRandSize = false;
-        private static int angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0, borderMode = 0, randSizeFactor = 1;
+        private static bool doClearOnce = false, doUseGrid = false, doUseRandSize = false;
+        private static int N = 0, angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0, borderMode = 0, randSizeFactor = 1, colorStep = 1;
+        private static float lineWidth = 1;
 
         private int x, y, size;
         private float R, G, B, angle;
@@ -27,43 +27,85 @@ namespace my
 
         public myObj_102()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
-                list = new List<myObject>();
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            list = new List<myObject>();
+
+            {
+                doClearBuffer = myUtils.randomChance(rand, 1, 7);
+
+                if (myUtils.randomChance(rand, 1, 11))
+                {
+                    N = rand.Next(35) + 10;
+                }
+                else
+                {
+                    N = rand.Next(5) + 1;
+                }
+            }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+
         // One-time initialization
-        private void init()
+        private void initLocal()
         {
             doUseGrid     = myUtils.randomBool(rand);
             doUseRandSize = myUtils.randomBool(rand);
-            doClearBuffer = false;
 
             shapeMode  = rand.Next(6);
             colorMode  = rand.Next(2);
-            borderMode = rand.Next(5);
-            baseSize   = rand.Next(50) + 10;
-
-            angleMode = rand.Next(13);
-
-            renderDelay = 0;
-            gridSize = baseSize * 2 + 2 * rand.Next(5) + 1;
+            borderMode = rand.Next(6);
+            angleMode  = rand.Next(13);
             randSizeFactor = rand.Next(3) + 1;
+            colorStep = rand.Next(5) + 1;
 
-#if true
+            lineWidth = myUtils.randFloat(rand) * 2;
+
+            renderDelay = (N - 1) * 2;
+
+            switch (rand.Next(6))
+            {
+                case 0:
+                    baseSize = rand.Next(50) + 10;
+                    break;
+
+                case 1: case 2: case 3:
+                    baseSize = rand.Next(60) + 20;
+                    break;
+
+                case 4: case 5:
+                    baseSize = rand.Next(70) + 30;
+                    break;
+            }
+
+            if (baseSize > 20 && myUtils.randomChance(rand, 1, 3))
+            {
+                // Sometimes make grid step less than baseSize
+                gridSize = baseSize - rand.Next(baseSize/2);
+            }
+            else
+            {
+                gridSize = baseSize * 2 + 2 * rand.Next(5) + 1;
+            }
+
+#if false
             angleMode = 2;
             shapeMode = 0;
             doUseGrid = true;
             doUseRandSize = true;
 #endif
+
             return;
         }
 
@@ -71,16 +113,23 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_102\n\n" +
-                         $"doUseGrid = {doUseGrid}\n" +
-                         $"doUseRandSize = {doUseRandSize}\n" +
-                         $"doClearBuffer = {doClearBuffer}\n" +
-                         $"shapeMode = {shapeMode}\n" +
-                         $"colorMode = {colorMode}\n" +
-                         $"angleMode = {angleMode}\n" +
-                         $"borderMode = {borderMode}\n" +
-                         $"gridSize = {gridSize}";
+            width = 500;
+            height = 400;
 
+            string str = $"Obj = myObj_102\n\n"                  +
+                            $"N = {list.Count} of {N}\n"         +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"doUseGrid = {doUseGrid}\n"         +
+                            $"doUseRandSize = {doUseRandSize}\n" +
+                            $"shapeMode = {shapeMode}\n"         +
+                            $"colorMode = {colorMode}\n"         +
+                            $"angleMode = {angleMode}\n"         +
+                            $"borderMode = {borderMode}\n"       +
+                            $"baseSize = {baseSize}\n"           +
+                            $"gridSize = {gridSize}\n"           +
+                            $"renderDelay = {renderDelay}\n"     +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
             return str;
         }
 
@@ -98,18 +147,27 @@ namespace my
 
         protected override void setNextMode()
         {
-            init();
-            doCleanOnce = true;
+            initLocal();
+
+            //dimScreen(0.1f);
+
+            doClearOnce = true;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Move()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
-
-            getColor();
+            if (doUseGrid)
+            {
+                x = rand.Next(gl_Width + 100);
+                y = rand.Next(gl_Height + 100);
+            }
+            else
+            {
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
+            }
 
             if (doUseGrid)
             {
@@ -120,6 +178,17 @@ namespace my
             if (doUseRandSize)
             {
                 size = rand.Next(baseSize * randSizeFactor) + 3;
+            }
+
+            switch (colorMode)
+            {
+                case 0:
+                    colorPicker.getColor(x, y, ref R, ref G, ref B);
+                    break;
+
+                case 1:
+                    colorPicker.getColorAverage(x - size, y - size, 2 * size, 2 * size, ref R, ref G, ref B, colorStep);
+                    break;
             }
 
             switch (angleMode)
@@ -172,6 +241,7 @@ randShape:
                     oldShapeMode = shapeMode;
                     shapeMode = rand.Next(5);
                     goto randShape;
+                    break;
             }
 
             drawBorder();
@@ -188,18 +258,41 @@ randShape:
 
         private void drawBorder()
         {
-            if (borderMode > 1)
+            if (borderMode != 0)
             {
-                float r = R, g = G, b = B;
+                float r = 0, g = 0, b = 0;
 
-                if (borderMode == 2)
+                switch (borderMode)
                 {
-                    r = 0; g = 0; b = 0;
-                }
+                    case 1:
+                        r = R;
+                        g = G;
+                        b = B;
+                        break;
 
-                if (borderMode == 3)
-                {
-                    r = 1; g = 1; b = 1;
+                    case 2:
+                        r = 0;
+                        g = 0;
+                        b = 0;
+                        break;
+
+                    case 3:
+                        r = myUtils.randFloat(rand) * 0.1f;
+                        g = myUtils.randFloat(rand) * 0.1f;
+                        b = myUtils.randFloat(rand) * 0.1f;
+                        break;
+
+                    case 4:
+                        r = 1;
+                        g = 1;
+                        b = 1;
+                        break;
+
+                    case 5:
+                        r = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                        g = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                        b = 1.0f - myUtils.randFloat(rand) * 0.1f;
+                        break;
                 }
 
                 switch (shapeMode)
@@ -243,10 +336,18 @@ randShape:
 
             initShapes();
 
+            myObject.bgrR = myUtils.randFloat(rand);
+            myObject.bgrG = myUtils.randFloat(rand);
+            myObject.bgrB = myUtils.randFloat(rand);
+
             // Set background to random color
-            glDrawBuffer(GL_FRONT_AND_BACK);
-            glClearColor((float)rand.NextDouble(), (float)rand.NextDouble(), (float)rand.NextDouble(), 1);
-            glClear(GL_COLOR_BUFFER_BIT);
+            {
+                dimScreenRGB_Set(myObject.bgrR, myObject.bgrG, myObject.bgrB);
+                glClearColor(myObject.bgrR, myObject.bgrG, myObject.bgrB, 1);
+
+                glDrawBuffer(GL_FRONT_AND_BACK);
+                glClear(GL_COLOR_BUFFER_BIT);
+            }
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -256,16 +357,33 @@ randShape:
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                if (doClearBuffer || doCleanOnce)
+                if (doClearOnce)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
-                    doCleanOnce = false;
+                    doClearOnce = false;
+                }
+
+                if (doClearBuffer)
+                {
+                    dimScreen(0.005f);
                 }
 
                 // Render Frame
                 {
-                    Show();
-                    Move();
+                    glLineWidth(lineWidth);
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_102;
+
+                        obj.Show();
+                        obj.Move();
+                    }
+                }
+
+                if (list.Count < N)
+                {
+                    list.Add(new myObj_102());
                 }
 
                 System.Threading.Thread.Sleep(renderDelay);
@@ -279,6 +397,8 @@ randShape:
 
         private void initShapes()
         {
+            myPrimitive.init_ScrDimmer();
+
             myPrimitive.init_Rectangle();
             myPrimitive.init_Ellipse();
             myPrimitive.init_Hexagon();
@@ -286,47 +406,6 @@ randShape:
             myPrimitive.init_Pentagon();
 
             return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        private void getColor()
-        {
-            int cnt = 0;
-            float r = 0, g = 0, b = 0;
-
-            switch (colorMode)
-            {
-                case 0:
-                    colorPicker.getColor(x, y, ref R, ref G, ref B);
-                    break;
-
-                case 1:
-
-                    R = 0; G = 0; B = 0;
-
-                    for (int i = x - size; i < x + 2 * size; i++)
-                    {
-                        for (int j = y - size; j < y + 2 * size; j++)
-                        {
-                            if (i > -1 && j > -1 && i < gl_Width && j < gl_Height)
-                            {
-                                colorPicker.getColor(i, j, ref r, ref g, ref b);
-
-                                R += r;
-                                G += g;
-                                B += b;
-
-                                cnt++;
-                            }
-                        }
-                    }
-
-                    R /= cnt;
-                    G /= cnt;
-                    B /= cnt;
-                    break;
-            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
