@@ -16,12 +16,13 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static bool doClearOnce = false, doUseGrid = false, doUseRandSize = false;
-        private static int N = 0, angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0, borderMode = 0, randSizeFactor = 1, colorStep = 1;
-        private static float lineWidth = 1;
-
         private int x, y, size;
         private float R, G, B, angle;
+
+        private static bool doClearOnce = false, doUseGrid = false, doUseRandSize = false;
+        private static int N = 0, angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0,
+                           borderMode = 0, randSizeFactor = 1, colorStep = 1;
+        private static float A = 1, lineWidth = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -99,6 +100,16 @@ namespace my
                 gridSize = baseSize * 2 + 2 * rand.Next(5) + 1;
             }
 
+            // Shape opacity
+            if (myUtils.randomChance(rand, 1, 11))
+            {
+                A = myUtils.randFloat(rand, 0.1f) * 0.25f;
+            }
+            else
+            {
+                A = 0.25f;
+            }
+
 #if false
             angleMode = 2;
             shapeMode = 0;
@@ -114,7 +125,7 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             width = 500;
-            height = 400;
+            height = 500;
 
             string str = $"Obj = myObj_102\n\n"                  +
                             $"N = {list.Count} of {N}\n"         +
@@ -127,6 +138,7 @@ namespace my
                             $"borderMode = {borderMode}\n"       +
                             $"baseSize = {baseSize}\n"           +
                             $"gridSize = {gridSize}\n"           +
+                            $"opacity = {A.ToString("0.000")}\n" +
                             $"renderDelay = {renderDelay}\n"     +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -193,8 +205,18 @@ namespace my
 
             switch (angleMode)
             {
-                case 0: angle += 0.001f; break;
-                case 1: angle = (float)rand.NextDouble(); break;
+                case 0:
+                    angle += 0.001f;
+                    break;
+
+                case 1:
+                    angle = (float)rand.NextDouble();
+                    break;
+
+                case 2:
+                    if(myUtils.randomChance(rand, 1, 333))
+                        angle = (float)rand.NextDouble();
+                    break;
             }
         }
 
@@ -209,30 +231,30 @@ randShape:
             switch (shapeMode)
             {
                 case 0:
-                    myPrimitive._Rectangle.SetColor(R, G, B, 0.25f);
+                    myPrimitive._Rectangle.SetColor(R, G, B, A);
                     myPrimitive._Rectangle.SetAngle(angle);
                     myPrimitive._Rectangle.Draw(x - size, y - size, 2 * size, 2 * size, true);
                     break;
 
                 case 1:
-                    myPrimitive._Ellipse.SetColor(R, G, B, 0.25f);
+                    myPrimitive._Ellipse.SetColor(R, G, B, A);
                     myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, true);
                     break;
 
                 case 2:
-                    myPrimitive._Triangle.SetColor(R, G, B, 0.25f);
+                    myPrimitive._Triangle.SetColor(R, G, B, A);
                     myPrimitive._Triangle.SetAngle(angle);
                     myPrimitive._Triangle.Draw(x, y - size, x - 5 * size / 6, y + size / 2, x + 5 * size / 6, y + size / 2, true);
                     break;
 
                 case 3:
-                    myPrimitive._Hexagon.SetColor(R, G, B, 0.25f);
+                    myPrimitive._Hexagon.SetColor(R, G, B, A);
                     myPrimitive._Hexagon.SetAngle(angle);
                     myPrimitive._Hexagon.Draw(x, y, size, true);
                     break;
 
                 case 4:
-                    myPrimitive._Pentagon.SetColor(R, G, B, 0.25f);
+                    myPrimitive._Pentagon.SetColor(R, G, B, A);
                     myPrimitive._Pentagon.SetAngle(angle);
                     myPrimitive._Pentagon.Draw(x, y, size, true);
                     break;
