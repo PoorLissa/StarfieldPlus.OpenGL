@@ -10,6 +10,8 @@ using System.Collections.Generic;
     Variations:
         - grid-based
         - leaving traces
+
+    todo: add a mode where it is grid based, and the initial cell size is larger than the grid step
 */
 
 
