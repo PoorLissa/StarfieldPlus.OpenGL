@@ -16,11 +16,11 @@ namespace my
         private int[] others = null;
 
         private int nOthers, lineOpacity;
-        private float x, y, dx, dy;
+        private float x, y, dx, dy, x0, y0;
         private float size, A, R, G, B, angle = 0, radX, radY, t, dt;
 
         private static int N = 0, shape = 0, dir = 0, mode = 0;
-        private static bool doFillShapes = false, isEllipse = true, doUseAlternativeRad = true;
+        private static bool doFillShapes = false, isEllipse = true, doUseAlternativeRad = true, doUseDistAsOpacity = true;
         private static float dimAlpha = 0.05f, changeFactor = 1, distFromCenter = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(3);
+            mode = rand.Next(4);
             dir = rand.Next(4);
 
             doClearBuffer = myUtils.randomBool(rand);
@@ -62,6 +62,8 @@ namespace my
 
             changeFactor = myUtils.randFloat(rand) * rand.Next(11);
             distFromCenter = myUtils.randFloat(rand);
+
+            doUseDistAsOpacity = myUtils.randomBool(rand);
 
             doUseAlternativeRad = myUtils.randomBool(rand);
             isEllipse = myUtils.randomBool(rand);
@@ -75,15 +77,15 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_360\n\n"                         +
-                            $"N = {list.Count} of {N}\n"                +
-                            $"mode = {mode}\n"                          +
-                            $"shape = {shape}\n"                        +
-                            $"changeFactor = {changeFactor}\n"          +
-                            $"distFromCenter = {distFromCenter}\n"      +
-                            $"dimAlpha = {dimAlpha.ToString("0.000")}\n"+
-                            $"file: {colorPicker.GetFileName()}"        +
-                            $""
+            string str = $"Obj = myObj_360\n\n"                             +
+                            $"N = {list.Count} of {N}\n"                    +
+                            $"mode = {mode}\n"                              +
+                            $"shape = {shape}\n"                            +
+                            $"changeFactor = {changeFactor}\n"              +
+                            $"distFromCenter = {distFromCenter}\n"          +
+                            $"doUseDistAsOpacity = {doUseDistAsOpacity}\n"  +
+                            $"dimAlpha = {dimAlpha.ToString("0.000")}\n"    +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -104,18 +106,15 @@ namespace my
             {
                 lineOpacity = 1;
                 nOthers = rand.Next(3) + 1;
-
-                for (int i = 0; i < nOthers; i++)
-                    others[i] = rand.Next(list.Count);
             }
             else
             {
                 lineOpacity = 0;
                 nOthers = rand.Next(3);
-
-                for (int i = 0; i < nOthers; i++)
-                    others[i] = rand.Next(list.Count);
             }
+
+            for (int i = 0; i < nOthers; i++)
+                others[i] = rand.Next(list.Count);
 
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
@@ -141,8 +140,10 @@ namespace my
                 case 1:
                     {
                         dx = dy = 0;
+                        x0 = gl_x0;
+                        y0 = gl_y0;
 
-                        radX = (float)Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0));
+                        radX = (float)Math.Sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
                         radY = isEllipse ? myUtils.randFloat(rand) * radX : radX;
 
                         if (doUseAlternativeRad && radY < radX / 2)
@@ -150,7 +151,6 @@ namespace my
                             radX = 777;
                             radY = myUtils.randFloat(rand) * radX;
                         }
-
 
                         t = myUtils.randFloat(rand) * rand.Next(1234);
                         dt = myUtils.randFloat(rand, 0.05f) * 0.01f;
@@ -163,7 +163,7 @@ namespace my
                     }
                     break;
 
-                // Both
+                // Both lines and elliptic movement
                 case 2:
                     {
                         if (myUtils.randomChance(rand, 1, 2))
@@ -173,6 +173,34 @@ namespace my
                         else
                         {
                             goto case 1;
+                        }
+                    }
+                    break;
+
+                // Several circles
+                case 3:
+                    {
+                        dx = dy = 0;
+
+                        x0 = rand.Next(gl_Width  + 666);
+                        y0 = rand.Next(gl_Height + 666);
+
+                        // Not ellipse, but combined centers instead
+                        if (isEllipse)
+                        {
+                            x0 -= x0 % 666;
+                            y0 -= y0 % 666;
+                        }
+
+                        radX = radY = rand.Next(500) + 100;
+
+                        t = myUtils.randFloat(rand) * rand.Next(1234);
+                        dt = myUtils.randFloat(rand, 0.05f) * 0.01f;
+
+                        switch (dir)
+                        {
+                            case 1: dt *= -1; break;
+                            case 2: case 3: dt *= myUtils.randomSign(rand); break;
                         }
                     }
                     break;
@@ -190,8 +218,8 @@ namespace my
         {
             if (radX != 0 || radY != 0)
             {
-                x = gl_x0 + (float)Math.Sin(t) * radX;
-                y = gl_y0 + (float)Math.Cos(t) * radY;
+                x = x0 + (float)Math.Sin(t) * radX;
+                y = y0 + (float)Math.Cos(t) * radY;
                 t += dt;
             }
             else
@@ -232,8 +260,18 @@ namespace my
             {
                 var other = list[others[i]] as myObj_360;
 
-                myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                myPrimitive._LineInst.setInstanceColor(R, G, B, lineOpacity == 1 ? 0.175f : 0.1f);
+                if (doUseDistAsOpacity)
+                {
+                    float dist = (float)Math.Sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y));
+
+                    myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, 100 * A / dist);
+                }
+                else
+                {
+                    myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, lineOpacity == 1 ? 0.175f : 0.1f);
+                }
             }
 
             switch (shape)
