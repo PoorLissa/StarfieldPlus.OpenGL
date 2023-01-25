@@ -15,7 +15,7 @@ namespace my
     {
         private int cnt;
         private float x, y, x0, y0, dx, dy;
-        private float size, A, R, G, B, angle = 0, dAngle = 0;
+        private float size, A, R, G, B, angle = 0, dAngle = 0, t, dt;
 
         private static int N = 0, shape = 0, mode = 0, sizeMode = 0, angleMode = 0, accMode = 0, cntMode = 0, idleMode = 0, localMode = 0,
                            maxCnt = 0, maxSize = 1, dxFactor = 1, dyFactor = 1, xWidth = 1, yWidth = 1;
@@ -57,7 +57,7 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes  = myUtils.randomBool(rand);
 
-            mode        = rand.Next(10);                        // How the dx / dy are calculated
+            mode        = rand.Next(13);                        // How the dx / dy are calculated
             sizeMode    = rand.Next(7);                         // How the size of particles is generated
             angleMode   = rand.Next(7);                         // How the particles are rotated
             maxSize     = myUtils.randomChance(rand, 1, 2)
@@ -73,7 +73,11 @@ namespace my
                                 ? rand.Next(11) + 1
                                 : rand.Next(33) + 1;
 
-            // Adjust parameters depending on the current mode:
+            accRate = myUtils.randFloat(rand) * 0.01f;
+            dA = myUtils.randFloat(rand) * 0.5f;
+
+
+            // Adjust static parameters depending on the current mode:
             switch (mode)
             {
                 case 004:
@@ -101,6 +105,18 @@ namespace my
                 case 010:
                     localMode = rand.Next(2);
                     break;
+
+                case 011:
+                    localMode = rand.Next(4);                   // Rotation speed
+                    dxFactor = rand.Next(2);                    // Const vs Increasing radius
+                    dyFactor = rand.Next(7) + 1;                // Const radius factor
+                    dA = myUtils.randFloat(rand) * 0.025f;
+                    break;
+
+                case 012:
+                    dxFactor = rand.Next(5) + 1;                // rand move factor for x
+                    dyFactor = rand.Next(5) + 1;                // rand move factor for y
+                    break;
             }
 
             switch (shape)
@@ -109,9 +125,6 @@ namespace my
                     idleMode = rand.Next(2) + 1;
                     break;
             }
-
-            accRate = myUtils.randFloat(rand) * 0.01f;
-            dA = myUtils.randFloat(rand) * 0.5f;
 
             return;
         }
@@ -133,7 +146,7 @@ namespace my
                             $"shape = {shape}\n"                     +
                             $"angleMode = {angleMode}\n"             +
                             $"accelerationMode = {accMode}\n"        +
-                            $"accelerationRate = {accRate}\n"        +
+                            $"accelerationRate = {fStr(accRate)}\n"  +
                             $"cntMode = {cntMode}\n"                 +
                             $"maxSize = {maxSize}\n"                 +
                             $"maxCnt = {maxCnt}\n"                   +
@@ -159,7 +172,8 @@ namespace my
 
         protected override void generateNew()
         {
-            cnt = (cnt == 0) ? 123 : rand.Next(33) + 1;                         // Time to wait until the particle starts falling
+            // Time to wait until the particle starts falling
+            cnt = (cnt == 0) ? 123 : rand.Next(33) + 1;
 
             x = x0 = rand.Next(gl_Width);
             y = y0 = rand.Next(gl_Height + 123) - 123;
@@ -448,6 +462,60 @@ namespace my
                         A = 0.2f + (float)(2 * Math.Abs(dy)) / (dyFactor / 3 + 1);
                     }
                     break;
+
+                // Rotation around the initial position
+                case 011:
+                    {
+                        t = rand.Next(1234);
+
+                        switch (localMode)
+                        {
+                            case 0:
+                                dt = 0.1f;
+                                break;
+
+                            case 1:
+                                dt = dA * 10;
+                                break;
+
+                            case 2:
+                                dt = myUtils.randFloat(rand) * 0.5f;
+                                break;
+
+                            case 3:
+                                dt = myUtils.randFloat(rand) * 0.05f;
+                                break;
+                        }
+
+                        // In half of the cases, direction of rotaion is random
+                        if (maxCnt % 2 == 0)
+                        {
+                            dt *= myUtils.randomSign(rand);
+                        }
+
+                        // Set up the radius of rotation (dx) and it's changing speed (dy)
+                        if (dxFactor == 0)
+                        {
+                            dx = size * dyFactor;
+                            dy = 0;
+                        }
+                        else
+                        {
+                            dx = myUtils.randFloat(rand) * rand.Next(5);
+                            dy = myUtils.randFloat(rand, 0.25f) * 0.45f;
+                        }
+
+                        A = 0.2f + myUtils.randFloat(rand, 0.2f);
+                    }
+                    break;
+
+                // Random movement around the initial position
+                case 012:
+                    {
+                        dx = dy = 0;
+                        A = 0.2f + myUtils.randFloat(rand, 0.2f);
+                    }
+                    break;
             }
 
             // Adjust the wait time
@@ -534,6 +602,21 @@ namespace my
                     case 2: y += accRate * size; break;
                 }
 
+                switch (mode)
+                {
+                    case 011:
+                        x = x0 + (float)Math.Sin(t) * dx;       // dx here is a rotation raduis
+                        y = y0 + (float)Math.Cos(t) * dx;
+                        t += dt;
+                        dx += dy;                               // increase the radius gradually
+                        break;
+
+                    case 012:
+                        dx += myUtils.randomSign(rand) * myUtils.randFloat(rand) * dxFactor;
+                        dy += myUtils.randomSign(rand) * myUtils.randFloat(rand) * dyFactor;
+                        break;
+                }
+
                 if (y > gl_Height || A <= 0)
                 {
                     generateNew();
@@ -547,13 +630,15 @@ namespace my
 
         protected override void Show()
         {
+            float size2x = size * 2;
+
             switch (shape)
             {
                 // Instanced squares
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
+                    rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
                     rectInst.setInstanceColor(R, G, B, A);
                     rectInst.setInstanceAngle(angle);
                     break;
@@ -562,7 +647,7 @@ namespace my
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
+                    triangleInst.setInstanceCoords(x, y, size2x, angle);
                     triangleInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -570,7 +655,7 @@ namespace my
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
                     ellipseInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -578,7 +663,7 @@ namespace my
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
                     pentagonInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -586,7 +671,7 @@ namespace my
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
 
