@@ -41,8 +41,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-                N = 300000;
+                N = 300000 + rand.Next(100000);
 
                 shape = rand.Next(5);
             }
@@ -280,7 +279,8 @@ namespace my
             else
             {
                 dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
+                //glDrawBuffer(GL_FRONT_AND_BACK);
+                glDrawBuffer(GL_DEPTH_BUFFER_BIT);
             }
 
             while (list.Count < N)
