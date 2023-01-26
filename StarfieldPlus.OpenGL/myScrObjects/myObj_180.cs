@@ -203,7 +203,7 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            height = 800;
+            height = 900;
 
             string getFuncGeneratorParams()
             {

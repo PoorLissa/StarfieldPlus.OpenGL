@@ -1,4 +1,5 @@
-﻿
+﻿// https://learnopengl.com/
+
 
 
 public class ScreenSaver
@@ -105,7 +106,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_040;
+        id = ids.myObj_070;
 #endif
 
         switch (id)

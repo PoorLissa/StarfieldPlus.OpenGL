@@ -8,7 +8,8 @@ using System.Collections.Generic;
     - Pieces drop off the desktop and fall down -- random positions and sizes of the tiles
 
     todo:
-        look for target color across all the cell, not only in a single pixel
+        - find a way to dim the existing texture or create another paintable tex and draw it over the picture;
+        - look for target color across all the cell, not only in a single pixel;
 */
 
 
@@ -17,7 +18,7 @@ namespace my
     public class myObj_070 : myObject
     {
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, angle = 0, dAngle = 0;
         private bool alive = false, isFirstStep;
 
         private static int N = 0, shape = 0, maxSize = 66;
@@ -25,6 +26,8 @@ namespace my
         private static float dimAlpha = 0.5f;
 
         static myTexRectangle tex = null;
+
+        myTexRectangle_Renderer rnd = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -38,8 +41,14 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
+
+            N = 333;
+            shape = 4;
+
+            doFillShapes = true;
+            doClearBuffer = true;
 
             initLocal();
         }
@@ -49,8 +58,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            N = 1;
-
             return;
         }
 
@@ -60,10 +67,9 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_070\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"file: {colorPicker.GetFileName()}" +
-                            $""
+            string str = $"Obj = myObj_070 -- unfinished\n\n"   +
+                            $"N = {list.Count} of {N}\n"        +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -103,6 +109,23 @@ namespace my
             }
             while (R == 0 && G == 0 && B == 0);
 
+            size = rand.Next(666) + 33;
+            angle = myUtils.randFloat(rand) * 1234;
+            dAngle = myUtils.randFloat(rand, 0.1f) * 0.01f;
+
+            //x = gl_x0;
+            //y = gl_y0;
+
+            R = 1;
+            G = 1;
+            B = 1;
+
+            colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            A = myUtils.randFloat(rand, 0.1f) * 0.1f;
+
+            dx = dy = 0;
+
             return;
         }
 
@@ -110,6 +133,10 @@ namespace my
 
         protected override void Move()
         {
+            angle += dAngle;
+
+            return;
+
             if ((int)y % 5 == 0)
             {
                 x += rand.Next(3) - 1;
@@ -150,7 +177,6 @@ namespace my
             {
             }
 
-            return;
 /*
             br.Color = Color.FromArgb(A, R, G, B);
             g.FillRectangle(br, X - Size, Y - Size, 2 * Size, 2 * Size);
@@ -213,8 +239,6 @@ namespace my
             // Disable VSYNC if needed
             // Glfw.SwapInterval(0);
 
-            doClearBuffer = false;
-
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
@@ -241,18 +265,47 @@ namespace my
 
                 if (doClearBuffer)
                 {
-                    glClear(GL_COLOR_BUFFER_BIT);
+                    tex.Draw(0, 0, gl_Width, gl_Height);
                 }
                 else
                 {
                     tex.Draw(0, 0, gl_Width, gl_Height);
                 }
 
+                if (true)
+                {
+                    rnd.startRendering();
+                    {
+                        glClearColor(0, 0, 0, 1);
+                        glClear(GL_DEPTH_BUFFER_BIT);
+
+                        for (int i = 0; i < 3; i++)
+                        {
+                            int x = rand.Next(gl_Width);
+                            int y = rand.Next(gl_Height);
+                            int w = rand.Next(50) + 3;
+
+                            float r = myUtils.randFloat(rand) * 0.1f;
+                            float g = myUtils.randFloat(rand) * 0.1f;
+                            float b = myUtils.randFloat(rand) * 0.1f;
+
+                            myPrimitive._Rectangle.SetColor(r, g, b, 0.25f);
+                            myPrimitive._Rectangle.Draw(x, y, w, w, true);
+
+                            myPrimitive._Rectangle.SetColor(r, g, b, 0.5f);
+                            myPrimitive._Rectangle.Draw(x, y, w, w, false);
+                        }
+                    }
+                    rnd.stopRendering();
+                    rnd.Draw(0, 0, gl_Width, gl_Height);
+                }
+
                 // Render Frame
+                if (true)
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i != list.Count; i++)
                     {
                         var obj = list[i] as myObj_070;
 
@@ -289,6 +342,10 @@ namespace my
         {
             myPrimitive.init_Rectangle();
             base.initShapes(shape, N, 0);
+
+myPrimitive._HexagonInst.setRotationMode(1);
+
+            rnd = new myTexRectangle_Renderer();
 
             tex = new myTexRectangle(colorPicker.getImg());
 
