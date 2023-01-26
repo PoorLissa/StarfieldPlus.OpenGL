@@ -16,8 +16,8 @@ namespace my
         private float x, y, dx, dy, size, dSize, R, G, B, A, dA, angle, dAngle;
         private int angleMode = 0, signX, signY, oldX = 0, oldY = 0;
 
-        private static float dimAlpha = 0;
-        private static int N = 0, rndMax = 0, shape = 0, moveType = 0, dimRate = 0, maxSize = 0, offX = 0, offY = 0,
+        private static float dimAlpha = 0, ddSize = 0, offX = 0, offY = 0, dOffX = 0, dOffY = 0;
+        private static int N = 0, rndMax = 0, shape = 0, moveType = 0, dimRate = 0, maxSize = 0,
                            lineMode = 0, fillMode = 0, centerGenMode = 0, tailLength = 0;
         static bool doUseStrongerDimFactor = false, doDrawTwice = true, doAdjustOpacity = true, doAdjustSpeed = true;
 
@@ -57,20 +57,27 @@ namespace my
             renderDelay = 10;
 
             moveType = rand.Next(14);
-            lineMode = rand.Next(13);                               // Draw straigh line from (x, y) to (xOld, yOld)
+            lineMode = rand.Next(13);                               // Draw straight line from (x, y) to (xOld, yOld)
             fillMode = rand.Next(3);
-            centerGenMode = rand.Next(3);                           // How dx/dy are generated, also, position of center
+            centerGenMode = rand.Next(4);                           // How dx/dy are generated, also, position of center
             doAdjustOpacity = myUtils.randomChance(rand, 2, 3);     // If true, reduce opacity for multi-step modes
             doAdjustSpeed   = myUtils.randomChance(rand, 1, 2);     // If true, reduce dx and dy for multi-step modes
 
             tailLength = myUtils.randomChance(rand, 1, 2) ? rand.Next(11) : 0;
             rndMax = rand.Next(800) + 100;
 
+            ddSize = myUtils.randomChance(rand, 1, 3)
+                ? 0 
+                : myUtils.randFloat(rand, 0.1f) * 0.0005f;
+
             // Coordinates to offset the center
-            if (centerGenMode == 2)
+            if (centerGenMode >= 2)
             {
                 offX = myUtils.randomSign(rand) * rand.Next(gl_x0);
                 offY = myUtils.randomSign(rand) * rand.Next(gl_y0);
+
+                dOffX = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.25f) * 5;
+                dOffY = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.25f) * 5;
             }
 
             switch (rand.Next(3))
@@ -117,6 +124,7 @@ namespace my
                             $"doAdjustSpeed = {doAdjustSpeed}\n"                    +
                             $"moveType = {moveType}\n"                              +
                             $"dimAlpha = {dimAlpha}\n"                              +
+                            $"ddSize = {ddSize}\n"                                  +
                             $"tailLength = {tailLength}\n"                          +
                             $"rndMax = {rndMax}\n"                                  +
                             $"fillMode = {fillMode}\n"                              +
@@ -143,7 +151,9 @@ namespace my
                         y0 = gl_y0;
                         break;
 
-                    case 1: case 2:
+                    case 1:
+                    case 2:
+                    case 3:
                         x = rand.Next(gl_Width);
                         y = rand.Next(gl_Width);
                         x0 = gl_x0;
@@ -188,6 +198,32 @@ namespace my
 
                         x += offX;
                         y += offY;
+                        break;
+
+                    // Move central point around the field
+                    case 3:
+                        y -= (gl_Width - gl_Height) / 2;
+
+                        x += (int)offX;
+                        y += (int)offY;
+
+                        if (id == 0)
+                        {
+                            offX += dOffX;
+                            offY += dOffY;
+
+                            if (x > gl_Width)
+                                dOffX -= 0.5f;
+
+                            if (x < 0)
+                                dOffX += 0.5f;
+
+                            if (y > gl_Height)
+                                dOffY -= 0.5f;
+
+                            if (y < 0)
+                                dOffY += 0.5f;
+                        }
                         break;
                 }
             }
@@ -473,6 +509,8 @@ namespace my
         {
             int lineN = N;
 
+            myPrimitive.init_Rectangle();
+
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(lineN * stepsPerFrame);
 
@@ -493,7 +531,8 @@ namespace my
             x += baseStep * rand.Next(rndMax) * myUtils.randomSign(rand);
             y += baseStep * rand.Next(rndMax) * myUtils.randomSign(rand);
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -509,7 +548,8 @@ namespace my
             if (rand.Next(11) == 0)
                 dy += (float)rand.NextDouble() / 3 * signY;
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -562,7 +602,8 @@ namespace my
                     dy = 0;
                 }
 
-                size += dSize;
+                size += dSize > 0 ? dSize : 0;
+                dSize -= ddSize;
             }
         }
 
@@ -576,7 +617,8 @@ namespace my
             x += dx + (float)(Math.Sin(y) * 5);
             y += dy + (float)(Math.Sin(x) * 5);
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -589,7 +631,8 @@ namespace my
             x += dx + (float)(Math.Sin(y) * rand.Next(7));
             y += dy + (float)(Math.Sin(x) * rand.Next(7));
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -602,7 +645,8 @@ namespace my
             x += dx + (float)(Math.Sin(y) * rand.Next(7) * myUtils.randomSign(rand));
             y += dy + (float)(Math.Sin(x) * rand.Next(7) * myUtils.randomSign(rand));
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -615,7 +659,8 @@ namespace my
             x += dx + (float)(Math.Sin(1 / y)) * myUtils.randomSign(rand);
             y += dy + (float)(Math.Cos(1 / x)) * myUtils.randomSign(rand);
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -628,7 +673,8 @@ namespace my
             x += dx + (float)(Math.Sin(y) + Math.Cos(x) * rand.Next(7));
             y += dy + (float)(Math.Sin(x) + Math.Cos(y) * rand.Next(7));
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -641,7 +687,8 @@ namespace my
             x += (float)(Math.Sin(size * dx));
             y += (float)(Math.Sin(size * dy));
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -654,7 +701,8 @@ namespace my
             x += (float)(Math.Sin(size * dx));
             y += (float)(Math.Cos(size * dy));
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -670,7 +718,8 @@ namespace my
             if (rand.Next(10) == 0)
                 dy *= (float)rand.NextDouble() * 2.1f;
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize/2;
 
             if (size > 10 && dA > 0)
             {
@@ -704,7 +753,8 @@ namespace my
             else
                 x += baseStep * rand.Next(rndMax) * myUtils.randomSign(rand);
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize/2;
 
             if (size > 10 && dA > 0)
             {
@@ -738,7 +788,8 @@ namespace my
             else
                 x += baseStep * rand.Next(rndMax) * myUtils.randomSign(rand);
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize/2;
 
             if (size > 10 && dA > 0)
             {
@@ -750,10 +801,13 @@ namespace my
 
         private void move14()
         {
+            // not used yet
+
             x += dx + dy;
             y += dy + dx;
 
-            size += dSize;
+            size += dSize > 0 ? dSize : 0;
+            dSize -= ddSize/2;
 
             if (size > 10 && dA > 0)
             {

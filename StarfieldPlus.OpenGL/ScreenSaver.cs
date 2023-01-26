@@ -98,13 +98,14 @@ public class ScreenSaver
     // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving towards the point where pt2 has been at the moment of generation
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - get colors from image and slightly offset the colors. Then put color spots (grid or not) on the screen
+    // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
 
     public void selectObject()
     {
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_320;
+        id = ids.myObj_040;
 #endif
 
         switch (id)
