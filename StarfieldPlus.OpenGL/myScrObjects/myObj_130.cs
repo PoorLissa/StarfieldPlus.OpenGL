@@ -20,59 +20,55 @@ namespace my
         private static int N = 0, shape = 0, moveMode = 0, growMode = 0, rotationMode = 0, renderDelayOld = -1;
         private static int globalCounter = 0, moveSetUp = 0, moveParam1 = 0, moveParam2 = 0, moveParam3 = 0, moveParam4 = 0, moveParam5 = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.0f, aFill = 0, bgrR = -1, bgrG = -1, bgrB = -1;
+        private static float dimAlpha = 0.0f, aFill = 0, bgrR = -1, bgrG = -1, bgrB = -1, lineTh = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_130()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                renderDelayOld = renderDelay;
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // One-time initialization
-        private void init()
+        // One-time global initialization
+        protected override void initGlobal()
         {
-            renderDelay = renderDelayOld;
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
 
-            if (N == 0)
             {
+                renderDelayOld = renderDelay;
+
+                doClearBuffer = false;
+                shape = rand.Next(5);
+
                 switch (rand.Next(3))
                 {
-                    case 0:
-                        N = 10 + rand.Next(33);
-                        break;
-
-                    case 1:
-                        N = 33 + rand.Next(100);
-                        break;
-
-                    case 2:
-                        N = 100 + rand.Next(1000);
-                        break;
+                    case 0: N = 010 + rand.Next(0033); break;
+                    case 1: N = 033 + rand.Next(0100); break;
+                    case 2: N = 100 + rand.Next(1000); break;
                 }
             }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time initialization
+        private void initLocal()
+        {
+            renderDelay = renderDelayOld;
 
             dimAlpha = 0.001f * (rand.Next(100) + 1);
             aFill = (float)rand.NextDouble() / 13;
 
-            shape = rand.Next(5);
             rotationMode = rand.Next(3);
             moveMode = rand.Next(10);
             growMode = rand.Next(2);
-            doClearBuffer = false;
             doFillShapes = myUtils.randomChance(rand, 1, 3);
+            lineTh = 0.2f + myUtils.randFloat(rand) * (rand.Next(10) + 1);
 
             // todo: not used, make a use of it
             if (bgrR < 0 && bgrG < 0 && bgrB < 0)
@@ -108,16 +104,17 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_130\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"shape = {shape}\n" +
-                            $"rotationMode = {rotationMode}\n" +
-                            $"moveMode = {moveMode}\n" +
-                            $"growMode = {growMode}\n" +
-                            $"bgr = [{bgrR}, {bgrG}, {bgrB}]\n" +
-                            $"dimAlpha = {dimAlpha}\n" +
-                            $"aFill = {aFill}\n" +
+            string str = $"Obj = myObj_130\n\n"                     +
+                            $"N = {list.Count} of {N}\n"            +
+                            $"doClearBuffer = {doClearBuffer}\n"    +
+                            $"shape = {shape}\n"                    +
+                            $"rotationMode = {rotationMode}\n"      +
+                            $"moveMode = {moveMode}\n"              +
+                            $"growMode = {growMode}\n"              +
+                            $"bgr = [{bgrR}, {bgrG}, {bgrB}]\n"     +
+                            $"dimAlpha = {dimAlpha}\n"              +
+                            $"aFill = {aFill}\n"                    +
+                            $"lineTh = {lineTh}\n"                  +
                             $"doFillShapes = {doFillShapes}\n"
                 ;
             return str;
@@ -128,11 +125,9 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            var oldShape = shape;
+            initLocal();
 
-            init();
-
-            shape = oldShape;
+            glLineWidth(lineTh);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -453,6 +448,8 @@ namespace my
 
             glDrawBuffer(GL_FRONT_AND_BACK);
 
+            glLineWidth(lineTh);
+
             while (!Glfw.WindowShouldClose(window))
             {
                 globalCounter++;
@@ -476,7 +473,7 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i != list.Count; i++)
                     {
                         var obj = list[i] as myObj_130;
 

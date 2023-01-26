@@ -53,15 +53,11 @@ namespace my
         {
             maxSteps = rand.Next(51) + 5;
             gridMode = rand.Next(3);
-            drawMode = rand.Next(3);
-/*
-drawMode = 1;
-gridMode = 0;
-objN = 1;
-*/
+            drawMode = rand.Next(2);            // mode 2 removed temporarily
+
             if (gridMode > 0)
             {
-                objN = 100;
+                objN = 30;
             }
 
             return;
@@ -172,10 +168,6 @@ A = 0.5f;
         {
             initLocal();
 
-/*
-gridMode = 0;
-objN = 1;
-*/
             list.Clear();
 
             var obj = new myObj_320();
@@ -248,6 +240,7 @@ objN = 1;
 
                 case 2:
                     {
+                        // seems not to be working.
                         float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, X3 = 0, Y3 = 0, X4 = 0, Y4 = 0;
 
                         double dist = recalc(ref X1, ref Y1, x1, y1, x2, y2);
