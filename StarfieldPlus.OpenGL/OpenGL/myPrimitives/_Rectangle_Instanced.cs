@@ -11,8 +11,10 @@ public class myRectangleInst : myInstancedPrimitive
 {
     private static float[] vertices = null;
 
-    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
-    private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0;
+    private static uint ebo_fill = 0, ebo_outline = 0, instVbo = 0, quadVbo = 0;
+
+    private static uint[] shaderProg = null;
+    private static int[] locationColor = null, locationScrSize = null, locationRotateMode = null;
 
     private int rotationMode;
 
@@ -33,11 +35,12 @@ public class myRectangleInst : myInstancedPrimitive
             vertices = new float[12];
             instanceArray = new float[maxInstCount * n];
 
+            shaderProg = new uint[3];
+            locationColor = new int[3];
+            locationScrSize = new int[3];
+            locationRotateMode = new int[3];
+
             CreateProgram();
-            glUseProgram(shaderProgram);
-            locationColor      = glGetUniformLocation(shaderProgram, "myColor");
-            locationScrSize    = glGetUniformLocation(shaderProgram, "myScrSize");
-            locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
 
             instVbo     = glGenBuffer();
             quadVbo     = glGenBuffer();
@@ -88,12 +91,34 @@ public class myRectangleInst : myInstancedPrimitive
         updateInstances();
         updateVertices();
 
-        glUseProgram(shaderProgram);
+        switch (_drawMode)
+        {
+            case drawMode.OWN_COLOR_OWN_OPACITY:
+                glUseProgram(shaderProg[0]);
 
-        setColor(locationColor, _r, _g, _b, _a);
-        updUniformScreenSize(locationScrSize, Width, Height);
+                // Update uniforms:
+                glUniform2i(locationScrSize[0], Width, Height);
+                glUniform1i(locationRotateMode[0], rotationMode);
+                break;
 
-        glUniform1i(locationRotateMode, rotationMode);
+            case drawMode.OWN_COLOR_CUSTOM_OPACITY:
+                glUseProgram(shaderProg[1]);
+
+                // Update uniforms:
+                glUniform1f(locationColor[1], _a);
+                glUniform2i(locationScrSize[1], Width, Height);
+                glUniform1i(locationRotateMode[1], rotationMode);
+                break;
+
+            case drawMode.CUSTOM_COLOR_CUSTOM_OPACITY:
+                glUseProgram(shaderProg[2]);
+
+                // Update uniforms:
+                glUniform4f(locationColor[2], _r, _g, _b, _a);
+                glUniform2i(locationScrSize[2], Width, Height);
+                glUniform1i(locationRotateMode[2], rotationMode);
+                break;
+        }
 
         __draw(doFill);
     }
@@ -153,29 +178,85 @@ public class myRectangleInst : myInstancedPrimitive
                         gl_Position.y += -2.0 / myScrSize.y * (mData[0].y + mData[0].w/2) + 1.0;"
         );
 
-        // In case opacity in myColor vec is negative, we know that we should just multiply our instance's opacity by this value (with neg.sign)
-        // This is done to be able to draw all the instances the second time with changed opacity
-        // For example: we want to draw set of filled-in rectangles with lower opacity, and then we want to give them borders with higher opacity
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-            "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;",
+        shaderProg[0] = glCreateProgram();
+        {
+            // Default fragment shader:
+            // Paints each instance with its own color and its own opacity
+            var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
+                "in vec4 rgbaColor; out vec4 result;",
 
-                main: @"result = rgbaColor;
+                    main: @"result = rgbaColor;"
+            );
 
-                        if (myColor.w < 0)
-                        {
-                            result.w *= -myColor.w;
-                        }"
-        );
+            glAttachShader(shaderProg[0], vertex);
+            glAttachShader(shaderProg[0], fragment);
 
-        shaderProgram = glCreateProgram();
+            glLinkProgram(shaderProg[0]);
 
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
+            glDeleteShader(vertex);
+            glDeleteShader(fragment);
 
-        glLinkProgram(shaderProgram);
+            glUseProgram(shaderProg[0]);
+            locationScrSize[0] = glGetUniformLocation(shaderProg[0], "myScrSize");
+            locationRotateMode[0] = glGetUniformLocation(shaderProg[0], "myRttMode");
+        }
 
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
+        shaderProg[1] = glCreateProgram();
+        {
+            // This shader paints each instance with its own color, but with a custom opacity:
+            // - In case the opacity is negative, we multiply our instance's opacity by this value (with neg.sign);
+            // - In case the opacity is positive, we use this value;
+            // - In case the opacity is 0, we use instance's own value;
+            // This is done to be able to draw all the instances the second time with changed opacity
+            // For example: we want to draw set of filled-in rectangles with lower opacity, and then we want to give them borders with higher opacity
+            var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
+                "in vec4 rgbaColor; out vec4 result; uniform float myColor;",
+
+                    main: @"result = rgbaColor;
+                        if (myColor < 0)
+                            result.w *= -myColor;
+
+                        if (myColor > 0)
+                            result.w = myColor;"
+            );
+
+            glAttachShader(shaderProg[1], vertex);
+            glAttachShader(shaderProg[1], fragment);
+
+            glLinkProgram(shaderProg[1]);
+
+            glDeleteShader(vertex);
+            glDeleteShader(fragment);
+
+            glUseProgram(shaderProg[1]);
+            locationColor[1] = glGetUniformLocation(shaderProg[1], "myColor");
+            locationScrSize[1] = glGetUniformLocation(shaderProg[1], "myScrSize");
+            locationRotateMode[1] = glGetUniformLocation(shaderProg[1], "myRttMode");
+        }
+
+        shaderProg[2] = glCreateProgram();
+        {
+            // This shader paints each instance with the same custom color and opacity:
+            // This is done to be able to draw all the instances the second time with a custom border
+            var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
+                "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;",
+
+                    main: @"result = myColor;"
+            );
+
+            glAttachShader(shaderProg[2], vertex);
+            glAttachShader(shaderProg[2], fragment);
+
+            glLinkProgram(shaderProg[2]);
+
+            glDeleteShader(vertex);
+            glDeleteShader(fragment);
+
+            glUseProgram(shaderProg[2]);
+            locationColor[2] = glGetUniformLocation(shaderProg[1], "myColor");
+            locationScrSize[2] = glGetUniformLocation(shaderProg[1], "myScrSize");
+            locationRotateMode[2] = glGetUniformLocation(shaderProg[1], "myRttMode");
+        }
 
         return;
     }

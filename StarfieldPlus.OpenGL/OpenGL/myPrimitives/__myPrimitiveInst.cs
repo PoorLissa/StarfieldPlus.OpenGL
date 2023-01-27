@@ -11,11 +11,16 @@ using static OpenGL.GL;
 
 public class myInstancedPrimitive : myPrimitive
 {
+    public enum drawMode { OWN_COLOR_OWN_OPACITY, OWN_COLOR_CUSTOM_OPACITY, CUSTOM_COLOR_CUSTOM_OPACITY };
+
+    // ---------------------------------------------------------------------------------------
+
     protected static float pixelX = 0, pixelY = 0;
 
     protected float[] instanceArray = null;
 
     protected int instArrayPosition = 0, N = 0, n = 0;
+    protected drawMode _drawMode;
 
     public myInstancedPrimitive()
     {
@@ -25,6 +30,8 @@ public class myInstancedPrimitive : myPrimitive
 
         pixelX = 1.0f / Width;
         pixelY = 1.0f / Height;
+
+        _drawMode = drawMode.OWN_COLOR_OWN_OPACITY;
     }
 
     // ---------------------------------------------------------------------------------------
@@ -62,6 +69,13 @@ public class myInstancedPrimitive : myPrimitive
         {
             instanceArray = new float[Size * n];
         }
+    }
+
+    // ---------------------------------------------------------------------------------------
+
+    public void setDrawingMode(drawMode mode)
+    {
+        _drawMode = mode;
     }
 
     // ---------------------------------------------------------------------------------------

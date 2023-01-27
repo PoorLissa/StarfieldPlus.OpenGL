@@ -5,10 +5,9 @@ using System.Collections.Generic;
 
 
 /*
-    - Pieces drop off the desktop and fall down -- random positions and sizes of the tiles
+    - Pieces drop off the desktop and fall down
 
     todo:
-        - find a way to dim the existing texture or create another paintable tex and draw it over the picture;
         - look for target color across all the cell, not only in a single pixel;
 */
 
@@ -47,10 +46,10 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
-            N = 1000;
-            shape = rand.Next(5);
-            shape = 0;
-            rotationMode = rand.Next(3);
+            N = rand.Next(999) + 100;
+            shape = rand.Next(2);
+
+            rotationMode = rand.Next(4);
 
             doFillShapes = true;
             doClearBuffer = true;
@@ -209,11 +208,20 @@ namespace my
                     float g = myUtils.randFloat(rand) * 0.1f;
                     float b = myUtils.randFloat(rand) * 0.1f;
 
-                    //myPrimitive._Rectangle.SetAngle(myUtils.randFloat(rand) * 0.025f);
+                    switch (shape)
+                    {
+                        case 0:
+                            myPrimitive._Rectangle.SetColor(r, g, b, A * 0.25f);
+                            myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, true);
+                            myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, false);
+                            break;
 
-                    myPrimitive._Rectangle.SetColor(r, g, b, A * 0.25f);
-                    myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, true);
-                    myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, false);
+                        case 1:
+                            myPrimitive._Triangle.SetColor(r, g, b, A * 0.25f);
+                            myPrimitive._Triangle.SetAngle(myUtils.randFloat(rand));
+                            myPrimitive._Triangle.Draw(x, y - size2x, x - 5 * size2x / 6, y + size2x / 2, x + 5 * size2x / 6, y + size2x / 2, true);
+                            break;
+                    }
                 }
                 offScrRenderer.stopRendering();
             }
@@ -241,7 +249,7 @@ namespace my
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
                     ellipseInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -249,7 +257,7 @@ namespace my
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
                     pentagonInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -257,7 +265,7 @@ namespace my
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
             }
@@ -308,6 +316,8 @@ namespace my
                 System.Threading.Thread.Sleep(111);
             }
 
+            inst.setDrawingMode(myInstancedPrimitive.drawMode.OWN_COLOR_CUSTOM_OPACITY);
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -338,13 +348,13 @@ namespace my
 
                     if (doFillShapes)
                     {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                        // Set fill opacity to A x 0.5
                         inst.SetColorA(-0.5f);
                         inst.Draw(true);
                     }
 
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
+                    // Set border opacity to A x 2
+                    inst.SetColorA(-2.0f);
                     inst.Draw(false);
                 }
 
@@ -364,6 +374,8 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Rectangle();
+            myPrimitive.init_Triangle();
+
             base.initShapes(shape, N, 0);
 
             offScrRenderer = new myTexRectangle_Renderer();
@@ -375,6 +387,10 @@ namespace my
             {
                 case 0:
                     (inst as myRectangleInst).setRotationMode(rotationMode);
+                    break;
+
+                case 1:
+                    (inst as myTriangleInst).setRotationMode(rotationMode);
                     break;
             }
 
