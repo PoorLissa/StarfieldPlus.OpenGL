@@ -253,6 +253,12 @@ namespace my
             tex.Draw(0, 0, gl_Width, gl_Height);
             System.Threading.Thread.Sleep(333);
 
+            rnd.startRendering();
+            glClearColor(1, 1, 1, 1);
+            //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            rnd.stopRendering();
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
@@ -289,11 +295,13 @@ namespace my
                             float g = myUtils.randFloat(rand) * 0.1f;
                             float b = myUtils.randFloat(rand) * 0.1f;
 
-                            myPrimitive._Rectangle.SetColor(r, g, b, 0.25f);
+                            r = g = b = 0;
+
+                            myPrimitive._Rectangle.SetColor(r, g, b, 0.95f);
                             myPrimitive._Rectangle.Draw(x, y, w, w, true);
 
-                            myPrimitive._Rectangle.SetColor(r, g, b, 0.5f);
-                            myPrimitive._Rectangle.Draw(x, y, w, w, false);
+                            myPrimitive._Rectangle.SetColor(r, g, b, 0.25f);
+                            //myPrimitive._Rectangle.Draw(x, y, w, w, false);
                         }
                     }
                     rnd.stopRendering();
