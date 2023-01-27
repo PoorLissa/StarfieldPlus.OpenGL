@@ -94,6 +94,15 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // When using the off-screen renderer, we need this call to draw the rest of the frame (drawn over the renderer);
+    // todo: see what we're missing and fix it
+    public void UpdateVertices__WorkaroundTmp()
+    {
+        updateVertices();
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     // Render the texture on the screen.
     //  x, y, w, h          -- rectangle on the screen to fill with texture
     //  ptx, pty, ptw, pth  -- optional rectangle to sample pixels from
@@ -302,7 +311,7 @@ public class myTexRectangle : myPrimitive
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * sizeof(float), IntPtr.Zero);
 
-            // layout(location = 1) -- color attribute
+            // layout (location = 1) -- color attribute
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(3 * sizeof(float)));
 

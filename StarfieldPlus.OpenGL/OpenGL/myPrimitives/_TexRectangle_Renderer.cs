@@ -105,7 +105,7 @@ public class myTexRectangle_Renderer : myPrimitive
     // - In case ptw is '0', the whole texture is rendered
     // - In case ptw is not '0', only part of the texture is rendered
     // - Using negative ptw/pth, it is possible to flip/rotate/mirror the texture
-    public void Draw(int x, int y, int w, int h, int ptx = 0, int pty = 0, int ptw = 0, int pth = 0)
+    public void Draw(int x, int y, int w, int h)
     {
         glUseProgram(shaderProgram);
 

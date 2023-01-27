@@ -18,6 +18,7 @@ namespace my
         private static int _W = -1, _H = -1, gl_R = -1, gl_G = -1, gl_B = -1, gl_r = -1, gl_g = -1, gl_b = -1;
         private static bool isRlocked = false, isGlocked = false, isBlocked = false;
         private static float color255f = 1.0f / 255.0f;
+        private static string _fileName = null;
 
         private enum scaleParams { scaleToWidth, scaleToHeight };
         public enum  colorMode { SNAPSHOT, IMAGE, SINGLE_RANDOM, RANDOM, TEXTURE, GRAY, SNAPSHOT_OR_IMAGE };
@@ -40,16 +41,25 @@ namespace my
             _rndMode = _rand.Next(6);                       // random color mode
             _rndVariator = 25 + _rand.Next(75);             // random color variator
 
-            // Select random mode
-            if (_mode < 0)
+            // Select mode
+            if (_fileName != null)
             {
-                _mode = _rand.Next(6);
+                _mode = (int)colorMode.IMAGE;
             }
-
-            // Select random mode out of [0, 1]
-            if (_mode == (int)colorMode.SNAPSHOT_OR_IMAGE)
+            else
             {
-                _mode = _rand.Next(2);
+                if (_mode < 0)
+                {
+                    _mode = _rand.Next(6);
+                }
+                else
+                {
+                    // Select random mode out of [0, 1]
+                    if (_mode == (int)colorMode.SNAPSHOT_OR_IMAGE)
+                    {
+                        _mode = _rand.Next(999) % 2;
+                    }
+                }
             }
 
             switch (_mode)
@@ -104,6 +114,14 @@ namespace my
         public int getMode()
         {
             return _mode;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Explicitly set the name of the file to load the image from
+        public static void setFileName(string fName)
+        {
+            _fileName = fName;
         }
 
         // -------------------------------------------------------------------------
@@ -421,14 +439,22 @@ namespace my
         {
             try
             {
+                string image = _fileName;
                 var list = new System.Collections.Generic.List<string>();
 
+                // Custom paths tp look for images;
+                // todo:
+                //  - read the list from *.ini file
                 list.Add(@"C:\_maxx\pix");
                 list.Add(@"E:\iNet\pix");
                 list.Add(@"E:\iNet\pix\wallpapers_3840x1600");
 
-                //string image = getRandomFile(StarfieldPlus.Program._imgPath);
-                string image = getRandomFile(list);
+                // Try to use explicitly set name first;
+                // If the name is empty, then use randomly found image
+                if (image == null)
+                {
+                    image = getRandomFile(list);
+                }
 
                 if (image != null && image != string.Empty)
                 {
@@ -457,6 +483,8 @@ namespace my
 
                     _g = Graphics.FromImage(_img);
                     _f = image.Substring(image.LastIndexOf('\\') + 1);
+
+                    list.Clear();
                 }
                 else
                 {

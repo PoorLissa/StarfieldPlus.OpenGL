@@ -17,22 +17,23 @@ namespace my
 {
     public class myObj_070 : myObject
     {
-        private float x, y, dx, dy;
+        private float x, y, dx, dy, ddy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
-        private bool alive = false, isFirstStep;
+        private bool alive, isFirstStep;
 
-        private static int N = 0, shape = 0, maxSize = 66;
-        private static bool doFillShapes = false;
+        private static int N = 0, shape = 0, rotationMode = 0, slowMode = 0,
+                           minSize = 5, maxSize = 25, maxHeight = gl_Height + 100, gridStep = 1, gridOffset = 1;
+        private static bool doFillShapes = false, doUseGrid = true, doUseConstSize = true;
         private static float dimAlpha = 0.5f;
 
         static myTexRectangle tex = null;
-
-        myTexRectangle_Renderer rnd = null;
+        static myTexRectangle_Renderer offScrRenderer = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_070()
         {
+            alive = true;
             generateNew();
         }
 
@@ -41,11 +42,15 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
+            //myColorPicker.setFileName("C:\\_maxx\\pix\\_renamer.old.visuals.png");
+
             colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
-            N = 333;
-            shape = 4;
+            N = 1000;
+            shape = rand.Next(5);
+            shape = 0;
+            rotationMode = rand.Next(3);
 
             doFillShapes = true;
             doClearBuffer = true;
@@ -58,6 +63,15 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doUseGrid      = myUtils.randomBool(rand);          // Align particles to grid
+            doUseConstSize = myUtils.randomBool(rand);          // Particle size: const vs random
+
+            gridStep   = rand.Next(25) + minSize;
+            gridOffset = rand.Next(05) + 1;
+
+            slowMode = rand.Next(10);                           // ddy reduce factor
+            slowMode = slowMode > 5 ? 0 : slowMode;
+
             return;
         }
 
@@ -65,10 +79,17 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            height = 800;
+            height = 600;
 
-            string str = $"Obj = myObj_070 -- unfinished\n\n"   +
-                            $"N = {list.Count} of {N}\n"        +
+            string str = $"Obj = myObj_070 -- Falling Pieces\n\n"   +
+                            $"N = {list.Count} of {N}\n"            +
+                            $"shape = {shape}\n"                    +
+                            $"doUseGrid = {doUseGrid}\n"            +
+                            $"doUseConstSize = {doUseConstSize}\n"  +
+                            $"gridStep = {gridStep}\n"              +
+                            $"gridOffset = {gridOffset}\n"          +
+                            $"rotationMode = {rotationMode}\n"      +
+                            $"slowMode = {slowMode}\n"              +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -86,19 +107,31 @@ namespace my
 
         protected override void generateNew()
         {
-            size = rand.Next(maxSize) + 1;
-            dx = rand.Next(3) - 1;
+            size = doUseConstSize
+                    ? gridStep
+                    : rand.Next(maxSize) + minSize;
+
+            dx = myUtils.randomSign(rand) * myUtils.randFloat(rand);
             dy = 0;
+            ddy = 0.005f + size / 20.0f;
+
+            switch (slowMode)
+            {
+                case 1: ddy /= 10; break;
+                case 2: ddy /= 20; break;
+                case 3: ddy /= 30; break;
+                case 4: ddy /= 40; break;
+                case 5: ddy /= 50; break;
+            }
+
             isFirstStep = true;
 
             int failCnt = 0;
 
-            do
+            //do
             {
-                A = (rand.Next(56) + 200) / 255.0f;
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Height);
-                colorPicker.getColor(x, y, ref R, ref G, ref B);
 
                 if (++failCnt > 50)
                 {
@@ -107,24 +140,29 @@ namespace my
                     return;
                 }
             }
-            while (R == 0 && G == 0 && B == 0);
+            //while (R == 0 && G == 0 && B == 0);
 
-            size = rand.Next(666) + 33;
-            angle = myUtils.randFloat(rand) * 1234;
-            dAngle = myUtils.randFloat(rand, 0.1f) * 0.01f;
+            angle = 0;
+            dAngle = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.25f) * 0.005f;
 
-            //x = gl_x0;
-            //y = gl_y0;
+            // For rotation modes which are > 0, dAngle should be somewhat greater
+            if (rotationMode > 0)
+            {
+                dAngle *= rand.Next(7) + 5;
+            }
 
-            R = 1;
-            G = 1;
-            B = 1;
+            if (doUseGrid)
+            {
+                size = doUseConstSize
+                        ? gridStep
+                        : rand.Next(gridStep - 3) + 3;
 
+                x -= x % (gridStep * 2 + gridOffset);
+                y -= y % (gridStep * 2 + gridOffset);
+            }
+
+            A = myUtils.randFloat(rand, 0.1f) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            A = myUtils.randFloat(rand, 0.1f) * 0.1f;
-
-            dx = dy = 0;
 
             return;
         }
@@ -133,20 +171,18 @@ namespace my
 
         protected override void Move()
         {
+            x += dx;
+            y += dy;
+            dy += ddy;
             angle += dAngle;
 
-            return;
-
-            if ((int)y % 5 == 0)
+            // Reduce rotating speed gradually
+            if (myUtils.randomChance(rand, 1, 33))
             {
-                x += rand.Next(3) - 1;
+                dAngle *= 0.9f;
             }
 
-            y += dy;
-
-            dy += (0.01f + size / 5.0f);
-
-            if (y > gl_Height + size)
+            if (y > maxHeight)
             {
                 generateNew();
             }
@@ -158,37 +194,37 @@ namespace my
 
         protected override void Show()
         {
+            float size2x = size * 2;
+            float X = x - size;
+            float Y = y - size;
+
             if (isFirstStep)
             {
                 isFirstStep = false;
-/*
+
                 // Dim the tile on the src image
-                myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.SetColor(myUtils.randFloat(rand), myUtils.randFloat(rand), myUtils.randFloat(rand), 0.75f);
-                myPrimitive._Rectangle.Draw(x, y, size, size, true);
+                offScrRenderer.startRendering();
+                {
+                    float r = myUtils.randFloat(rand) * 0.1f;
+                    float g = myUtils.randFloat(rand) * 0.1f;
+                    float b = myUtils.randFloat(rand) * 0.1f;
 
-                var bmp = myOGL.copyScreenBuffer((int)x, (int)(y + gl_Height - size), (int)size, (int)size);
+                    //myPrimitive._Rectangle.SetAngle(myUtils.randFloat(rand) * 0.025f);
 
-                colorPicker.updateSrcImg(bmp, (int)x, (int)y);
-                tex.reloadImg(colorPicker.getImg());
-*/
+                    myPrimitive._Rectangle.SetColor(r, g, b, A * 0.25f);
+                    myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, true);
+                    myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, false);
+                }
+                offScrRenderer.stopRendering();
             }
-            else
-            {
-            }
 
-/*
-            br.Color = Color.FromArgb(A, R, G, B);
-            g.FillRectangle(br, X - Size, Y - Size, 2 * Size, 2 * Size);
-            g.DrawRectangle(p, X - Size, Y - Size, 2 * Size, 2 * Size);
-*/
             switch (shape)
             {
                 // Instanced squares
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, 2 * size, 2 * size);
+                    rectInst.setInstanceCoords(X, Y, size2x, size2x);
                     rectInst.setInstanceColor(R, G, B, A);
                     rectInst.setInstanceAngle(angle);
                     break;
@@ -197,7 +233,7 @@ namespace my
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, 2 * size, angle);
+                    triangleInst.setInstanceCoords(x, y, size2x, angle);
                     triangleInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -249,15 +285,28 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
-            tex.setOpacity(1);
-            tex.Draw(0, 0, gl_Width, gl_Height);
-            System.Threading.Thread.Sleep(333);
+            glDrawBuffer(GL_FRONT_AND_BACK);
 
-            rnd.startRendering();
-            glClearColor(1, 1, 1, 1);
-            //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glClear(GL_DEPTH_BUFFER_BIT);
-            rnd.stopRendering();
+            // Render our main texture to the off-screen texture and show it for the first time
+            {
+                offScrRenderer.startRendering();
+                {
+                    glClearColor(0, 0, 0, 0);
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                    //glClear(GL_DEPTH_BUFFER_BIT);
+
+                    tex.setOpacity(1);
+                    tex.Draw(0, 0, gl_Width, gl_Height, 0, 0, gl_Width, -gl_Height);
+
+                    //myPrimitive._Rectangle.SetColor(0, 0, 0, 0.95f);
+                    //myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                }
+                offScrRenderer.stopRendering();
+
+                offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
+                Glfw.SwapBuffers(window);
+                System.Threading.Thread.Sleep(111);
+            }
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -269,49 +318,15 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                if (doClearBuffer)
-                {
-                    tex.Draw(0, 0, gl_Width, gl_Height);
-                }
-                else
-                {
-                    tex.Draw(0, 0, gl_Width, gl_Height);
-                }
-
-                if (true)
-                {
-                    rnd.startRendering();
-                    {
-                        glClearColor(0, 0, 0, 1);
-                        glClear(GL_DEPTH_BUFFER_BIT);
-
-                        for (int i = 0; i < 3; i++)
-                        {
-                            int x = rand.Next(gl_Width);
-                            int y = rand.Next(gl_Height);
-                            int w = rand.Next(50) + 3;
-
-                            float r = myUtils.randFloat(rand) * 0.1f;
-                            float g = myUtils.randFloat(rand) * 0.1f;
-                            float b = myUtils.randFloat(rand) * 0.1f;
-
-                            r = g = b = 0;
-
-                            myPrimitive._Rectangle.SetColor(r, g, b, 0.95f);
-                            myPrimitive._Rectangle.Draw(x, y, w, w, true);
-
-                            myPrimitive._Rectangle.SetColor(r, g, b, 0.25f);
-                            //myPrimitive._Rectangle.Draw(x, y, w, w, false);
-                        }
-                    }
-                    rnd.stopRendering();
-                    rnd.Draw(0, 0, gl_Width, gl_Height);
-                }
+                glClearColor(0, 0, 0, 1);
 
                 // Render Frame
-                if (true)
                 {
                     inst.ResetBuffer();
+
+                    // Draw our off-screen texture
+                    tex.UpdateVertices__WorkaroundTmp();
+                    offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
 
                     for (int i = 0; i != list.Count; i++)
                     {
@@ -351,11 +366,17 @@ namespace my
             myPrimitive.init_Rectangle();
             base.initShapes(shape, N, 0);
 
-myPrimitive._HexagonInst.setRotationMode(1);
-
-            rnd = new myTexRectangle_Renderer();
+            offScrRenderer = new myTexRectangle_Renderer();
 
             tex = new myTexRectangle(colorPicker.getImg());
+
+            // Set rotation mode for instanced particles
+            switch (shape)
+            {
+                case 0:
+                    (inst as myRectangleInst).setRotationMode(rotationMode);
+                    break;
+            }
 
             return;
         }
