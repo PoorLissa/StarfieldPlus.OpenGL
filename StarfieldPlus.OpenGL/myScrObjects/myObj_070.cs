@@ -293,7 +293,7 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
-            glDrawBuffer(GL_FRONT_AND_BACK);
+            //glDrawBuffer(GL_FRONT_AND_BACK);
 
             // Render our main texture to the off-screen texture and show it for the first time
             {
@@ -345,6 +345,8 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
+
+                    //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
 
                     if (doFillShapes)
                     {
