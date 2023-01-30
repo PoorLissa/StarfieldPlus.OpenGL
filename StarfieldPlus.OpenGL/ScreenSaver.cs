@@ -10,7 +10,7 @@ public class ScreenSaver
     private enum ids
     {
         myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
-        myObj_101, myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_170, myObj_180,
+        myObj_101, myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370,
         myObj_999a,
@@ -106,12 +106,12 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_101;
+        id = ids.myObj_160;
 #endif
 
         switch (id)
         {
-            // Stars: kind of working, but needs finishing the migration
+            // Star Field: ----------- kind of working, but needs finishing the migration -----------
             case ids.myObj_000:
                 _obj = new my.myObj_000();
                 break;
@@ -166,20 +166,32 @@ public class ScreenSaver
                 _obj = new my.myObj_070();
                 break;
 
+            // Desktop pieces falling off -- 2
+/*
+            case 11:
+                _obj = new my.myObj_072();
+                break;*/
+
             // Big Bang
             case ids.myObj_100:
                 _obj = new my.myObj_100();
                 break;
 
-            // Desktop -- Random pieces of the screen are shown at their own slightly offset locations
+            // Desktop 1: - Random pieces of the screen are shown at their own slightly offset locations
             case ids.myObj_101:
                 _obj = new my.myObj_101();
                 break;
 
-            // Desktop 2: Random rectangles with a color from the underlying image (point-based or average)
+            // Desktop 2: - Random rectangles with a color from the underlying image (point-based or average)
             case ids.myObj_102:
                 _obj = new my.myObj_102();
                 break;
+
+            // Desktop 3
+/*
+            case 15:
+                _obj = new my.myObj_110();
+                break;*/
 
             // Moving Lines (4 directions, straight lines or sin/cos curves)
             case ids.myObj_120:
@@ -201,9 +213,20 @@ public class ScreenSaver
                 _obj = new my.myObj_132();
                 break;
 
+            // Grid with moving rectangle lenses -- test, looks strange
+/*
+            case 20:
+                _obj = new my.myObj_140();
+                break;*/
+
             // Conway's Life
             case ids.myObj_150:
                 _obj = new my.myObj_150();
+                break;
+
+            // Desktop: Ever fading away pieces
+            case ids.myObj_160:
+                _obj = new my.myObj_160();
                 break;
 
             // Desktop: Diminishing pieces
