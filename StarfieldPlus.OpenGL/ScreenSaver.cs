@@ -161,7 +161,7 @@ public class ScreenSaver
                 _obj = new my.myObj_050();
                 break;
 
-            // Pieces drop off the desktop and fall down, ver1
+            // Pieces falling off the desktop, ver1
             case ids.myObj_070:
                 _obj = new my.myObj_070();
                 break;

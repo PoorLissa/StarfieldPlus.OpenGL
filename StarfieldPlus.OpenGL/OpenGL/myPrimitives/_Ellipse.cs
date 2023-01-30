@@ -122,7 +122,7 @@ public class myEllipse : myPrimitive
         }
         else
         {
-            // [lineThickness] needs to be tested on different resolutions. Probably need some additional adjustments.
+            // todo: [lineThickness] needs to be tested on different resolutions. Probably need some additional adjustments.
             glUniform2f(locationRadSq, radSquared, radSquared - radx * lineThickness);
         }
 

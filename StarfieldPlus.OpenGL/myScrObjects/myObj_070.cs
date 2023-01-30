@@ -5,10 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Pieces drop off the desktop and fall down
-
-    todo:
-        - look for target color across all the cell, not only in a single pixel;
+    - Pieces falling off the desktop
 */
 
 
@@ -16,11 +13,12 @@ namespace my
 {
     public class myObj_070 : myObject
     {
-        private float x, y, dx, dy, ddy;
+        private int cnt;
+        private float x, y, dx, dy, ddy, da;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
-        private bool alive, isFirstStep;
+        private bool alive;
 
-        private static int N = 0, shape = 0, rotationMode = 0, slowMode = 0,
+        private static int N = 0, shape = 0, rotationMode = 0, slowMode = 0, opacityMode = 0, colorMode = 0,
                            minSize = 5, maxSize = 25, maxHeight = gl_Height + 100, gridStep = 1, gridOffset = 1;
         private static bool doFillShapes = false, doUseGrid = true, doUseConstSize = true;
         private static float dimAlpha = 0.5f;
@@ -47,7 +45,7 @@ namespace my
             list = new List<myObject>();
 
             N = rand.Next(999) + 100;
-            shape = rand.Next(2);
+            shape = rand.Next(5);
 
             rotationMode = rand.Next(4);
 
@@ -77,6 +75,9 @@ namespace my
             slowMode = rand.Next(10);                           // ddy reduce factor
             slowMode = slowMode > 5 ? 0 : slowMode;
 
+            colorMode = rand.Next(2);                           // The way the color of a particle is calculated
+            opacityMode = rand.Next(3);                         // The way the particles lose their opacity (none/some/every obj)
+
             return;
         }
 
@@ -95,6 +96,8 @@ namespace my
                             $"gridOffset = {gridOffset}\n"          +
                             $"rotationMode = {rotationMode}\n"      +
                             $"slowMode = {slowMode}\n"              +
+                            $"colorMode = {colorMode}\n"            +
+                            $"opacityMode = {opacityMode}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -112,6 +115,8 @@ namespace my
 
         protected override void generateNew()
         {
+            cnt = 25;
+
             size = doUseConstSize
                     ? gridStep
                     : rand.Next(maxSize) + minSize;
@@ -128,8 +133,6 @@ namespace my
                 case 4: ddy /= 40; break;
                 case 5: ddy /= 50; break;
             }
-
-            isFirstStep = true;
 
             int failCnt = 0;
 
@@ -167,7 +170,36 @@ namespace my
             }
 
             A = myUtils.randFloat(rand, 0.1f) * 0.5f;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            switch (colorMode)
+            {
+                case 0:
+                    colorPicker.getColor(x, y, ref R, ref G, ref B);
+                    break;
+
+                case 1:
+                    colorPicker.getColorAverage(x - 3, y - 3, 6, 6, ref R, ref G, ref B);
+                    break;
+            }
+
+            // Set the opacity decrease
+            switch (opacityMode)
+            {
+                case 0:
+                    da = 0;
+                    break;
+
+                case 1:
+                    if (myUtils.randomChance(rand, 1, 3))
+                    {
+                        da = -myUtils.randFloat(rand) * 0.01f;
+                    }
+                    break;
+
+                case 2:
+                    da = -myUtils.randFloat(rand) * 0.01f;
+                    break;
+            }
 
             return;
         }
@@ -176,20 +208,29 @@ namespace my
 
         protected override void Move()
         {
-            x += dx;
-            y += dy;
-            dy += ddy;
-            angle += dAngle;
-
-            // Reduce rotating speed gradually
-            if (myUtils.randomChance(rand, 1, 33))
+            // Stay in place, while cnt > 0
+            if (cnt > 0)
             {
-                dAngle *= 0.9f;
+                cnt--;
             }
-
-            if (y > maxHeight)
+            else
             {
-                generateNew();
+                x += dx;
+                y += dy;
+                dy += ddy;
+                angle += dAngle;
+                A += da;
+
+                // Reduce rotation speed gradually
+                if (myUtils.randomChance(rand, 1, 33))
+                {
+                    dAngle *= 0.9f;
+                }
+
+                if (y > maxHeight || A < 0)
+                {
+                    generateNew();
+                }
             }
 
             return;
@@ -202,11 +243,16 @@ namespace my
             float size2x = size * 2;
             float X = x - size;
             float Y = y - size;
+            float a = A;
 
-            if (isFirstStep)
+            if (cnt > 0)
             {
-                isFirstStep = false;
+                a = (A + 0.1f) * (25 - cnt) / 25;
+            }
 
+            // Render to the off-screen texture:
+            if (cnt == 1)
+            {
                 // Dim the tile on the src image
                 offScrRenderer.startRendering();
                 {
@@ -227,6 +273,23 @@ namespace my
                             myPrimitive._Triangle.SetAngle(myUtils.randFloat(rand));
                             myPrimitive._Triangle.Draw(x, y - size2x, x - 5 * size2x / 6, y + size2x / 2, x + 5 * size2x / 6, y + size2x / 2, true);
                             break;
+
+                        case 2:
+                            myPrimitive._Ellipse.SetColor(r, g, b, A * 0.25f);
+                            myPrimitive._Ellipse.Draw(x - size, gl_Height - y - size, size2x, size2x, true);
+                            break;
+
+                        case 3:
+                            myPrimitive._Pentagon.SetColor(r, g, b, A * 0.25f);
+                            myPrimitive._Pentagon.SetAngle(myUtils.randFloat(rand));
+                            myPrimitive._Pentagon.Draw(x, gl_Height - y, size, true);
+                            break;
+
+                        case 4:
+                            myPrimitive._Hexagon.SetColor(r, g, b, A * 0.25f);
+                            myPrimitive._Hexagon.SetAngle(myUtils.randFloat(rand));
+                            myPrimitive._Hexagon.Draw(x, gl_Height - y, size, true);
+                            break;
                     }
                 }
                 offScrRenderer.stopRendering();
@@ -239,7 +302,7 @@ namespace my
                     var rectInst = inst as myRectangleInst;
 
                     rectInst.setInstanceCoords(X, Y, size2x, size2x);
-                    rectInst.setInstanceColor(R, G, B, A);
+                    rectInst.setInstanceColor(R, G, B, a);
                     rectInst.setInstanceAngle(angle);
                     break;
 
@@ -248,7 +311,7 @@ namespace my
                     var triangleInst = inst as myTriangleInst;
 
                     triangleInst.setInstanceCoords(x, y, size2x, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
+                    triangleInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced circles
@@ -256,7 +319,7 @@ namespace my
                     var ellipseInst = inst as myEllipseInst;
 
                     ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
+                    ellipseInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced pentagons
@@ -264,7 +327,7 @@ namespace my
                     var pentagonInst = inst as myPentagonInst;
 
                     pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
+                    pentagonInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced hexagons
@@ -272,7 +335,7 @@ namespace my
                     var hexagonInst = inst as myHexagonInst;
 
                     hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
+                    hexagonInst.setInstanceColor(R, G, B, a);
                     break;
             }
 
@@ -298,11 +361,8 @@ namespace my
                     glClear(GL_COLOR_BUFFER_BIT);
                     //glClear(GL_DEPTH_BUFFER_BIT);
 
-                    //tex.setOpacity(1);
-                    //tex.Draw(0, 0, gl_Width, gl_Height, 0, 0, gl_Width, -gl_Height);
-
-                    //myPrimitive._Rectangle.SetColor(0, 0, 0, 0.95f);
-                    //myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                    tex.setOpacity(1);
+                    tex.Draw(0, 0, gl_Width, gl_Height, 0, 0, gl_Width, -gl_Height);
                 }
                 offScrRenderer.stopRendering();
 
@@ -313,6 +373,7 @@ namespace my
 
             // This is the default setting for double-buffered setups
             glDrawBuffer(GL_BACK);
+            glClearColor(0, 0, 0, 1);
 
             inst.setDrawingMode(myInstancedPrimitive.drawMode.OWN_COLOR_CUSTOM_OPACITY);
 
@@ -326,13 +387,16 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                glClearColor(0, 0, 0, 1);
+                if (doClearBuffer)
+                {
+                    glClear(GL_COLOR_BUFFER_BIT);
+                }
 
                 // Render Frame
                 {
                     inst.ResetBuffer();
 
-                    // Draw our off-screen texture
+                    // Render our off-screen texture first
                     tex.UpdateVertices__WorkaroundTmp();
                     offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
 
@@ -343,8 +407,6 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
-
-                    //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
 
                     if (doFillShapes)
                     {
@@ -375,6 +437,9 @@ namespace my
         {
             myPrimitive.init_Rectangle();
             myPrimitive.init_Triangle();
+            myPrimitive.init_Ellipse();
+            myPrimitive.init_Pentagon();
+            myPrimitive.init_Hexagon();
 
             base.initShapes(shape, N, 0);
 
