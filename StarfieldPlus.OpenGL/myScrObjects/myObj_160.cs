@@ -6,7 +6,9 @@ using System.Collections.Generic;
 /*
     - Desktop: Ever fading away pieces
 
-    todo: compare it to the original
+    todo:
+        - compare it to the original
+        - see if using dimrate with higher dimAlpha is any different from not using it, but the dimAlpha is lower
 */
 
 
@@ -22,10 +24,10 @@ namespace my
         private int lifeCnt = 0;
         private bool doDraw = false;
 
-        private static int drawMode = 0, moveMode = 0, t = 0, size = 0, dimRate = 0;
+        private static int drawMode = 0, moveMode = 0, size = 0, dimRate = 0;
         private static int step = 0, startX = 0, startY = 0, cellMargin = 0;
-        private static bool doUseCells = false, doDrawCellBorder = false;
-        private static float dimAlpha = 0.03f;
+        private static bool doUseCells = false, doDrawCellBorder = false, doUseExtraDim = true;
+        private static float dimAlpha = 0.025f;
 
         static myTexRectangle tex = null;
 
@@ -58,6 +60,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
+            doUseExtraDim = myUtils.randomBool(rand);
 
             // Solid color ('0') or Solid color Border ('1') is the default mode
             drawMode = rand.Next(2);
@@ -67,10 +70,17 @@ namespace my
                 if (rand.Next(3) > 0)
                     drawMode = 2;
 
-            t = rand.Next(20) + (drawMode == 10 ? 1 : 1);
+            renderDelay = rand.Next(20) + 1;
             moveMode = rand.Next(2);
 
-            size = rand.Next(66) + 5;
+            if (myUtils.randomChance(rand, 1, 3))
+            {
+                size = rand.Next(66) + 5;
+            }
+            else
+            {
+                size = rand.Next(66) + 25;
+            }
 
             dimRate = rand.Next(11) + 2;
             doDrawCellBorder = myUtils.randomBool(rand);
@@ -95,10 +105,15 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = myObj_160\n\n"                     +
-                            $"N = {list.Count} of {N}\n"            +
-                            $"size = {size}\n"                      +
-                            $"renderDelay = {renderDelay}\n"        +
+            string str = $"Obj = myObj_160\n\n"                         +
+                            $"N = {list.Count} of {N}\n"                +
+                            $"size = {size}\n"                          +
+                            $"moveMode = {moveMode}\n"                  +
+                            $"drawMode = {drawMode}\n"                  +
+                            $"doUseCells = {doUseCells}\n"              +
+                            $"doDrawCellBorder = {doDrawCellBorder}\n"  +
+                            $"renderDelay = {renderDelay}\n"            +
+                            $"dimRate = {dimRate}\n"                    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -176,6 +191,7 @@ namespace my
             int Z = size / 2;
             int X = x - Z;
             int Y = y - Z;
+            Z = size - cellMargin;
 
             // Draw only once per cell's life time
             if (doDraw)
@@ -226,13 +242,14 @@ namespace my
             }
             else
             {
-                Z = size / 2;
-                X = x - Z;
-                Y = y - Z;
-                Z = size - cellMargin;
-
-                myPrimitive._Rectangle.SetColor(0, 0, 0, 0.05f);
-                myPrimitive._Rectangle.Draw(X, Y, Z, Z, true);
+                if (doUseExtraDim)
+                {
+                    X--;
+                    Y--;
+                    Z += 2;
+                    myPrimitive._Rectangle.SetColor(0, 0, 0, 0.05f);
+                    myPrimitive._Rectangle.Draw(X, Y, Z, Z, true);
+                }
             }
 
             return;
@@ -260,6 +277,7 @@ namespace my
                 Glfw.PollEvents();
 
                 // Dim screen
+                //if (cnt % dimRate == 0)
                 {
                     dimScreen(dimAlpha);
                 }
