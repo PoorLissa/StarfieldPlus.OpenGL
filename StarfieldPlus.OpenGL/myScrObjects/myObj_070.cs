@@ -54,6 +54,12 @@ namespace my
             doFillShapes = true;
             doClearBuffer = true;
 
+#if false
+            N = 222;
+            shape = 0;
+            rotationMode = 0;
+#endif
+
             initLocal();
         }
 
@@ -283,28 +289,17 @@ namespace my
             // Disable VSYNC if needed
             // Glfw.SwapInterval(0);
 
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK);
-            }
-
-            //glDrawBuffer(GL_FRONT_AND_BACK);
-
             // Render our main texture to the off-screen texture and show it for the first time
             {
                 offScrRenderer.startRendering();
                 {
-                    glClearColor(0, 0, 0, 0);
-                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                    glDrawBuffer(GL_BACK);
+                    glClearColor(1, 1, 1, 1);
+                    glClear(GL_COLOR_BUFFER_BIT);
                     //glClear(GL_DEPTH_BUFFER_BIT);
 
-                    tex.setOpacity(1);
-                    tex.Draw(0, 0, gl_Width, gl_Height, 0, 0, gl_Width, -gl_Height);
+                    //tex.setOpacity(1);
+                    //tex.Draw(0, 0, gl_Width, gl_Height, 0, 0, gl_Width, -gl_Height);
 
                     //myPrimitive._Rectangle.SetColor(0, 0, 0, 0.95f);
                     //myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
@@ -315,6 +310,9 @@ namespace my
                 Glfw.SwapBuffers(window);
                 System.Threading.Thread.Sleep(111);
             }
+
+            // This is the default setting for double-buffered setups
+            glDrawBuffer(GL_BACK);
 
             inst.setDrawingMode(myInstancedPrimitive.drawMode.OWN_COLOR_CUSTOM_OPACITY);
 
