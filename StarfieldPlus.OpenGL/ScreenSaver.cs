@@ -12,7 +12,7 @@ public class ScreenSaver
         myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
         myObj_101, myObj_102, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
-        myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380,
+        myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
         myObj_999a,
         myObj_last
     };
@@ -95,7 +95,6 @@ public class ScreenSaver
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
     // - point moves along the rectangle right or left. Rectangle is a perimeter of the screen. Lots of such points.
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
-    // - like a starfield, but points moving line originates not from the center, but from a center-offset position -- should look like a vortex of sorts (see myObj_000_Star : myObj_000 : generateNew())
     // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving towards the point where pt2 has been at the moment of generation
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - get colors from image and slightly offset the colors. Then put color spots (grid or not) on the screen
@@ -106,7 +105,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_380;
+        id = ids.myObj_390;
 #endif
 
         switch (id)
@@ -299,9 +298,16 @@ public class ScreenSaver
                 _obj = new my.myObj_370();
                 break;
 
-            // ...
+            // Rectangular shapes made of particles moving along the rectangle's outline
             case ids.myObj_380:
                 _obj = new my.myObj_380();
+                break;
+
+            // like a starfield, but points moving line originates not from the center, but from a center-offset position
+            // should look like a vortex of sorts
+            // (see myObj_000_Star : myObj_000 : generateNew())
+            case ids.myObj_390:
+                _obj = new my.myObj_390();
                 break;
 
             // Test rotating shape, unfinished yet good

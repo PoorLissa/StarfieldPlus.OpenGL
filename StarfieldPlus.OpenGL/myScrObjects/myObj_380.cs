@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
+    - Rectangular shapes made of particles moving along the rectangle's outline
 */
 
 
@@ -20,9 +20,10 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 0, shape = 0, moveMode = 0, angleMode = 0, maxSize = 3, genMode = 0, startingSide = -1;
+        private static int N = 0, n = 0, shape = 0, moveMode = 0, angleMode = 0, genMode = 0, sizeMode = 0, speedMode = 0,
+                           startingSide = -1, maxSize = 3, opacityFactor = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.05f, speedConst = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -80,9 +81,14 @@ namespace my
 
             genMode   = rand.Next(2);
             moveMode  = rand.Next(3);
+            sizeMode  = rand.Next(2);
             angleMode = rand.Next(6);
+            speedMode = rand.Next(3);
 
             maxSize = rand.Next(11) + 2;
+            opacityFactor = rand.Next(301) + 100;
+
+            speedConst = myUtils.randFloat(rand, 0.1f) * (rand.Next(11) + 1);
 
             if (myUtils.randomChance(rand, 1, 2))
             {
@@ -92,6 +98,8 @@ namespace my
             {
                 startingSide = rand.Next(4);
             }
+
+            renderDelay = rand.Next(10) + 15;
 
             return;
         }
@@ -110,9 +118,14 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"doFillShapes = {doFillShapes}\n"          +
                             $"shape = {shape}\n"                        +
+                            $"maxSize = {maxSize}\n"                    +
+                            $"sizeMode = {sizeMode}\n"                  +
                             $"genMode = {genMode}\n"                    +
                             $"moveMode = {moveMode}\n"                  +
                             $"angleMode = {angleMode}\n"                +
+                            $"speedMode = {speedMode}\n"                +
+                            $"speedConst = {fStr(speedConst)}\n"        +
+                            $"opacityFactor = {opacityFactor}\n"        +
                             $"dimAlpha = {fStr(dimAlpha)}\n"            +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
@@ -125,7 +138,11 @@ namespace my
         // 
         protected override void setNextMode()
         {
+            dimScreen(0.5f);
+
             initLocal();
+
+            dimScreen(0.5f);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -154,13 +171,30 @@ namespace my
             }
             else
             {
-                float spd = myUtils.randFloat(rand, 0.1f) * (rand.Next(11) + 1);
-
+                float spd = 1;
                 int side = (startingSide < 0) ? rand.Next(4) : startingSide;
 
                 if (moveMode > 0)
                 {
                     side = rand.Next(4);
+                }
+
+                switch (speedMode)
+                {
+                    // Continuous values [0.1 ... 11.0]
+                    case 0:
+                        spd = myUtils.randFloat(rand, 0.1f) * (rand.Next(11) + 1);
+                        break;
+
+                    // Discreet values [0.5 ... 11.0]
+                    case 1:
+                        spd = 0.5f * (rand.Next(21) + 1);
+                        break;
+
+                    // Const value [0.1 ... 11.0]
+                    case 2:
+                        spd = speedConst;
+                        break;
                 }
 
                 switch (side)
@@ -204,10 +238,10 @@ namespace my
                     dy *= -1;
                 }
 
-                A = 100 * myUtils.randFloat(rand, 0.05f) / n;
+                A = opacityFactor * myUtils.randFloat(rand, 0.05f) / n;
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
 
-                size = maxSize;
+                size = (sizeMode == 0) ? maxSize : rand.Next(maxSize) + 1;
             }
 
             switch (angleMode)
@@ -236,13 +270,13 @@ namespace my
                     dAngle = (parent == null) ? myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.05f) * 0.1f : parent.dAngle;
                     break;
 
-                // Rotating particles, dAngle comes from parent node (+/-)
+                // Rotating particles, dAngle comes from parent node (randomly positive OR negative)
                 case 4:
                     angle = 0;
                     dAngle = (parent == null) ? myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.05f) * 0.1f : myUtils.randomSign(rand) * parent.dAngle;
                     break;
 
-                // Rotating particles, totally randomized
+                // Rotating particles, fully randomized
                 case 5:
                     angle = myUtils.randFloat(rand);
                     dAngle = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.05f) * 0.1f;
@@ -341,7 +375,7 @@ namespace my
                         {
                             if (x < parent.x || y < parent.y || x > parent.x + parent.Width || y > parent.y + parent.Height)
                             {
-                                A = -0.001f;
+                                A -= 0.001f;
                             }
 
                             if (x > gl_Width || x < 0 || y > gl_Height || y < 0)
