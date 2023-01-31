@@ -111,6 +111,7 @@ namespace my
                             $"moveMode = {moveMode}\n"                  +
                             $"drawMode = {drawMode}\n"                  +
                             $"doUseCells = {doUseCells}\n"              +
+                            $"doUseExtraDim = {doUseExtraDim}\n"        +
                             $"doDrawCellBorder = {doDrawCellBorder}\n"  +
                             $"renderDelay = {renderDelay}\n"            +
                             $"dimRate = {dimRate}\n"                    +
