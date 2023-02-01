@@ -186,7 +186,7 @@ public class ScreenSaver
                 _obj = new my.myObj_102();
                 break;
 
-            // Desktop 3: Puts random colored rectangles all over the screen
+            // Desktop 3: Puts random colored rectangles all over the screen -------------- unfinished yet. get the rest off the code from old ver
             case ids.myObj_110:
                 _obj = new my.myObj_110();
                 break;
