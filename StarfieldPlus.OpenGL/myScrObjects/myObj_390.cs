@@ -92,6 +92,8 @@ namespace my
         {
             double dist = 0;
 
+            // try different variations of this loop thing
+
             do
             {
                 x = rand.Next(gl_Width);
