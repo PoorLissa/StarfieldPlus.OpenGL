@@ -303,9 +303,7 @@ public class ScreenSaver
                 _obj = new my.myObj_380();
                 break;
 
-            // like a starfield, but points moving line originates not from the center, but from a center-offset position
-            // should look like a vortex of sorts
-            // (see myObj_000_Star : myObj_000 : generateNew())
+            // Particles move radially from the off-center position, creating a vortex-like structure
             case ids.myObj_390:
                 _obj = new my.myObj_390();
                 break;

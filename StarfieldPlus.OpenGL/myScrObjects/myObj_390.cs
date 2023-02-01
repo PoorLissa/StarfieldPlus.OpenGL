@@ -5,8 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    // like a starfield, but points moving line originates not from the center, but from a center-offset position
-    // should look like a vortex of sorts
+    - Particles move radially from the off-center position, creating a vortex-like structure
 */
 
 
@@ -42,13 +41,11 @@ namespace my
                 doFillShapes   = myUtils.randomBool(rand);
                 doCreateAtOnce = myUtils.randomBool(rand);
 
-                renderDelay = 10;
-
                 N = 33333;
-
-                dimAlpha = 0.075f;
-
                 shape = rand.Next(5);
+
+                renderDelay = 10;
+                dimAlpha = 0.075f;
             }
 
             initLocal();
@@ -71,8 +68,14 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_390\n\n"                       +
+            string str = $"Obj = myObj_390\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                            $"shape = {shape}\n"                        +
+                            $"doClearBuffer = {doClearBuffer}\n"        +
+                            $"doFillShapes = {doFillShapes}\n"          +
+                            $"doCreateAtOnce = {doCreateAtOnce}\n"      +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"            +
+                            $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -240,26 +243,29 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
+            int listCnt = 0;
+
             initShapes();
-
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_BACK);
-            }
 
             if (doCreateAtOnce)
             {
                 while (list.Count < N)
                     list.Add(new myObj_390());
+            }
+
+            // Disable VSYNC if needed
+            // Glfw.SwapInterval(0);
+
+            dimScreenRGB_SetRandom(0.1f);
+
+            if (doClearBuffer)
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+                glClearColor(myObject.bgrR, myObject.bgrG, myObject.bgrB, 1);
+            }
+            else
+            {
+                glDrawBuffer(GL_BACK);
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -286,7 +292,9 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    listCnt = list.Count;
+
+                    for (int i = 0; i != listCnt; i++)
                     {
                         var obj = list[i] as myObj_390;
 
@@ -316,6 +324,15 @@ namespace my
 
                 if (cnt % 10 == 0)
                     dAlphaStatic += 0.05f;
+            }
+
+            while (!Glfw.WindowShouldClose(window))
+            {
+                processInput(window);
+
+                // Swap fore/back framebuffers, and poll for operating system events.
+                Glfw.SwapBuffers(window);
+                Glfw.PollEvents();
             }
 
             return;
