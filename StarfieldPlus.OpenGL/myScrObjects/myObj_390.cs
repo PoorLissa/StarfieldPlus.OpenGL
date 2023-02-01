@@ -7,7 +7,6 @@ using System.Collections.Generic;
 /*
     // like a starfield, but points moving line originates not from the center, but from a center-offset position
     // should look like a vortex of sorts
-    // (see myObj_000_Star : myObj_000 : generateNew())
 */
 
 
@@ -19,8 +18,8 @@ namespace my
         private float size, A, R, G, B, angle = 0, da;
 
         private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static bool doFillShapes = false, doCreateAtOnce = false;
+        private static float dimAlpha = 0.05f, dAlphaStatic = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -39,13 +38,17 @@ namespace my
 
             // Global unmutable constants
             {
-                doClearBuffer = false;
+                doClearBuffer  = myUtils.randomBool(rand);
+                doFillShapes   = myUtils.randomBool(rand);
+                doCreateAtOnce = myUtils.randomBool(rand);
 
                 renderDelay = 10;
 
                 N = 33333;
 
                 dimAlpha = 0.075f;
+
+                shape = rand.Next(5);
             }
 
             initLocal();
@@ -87,42 +90,51 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Width);
+            double dist = 0;
 
-            int speed = rand.Next(25) + 10;
-
-            double dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
-            double sp_dist = speed / dist;
-
-            sp_dist = 5 * 0.001;
-
-            // straight line from the center
-            //dx = (float)((x - gl_x0) * sp_dist);
-            //dy = (float)((y - gl_x0) * sp_dist);
-
-            if (y < gl_y0 && x > gl_x0)
+            do
             {
-                dy = -(float)((x - gl_x0) * sp_dist);
-                dx = +(float)((y - gl_x0) * sp_dist);
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Width);
+
+                dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
             }
+            while (dist < 200 || dist > 500);
 
-            if (y < gl_y0 && x < gl_x0)
+            double sp_dist = 5.0 / dist;
+
+            // Get current angle alpha:
+            double alpha = Math.Acos((y - gl_x0) / dist);
+            double dAlpha = dAlphaStatic;
+
+            if (x > gl_x0)
             {
-                dy = -(float)((x - gl_x0) * sp_dist);
-                dx = +(float)((y - gl_x0) * sp_dist);
+                alpha += dAlpha;
+
+/*
+                float x2 = gl_x0 + (float)(dist * Math.Sin(alpha));
+                float y2 = gl_x0 + (float)(dist * Math.Cos(alpha));
+
+                dx = (float)((x2 - gl_x0) * sp_dist);
+                dy = (float)((y2 - gl_x0) * sp_dist);*/
+
+                // Optimized:
+                dx = (float)(Math.Sin(alpha) * 5);
+                dy = (float)(Math.Cos(alpha) * 5);
             }
-
-            if (y > gl_y0 && x < gl_x0)
+            else
             {
-                dy = -(float)((x - gl_x0) * sp_dist);
-                dx = +(float)((y - gl_x0) * sp_dist);
-            }
+                alpha -= dAlpha;
+/*
+                float x2 = gl_x0 - (float)(dist * Math.Sin(alpha));
+                float y2 = gl_x0 + (float)(dist * Math.Cos(alpha));
 
-            if (y > gl_y0 && x > gl_x0)
-            {
-                dy = -(float)((x - gl_x0) * sp_dist);
-                dx = +(float)((y - gl_x0) * sp_dist);
+                dx = (float)((x2 - gl_x0) * sp_dist);
+                dy = (float)((y2 - gl_x0) * sp_dist);*/
+
+                // Optimized:
+                dx = (float)(-Math.Sin(alpha) * 5);
+                dy = (float)(+Math.Cos(alpha) * 5);
             }
 
             y -= (gl_Width - gl_Height) / 2;
@@ -130,7 +142,16 @@ namespace my
             size = 3;
 
             A = 0;
-            da = 0.005f;
+
+            // nice effect with flashing
+            //da = 0.005f + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.0001f;
+
+            //da = myUtils.randomChance(rand, 1, 3) ? 0.005f : 0.01f;
+
+            da = myUtils.randomChance(rand, 1, 2) ? 0.015f : 0.010f;
+
+            da = myUtils.randFloat(rand, 0.01f) * 0.01f;
+
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -233,6 +254,12 @@ namespace my
                 glDrawBuffer(GL_BACK);
             }
 
+            if (doCreateAtOnce)
+            {
+                while (list.Count < N)
+                    list.Add(new myObj_390());
+            }
+
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
@@ -284,6 +311,9 @@ namespace my
 
                 cnt++;
                 System.Threading.Thread.Sleep(renderDelay);
+
+                if (cnt % 10 == 0)
+                    dAlphaStatic += 0.05f;
             }
 
             return;
