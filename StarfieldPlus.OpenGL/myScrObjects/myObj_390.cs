@@ -16,11 +16,11 @@ namespace my
     public class myObj_390 : myObject
     {
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, angle = 0, da;
 
         private static int N = 0, shape = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.025f;
+        private static float dimAlpha = 0.05f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -41,7 +41,11 @@ namespace my
             {
                 doClearBuffer = false;
 
-                N = 3333;
+                renderDelay = 10;
+
+                N = 33333;
+
+                dimAlpha = 0.075f;
             }
 
             initLocal();
@@ -91,6 +95,8 @@ namespace my
             double dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
             double sp_dist = speed / dist;
 
+            sp_dist = 5 * 0.001;
+
             // straight line from the center
             //dx = (float)((x - gl_x0) * sp_dist);
             //dy = (float)((y - gl_x0) * sp_dist);
@@ -98,30 +104,33 @@ namespace my
             if (y < gl_y0 && x > gl_x0)
             {
                 dy = -(float)((x - gl_x0) * sp_dist);
-                dx = +(float)((y - gl_y0) * sp_dist);
+                dx = +(float)((y - gl_x0) * sp_dist);
             }
 
             if (y < gl_y0 && x < gl_x0)
             {
                 dy = -(float)((x - gl_x0) * sp_dist);
-                dx = +(float)((y - gl_y0) * sp_dist);
+                dx = +(float)((y - gl_x0) * sp_dist);
             }
 
             if (y > gl_y0 && x < gl_x0)
             {
                 dy = -(float)((x - gl_x0) * sp_dist);
-                dx = +(float)((y - gl_y0) * sp_dist);
+                dx = +(float)((y - gl_x0) * sp_dist);
             }
 
             if (y > gl_y0 && x > gl_x0)
             {
                 dy = -(float)((x - gl_x0) * sp_dist);
-                dx = +(float)((y - gl_y0) * sp_dist);
+                dx = +(float)((y - gl_x0) * sp_dist);
             }
+
+            y -= (gl_Width - gl_Height) / 2;
 
             size = 3;
 
-            A = 1;
+            A = 0;
+            da = 0.005f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -134,7 +143,15 @@ namespace my
             x += dx;
             y += dy;
 
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+            A += da;
+
+            if (A >= 1)
+            {
+                da *= -10;
+            }
+
+            //if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+            if (A < 0)
             {
                 generateNew();
             }
@@ -213,8 +230,7 @@ namespace my
             else
             {
                 dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
+                glDrawBuffer(GL_BACK);
             }
 
             while (!Glfw.WindowShouldClose(window))
