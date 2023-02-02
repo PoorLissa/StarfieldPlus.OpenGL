@@ -6,8 +6,6 @@ using System.Collections.Generic;
 
 /*
     - Puts random colored shapes all over the screen
-
-    todo: adjust rate of good modes random selection
 */
 
 
@@ -39,7 +37,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 1;
+                N = myUtils.randomChance(rand, 4, 5) ? 1 : rand.Next(5) + 1;
             }
 
             initLocal();
@@ -50,7 +48,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            shape = rand.Next(5);
+            shape = rand.Next(6);                                       // Extra one for a random shape selection
 
             doClearBuffer = myUtils.randomChance(rand, 1, 5);
             dimAlpha = myUtils.randFloat(rand) * 0.05f;
@@ -171,6 +169,7 @@ namespace my
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
+            // Adjust the color in case colorPicker returns const color
             if (colorPicker.getMode() == (int)myColorPicker.colorMode.SINGLE_RANDOM)
             {
                 R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
@@ -178,6 +177,7 @@ namespace my
                 B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
             }
 
+            // Adjust the color in case colorPicker returns const color
             if (colorPicker.getMode() == (int)myColorPicker.colorMode.GRAY)
             {
                 R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
@@ -354,7 +354,9 @@ namespace my
                     break;
             }
 
-            switch (shape)
+            int Shape = (shape < 5) ? shape : rand.Next(5);
+
+            switch (Shape)
             {
                 // Rectangle
                 case 0:
@@ -380,14 +382,14 @@ namespace my
                     }
                     else
                     {
-                        int x1 = x + rand.Next(4 * size);
-                        int y1 = y + rand.Next(4 * size);
+                        int x1 = x + size + myUtils.randomSign(rand) * rand.Next(size/2);
+                        int y1 = y + rand.Next(size/2);
 
-                        int x2 = x + rand.Next(4 * size);
-                        int y2 = y + rand.Next(4 * size);
+                        int x2 = x + myUtils.randomSign(rand) * rand.Next(size/2);
+                        int y2 = y + w + myUtils.randomSign(rand) * rand.Next(size/2);
 
-                        int x3 = x + rand.Next(4 * size);
-                        int y3 = y + rand.Next(4 * size);
+                        int x3 = x + w + myUtils.randomSign(rand) * rand.Next(size/2);
+                        int y3 = y + w + myUtils.randomSign(rand) * rand.Next(size/2);
 
                         myPrimitive._Triangle.SetColor(R, G, B, A);
                         myPrimitive._Triangle.Draw(x1, y1, x2, y2, x3, y3, true);
