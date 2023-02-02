@@ -6,6 +6,8 @@ using System.Collections.Generic;
 
 /*
     - Puts random colored shapes all over the screen
+
+    todo: adjust rate of good modes random selection
 */
 
 
@@ -54,7 +56,7 @@ namespace my
             dimAlpha = myUtils.randFloat(rand) * 0.05f;
 
             doUseRandomSize = myUtils.randomChance(rand, 1, 2);
-            doUseWasH       = myUtils.randomChance(rand, 1, 2);
+            doUseWasH       = myUtils.randomChance(rand, 1, 2);         // Whether h == w
 
             borderMode = rand.Next(8);
             borderOpacityMode = rand.Next(6);
@@ -66,25 +68,25 @@ namespace my
             brdrG = myUtils.randFloat(rand);
             brdrB = myUtils.randFloat(rand);
 
-            switch (rand.Next(5))
+            switch (rand.Next(11))
             {
                 case 0:
                     maxSize = rand.Next(666) + 1;
                     break;
 
-                case 1:
+                case 1: case 2:
                     maxSize = rand.Next(444) + 25;
                     break;
 
-                case 2:
+                case 3: case 4: case 5:
                     maxSize = rand.Next(333) + 50;
                     break;
 
-                case 3:
+                case 6: case 7: case 8:
                     maxSize = rand.Next(222) + 75;
                     break;
 
-                case 4:
+                case 9: case 10:
                     maxSize = rand.Next(111) + 100;
                     break;
             }
@@ -150,7 +152,7 @@ namespace my
             }
             else
             {
-                size = maxSize;
+                size = maxSize > 333 ? maxSize/2 : maxSize;
             }
 
             x = rand.Next(gl_Width)  - size;
