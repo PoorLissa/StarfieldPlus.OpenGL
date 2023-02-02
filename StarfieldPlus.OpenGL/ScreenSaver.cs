@@ -1,5 +1,7 @@
 ﻿// https://learnopengl.com/
 
+// If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels;
+// For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
 
 
 public class ScreenSaver
@@ -63,15 +65,11 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels
-    // For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
-
     // todo from the old StarfieldPlus:
     // - divide the screen in squares and swap them randomly
     // - gravity
     // - gravity towards center, but the particles also bounce off the borders of the screen
     // - sort all the screen pixels
-    // - moving stripes (from top to bottom, for example)
     // - gravity, where the color of a pixel is its mass
     // - posterization (color % int)
     // - divide in squares and each square gets its own blur factor
@@ -80,7 +78,9 @@ public class ScreenSaver
     // - try bezier curves: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
     // - try rotating rectangles: https://stackoverflow.com/questions/10210134/using-a-matrix-to-rotate-rectangles-individually
     // - something like myObj_101, but the pieces are moved via sine/cosine function (up-down or elliptically)
-    // - randomly generate points. Every point grows its own square (with increasing or decreasing opacity). Grown squares stay a while then fade away. Example: myobj040 + moveType = 1 + shape = 0 + Show == g.FillRectangle(br, X, Y, Size, Size);
+    // - randomly generate points. Every point grows its own square (with increasing or decreasing opacity).
+            // Grown squares stay a while then fade away.
+            // Example: myobj040 + moveType = 1 + shape = 0 + Show == g.FillRectangle(br, X, Y, Size, Size);
     // - bouncing ball, but its trajctory is not straight line, but curved like in obj_040
     // - moving ponts generator, where the moment of generation depends on sin(time)
     // - battle ships
@@ -89,14 +89,17 @@ public class ScreenSaver
     // - mandlebrot
 
     // todo:
-    // - concentric circles moving inwards. The less the circle is, the less is its decreasing speed. Should look like a funnel or tunnel of sorts
+    // - concentric circles moving inwards. The less the circle is, the less is its decreasing speed.
+            // Should look like a funnel or tunnel of sorts
     // - number of rotating lines. the length of each line is changing over time
     // - lots of triangles, where each vertice is moving like a bouncing ball
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
-    // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
+    // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles
+            // (maybe allow placing on the inside)
     // - point moves along the rectangle right or left. Rectangle is a perimeter of the screen. Lots of such points.
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
-    // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving towards the point where pt2 has been at the moment of generation
+    // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving
+            // towards the point where pt2 has been at the moment of generation
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - get colors from image and slightly offset the colors. Then put color spots (grid or not) on the screen
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
@@ -106,8 +109,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_400;
-        id = ids.myObj_300;
+        id = ids.myObj_220;
 #endif
 
         switch (id)

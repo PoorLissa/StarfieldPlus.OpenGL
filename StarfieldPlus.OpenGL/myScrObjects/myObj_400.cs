@@ -16,7 +16,7 @@ namespace my
         private float x, y, w, dx, dy;
         private float A, angle = 0;
 
-        private static int N = 0, maxCnt = 0, mode = 0;
+        private static int N = 0, maxCnt = 0, maxSize = 0, mode = 0;
         private static float dimAlpha = 0.05f;
 
         static myTexRectangle tex = null;
@@ -38,7 +38,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 25 + rand.Next(125);
+                N = 25 + rand.Next(666);
             }
 
             initLocal();
@@ -54,6 +54,9 @@ namespace my
 
             mode = rand.Next(11);
             maxCnt = rand.Next(333) + 100;
+            maxSize = myUtils.randomChance(rand, 1, 2)
+                ? rand.Next(50) + 1
+                : rand.Next(10) + 1;
 
             renderDelay = rand.Next(20);
 
@@ -72,6 +75,8 @@ namespace my
             string str = $"Obj = myObj_400\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
                             $"mode = {mode}\n"                          +
+                            $"maxCnt = {maxCnt}\n"                      +
+                            $"maxSize = {maxSize}\n"                    +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -121,7 +126,7 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            size = rand.Next(50) + 1;
+            size = rand.Next(maxSize) + 1;
 
             dx = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
             dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);

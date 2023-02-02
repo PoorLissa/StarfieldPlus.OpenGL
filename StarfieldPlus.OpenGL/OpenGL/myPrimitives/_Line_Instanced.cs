@@ -12,7 +12,7 @@ public class myLineInst : myInstancedPrimitive
     private static uint vbo = 0, instVbo = 0, shaderProgram = 0;
     private static int locationScrSize = 0;
     private static int floatTimesN = 0;
-    private static float _angle = 0;
+    //private static float _angle = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ public class myLineInst : myInstancedPrimitive
         updateVertices();
 
         glUseProgram(shaderProgram);
-        updUniformScreenSize(locationScrSize, Width, Height);
+        glUniform2i(locationScrSize, Width, Height);            // updUniformScreenSize(locationScrSize, Width, Height);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawArraysInstanced(GL_LINES, 0, 2, N);

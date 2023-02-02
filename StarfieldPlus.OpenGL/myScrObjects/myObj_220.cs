@@ -1,8 +1,6 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Collections.Generic;
 
 
@@ -16,7 +14,9 @@ namespace my
     public class myObj_220 : myObject
     {
         private int lifeCounter = 0, type = 0;
-        private float x, y, Rad, rad, time1 = 0, dt1 = 0, time2 = 0, dt2 = 0, R, G, B, A;
+        private float x, y, Rad, rad;
+        private float time1 = 0, dt1 = 0, dt1Factor = 0, time2 = 0, dt2 = 0;
+        private float R, G, B, A;
 
         private static int N = 1;
         private static float baseDt = 1.0f, dimAlpha = 0.025f;
@@ -48,7 +48,7 @@ namespace my
             doClearBuffer = false;
 
             N = 1111 + rand.Next(2345);
-            renderDelay = 10;
+            renderDelay = rand.Next(10);
 
             initLocal();
         }
@@ -68,8 +68,8 @@ namespace my
             string str = $"Obj = myObj_220\n\n"                             +
                             $"N = {list.Count} of {N}\n"                    +
                             $"doClearBuffer = {doClearBuffer}\n"            +
-                            $"renderDelay = {renderDelay}\n"                +
                             $"doOscillateDimRate = {doOscillateDimRate}\n"  +
+                            $"renderDelay = {renderDelay}\n"                +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -85,9 +85,16 @@ namespace my
             colorPicker.getColor(x, y, ref R, ref G, ref B);
             A = myUtils.randFloat(rand, 0.1f);
 
-            lifeCounter = 100 + rand.Next(200);
+            lifeCounter = rand.Next(200) + 100;
+            type = rand.Next(4);
 
-            type = rand.Next(3);
+            switch (type)
+            {
+                case 3:
+                    dt1 = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                    dt1Factor = myUtils.randFloat(rand) * rand.Next(30);
+                    break;
+            }
 
             return;
         }
@@ -111,12 +118,32 @@ namespace my
             time1 += dt1;
             time2 += dt2;
 
-            dt1 += 0.00001f * rand.Next(10);
+            switch (type)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    dt1 += 0.00001f * rand.Next(10);
+                    break;
+            }
 
             rad = (int)(Rad * Math.Sin(time2));
 
             x += rand.Next(3) - 1;
             y += rand.Next((int)Rad/2);
+
+/*
+            // Anomaly
+            if (y > 500 && x > gl_x0 - 333 && x < gl_x0)
+            {
+                x -= 12;
+            }
+
+            if (y > 500 && x < gl_x0 + 333 && x > gl_x0)
+            {
+                x += 12;
+            }
+*/
 
             if (y > gl_Height + 333)
             {
@@ -135,8 +162,11 @@ namespace my
             switch (type)
             {
                 case 0:
-                    myPrimitive._Line.SetAngle((float)rand.NextDouble() * rand.Next(123));
-                    myPrimitive._Line.Draw(x - rand.Next(33), y, x + rand.Next(33), y);
+                    //for (int i = 0; i < 33; i++)
+                    {
+                        myPrimitive._Line.SetAngle((float)rand.NextDouble() * rand.Next(123));
+                        myPrimitive._Line.Draw(x - rand.Next(33), y, x + rand.Next(33), y);
+                    }
                     break;
 
                 case 1:
@@ -147,6 +177,11 @@ namespace my
                 case 2:
                     myPrimitive._Line.SetAngle(time1);
                     myPrimitive._Line.Draw(x, y, x + rad, y);
+                    break;
+
+                case 3:
+                    myPrimitive._Line.SetAngle((float)Math.Sin(time1 * dt1Factor));
+                    myPrimitive._Line.Draw(x - rad, y, x + rad, y);
                     break;
             }
 
