@@ -118,6 +118,14 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        public string getModeStr()
+        {
+            colorMode m = (colorMode)(_mode);
+            return m.ToString();
+        }
+
+        // -------------------------------------------------------------------------
+
         // Explicitly set the name of the file to load the image from
         public static void setFileName(string fName)
         {
