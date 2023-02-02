@@ -67,8 +67,6 @@ namespace my
             y0 = gl_Height / 2;
 
             colorPicker = new myColorPicker(gl_Width, gl_Height);
-            //colorPicker = new myColorPicker(gl_Width, gl_Height, myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
-            
             list = new List<myObject>();
 
             doClearBuffer      = myUtils.randomBool(rand);
@@ -189,20 +187,22 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_300\n\n" +
-                            $"N = {N}\n" +
-                            $"renderDelay = {renderDelay}\n" +
-                            $"moveType = {moveType}\n" +
-                            $"shapeType = {shapeType}\n" +
-                            $"rotationMode = {rotationMode}\n" +
-                            $"rotationSubMode = {rotationSubMode}\n" +
-                            $"colorMode = {colorMode}\n" +
-                            $"maxSize = {maxSize}\n" +
-                            $"doGenerateAtCenter = {doGenerateAtCenter}\n" + 
-                            $"const_i1 = {const_i1}\n" +
-                            $"const_i2 = {const_i2}\n" +
-                            $"const_f1 = {const_f1}\n" +
-                            $"const_f2 = {const_f2}\n";
+            string str = $"Obj = myObj_300\n\n"                             +
+                            $"N = {list.Count} of {N}\n"                    +
+                            $"moveType = {moveType}\n"                      +
+                            $"shapeType = {shapeType}\n"                    +
+                            $"rotationMode = {rotationMode}\n"              +
+                            $"rotationSubMode = {rotationSubMode}\n"        +
+                            $"colorMode = {colorMode}\n"                    +
+                            $"maxSize = {maxSize}\n"                        +
+                            $"doGenerateAtCenter = {doGenerateAtCenter}\n"  + 
+                            $"const_i1 = {const_i1}\n"                      +
+                            $"const_i2 = {const_i2}\n"                      +
+                            $"const_f1 = {const_f1}\n"                      +
+                            $"const_f2 = {const_f2}\n"                      +
+                            $"renderDelay = {renderDelay}\n"                +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
             return str;
         }
 
@@ -247,7 +247,7 @@ namespace my
 
             int max = rand.Next(5000) + 1000;
 
-            for (int i = 0; i < objN; i++)
+            for (int i = 0; i != objN; i++)
             {
                 var obj = structsList[i];
 
@@ -304,7 +304,7 @@ namespace my
             {
                 int liveCnt = 0;
 
-                for (int i = 0; i < objN; i++)
+                for (int i = 0; i != objN; i++)
                 {
                     var obj = structsList[i];
 
@@ -822,7 +822,7 @@ namespace my
                 // Render connecting lines
                 if (doShowConnections)
                 {
-                    for (int i = 0; i < objN; i++)
+                    for (int i = 0; i != objN; i++)
                     {
                         myPrimitive._LineInst.setInstanceCoords(structsList[i].x, structsList[i].y, x, y);
                         myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.025f);
@@ -835,7 +835,7 @@ namespace my
                     case 0:
                         var rectInst = inst as myRectangleInst;
 
-                        for (int i = 0; i < objN; i++)
+                        for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
 
@@ -855,7 +855,7 @@ namespace my
                     case 1:
                         var triangleInst = inst as myTriangleInst;
 
-                        for (int i = 0; i < objN; i++)
+                        for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
 
@@ -874,7 +874,7 @@ namespace my
                     case 2:
                         var ellipseInst = inst as myEllipseInst;
 
-                        for (int i = 0; i < objN; i++)
+                        for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
 
@@ -893,7 +893,7 @@ namespace my
                     case 3:
                         var pentagonInst = inst as myPentagonInst;
 
-                        for (int i = 0; i < objN; i++)
+                        for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
 
@@ -912,7 +912,7 @@ namespace my
                     case 4:
                         var hexagonInst = inst as myHexagonInst;
 
-                        for (int i = 0; i < objN; i++)
+                        for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
 
@@ -982,9 +982,15 @@ namespace my
                 // Render Frame
                 {
                     inst.ResetBuffer();
-                    myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i < list.Count; i++)
+                    if (doShowConnections)
+                    {
+                        myPrimitive._LineInst.ResetBuffer();
+                    }
+
+                    int Count = list.Count;
+
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_300;
                         obj.Show();

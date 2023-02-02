@@ -52,9 +52,10 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = false;
 
+            mode = rand.Next(11);
             maxCnt = rand.Next(333) + 100;
 
-            mode = rand.Next(11);
+            renderDelay = rand.Next(20);
 
             return;
         }
@@ -71,6 +72,7 @@ namespace my
             string str = $"Obj = myObj_400\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
                             $"mode = {mode}\n"                          +
+                            $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
