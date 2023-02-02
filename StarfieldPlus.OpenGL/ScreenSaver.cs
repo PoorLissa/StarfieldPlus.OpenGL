@@ -103,13 +103,14 @@ public class ScreenSaver
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - get colors from image and slightly offset the colors. Then put color spots (grid or not) on the screen
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
+    // - rain with pseudo-depth (the farther away are the drops, the slower is their speed, the higher is bottom threshold)
 
     public void selectObject()
     {
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_220;
+        id = ids.myObj_030;
 #endif
 
         switch (id)
