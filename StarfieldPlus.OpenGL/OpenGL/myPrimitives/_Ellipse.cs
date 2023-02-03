@@ -7,7 +7,7 @@ using System;
     - For now, actually, only circle. To be able to draw an ellipse, needs some adjustments
 */
 
-#if true
+#if false
 
 public class myEllipse : myPrimitive
 {
