@@ -11,7 +11,7 @@ public class ScreenSaver
 
     private enum ids
     {
-        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
+        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_031, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
         myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
@@ -110,7 +110,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_030;
+        id = ids.myObj_031;
 #endif
 
         switch (id)
@@ -138,6 +138,11 @@ public class ScreenSaver
             // Rain Drops (Vertical, Top-Down)
             case ids.myObj_030:
                 _obj = new my.myObj_030();
+                break;
+
+            // Rain Drops --- test
+            case ids.myObj_031:
+                _obj = new my.myObj_031();
                 break;
 
             // Lines 1: Snake-like branches moving outwards from the center
