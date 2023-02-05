@@ -15,7 +15,7 @@ public class ScreenSaver
         myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
-        myObj_400,
+        myObj_400, myObj_410,
         myObj_999a,
         myObj_last
     };
@@ -110,7 +110,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_031;
+        id = ids.myObj_410;
 #endif
 
         switch (id)
@@ -320,6 +320,11 @@ public class ScreenSaver
             // ...
             case ids.myObj_400:
                 _obj = new my.myObj_400();
+                break;
+
+            // ...
+            case ids.myObj_410:
+                _obj = new my.myObj_410();
                 break;
 
             // Test rotating shape, unfinished yet good

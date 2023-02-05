@@ -24,19 +24,6 @@ namespace my
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
-
-
-        float Size = 0;
-        float dSize = 0;
-        int circCount = 0;
-
-        static int mode = 1;
-
-        static float centerX = 0;
-        static float centerY = 0;
-        static float centerDx = 0;
-        static float centerDy = 0;
-
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_031()
@@ -57,17 +44,6 @@ namespace my
                 N = rand.Next(10) + 10;
                 N = 3000;
                 shape = 2;
-
-                if (mode == 1)
-                {
-                    N = 75;
-
-                    centerX = gl_x0;
-                    centerY = gl_y0;
-
-                    centerDx = myUtils.randFloat(rand, 0.2f) * 3 * myUtils.randomSign(rand);
-                    centerDy = myUtils.randFloat(rand, 0.2f) * 3 * myUtils.randomSign(rand);
-                }
             }
 
             initLocal();
@@ -171,76 +147,31 @@ namespace my
 
         protected override void Move()
         {
-            if (mode == 0)
+            switch (stage)
             {
-                switch (stage)
-                {
-                    case 0:
+                case 0:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (y >= bottom)
                         {
-                            x += dx;
-                            y += dy;
-
-                            if (y >= bottom)
-                            {
-                                stage = 1;
-                            }
+                            stage = 1;
                         }
-                        break;
+                    }
+                    break;
 
-                    case 1:
+                case 1:
+                    {
+                        size += 0.1f * (101 - depth);
+                        A -= 0.05f * (1.0f / (depth * 0.1f));
+
+                        if (A < 0)
                         {
-                            size += 0.1f * (101 - depth);
-                            A -= 0.05f * (1.0f / (depth * 0.1f));
-
-                            if (A < 0)
-                            {
-                                generateNew();
-                            }
+                            generateNew();
                         }
-                        break;
-                }
-            }
-
-            if (mode == 1)
-            {
-                if (Size <= 0 || circCount <= 0)
-                {
-                    Size = rand.Next(1234) + 1234;
-                    dSize = rand.Next(33) + 5;
-                    circCount = rand.Next(250) + 250;
-                    A = myUtils.randFloat(rand) * 0.123f;
-                }
-
-                int x = (int)centerX + rand.Next(11) - 5;
-                int y = (int)centerY + rand.Next(11) - 5;
-
-                myPrimitive._Ellipse.SetColor(1.0f, 0.55f, 0.0f, A);
-                myPrimitive._Ellipse.Draw(x - Size, y - Size, 2 * Size, 2 * Size);
-
-                Size -= dSize;
-
-                if (myUtils.randomChance(rand, 1, 3))
-                    dSize *= 0.95f;
-
-                circCount--;
-
-                if (id == 0)
-                {
-                    centerX += centerDx;
-                    centerY += centerDy;
-
-                    if (centerX > gl_x0 + 500)
-                        centerDx -= 0.25f;
-
-                    if (centerX < gl_x0 - 500)
-                        centerDx += 0.25f;
-
-                    if (centerY > gl_y0 + 500)
-                        centerDy -= 0.25f;
-
-                    if (centerY < gl_y0 - 500)
-                        centerDy += 0.25f;
-                }
+                    }
+                    break;
             }
 
             return;
@@ -250,72 +181,69 @@ namespace my
 
         protected override void Show()
         {
-            if (mode == 0)
+            if (stage == 0)
             {
-                if (stage == 0)
+                float size2x = size * 2;
+
+                switch (shape)
                 {
-                    float size2x = size * 2;
+                    // Instanced squares
+                    case 0:
+                        var rectInst = inst as myRectangleInst;
 
-                    switch (shape)
-                    {
-                        // Instanced squares
-                        case 0:
-                            var rectInst = inst as myRectangleInst;
+                        rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        rectInst.setInstanceColor(R, G, B, A);
+                        rectInst.setInstanceAngle(angle);
+                        break;
 
-                            rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                            rectInst.setInstanceColor(R, G, B, A);
-                            rectInst.setInstanceAngle(angle);
-                            break;
+                    // Instanced triangles
+                    case 1:
+                        var triangleInst = inst as myTriangleInst;
 
-                        // Instanced triangles
-                        case 1:
-                            var triangleInst = inst as myTriangleInst;
+                        triangleInst.setInstanceCoords(x, y, size2x, angle);
+                        triangleInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                            triangleInst.setInstanceCoords(x, y, size2x, angle);
-                            triangleInst.setInstanceColor(R, G, B, A);
-                            break;
+                    // Instanced circles
+                    case 2:
+                        var ellipseInst = inst as myEllipseInst;
 
-                        // Instanced circles
-                        case 2:
-                            var ellipseInst = inst as myEllipseInst;
+                        ellipseInst.setInstanceCoords(x, y, size2x, angle);
+                        ellipseInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                            ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                            ellipseInst.setInstanceColor(R, G, B, A);
-                            break;
+                    // Instanced pentagons
+                    case 3:
+                        var pentagonInst = inst as myPentagonInst;
 
-                        // Instanced pentagons
-                        case 3:
-                            var pentagonInst = inst as myPentagonInst;
+                        pentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        pentagonInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                            pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                            pentagonInst.setInstanceColor(R, G, B, A);
-                            break;
+                    // Instanced hexagons
+                    case 4:
+                        var hexagonInst = inst as myHexagonInst;
 
-                        // Instanced hexagons
-                        case 4:
-                            var hexagonInst = inst as myHexagonInst;
-
-                            hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                            hexagonInst.setInstanceColor(R, G, B, A);
-                            break;
-                    }
+                        hexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        hexagonInst.setInstanceColor(R, G, B, A);
+                        break;
                 }
+            }
 
-                if (stage == 1)
+            if (stage == 1)
+            {
+                int SizeX = (int)(size * 2);
+                int SizeY = (int)(size * 1);
+                float a = A;
+
+                while (SizeY > 3 && a > 0.05f)
                 {
-                    int SizeX = (int)(size * 2);
-                    int SizeY = (int)(size * 1);
-                    float a = A;
+                    myPrimitive._Ellipse.SetColor(1, 1, 1, a);
+                    myPrimitive._Ellipse.Draw(x - SizeX, y - SizeX, SizeX * 2, SizeY * 2, false);
 
-                    while (SizeY > 3 && a > 0.05f)
-                    {
-                        myPrimitive._Ellipse.SetColor(1, 1, 1, a);
-                        myPrimitive._Ellipse.Draw(x - SizeX, y - SizeX, SizeX * 2, SizeY * 2, false);
-
-                        SizeX -= SizeX / 3;
-                        SizeY -= SizeY / 3;
-                        a *= 0.5f;
-                    }
+                    SizeX -= SizeX / 3;
+                    SizeY -= SizeY / 3;
+                    a *= 0.5f;
                 }
             }
 
@@ -366,23 +294,6 @@ namespace my
                     {
                         dimScreen(dimAlpha);
                     }
-                }
-
-                // Render test frame
-                // Test it with both versions of the ellipse shader
-                if (false)
-                {
-                    for (int i = 0; i < 100000; i++)
-                    {
-                        float x = rand.Next(gl_Width);
-                        float y = rand.Next(gl_Height);
-                        int size = rand.Next(123) + 3;
-
-                        myPrimitive._Ellipse.SetColor(1.0f, 0.55f, 0.0f, 0.1f);
-                        myPrimitive._Ellipse.Draw(x - size, y - size, 2*size, 2*size);
-                    }
-
-                    continue;
                 }
 
                 // Render Frame

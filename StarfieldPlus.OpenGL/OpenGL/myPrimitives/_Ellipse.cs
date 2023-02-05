@@ -7,7 +7,7 @@ using System;
     - For now, actually, only circle. To be able to draw an ellipse, needs some adjustments
 */
 
-#if false
+#if true
 
 public class myEllipse : myPrimitive
 {
@@ -162,15 +162,7 @@ public class myEllipse : myPrimitive
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
             "in vec2 zzz; out vec4 result; uniform vec4 myColor; uniform vec3 RadSq;",
 
-                main: @"
-
-                        if (abs(zzz.x) > RadSq.z || abs(zzz.y) > RadSq.z)
-                        {
-                            result = vec4(0, 0, 0, 0);
-                        }
-                        else
-                        {
-                            float xySqd = zzz.x * zzz.x + zzz.y * zzz.y;
+                main: @"float xySqd = zzz.x * zzz.x + zzz.y * zzz.y;
                             if (xySqd <= RadSq.x)
                             {
                                 if (RadSq.y == 0.0)
@@ -188,9 +180,7 @@ public class myEllipse : myPrimitive
                             else
                             {
                                 result = vec4(0, 0, 0, 0);
-                            }
-                        }
-                "
+                            }"
         );
 
         shaderProgram = glCreateProgram();
