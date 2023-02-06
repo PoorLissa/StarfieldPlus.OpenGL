@@ -410,6 +410,25 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        protected virtual void clearScreenSetup(bool doClearBuffer, float rndFactor)
+        {
+            dimScreenRGB_SetRandom(rndFactor);
+
+            if (doClearBuffer)
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+                glClearColor(myObject.bgrR, myObject.bgrG, myObject.bgrB, 1);
+            }
+            else
+            {
+                glDrawBuffer(GL_BACK);
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
     };
 };
 

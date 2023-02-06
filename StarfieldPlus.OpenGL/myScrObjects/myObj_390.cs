@@ -13,12 +13,13 @@ namespace my
 {
     public class myObj_390 : myObject
     {
+        private int x0, y0;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0, da;
+        private float size, A, R, G, B, angle = 0, da, spdFactor;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = false, doCreateAtOnce = false;
-        private static float dimAlpha = 0.05f, dAlphaStatic = 0;
+        private static int N = 0, shape = 0, angleMode = 0, colorMode = 0, genMode = 0, connectMode = 0, spdX = 0, spdY = 0;
+        private static bool doFillShapes = false, doCreateAtOnce = false, doUseRandSpdFactor = true, doConnect = true;
+        private static float dimAlpha = 0.05f, alphaStatic = 0, dAlphaStatic = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -37,15 +38,11 @@ namespace my
 
             // Global unmutable constants
             {
-                doClearBuffer  = myUtils.randomBool(rand);
-                doFillShapes   = myUtils.randomBool(rand);
                 doCreateAtOnce = myUtils.randomBool(rand);
+                doConnect      = myUtils.randomBool(rand);
 
                 N = 33333;
                 shape = rand.Next(5);
-
-                renderDelay = 10;
-                dimAlpha = 0.075f;
             }
 
             initLocal();
@@ -56,6 +53,56 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doClearBuffer      = myUtils.randomBool(rand);
+            doFillShapes       = myUtils.randomBool(rand);
+            doUseRandSpdFactor = myUtils.randomBool(rand);
+
+            renderDelay = 10;
+            dimAlpha = 0.075f;
+
+            dAlphaStatic = 0.01f * (rand.Next(5) + 1);                              // Static angle changing rate
+
+            genMode = rand.Next(5);                                                 // Particle position generation mode
+            angleMode = rand.Next(2);
+            colorMode = rand.Next(2);
+            connectMode = rand.Next(2);
+
+            // Speed factor
+            {
+                int maxSpd = 15;
+
+                spdX = rand.Next(maxSpd) + 1;
+                spdY = rand.Next(maxSpd) + 1;
+
+                if (myUtils.randomChance(rand, 4, 5))
+                    spdY = spdX;
+            }
+
+            // Angle mode
+            {
+                angleMode = 3;
+
+                if (myUtils.randomChance(rand, 1, 5))
+                {
+                    angleMode = rand.Next(4);
+                }
+
+                switch (angleMode)
+                {
+                    case 0:
+                    case 1:
+                        alphaStatic = myUtils.randFloat(rand) * (rand.Next(123) + 1);
+                        break;
+
+                    case 2:
+                        break;
+
+                    case 3:
+                        alphaStatic = 0;
+                        break;
+                }
+            }
+
             return;
         }
 
@@ -68,14 +115,22 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_390\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"shape = {shape}\n"                        +
-                            $"doClearBuffer = {doClearBuffer}\n"        +
-                            $"doFillShapes = {doFillShapes}\n"          +
-                            $"doCreateAtOnce = {doCreateAtOnce}\n"      +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"            +
-                            $"renderDelay = {renderDelay}\n"            +
+            string str = $"Obj = myObj_390\n\n"                             +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"        +
+                            $"shape = {shape}\n"                            +
+                            $"genMode = {genMode}\n"                        +
+                            $"angleMode = {angleMode}\n"                    +
+                            $"colorMode = {colorMode}\n"                    +
+                            $"connectMode = {connectMode}\n"                +
+                            $"doClearBuffer = {doClearBuffer}\n"            +
+                            $"doFillShapes = {doFillShapes}\n"              +
+                            $"doCreateAtOnce = {doCreateAtOnce}\n"          +
+                            $"doUseRandSpdFactor = {doUseRandSpdFactor}\n"  +
+                            $"doConnect = {doConnect}\n"                    +
+                            $"spdX = {spdX}; spdY = {spdY}\n"               +
+                            $"dAlphaStatic = {fStr(dAlphaStatic)}\n"        +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"                +
+                            $"renderDelay = {renderDelay}\n"                +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -95,22 +150,135 @@ namespace my
         {
             double dist = 0;
 
-            // try different variations of this loop thing
+            spdFactor = doUseRandSpdFactor
+                ? 0.25f * (rand.Next(30) + 1)
+                : 1.0f;
 
-            do
+            switch (genMode)
             {
-                x = rand.Next(gl_Width);
-                y = rand.Next(gl_Width);
+                case 0:
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Width);
 
-                dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
+                    dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
+                    break;
+
+                // Circle
+                case 1:
+                    do
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Width);
+
+                        dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
+                    }
+                    while (dist < 300);
+                    break;
+
+                // Ring
+                case 2:
+                    do
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Width);
+
+                        dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
+                    }
+                    while (dist < 200 || dist > 500);
+                    break;
+
+                // Line
+                case 3:
+                    x = gl_x0 + rand.Next(1001) - 500;
+                    y = gl_x0;
+
+                    dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
+                    break;
+
+                // Square
+                case 4:
+                    x = gl_x0 + rand.Next(1001) - 500;
+                    y = gl_x0 + rand.Next(1001) - 500;
+
+                    dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
+                    break;
             }
-            while (dist < 200 || dist > 500);
-
-            double sp_dist = 5.0 / dist;
 
             // Get current angle alpha:
-            double alpha = Math.Acos((y - gl_x0) / dist);
-            double dAlpha = dAlphaStatic;
+            double currentAngle = Math.Acos((y - gl_x0) / dist);
+
+            switch (angleMode)
+            {
+                // Const static angle for every particle
+                case 0:
+                    {
+                        if (x > gl_x0)
+                        {
+                            dx = (float)(+Math.Sin(alphaStatic) * spdX);
+                            dy = (float)(+Math.Cos(alphaStatic) * spdY);
+                        }
+                        else
+                        {
+                            dx = (float)(-Math.Sin(alphaStatic) * spdX);
+                            dy = (float)(+Math.Cos(alphaStatic) * spdY);
+                        }
+                    }
+                    break;
+
+                // Const static angle for every particle
+                case 1:
+                    {
+                        if (x > gl_x0)
+                        {
+                            currentAngle += alphaStatic;
+
+                            dx = (float)(Math.Sin(currentAngle) * spdX);
+                            dy = (float)(Math.Cos(currentAngle) * spdY);
+                        }
+                        else
+                        {
+                            currentAngle -= alphaStatic;
+
+                            // Optimized:
+                            dx = (float)(-Math.Sin(currentAngle) * spdX);
+                            dy = (float)(+Math.Cos(currentAngle) * spdY);
+                        }
+                    }
+                    break;
+
+                // Random angle for each particle
+                case 2:
+                    {
+                        float angle = myUtils.randFloat(rand);
+
+                        dx = (float)(Math.Sin(angle) * spdX) * myUtils.randomSign(rand);
+                        dy = (float)(Math.Cos(angle) * spdY) * myUtils.randomSign(rand);
+                    }
+                    break;
+                    
+                // Every particle's gets rotated by the same angle
+                case 3:
+                    {
+                        if (x > gl_x0)
+                        {
+                            currentAngle += alphaStatic;
+
+                            dx = (float)(Math.Sin(currentAngle) * spdX * spdFactor);
+                            dy = (float)(Math.Cos(currentAngle) * spdY * spdFactor);
+                        }
+                        else
+                        {
+                            currentAngle -= alphaStatic;
+
+                            dx = (float)(-Math.Sin(currentAngle) * spdX * spdFactor);
+                            dy = (float)(+Math.Cos(currentAngle) * spdY * spdFactor);
+                        }
+                    }
+                    break;
+            }
+
+#if false
+            double dAlpha = alphaStatic;
 
             if (x > gl_x0)
             {
@@ -141,7 +309,9 @@ namespace my
                 dx = (float)(-Math.Sin(alpha) * 5);
                 dy = (float)(+Math.Cos(alpha) * 5);
             }
+#endif
 
+            // Normalize y from gl_Width to gl_Height
             y -= (gl_Width - gl_Height) / 2;
 
             size = 3;
@@ -154,10 +324,21 @@ namespace my
             //da = myUtils.randomChance(rand, 1, 3) ? 0.005f : 0.01f;
 
             da = myUtils.randomChance(rand, 1, 2) ? 0.015f : 0.010f;
-
             da = myUtils.randFloat(rand, 0.01f) * 0.01f;
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            switch (colorMode)
+            {
+                case 0:
+                    colorPicker.getColor(x, y, ref R, ref G, ref B);
+                    break;
+
+                case 1:
+                    colorPicker.getColorRand(ref R, ref G, ref B);
+                    break;
+            }
+
+            x0 = (int)x;
+            y0 = (int)y;
 
             return;
         }
@@ -235,6 +416,25 @@ namespace my
                     break;
             }
 
+            if (doConnect)
+            {
+                switch (connectMode)
+                {
+                    case 0:
+                        myPrimitive._LineInst.setInstanceCoords(x, y, x0, y0);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.01f);
+                        break;
+
+                    case 1:
+                        myPrimitive._LineInst.setInstanceCoords(x, y, x0, y0);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.5f);
+
+                        x0 = (int)x;
+                        y0 = (int)y;
+                        break;
+                }
+            }
+
             return;
         }
 
@@ -256,17 +456,7 @@ namespace my
             // Disable VSYNC if needed
             // Glfw.SwapInterval(0);
 
-            dimScreenRGB_SetRandom(0.1f);
-
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(myObject.bgrR, myObject.bgrG, myObject.bgrB, 1);
-            }
-            else
-            {
-                glDrawBuffer(GL_BACK);
-            }
+            clearScreenSetup(doClearBuffer, 0.1f);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -292,6 +482,11 @@ namespace my
                 {
                     inst.ResetBuffer();
 
+                    if (doConnect)
+                    {
+                        myPrimitive._LineInst.ResetBuffer();
+                    }
+
                     listCnt = list.Count;
 
                     for (int i = 0; i != listCnt; i++)
@@ -300,6 +495,11 @@ namespace my
 
                         obj.Show();
                         obj.Move();
+                    }
+
+                    if (doConnect)
+                    {
+                        myPrimitive._LineInst.Draw();
                     }
 
                     if (doFillShapes)
@@ -314,7 +514,7 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (list.Count < N)
+                if (doCreateAtOnce == false && list.Count < N)
                 {
                     list.Add(new myObj_390());
                 }
@@ -323,9 +523,16 @@ namespace my
                 System.Threading.Thread.Sleep(renderDelay);
 
                 if (cnt % 10 == 0)
-                    dAlphaStatic += 0.05f;
+                {
+                    switch (angleMode)
+                    {
+                        case 3:
+                            alphaStatic += dAlphaStatic;
+                            break;
+                    }
+                }
             }
-
+/*
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
@@ -334,7 +541,7 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
             }
-
+*/
             return;
         }
 
@@ -344,6 +551,11 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
+
+            if (doConnect)
+            {
+                myPrimitive.init_LineInst(N);
+            }
 
             return;
         }
