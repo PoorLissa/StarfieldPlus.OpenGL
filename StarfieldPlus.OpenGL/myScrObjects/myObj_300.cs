@@ -188,7 +188,9 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = myObj_300\n\n"                             +
-                            $"N = {list.Count} of {N}\n"                    +
+                            $"N = {list.Count} of {N} x {maxParticles}\n"   +
+                            $"doClearBuffer = {doClearBuffer}\n"            +
+                            $"doShowConnections = {doShowConnections}\n"    +
                             $"moveType = {moveType}\n"                      +
                             $"shapeType = {shapeType}\n"                    +
                             $"rotationMode = {rotationMode}\n"              +
@@ -945,10 +947,16 @@ namespace my
                 list.Add(new myObj_300());
             }
 
+            dimScreenRGB_SetRandom(0.1f);
+
             if (doClearBuffer)
             {
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                glClearColor(0, 0, 0, 1);
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+                glClearColor(myObject.bgrR, myObject.bgrG, myObject.bgrB, 1);
+            }
+            else
+            {
+                glDrawBuffer(GL_BACK);
             }
 
             // https://stackoverflow.com/questions/25548179/opengl-alpha-blending-suddenly-stops
@@ -969,6 +977,7 @@ namespace my
                 }
                 else
                 {
+/*
                     // Dim the screen constantly;
                     // Shift background color just a bit, to hide long lasting traces of shapes
                     float r = (float)Math.Sin(cnt * 0.001f) * 0.03f;
@@ -977,6 +986,9 @@ namespace my
                     myPrimitive._Rectangle.SetColor(r, g, b, dimAlpha);
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+*/
+
+                    dimScreen(dimAlpha);
                 }
 
                 // Render Frame
@@ -1029,7 +1041,7 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(N * maxParticles);
             base.initShapes(shapeType, N * maxParticles, rotationSubMode);
 

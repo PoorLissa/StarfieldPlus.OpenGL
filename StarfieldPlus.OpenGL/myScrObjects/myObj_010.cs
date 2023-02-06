@@ -17,7 +17,7 @@ namespace my
         private float A = 0, R = 0, G = 0, B = 0;
 
         private static bool doFillShapes = false, doConnect = false, doUseGravityAnomaly = false;
-        private static int x0, y0, minX = 0, minY = 0, maxX = 0, maxY = 0, maxSize = 0, N = 1, moveMode = 0;
+        private static int N = 1, x0, y0, minX = 0, minY = 0, maxX = 0, maxY = 0, maxSize = 0, moveMode = 0;
         private static int shapeType = 0, rotationMode = 0, rotationSubMode = 0, connectType = 0, connectColorType = 0, gravityMode = 0;
         private static float dimAlpha = 0.25f;
         static float radius = gl_Height / 3;
@@ -119,17 +119,20 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_010\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"renderDelay = {renderDelay}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"shapeType = {shapeType}\n" + 
-                            $"rotationMode = {rotationMode}\n" +
-                            $"rotationSubMode = {rotationSubMode}\n" +
-                            $"doConnect = {doConnect}\n" +
-                            $"connectType = {connectType}\n" +
+            string str = $"Obj = myObj_010\n\n"                       +
+                            $"N = {list.Count} of {N}\n"              +
+                            $"doClearBuffer = {doClearBuffer}\n"      +
+                            $"moveMode = {moveMode}\n"                +
+                            $"shapeType = {shapeType}\n"              +
+                            $"rotationMode = {rotationMode}\n"        +
+                            $"rotationSubMode = {rotationSubMode}\n"  +
+                            $"doConnect = {doConnect}\n"              +
+                            $"connectType = {connectType}\n"          +
                             $"doUseGravity = {doUseGravityAnomaly}\n" + 
-                            $"gravityMode = {gravityMode}";
+                            $"gravityMode = {gravityMode}\n"          +
+                            $"renderDelay = {renderDelay}\n"          +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
             return str;
         }
 
@@ -167,9 +170,8 @@ namespace my
 
             Size = rand.Next(maxSize) + 1;
 
-            A = myUtils.randFloat(rand);
+            A = myUtils.randFloat(rand, 0.05f);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
-A = 1;
 
             angle = 0;
             dAngle = rotationMode < 2 ? 0.001f * rand.Next(111) * myUtils.randomSign(rand) : 0;
