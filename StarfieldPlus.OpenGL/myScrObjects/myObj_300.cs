@@ -977,17 +977,6 @@ namespace my
                 }
                 else
                 {
-/*
-                    // Dim the screen constantly;
-                    // Shift background color just a bit, to hide long lasting traces of shapes
-                    float r = (float)Math.Sin(cnt * 0.001f) * 0.03f;
-                    float g = (float)Math.Cos(cnt * 0.002f) * 0.03f;
-                    float b = (float)Math.Sin(cnt * 0.003f) * 0.03f;
-                    myPrimitive._Rectangle.SetColor(r, g, b, dimAlpha);
-                    myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
-*/
-
                     dimScreen(dimAlpha);
                 }
 
