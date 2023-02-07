@@ -104,6 +104,7 @@ public class ScreenSaver
     // - get colors from image and slightly offset the colors. Then put color spots (grid or not) on the screen
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - rain with pseudo-depth (the farther away are the drops, the slower is their speed, the higher is bottom threshold)
+    // - similar to myObj_180, but there are lots of generators, each located in the intersection of a grid.
 
     public void selectObject()
     {

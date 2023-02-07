@@ -17,7 +17,8 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, da, spdFactor;
 
-        private static int N = 0, shape = 0, angleMode = 0, colorMode = 0, genMode = 0, connectMode = 0, spdX = 0, spdY = 0;
+        private static int N = 0, shape = 0, angleMode = 0, colorMode = 0, genMode = 0, connectMode = 0, sizeMode = 0, daMode = 0;
+        private static int spdX = 0, spdY = 0, wh2 = 0;
         private static bool doFillShapes = false, doCreateAtOnce = false, doUseRandSpdFactor = true, doConnect = true;
         private static float dimAlpha = 0.05f, alphaStatic = 0, dAlphaStatic = 0;
 
@@ -43,6 +44,8 @@ namespace my
 
                 N = 33333;
                 shape = rand.Next(5);
+
+                wh2 = (gl_Width - gl_Height) / 2;
             }
 
             initLocal();
@@ -62,10 +65,11 @@ namespace my
 
             dAlphaStatic = 0.01f * (rand.Next(5) + 1);                              // Static angle changing rate
 
-            genMode = rand.Next(5);                                                 // Particle position generation mode
-            angleMode = rand.Next(2);
+            genMode = rand.Next(14);                                                // Particle position generation mode
             colorMode = rand.Next(2);
             connectMode = rand.Next(2);
+            sizeMode = rand.Next(2);
+            daMode = rand.Next(4);
 
             // Speed factor
             {
@@ -80,8 +84,10 @@ namespace my
 
             // Angle mode
             {
+                // Base mode is 3...
                 angleMode = 3;
 
+                // ... but sometimes we allow the mode to be different
                 if (myUtils.randomChance(rand, 1, 5))
                 {
                     angleMode = rand.Next(4);
@@ -164,7 +170,7 @@ namespace my
                     break;
 
                 // Circle
-                case 1:
+                case 1: case 2: case 3:
                     do
                     {
                         x = rand.Next(gl_Width);
@@ -176,7 +182,7 @@ namespace my
                     break;
 
                 // Ring
-                case 2:
+                case 4: case 5: case 6:
                     do
                     {
                         x = rand.Next(gl_Width);
@@ -188,17 +194,63 @@ namespace my
                     break;
 
                 // Line
-                case 3:
+                case 7:
                     x = gl_x0 + rand.Next(1001) - 500;
                     y = gl_x0;
 
                     dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
                     break;
 
+                // Cross
+                case 8: case 9:
+                    switch (rand.Next(2))
+                    {
+                        case 0:
+                            x = gl_x0 + rand.Next(1001) - 500;
+                            y = gl_x0;
+                            break;
+
+                        case 1:
+                            x = gl_x0;
+                            y = gl_x0 + rand.Next(1001) - 500;
+                            break;
+                    }
+
+                    dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
+                    break;
+
                 // Square
-                case 4:
+                case 10: case 11:
                     x = gl_x0 + rand.Next(1001) - 500;
                     y = gl_x0 + rand.Next(1001) - 500;
+
+                    dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
+                    break;
+
+                // 4 lines making a rectangle
+                case 12: case 13:
+                    switch (rand.Next(4))
+                    {
+                        case 0:
+                            x = 500;
+                            y = rand.Next(gl_Width);
+                            break;
+
+                        case 1:
+                            x = gl_Width - 500;
+                            y = rand.Next(gl_Width);
+                            break;
+
+                        case 2:
+                            x = rand.Next(gl_Width);
+                            y = 500 + wh2;
+                            break;
+
+                        case 3:
+                            x = rand.Next(gl_Width);
+                            y = gl_Width - wh2 - 500;
+                            break;
+                    }
 
                     dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_x0) * (y - gl_x0));
                     break;
@@ -312,19 +364,39 @@ namespace my
 #endif
 
             // Normalize y from gl_Width to gl_Height
-            y -= (gl_Width - gl_Height) / 2;
+            y -= wh2;
 
-            size = 3;
+            switch (sizeMode)
+            {
+                case 0:
+                    size = 3;
+                    break;
 
-            A = 0;
+                case 1:
+                    size = rand.Next(5) + 1;
+                    break;
+            }
 
-            // nice effect with flashing
-            //da = 0.005f + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.0001f;
+            switch (daMode)
+            {
+                // Standard mode
+                case 0:
+                    da = myUtils.randFloat(rand, 0.01f) * 0.01f;
+                    break;
 
-            //da = myUtils.randomChance(rand, 1, 3) ? 0.005f : 0.01f;
+                // Nice flashing effect (in case all the particles are generated at the same time)
+                case 1:
+                    da = 0.005f + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.0001f;
+                    break;
 
-            da = myUtils.randomChance(rand, 1, 2) ? 0.015f : 0.010f;
-            da = myUtils.randFloat(rand, 0.01f) * 0.01f;
+                case 2:
+                    da = myUtils.randomChance(rand, 1, 2) ? 0.015f : 0.010f;
+                    break;
+
+                case 3:
+                    da = myUtils.randomChance(rand, 1, 3) ? 0.005f : 0.01f;
+                    break;
+            }
 
             switch (colorMode)
             {
@@ -336,6 +408,8 @@ namespace my
                     colorPicker.getColorRand(ref R, ref G, ref B);
                     break;
             }
+
+            A = 0;
 
             x0 = (int)x;
             y0 = (int)y;
