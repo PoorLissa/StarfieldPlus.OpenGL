@@ -16,12 +16,10 @@ namespace my
         private int cnt;
         private float x, y, dx, dy, ddy, da;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
-        private bool alive;
 
         private static int N = 0, shape = 0, rotationMode = 0, slowMode = 0, opacityMode = 0, colorMode = 0,
                            minSize = 5, maxSize = 25, maxHeight = gl_Height + 100, gridStep = 1, gridOffset = 1;
         private static bool doFillShapes = false, doUseGrid = true, doUseConstSize = true;
-        private static float dimAlpha = 0.5f;
 
         static myTexRectangle tex = null;
         static myTexRectangle_Renderer offScrRenderer = null;
@@ -30,7 +28,6 @@ namespace my
 
         public myObj_070()
         {
-            alive = true;
             generateNew();
         }
 
@@ -143,7 +140,6 @@ namespace my
 
                 if (++failCnt > 50)
                 {
-                    alive = false;
                     maxSize -= (maxSize == 5) ? 0 : 1;
                     return;
                 }

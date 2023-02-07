@@ -20,7 +20,7 @@ namespace my
         private static int N = 0, shape = 0, moveMode = 0, growMode = 0, rotationMode = 0, renderDelayOld = -1;
         private static int globalCounter = 0, moveSetUp = 0, moveParam1 = 0, moveParam2 = 0, moveParam3 = 0, moveParam4 = 0, moveParam5 = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.0f, aFill = 0, bgrR = -1, bgrG = -1, bgrB = -1, lineTh = 1;
+        private static float dimAlpha = 0.0f, aFill = 0, lineTh = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ namespace my
             lineTh = 0.2f + myUtils.randFloat(rand) * (rand.Next(10) + 1);
 
             // todo: not used, make a use of it
+#if false
             if (bgrR < 0 && bgrG < 0 && bgrB < 0)
             {
                 if (myUtils.randomChance(rand, 1, 7))
@@ -96,7 +97,7 @@ namespace my
                 }
 
             }
-
+#endif
             return;
         }
 

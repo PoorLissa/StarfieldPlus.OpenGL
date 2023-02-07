@@ -23,13 +23,14 @@ namespace my
         private static bool doFillShapes = true, doUseRandomMass = false;
         private static float dimAlpha = 0.05f;
 
-        private static int border = 3, nTaskCount = 1, activeThreads = 1;
+        private static int nTaskCount = 1, activeThreads = 1, proc = 0;
         private static bool threadsAreRunning = true;
+
+/*
+        private static int border = 3;
         private static float reverseFactor = 0.99999f;
         private static float resistFactor = 0.99999f;
-
-        private static int proc = 0;
-
+*/
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_230()
@@ -120,6 +121,7 @@ namespace my
             }
 
             size = mass < 500 ? 1 : mass / 500;
+            angle = 0;
 
             A = 0.5f;
             R = (float)rand.NextDouble();

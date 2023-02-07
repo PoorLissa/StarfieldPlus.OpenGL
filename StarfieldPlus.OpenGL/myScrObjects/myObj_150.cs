@@ -19,9 +19,9 @@ namespace my
         private int liveCnt = 0, lifeSpanCnt = 0;
 
         private static bool doUseRandBgr = false, doUseRandCellColor = false;
-        private static int N = 0, W = 0, H = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, populateMode = 0;
+        private static int W = 0, H = 0, step = 0, startX = 0, startY = 0, drawMode = 0, lightMode = 0, clearMode = 0, populateMode = 0;
         private static int cellOffset = 0, a = 0, b = 0, c = 0, d = 0, drawW = 0, frameRate = 5;
-        private static float bgrR = 0, bgrG = 0, bgrB = 0, borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
+        private static float borderR = 0, borderG = 0, borderB = 0, cellR = 0, cellG = 0, cellB = 0, colorStepR = 0, colorStepG = 0, colorStepB = 0;
         private static string extraInfo = "";
 
         static myTexRectangle tex = null;
@@ -57,8 +57,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            N = 0;
-
             if (myUtils.randomChance(rand, 4, 5))
             {
                 step = rand.Next(33) + 25;

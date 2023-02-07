@@ -18,7 +18,7 @@ namespace my
 
         private static int N = 0, shape = 0, borderMode = 0, borderOpacityMode = 0, shapeOpacityMode = 0, angleMode = 0,
                            maxSize = 0, maxCnt = 0;
-        private static bool isOpenGlReady = false, doUseRandomSize = false, doUseWasH = false;
+        private static bool doUseRandomSize = false, doUseWasH = false;
         private static float lineWidth = 0, dimAlpha = 0.05f, brdrR = 0, brdrG = 0, brdrB = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -530,8 +530,6 @@ namespace my
             myPrimitive.init_Ellipse();
             myPrimitive.init_Pentagon();
             myPrimitive.init_Hexagon();
-
-            isOpenGlReady = true;
 
             return;
         }

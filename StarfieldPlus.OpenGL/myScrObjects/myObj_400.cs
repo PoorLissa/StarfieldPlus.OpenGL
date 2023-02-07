@@ -13,11 +13,10 @@ namespace my
     public class myObj_400 : myObject
     {
         private int dir, size, cnt;
-        private float x, y, w, dx, dy;
-        private float A, angle = 0;
+        private float x, y, dx, dy;
+        private float A;
 
         private static int N = 0, maxCnt = 0, maxSize = 0, mode = 0;
-        private static float dimAlpha = 0.05f;
 
         static myTexRectangle tex = null;
 
@@ -70,7 +69,7 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
+            //string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_400\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
@@ -283,7 +282,6 @@ namespace my
                     }
                     else
                     {
-                        //dimScreen(dimAlpha);
                         tex.setOpacity(1);
                         tex.Draw(0, 0, gl_Width, gl_Height);
                     }

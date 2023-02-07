@@ -22,14 +22,14 @@ namespace my
 
         private static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0;
         private static int [] prm_i = new int[5];
-        private static bool isDimmableGlobal = true, isDimmableLocal = false;
+        private static bool isDimmableGlobal = true;
         private static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
         private static float a = 0, b = 0, c = 0;
         private static float dimAlpha = 0.05f;
         private static ScreenMode scrMode = ScreenMode.Start;
 
-        private int maxSize = 0, R = 0, G = 0, B = 0, dA = 0, dA_Filling = 0;
-        private float x, y, dx, dy, size, dSize, a1, r1, g1, b1, a2, r2, g2, b2, angle = 0, time1, time2, dt1, dt2, float_B, x1, y1, x2, y2, x3, y3, x4, y4;
+        private float x, y, dx, dy, size, dSize, r1, g1, b1, r2, g2, b2, time1, time2, dt1, dt2, float_B, x1, y1, x2, y2, x3, y3, x4, y4;
+        //private float a1, a2, angle = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -157,10 +157,9 @@ namespace my
                 }
             }
 
-            maxSize = rand.Next(333) + 33;
+            //maxSize = rand.Next(333) + 33;
             mode = rand.Next(91);
             isDimmableGlobal = rand.Next(2) == 0;
-            isDimmableLocal = false;
 
             t = tDefault;
             t -= isDimmableGlobal ? 13 : 0;
@@ -177,9 +176,6 @@ namespace my
             size = 1;
             dSize = rand.Next(max_dSize) + 1;
             dSize = 0.1f + 0.1f * rand.Next(max_dSize * 10);
-            dA = rand.Next(5) + 1;
-            dA = 1;
-            dA_Filling = rand.Next(5) + 2;
             float_B = 1.0f;
 
             time1 = 0.0f;
@@ -366,7 +362,6 @@ namespace my
                     sf4 = 0.01f + rand.Next(21) * 0.01f;
 
                     //invalidateRate = 2; removed this, see what it was doing before
-                    isDimmableLocal = true;
 
                     a = rand.Next(1111);
 

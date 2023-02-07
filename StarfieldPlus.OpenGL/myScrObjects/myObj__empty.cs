@@ -55,6 +55,8 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+#pragma warning disable
+
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             height = 600;
@@ -68,6 +70,8 @@ namespace my
                 ;
             return str;
         }
+
+#pragma warning restore
 
         // ---------------------------------------------------------------------------------------------------------------
 

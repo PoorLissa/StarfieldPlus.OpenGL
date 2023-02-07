@@ -91,6 +91,7 @@ namespace my
 
             int x1 = 666;
             int y1 = 666;
+/*
             int z1 = 200;
 
             int x0 = 500;
@@ -99,7 +100,7 @@ namespace my
             int h0 = 500;
 
             int xx1 = 0;
-            int yy1 = 0;
+            int yy1 = 0;*/
 
             uint cnt = 0;
 

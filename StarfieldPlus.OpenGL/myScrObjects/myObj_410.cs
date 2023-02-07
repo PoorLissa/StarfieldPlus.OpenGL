@@ -13,7 +13,7 @@ namespace my
     public class myObj_410 : myObject
     {
         int circCount;
-        private float size, dSize, A, R, G, B, angle = 0;
+        private float size, dSize, A, R, G, B;
 
         private static int N = 0, shape = 0, lineTh = 9;
         private static bool doFillShapes = false;

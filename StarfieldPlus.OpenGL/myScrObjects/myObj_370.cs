@@ -689,7 +689,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
             // Disable VSYNC if needed
