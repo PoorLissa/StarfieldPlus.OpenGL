@@ -14,7 +14,7 @@ namespace my
     public class myObj_420 : myObject
     {
         private float x, y, dx, dy, oldx, oldy;
-        private float size, mass, A, R, G, B, angle = 0;
+        private float size, mass, A, R, G, B, angle = 0, dAngle = 0;
 
         private static int N = 0, shape = 0, dxyMode = 0;
         private static bool doFillShapes = false, doCreateAtOnce = true;
@@ -131,6 +131,8 @@ namespace my
 
             size *= A * 1.2f;
 
+            dAngle = myUtils.randFloat(rand, 0.05f) * 0.01f;
+
             return;
         }
 
@@ -163,7 +165,7 @@ namespace my
             oldx = x;
             oldy = y;
 
-            angle += 0.01f;
+            angle += dAngle;
 
             if (id == 0)
             {
