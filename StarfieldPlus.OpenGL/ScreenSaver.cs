@@ -15,7 +15,7 @@ public class ScreenSaver
         myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
-        myObj_400, myObj_410,
+        myObj_400, myObj_410, myObj_420,
         myObj_999a,
         myObj_last
     };
@@ -76,7 +76,6 @@ public class ScreenSaver
     // - sperm floating towards the center
     // - cover everything in spiralling traingles
     // - try bezier curves: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
-    // - try rotating rectangles: https://stackoverflow.com/questions/10210134/using-a-matrix-to-rotate-rectangles-individually
     // - something like myObj_101, but the pieces are moved via sine/cosine function (up-down or elliptically)
     // - randomly generate points. Every point grows its own square (with increasing or decreasing opacity).
             // Grown squares stay a while then fade away.
@@ -96,7 +95,6 @@ public class ScreenSaver
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles
             // (maybe allow placing on the inside)
-    // - point moves along the rectangle right or left. Rectangle is a perimeter of the screen. Lots of such points.
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving
             // towards the point where pt2 has been at the moment of generation
@@ -111,7 +109,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_150;
+        id = ids.myObj_420;
 #endif
 
         switch (id)
@@ -263,7 +261,7 @@ public class ScreenSaver
                 _obj = new my.myObj_220();
                 break;
 
-            // Gravity
+            // Gravity -- unfinished
             case ids.myObj_230:
                 _obj = new my.myObj_230();
                 break;
@@ -293,12 +291,12 @@ public class ScreenSaver
                 _obj = new my.myObj_340();
                 break;
 
-            // ...
+            // Moving groups of small particles. Particles within the group are connected to each other.
             case ids.myObj_350:
                 _obj = new my.myObj_350();
                 break;
 
-            // ...
+            // Moving particles; each particle is connected to 5 other random particles
             case ids.myObj_360:
                 _obj = new my.myObj_360();
                 break;
@@ -318,14 +316,19 @@ public class ScreenSaver
                 _obj = new my.myObj_390();
                 break;
 
-            // ...
+            // Circular texture stripes
             case ids.myObj_400:
                 _obj = new my.myObj_400();
                 break;
 
-            // ...
+            // Concentric vibrating circles around randomly moving center point
             case ids.myObj_410:
                 _obj = new my.myObj_410();
+                break;
+
+            //     // - system, where the center attracts and repels all the particles at the same time. vary both forces
+            case ids.myObj_420:
+                _obj = new my.myObj_420();
                 break;
 
             // Test rotating shape, unfinished yet good

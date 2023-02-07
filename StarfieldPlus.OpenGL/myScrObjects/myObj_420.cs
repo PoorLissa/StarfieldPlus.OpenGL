@@ -5,24 +5,26 @@ using System.Collections.Generic;
 
 
 /*
-    - Empty object. Use as a template to create new objects
+    -     // - system, where the center attracts and repels all the particles at the same time. vary both forces
 */
 
 
 namespace my
 {
-    public class myObj_empty : myObject
+    public class myObj_420 : myObject
     {
-        private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float x, y, dx, dy, oldx, oldy;
+        private float size, mass, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, shape = 0, dxyMode = 0;
+        private static bool doFillShapes = false, doCreateAtOnce = true;
+        private static float dimAlpha = 0.05f, gravFactor = 0.0005f;
+
+        private static int xCenter = 0, yCenter = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_empty()
+        public myObj_420()
         {
             generateNew();
         }
@@ -37,7 +39,12 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
+                xCenter = gl_x0;
+                yCenter = gl_y0;
+
+                shape = rand.Next(5);
+
+                N = 1000 + rand.Next(11111);
             }
 
             initLocal();
@@ -48,14 +55,17 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doCreateAtOnce = myUtils.randomChance(rand, 1, 2);
+            doClearBuffer  = myUtils.randomChance(rand, 1, 7);
+
+            dxyMode = rand.Next(4);                             // initial dx/dy value
+
+            renderDelay = rand.Next(11) + 3;
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
-#pragma warning disable
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
@@ -64,15 +74,16 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_empty\n\n"                       +
+            string str = $"Obj = myObj_420\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                            $"doClearBuffer = {doClearBuffer}\n"        +
+                            $"dxyMode = {dxyMode}\n"                    +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"            +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
-
-#pragma warning restore
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -86,20 +97,39 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            x = oldx = rand.Next(gl_Width);
+            y = oldy = rand.Next(gl_Width) - (gl_Width - gl_Height)/2;
 
-            dx = myUtils.randFloat(rand);
-            dy = myUtils.randFloat(rand);
+            switch (dxyMode)
+            {
+                case 0:
+                    dx = dy = 0;
+                    break;
+
+                case 1:
+                    dx = myUtils.randFloat(rand) * 11;
+                    dy = 0;
+                    break;
+
+                case 2:
+                    dx = 0;
+                    dy = myUtils.randFloat(rand) * 11;
+                    break;
+
+                case 3:
+                    dx = myUtils.randFloat(rand) * 11;
+                    dy = myUtils.randFloat(rand) * 11;
+                    break;
+            }
 
             size = rand.Next(11) + 3;
+            size = 3;
+            mass = size * (rand.Next(50) + 100);
 
-            A = 1;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
+            colorPicker.getColorRand(ref R, ref G, ref B);
+            A = 0.1f + mass / 375;
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            size *= A * 1.2f;
 
             return;
         }
@@ -108,10 +138,39 @@ namespace my
 
         protected override void Move()
         {
-            x += dx;
-            y += dy;
+            float DX = 0, DY = 0, dist = 0, F = 0, d2 = 0;
 
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+            DX = x - xCenter;
+            DY = y - yCenter;
+            d2 = DX * DX + DY * DY;
+
+            if (d2 > 0)
+            {
+                dist = (float)Math.Sqrt(d2);
+
+                F = gravFactor * mass / dist;
+
+                dx -= F * DX;
+                dy -= F * DY;
+            }
+
+            // Apply resisting force:
+            dx *= 0.99f;
+            dy *= 0.99f;
+
+            A *= 0.995f;
+
+            oldx = x;
+            oldy = y;
+
+            angle += 0.01f;
+
+            if (id == 0)
+            {
+                //xCenter += 1;
+            }
+
+            if (A < 0.0001f)
             {
                 generateNew();
             }
@@ -124,6 +183,12 @@ namespace my
         protected override void Show()
         {
             float size2x = size * 2;
+
+            x += dx;
+            y += dy;
+
+            myPrimitive._LineInst.setInstanceCoords(x, y, oldx, oldy);
+            myPrimitive._LineInst.setInstanceColor(1, 1, 1, A * 0.5f);
 
             switch (shape)
             {
@@ -179,19 +244,12 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
+            clearScreenSetup(doClearBuffer, 0.1f);
 
-            if (doClearBuffer)
+            if (doCreateAtOnce)
             {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
+                while (list.Count < N)
+                    list.Add(new myObj_420());
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -217,14 +275,21 @@ namespace my
                 // Render Frame
                 {
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    int Count = list.Count;
+
+                    for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_empty;
-
-                        obj.Show();
-                        obj.Move();
+                        (list[i] as myObj_420).Move();
                     }
+
+                    for (int i = 0; i != Count; i++)
+                    {
+                        (list[i] as myObj_420).Show();
+                    }
+
+                    myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
                     {
@@ -240,7 +305,7 @@ namespace my
 
                 if (list.Count < N)
                 {
-                    list.Add(new myObj_empty());
+                    list.Add(new myObj_420());
                 }
 
                 cnt++;
@@ -255,6 +320,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
+            myPrimitive.init_LineInst(N);
             base.initShapes(shape, N, 0);
 
             return;

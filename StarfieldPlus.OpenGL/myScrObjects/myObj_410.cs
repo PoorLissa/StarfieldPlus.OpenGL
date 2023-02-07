@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Concentric vibrating circles around randomly moving center point
 */
 
 

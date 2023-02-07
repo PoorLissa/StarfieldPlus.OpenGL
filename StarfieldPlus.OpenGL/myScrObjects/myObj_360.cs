@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
+    - Moving particles; each particle is connected to 5 other random particles
 */
 
 
@@ -367,7 +367,9 @@ namespace my
                     inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i < list.Count; i++)
+                    int Count = list.Count;
+
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_360;
 

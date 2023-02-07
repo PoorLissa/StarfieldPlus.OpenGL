@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 
 /*
+    https://www.youtube.com/watch?v=0Kx4Y9TVMGg&ab_channel=Brainxyz
+
     - Gravity, unfinished
 */
 
@@ -180,15 +182,15 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // https://www.youtube.com/watch?v=0Kx4Y9TVMGg&ab_channel=Brainxyz
-
         protected override void Move()
         {
             myObj_230 obj;
             float DX = 0, DY = 0, dist = 0, F = 0, factor = 0, d2 = 0;
             float anotherResistFactor = 1.0f - 0.00001f;
 
-            for (int i = 0; i != list.Count; i++)
+            int Count = list.Count;
+
+            for (int i = 0; i != Count; i++)
             {
                 obj = (myObj_230)(list[i]);
 
@@ -656,7 +658,8 @@ namespace my
                         inst.ResetBuffer();
 
                         // Draw everything to the Inst
-                        for (int i = 0; i != list.Count; i++)
+                        int Count = list.Count;
+                        for (int i = 0; i != Count; i++)
                         {
                             (list[i] as myObj_230).Show();
                         }

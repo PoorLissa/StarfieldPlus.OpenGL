@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
+    - Moving groups of small particles. Particles within the group are connected to each other.
 */
 
 
