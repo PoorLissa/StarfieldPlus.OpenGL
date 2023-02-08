@@ -63,7 +63,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(66);
+            mode = rand.Next(67);
 #if DEBUG
             //mode = 65;
 #endif
@@ -812,6 +812,20 @@ namespace my
 
                     dimAlpha *= rand.Next(5) + 1;
                     break;
+
+                // Rectangle pieces of an image floating around the screen
+                case 66:
+                    N = 13 + rand.Next(500);
+
+                    prm_i[0] = rand.Next(666) + 33;                                         // max size
+                    prm_i[1] = rand.Next(111) + 11;                                         // min size
+                    prm_i[2] = rand.Next(3);                                                // max speed
+                    prm_i[3] = rand.Next(2);                                                // move mode
+                    prm_i[4] = rand.Next(10) + 10;                                          // in move mode 1, max distance from origin point
+                    break;
+
+                case 67:
+                    break;
             }
 
             return;
@@ -821,6 +835,9 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
+            string nStr(int n) { return n.ToString("N0"); }
+            string fStr(float f) { return f.ToString("0.000"); }
+
             string str_params = "";
 
             for (int i = 0; i < prm_i.Length; i++)
@@ -828,16 +845,17 @@ namespace my
                 str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
             }
 
-            string str = $"Obj = myObj_330\n\n"                             +
-                            $"mode = {mode}\n\n"                            +
-                            $"N = {list.Count} of {N}\n"                    +
-                            $"dimAlpha = {dimAlpha.ToString("0.000")}\n"    +
-                            $"max = {max}\n"                                +
-                            $"opacityFactor = {opacityFactor}\n"            +
-                            $"doClearBuffer = {doClearBuffer}\n"            +
-                            $"doSampleOnce  = {doSampleOnce}\n"             +
-                            $"doUseRandDxy  = {doUseRandDxy}\n"             +
-                            $"param: [{str_params}]\n\n"                    +
+            string str = $"Obj = myObj_330\n\n"                     +
+                            $"mode = {mode}\n\n"                    +
+                            $"N = {nStr(list.Count)} of ({N})\n"    +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"        +
+                            $"max = {max}\n"                        +
+                            $"opacityFactor = {opacityFactor}\n"    +
+                            $"doClearBuffer = {doClearBuffer}\n"    +
+                            $"doSampleOnce  = {doSampleOnce}\n"     +
+                            $"doUseRandDxy  = {doUseRandDxy}\n"     +
+                            $"param: [{str_params}]\n\n"            +
+                            $"renderDelay = {renderDelay}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -2336,6 +2354,20 @@ namespace my
                     X = x - width;
                     Y = y - width;
                     cnt = rand.Next(N * 3) + 13;
+                    break;
+
+                case 66:
+                    width  = rand.Next(prm_i[0]) + prm_i[1];
+                    height = rand.Next(prm_i[0]) + prm_i[1];
+
+                    dx = myUtils.randomSign(rand) * myUtils.randFloat(rand) * (rand.Next(3 + prm_i[2]) + 1);
+                    dy = myUtils.randomSign(rand) * myUtils.randFloat(rand) * (rand.Next(3 + prm_i[2]) + 1);
+
+                    X = x = rand.Next(gl_Width);
+                    Y = y = rand.Next(gl_Height);
+                    break;
+
+                case 67:
                     break;
             }
 
@@ -3918,7 +3950,9 @@ namespace my
                             dy *= prm_f[3];
 
                             // Interact with other particles
-                            for (int i = 0; i < list.Count; i++)
+                            int Count = list.Count;
+
+                            for (int i = 0; i != Count; i++)
                             {
                                 var obj = list[i] as myObj_330;
 
@@ -3971,6 +4005,49 @@ namespace my
                     {
                         cnt--;
                     }
+                    break;
+
+                case 66:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        switch (prm_i[3])
+                        {
+                            // Moving across the whole screen
+                            case 0:
+                                if (x + width / 2 > gl_Width)
+                                    dx -= 0.1f;
+
+                                if (x < -width / 2)
+                                    dx += 0.1f;
+
+                                if (y + height / 2 > gl_Height)
+                                    dy -= 0.1f;
+
+                                if (y < -height / 2)
+                                    dy += 0.1f;
+                                break;
+
+                            // Moving in a close proximity to [X, Y]
+                            case 1:
+                                if (x > X + prm_i[4])
+                                    dx -= 0.1f;
+
+                                if (x < X - prm_i[4])
+                                    dx += 0.1f;
+
+                                if (y > Y + prm_i[4])
+                                    dy -= 0.1f;
+
+                                if (y < Y - prm_i[4])
+                                    dy += 0.1f;
+                                break;
+                        }
+                    }
+                    break;
+
+                case 67:
                     break;
             }
 
@@ -4847,6 +4924,13 @@ namespace my
                         }
                     }
                     break;
+
+                case 66:
+                    tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
+                    break;
+
+                case 67:
+                    break;
             }
 
             return;
@@ -4914,7 +4998,9 @@ namespace my
                         myPrimitive._LineInst.ResetBuffer();
                     }
 
-                    for (int i = 0; i < list.Count; i++)
+                    int Count = list.Count;
+
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_330;
 

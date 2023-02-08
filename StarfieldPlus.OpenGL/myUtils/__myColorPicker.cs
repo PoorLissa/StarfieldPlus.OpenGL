@@ -383,7 +383,7 @@ namespace my
 
                         for (int i = 0; i < files.Length; i++)
                         {
-                            var file = files[i];
+                            var file = files[i].ToLower();
 
                             foreach (var ext in Extensions)
                             {
@@ -450,12 +450,31 @@ namespace my
                 string image = _fileName;
                 var list = new System.Collections.Generic.List<string>();
 
-                // Custom paths tp look for images;
-                // todo:
-                //  - read the list from *.ini file
-                list.Add(@"C:\_maxx\pix");
-                list.Add(@"E:\iNet\pix");
-                list.Add(@"E:\iNet\pix\wallpapers_3840x1600");
+                // Custom paths to look for images;
+                ini_file_base _ini = new ini_file_base();
+                _ini.read();
+
+                string path = _ini["Settings.ImgPath"];
+
+                if (path != null && path.Length > 0)
+                {
+                    list = path.Split('?').ToList<string>();
+                }
+                else
+                {
+                    list.Add(@"C:\_maxx\pix");
+                    list.Add(@"E:\iNet\pix");
+                    list.Add(@"E:\iNet\pix\wallpapers_3840x1600");
+
+                    foreach (string s in list)
+                    {
+                        path += s;
+                        path += "?";
+                    }
+
+                    _ini["Settings.ImgPath"] = path;
+                    _ini.save();
+                }
 
                 // Try to use explicitly set name first;
                 // If the name is empty, then use randomly found image

@@ -18,6 +18,15 @@ namespace StarfieldPlus.OpenGL
             bool createdNew;
             var mutex = new System.Threading.Mutex(true, appName, out createdNew);
 
+            ini_file_base _ini = new ini_file_base();
+            _ini.read();
+
+            if (_ini.getDic() == null)
+            {
+                _ini["Settings.ImgPath"] = "";
+                _ini.save();
+            }
+
             // Allow only one single instance of the app
             if (createdNew)
             {

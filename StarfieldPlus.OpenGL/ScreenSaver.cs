@@ -1,7 +1,9 @@
-﻿// https://learnopengl.com/
-
+﻿//
+// https://learnopengl.com/
+//
 // If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels;
 // For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
+//
 
 
 public class ScreenSaver
@@ -109,7 +111,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_380;
+        id = ids.myObj_330;
 #endif
 
         switch (id)
