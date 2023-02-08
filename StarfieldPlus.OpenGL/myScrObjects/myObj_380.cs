@@ -151,6 +151,7 @@ namespace my
         {
             if (parent == null)
             {
+                // Position parent shapes
                 switch (genMode)
                 {
                     case 0:
@@ -176,19 +177,102 @@ namespace my
                         Width  = rand.Next(666) + 111;
                         Height = rand.Next(666) + 111;
                         break;
-                }
 
+                    // Non-intersecting rectangles -- does not work yet
+                    case 3:
+                        {
+                            // Check whether a point lies within a rectangle
+                            bool isPtInsideRect(int ptx, int pty, int x, int y, int w, int h) {
+                                return (ptx >= x && pty >= y && ptx <= x + w && pty <= y + h);
+                            }
+
+                            bool isOk = false;
+
+                            do {
+
+                                bool ok = true;
+
+                                // 1. Find a point that does not belong to any of the existing parent shapes
+                                x = rand.Next(gl_Width  + 200) - 100;
+                                y = rand.Next(gl_Height + 200) - 100;
+
+                                for (int i = 0; i < list.Count; i++)
+                                {
+                                    var obj = list[i] as myObj_380;
+
+                                    // Find other parent shapes
+                                    if (obj.parent == null)
+                                    {
+                                        if (isPtInsideRect((int)x, (int)y, (int)obj.x, (int)obj.y, obj.Width, obj.Height))
+                                        {
+                                            ok = false;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // The point does not belong to any of the parent shapes
+                                if (ok)
+                                {
+                                    // Try k times to find the rect that would not intersect any other parent rects
+                                    for (int k = 0; k < 10; k++)
+                                    {
+                                        Width  = rand.Next(666) + 111;
+                                        Height = rand.Next(666) + 111;
+
+                                        for (int i = 0; i < list.Count; i++)
+                                        {
+                                            var obj = list[i] as myObj_380;
+
+                                            if (obj.parent == null)
+                                            {
+                                                ok &= !isPtInsideRect((int)(x + Width), (int)y, (int)obj.x, (int)obj.y, obj.Width, obj.Height);
+                                                ok &= !isPtInsideRect((int)x, (int)(y + Height), (int)obj.x, (int)obj.y, obj.Width, obj.Height);
+                                                ok &= !isPtInsideRect((int)(x + Width), (int)(y + Height), (int)obj.x, (int)obj.y, obj.Width, obj.Height);
+
+                                                if (ok == false)
+                                                    break;
+                                            }
+                                        }
+
+                                        if (ok == true)
+                                        {
+                                            isOk = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            while (!isOk);
+                        }
+                        break;
+                }
 
                 dir = myUtils.randomBool(rand);
             }
             else
             {
+                // Generate child particles
                 float spd = 1;
-                int side = (startingSide < 0) ? rand.Next(4) : startingSide;
+                int side = -1;
 
-                if (moveMode > 0)
+                switch (moveMode)
                 {
-                    side = rand.Next(4);
+                    case 0:
+                        side = (startingSide < 0) ? rand.Next(4) : startingSide;
+                        break;
+
+                    // In this mode, particles always stay on the same side;
+                    // Thus, need to adjust their probability of appearing on the longer/shorter side
+                    case 1:
+                        side = myUtils.randomChance(rand, parent.Width, parent.Width + parent.Height)
+                            ? rand.Next(2)
+                            : rand.Next(2) + 2;
+                        break;
+
+                    case 2:
+                        side = rand.Next(4);
+                        break;
                 }
 
                 switch (speedMode)
@@ -219,20 +303,20 @@ namespace my
                         y = parent.y;
                         break;
 
-                    // right
-                    case 1:
-                        dx = 0;
-                        dy = spd;
-                        x = parent.x + parent.Width;
-                        y = parent.y + rand.Next(parent.Height);
-                        break;
-
                     // bottom
-                    case 2:
+                    case 1:
                         dx = -spd;
                         dy = 0;
                         x = parent.x + rand.Next(parent.Width);
                         y = parent.y + parent.Height;
+                        break;
+
+                    // right
+                    case 2:
+                        dx = 0;
+                        dy = spd;
+                        x = parent.x + parent.Width;
+                        y = parent.y + rand.Next(parent.Height);
                         break;
 
                     // left
