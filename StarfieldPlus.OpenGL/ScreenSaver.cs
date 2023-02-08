@@ -105,6 +105,7 @@ public class ScreenSaver
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - rain with pseudo-depth (the farther away are the drops, the slower is their speed, the higher is bottom threshold)
     // - similar to myObj_180, but there are lots of generators, each located in the intersection of a grid.
+    // - sort of a brick breaker game, without a paddle (just bouncing ball)
 
     public void selectObject()
     {
