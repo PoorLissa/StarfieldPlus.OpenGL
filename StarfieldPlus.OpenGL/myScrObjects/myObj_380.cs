@@ -79,7 +79,7 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes  = myUtils.randomBool(rand);
 
-            genMode   = rand.Next(2);
+            genMode   = rand.Next(3);
             moveMode  = rand.Next(3);
             sizeMode  = rand.Next(2);
             angleMode = rand.Next(6);
@@ -156,16 +156,28 @@ namespace my
                     case 0:
                         x = rand.Next(gl_x0);
                         y = rand.Next(gl_y0);
+
+                        Width  = gl_Width  - (int)(2 * x);
+                        Height = gl_Height - (int)(2 * y);
                         break;
 
                     case 1:
                         y = rand.Next(gl_y0);
                         x = y;
+
+                        Width  = gl_Width  - (int)(2 * x);
+                        Height = gl_Height - (int)(2 * y);
+                        break;
+
+                    case 2:
+                        x = rand.Next(gl_Width  + 200) - 100;
+                        y = rand.Next(gl_Height + 200) - 100;
+
+                        Width  = rand.Next(666) + 111;
+                        Height = rand.Next(666) + 111;
                         break;
                 }
 
-                Width  = gl_Width  - (int)(2 * x);
-                Height = gl_Height - (int)(2 * y);
 
                 dir = myUtils.randomBool(rand);
             }
