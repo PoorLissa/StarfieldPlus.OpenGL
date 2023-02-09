@@ -14,6 +14,7 @@ using System.Collections.Generic;
     // Vertical lines move out of the screen's edge, but at some point start moving in rectangle, along the screen's edge
     // Gravitational pull towards the point which is off screen
     // The one like 64, but with repulsion instead of attraction; The passive particles are returning back to their initial places
+    // When pressing Space to switch mode, it crashes sometimes
 */
 
 
@@ -65,7 +66,7 @@ namespace my
         {
             mode = rand.Next(67);
 #if DEBUG
-            //mode = 67;
+            mode = 68;
 #endif
             // Reset parameter values
             {
@@ -831,6 +832,27 @@ namespace my
 
                     prm_i[0] = rand.Next(300) + 33;                                         // max size
                     prm_i[1] = rand.Next(033) + 11;                                         // min size
+                    break;
+
+                // Grid-based: tiles are repelled by actively moving particles, but then they return back
+                case 68:
+                    doClearBuffer = myUtils.randomChance(rand, 4, 5);
+
+                    oldRenderDelay = renderDelay;
+                    renderDelay = rand.Next(11) + 3;
+
+                    max = rand.Next(25) + 25;                                               // Size of a cell
+                    prm_i[0] = 3;                                                           // Number of active particles
+                    prm_i[1] = rand.Next(10) + 1;                                           // Distance between the grid cells
+
+                    // Get N, depending on the cell size
+                    {
+                        int c = 2 * max + prm_i[1];
+                        int w = (gl_Width  % c == 0) ? (gl_Width  / c) : (gl_Width  / c) + 1;
+                        int h = (gl_Height % c == 0) ? (gl_Height / c) : (gl_Height / c) + 1;
+
+                        N = w * h + prm_i[0];
+                    }
                     break;
             }
 
@@ -2383,6 +2405,43 @@ namespace my
                     dx = myUtils.randFloat(rand, 0.1f);
                     dy = myUtils.randFloat(rand, 0.5f);
                     a = 0.01f;
+                    break;
+
+                case 68:
+                    if (id != uint.MaxValue)
+                    {
+                        if (id < prm_i[0])
+                        {
+                            // Active particles
+                            x = rand.Next(gl_Width);
+                            y = rand.Next(gl_Height);
+
+                            dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * 11;
+                            dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * 11;
+
+                            width = height = 5;
+                            a = 1;
+                            da = rand.Next(5) + 1;      // acts as a attraction factor
+                        }
+                        else
+                        {
+                            // Passive particles
+                            int ID = (int)id - prm_i[0];
+                            int c = 2 * max + prm_i[1];
+                            int w = (gl_Width  % c == 0) ? (gl_Width  / c) : (gl_Width  / c) + 1;
+                            int h = (gl_Height % c == 0) ? (gl_Height / c) : (gl_Height / c) + 1;
+
+                            int x0 = 0 - (c - gl_Width  % c) / 2;
+                            int y0 = 0 - (c - gl_Height % c) / 2;
+
+                            x = X = x0 + c / 2 + (ID % w) * c;
+                            y = Y = y0 + c / 2 + (ID / w) * c;
+
+                            dx = dy = 0;
+                            width = height = max;
+                            a = 0.5f;
+                        }
+                    }
                     break;
             }
 
@@ -4072,6 +4131,64 @@ namespace my
                     if (Y < 0)
                         a = -1;
                     break;
+
+                case 68:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (id < prm_i[0])
+                        {
+                            float repelFactor = 0.5f;
+
+                            if (x < 0)
+                                dx += repelFactor;
+
+                            if (y < 0)
+                                dy += repelFactor;
+
+                            if (x > gl_Width)
+                                dx -= repelFactor;
+
+                            if (y > gl_Height)
+                                dy -= repelFactor;
+                        }
+                        else
+                        {
+                            float activeFactor = 0.05f;
+                            float returnFactor = 0.0005f;
+
+                            // Interact with active particle(s)
+                            for (int i = 0; i < prm_i[0]; i++)
+                            {
+                                var obj = list[i] as myObj_330;
+
+                                float X = x - obj.x;
+                                float Y = y - obj.y;
+
+                                float dist = (float)Math.Sqrt(X * X + Y * Y) + 0.0001f;
+
+                                if (dist < max * 3)
+                                {
+                                    // The larger the particle is, the lesser it is affected
+                                    float F = (float)(obj.da * activeFactor / dist);
+
+                                    dx -= F * X;
+                                    dy -= F * Y;
+                                }
+                            }
+
+                            // Return home
+                            {
+                                dx += (X - x) * returnFactor;
+                                dy += (Y - y) * returnFactor;
+                            }
+
+                            dx *= 0.95f;
+                            dy *= 0.95f;
+                        }
+                    }
+                    break;
             }
 
             if (a <= 0)
@@ -4954,6 +5071,10 @@ namespace my
 
                 case 67:
                     tex.Draw((int)(x - X), (int)(y - Y), (int)(2 * X), (int)(2 * Y), (int)(x - X), (int)(y - Y), (int)(2 * X), (int)(2 * Y));
+                    break;
+
+                case 68:
+                    tex.Draw((int)x - width, (int)y - height, 2*width, 2*height, (int)x - width, (int)y - height, 2*width, 2*height);
                     break;
             }
 
