@@ -65,7 +65,7 @@ namespace my
         {
             mode = rand.Next(67);
 #if DEBUG
-            //mode = 65;
+            //mode = 67;
 #endif
             // Reset parameter values
             {
@@ -824,7 +824,13 @@ namespace my
                     prm_i[4] = rand.Next(10) + 10;                                          // in move mode 1, max distance from origin point
                     break;
 
+                // Rectangles with ever increasing width and decreasing height
                 case 67:
+                    doClearBuffer = myUtils.randomChance(rand, 4, 5);
+                    N = 13 + rand.Next(333);
+
+                    prm_i[0] = rand.Next(300) + 33;                                         // max size
+                    prm_i[1] = rand.Next(033) + 11;                                         // min size
                     break;
             }
 
@@ -876,7 +882,7 @@ namespace my
 
         protected override void generateNew()
         {
-            a = (float)rand.NextDouble() / opacityFactor;
+            a = myUtils.randFloat(rand) / opacityFactor;
             cnt = 0;
 
             switch (mode)
@@ -2368,6 +2374,15 @@ namespace my
                     break;
 
                 case 67:
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+
+                    X = rand.Next(prm_i[0]) + prm_i[1];     // acts as width  (because it is float, not int)
+                    Y = rand.Next(prm_i[0]) + prm_i[1];     // acts as height (because it is float, not int)
+
+                    dx = myUtils.randFloat(rand, 0.1f);
+                    dy = myUtils.randFloat(rand, 0.5f);
+                    a = 0.01f;
                     break;
             }
 
@@ -4048,6 +4063,14 @@ namespace my
                     break;
 
                 case 67:
+                    X += dx;
+                    Y -= dy;
+
+                    dy *= 1.01f;
+                    a = 1.0f - Y / prm_i[0];
+
+                    if (Y < 0)
+                        a = -1;
                     break;
             }
 
@@ -4930,6 +4953,7 @@ namespace my
                     break;
 
                 case 67:
+                    tex.Draw((int)(x - X), (int)(y - Y), (int)(2 * X), (int)(2 * Y), (int)(x - X), (int)(y - Y), (int)(2 * X), (int)(2 * Y));
                     break;
             }
 
