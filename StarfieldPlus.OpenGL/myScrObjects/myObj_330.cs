@@ -66,7 +66,7 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            //mode = 57;
+            //mode = 3;
 #endif
             // Reset parameter values
             {
@@ -900,6 +900,17 @@ namespace my
                 renderDelay = oldRenderDelay;
 
             initLocal();
+
+            if (doClearBuffer)
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+            }
+            else
+            {
+                glDrawBuffer(GL_BACK);
+            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -2970,7 +2981,9 @@ namespace my
                 case 30:
                 case 31:
                     if (--cnt <= 0)
+                    {
                         generateNew();
+                    }
                     break;
 
                 case 32:
@@ -3255,7 +3268,7 @@ namespace my
                     x += dx;
                     //y += dy;
 
-                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -111))
+                    if ((dx > 0 && x > gl_Width) || (dx < 0 && x < -width))
                         a = -1;
                     break;
 
@@ -4243,6 +4256,7 @@ namespace my
             {
                 case 00:
                 case 01:
+                    specialCaseClearBuffer();
                     tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
                     break;
 
@@ -4284,7 +4298,10 @@ namespace my
                 case 09:
                 case 10:
                     if (cnt == 0)
+                    {
+                        specialCaseClearBuffer();
                         tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
+                    }
                     break;
 
                 case 11:
@@ -5137,26 +5154,13 @@ namespace my
 
             //Glfw.SwapInterval(0);
 
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-
-                float r = (float)rand.NextDouble()/11;
-                float g = (float)rand.NextDouble()/11;
-                float b = (float)rand.NextDouble()/11;
-
-                glClearColor(r, g, b, 1.0f);
-            }
-            else
-            {
-                glDrawBuffer(GL_BACK);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-            }
-
             if (bgrDrawMode == BgrDrawMode.ONCE)
             {
+                glDrawBuffer(GL_FRONT_AND_BACK);
                 tex.Draw(0, 0, gl_Width, gl_Height);
             }
+
+            clearScreenSetup(doClearBuffer, 0.1f);
 
             if (doCreateAtOnce)
                 for (int i = 0; i < N; i++)
@@ -5465,6 +5469,16 @@ namespace my
 
             if (y > gl_Height - yDist)
                 dy -= dySpeed;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void specialCaseClearBuffer()
+        {
+            if (doClearBuffer == false)
+            {
+                glDrawBuffer(GL_FRONT_AND_BACK);
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
