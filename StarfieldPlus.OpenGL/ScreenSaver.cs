@@ -17,7 +17,7 @@ public class ScreenSaver
         myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
-        myObj_400, myObj_410, myObj_420,
+        myObj_400, myObj_410, myObj_420, myObj_430,
         myObj_999a,
         myObj_last
     };
@@ -90,16 +90,12 @@ public class ScreenSaver
     // - mandlebrot
 
     // todo:
-    // - concentric circles moving inwards. The less the circle is, the less is its decreasing speed.
-            // Should look like a funnel or tunnel of sorts
     // - number of rotating lines. the length of each line is changing over time
     // - lots of triangles, where each vertice is moving like a bouncing ball
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles
             // (maybe allow placing on the inside)
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
-    // - 2 points moving around the screen (sin/cos, bouncing, randomly, etc). Particles are generated at point 1 and are moving
-            // towards the point where pt2 has been at the moment of generation
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - get colors from image and slightly offset the colors. Then put color spots (grid or not) on the screen
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
@@ -112,7 +108,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_330;
+        id = ids.myObj_430;
 #endif
 
         switch (id)
@@ -332,6 +328,11 @@ public class ScreenSaver
             //     // - system, where the center attracts and repels all the particles at the same time. vary both forces
             case ids.myObj_420:
                 _obj = new my.myObj_420();
+                break;
+
+            // Shooters move across the screen, shooting at each other
+            case ids.myObj_430:
+                _obj = new my.myObj_430();
                 break;
 
             // Test rotating shape, unfinished yet good

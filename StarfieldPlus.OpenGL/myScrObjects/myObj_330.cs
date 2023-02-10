@@ -66,7 +66,7 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            //mode = 3;
+            //mode = 68;
 #endif
             // Reset parameter values
             {
