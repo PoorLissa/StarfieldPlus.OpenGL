@@ -13,14 +13,17 @@ namespace my
 {
     public class myObj_430 : myObject
     {
-        private int bulletSpeed, closestTarget;
+        private myObj_430 owner = null;
+
+        private int bulletSpeed, closestTarget, trailLengthFactor;
         private bool alive;
         private float x, y, X, Y, dx, dy;
         private float size, A, R, G, B, angle = 0;
+        private float randomSpeedFactor;
 
-        private static int N = 0, n = 0, shape = 0;
+        private static int N = 0, n = 0, shape = 0, trailMode = 0, specialMode = 0;
         private static int bulletMinX = 0, bulletMaxX = 0, bulletMinY = 0, bulletMaxY = 0;
-        private static bool doFillShapes = false;
+        private static bool doFillShapes = false, doUseRandomSpeed = true, doUseBulletSpread = true;
         private static float dimAlpha = 0.05f;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -40,7 +43,23 @@ namespace my
 
             // Global unmutable constants
             {
-                n = rand.Next(5) + 3;
+                shape = rand.Next(5);
+
+                specialMode = myUtils.randomChance(rand, 1, 5) ? 1 : 0;
+
+                switch (specialMode)
+                {
+                    // Default mode
+                    case 0:
+                        n = rand.Next(5) + 3;
+                        break;
+
+                    // Special mode 1
+                    case 1:
+                        n = rand.Next(2) + 2;
+                        break;
+                }
+
                 N = 5000;
                 N += n;
 
@@ -59,6 +78,10 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 4, 5);
+            doUseRandomSpeed  = myUtils.randomChance(rand, 1, 2);
+            doUseBulletSpread = myUtils.randomChance(rand, 1, 2);
+
+            trailMode = rand.Next(6);
 
             renderDelay = rand.Next(11) + 5;
 
@@ -72,10 +95,17 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_430\n\n"                                     +
                             $"N = {nStr(list.Count - n)} of {nStr(N - n)} + {n}\n"  +
+                            $"shape = {shape}\n"                                    +
+                            $"specialMode = {specialMode}\n"                        +
+                            $"trailMode = {trailMode}\n"                            +
+                            $"doClearBuffer = {doClearBuffer}\n"                    +
+                            $"doUseRandomSpeed = {doUseRandomSpeed}\n"              +
+                            $"doUseBulletSpread = {doUseBulletSpread}\n"            +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"                        +
                             $"renderDelay = {renderDelay}\n"                        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -101,6 +131,8 @@ namespace my
                     alive = true;
                     closestTarget = -1;
                     bulletSpeed = rand.Next(122) + 11;
+                    trailLengthFactor = rand.Next(11) + 3;
+                    randomSpeedFactor = myUtils.randFloat(rand, 0.1f);
 
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
@@ -122,35 +154,63 @@ namespace my
                     // Get random shooter and its target;
                     // Shoot the target
                     {
-                        var shooter = list[rand.Next(n)] as myObj_430;
-                        var target  = list[shooter.closestTarget] as myObj_430;
+                        owner = list[rand.Next(n)] as myObj_430;
+                        var target  = list[owner.closestTarget] as myObj_430;
 
-                        x = shooter.x;
-                        y = shooter.y;
+                        x = owner.x;
+                        y = owner.y;
 
                         X = target.x;
                         Y = target.y;
 
+                        trailLengthFactor = owner.trailLengthFactor;
+
                         // Add some bullet spread
-                        if (true)
+                        if (doUseBulletSpread)
                         {
                             X += rand.Next(5) - 2;
                             Y += rand.Next(5) - 2;
                         }
 
+                        float speed = owner.bulletSpeed;
                         float dist = (float)Math.Sqrt((x - X) * (x - X) + (y - Y) * (y - Y)) + 0.0001f;
 
-                        dx = shooter.bulletSpeed * (X - x) / dist;
-                        dy = shooter.bulletSpeed * (Y - y) / dist;
+                        if (doUseRandomSpeed)
+                        {
+                            speed += myUtils.randomSign(rand) * myUtils.randFloat(rand) * owner.randomSpeedFactor;
+                        }
+
+                        switch (specialMode)
+                        {
+                            case 0:
+                                break;
+
+                            case 1:
+                                speed = 1.5f;
+                                break;
+                        }
+
+                        dx = speed * (X - x) / dist;
+                        dy = speed * (Y - y) / dist;
 
                         // Remember initial coordinates
-                        X = x;
-                        Y = y;
+                        switch (trailMode)
+                        {
+                            case 1:
+                                X = x;
+                                Y = y;
+                                break;
+
+                            case 5:
+                                X = target.x;
+                                Y = target.y;
+                                break;
+                        }
 
                         A = 0.750f + myUtils.randFloat(rand) * 0.2f;
-                        R = shooter.R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
-                        G = shooter.G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
-                        B = shooter.B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        R = owner.R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        G = owner.G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        B = owner.B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
                     }
                 }
             }
@@ -162,11 +222,11 @@ namespace my
 
         protected override void Move()
         {
-            x += dx;
-            y += dy;
-
             if (id < n)
             {
+                x += dx;
+                y += dy;
+
                 // Find the closest target and remember it
                 if (closestTarget < 0 || myUtils.randomChance(rand, 1, 100))
                 {
@@ -187,6 +247,15 @@ namespace my
             }
             else
             {
+                if (trailMode == 3)
+                {
+                    X = x;
+                    Y = y;
+                }
+
+                x += dx;
+                y += dy;
+
                 if (alive)
                 {
                     if (x < bulletMinX || y < bulletMinY || x > bulletMaxX|| y > bulletMaxY)
@@ -207,8 +276,42 @@ namespace my
 
             if (id >= n)
             {
-                myPrimitive._LineInst.setInstanceCoords(x, y, X, Y);
-                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.01f);
+                switch (trailMode)
+                {
+                    // No trail
+                    case 0:
+                        break;
+
+                    // Current position to origin position
+                    case 1:
+                        myPrimitive._LineInst.setInstanceCoords(x, y, X, Y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.01f);
+                        break;
+
+                    // Current position to owner's position
+                    case 2:
+                        myPrimitive._LineInst.setInstanceCoords(x, y, owner.x, owner.y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.01f);
+                        break;
+
+                    // Current position to old position
+                    case 3:
+                        myPrimitive._LineInst.setInstanceCoords(x, y, X, Y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
+                        break;
+
+                    // Current position to calculated pseudo-old position
+                    case 4:
+                        myPrimitive._LineInst.setInstanceCoords(x, y, x - dx * trailLengthFactor, y - dy * trailLengthFactor);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
+                        break;
+
+                    // Current position to target original position
+                    case 5:
+                        myPrimitive._LineInst.setInstanceCoords(x, y, X, Y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
+                        break;
+                }
             }
 
             switch (shape)
@@ -305,8 +408,8 @@ namespace my
                     {
                         var obj = list[i] as myObj_430;
 
-                        obj.Show();
                         obj.Move();
+                        obj.Show();
                     }
 
                     myPrimitive._LineInst.Draw();
