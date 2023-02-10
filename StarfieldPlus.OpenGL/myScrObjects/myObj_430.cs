@@ -18,10 +18,11 @@ namespace my
         private int bulletSpeed, closestTarget, trailLengthFactor;
         private bool alive;
         private float x, y, X, Y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, angle, dAngle;
         private float randomSpeedFactor;
 
         private static int N = 0, n = 0, shape = 0, trailMode = 0, specialMode = 0;
+        private static int bulletSize = 0, shooterSize = 0;
         private static int bulletMinX = 0, bulletMaxX = 0, bulletMinY = 0, bulletMaxY = 0;
         private static bool doFillShapes = false, doUseRandomSpeed = true, doUseBulletSpread = true;
         private static float dimAlpha = 0.05f;
@@ -83,6 +84,9 @@ namespace my
 
             trailMode = rand.Next(6);
 
+            bulletSize = rand.Next(2) + 1;
+            shooterSize = rand.Next(5) + 7;
+
             renderDelay = rand.Next(11) + 5;
 
             return;
@@ -126,6 +130,8 @@ namespace my
         {
             if (id != uint.MaxValue)
             {
+                angle = 0;
+
                 if (id < n)
                 {
                     alive = true;
@@ -140,7 +146,9 @@ namespace my
                     dx = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 25;
                     dy = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 25;
 
-                    size = 7;
+                    size = shooterSize;
+
+                    dAngle = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.05f) * 0.01f;
 
                     colorPicker.getColor(x, y, ref R, ref G, ref B);
                     A = 1;
@@ -148,8 +156,7 @@ namespace my
                 else
                 {
                     alive = true;
-
-                    size = 2;
+                    size = bulletSize;
 
                     // Get random shooter and its target;
                     // Shoot the target
@@ -226,6 +233,8 @@ namespace my
             {
                 x += dx;
                 y += dy;
+
+                angle += dAngle;
 
                 // Find the closest target and remember it
                 if (closestTarget < 0 || myUtils.randomChance(rand, 1, 100))

@@ -66,7 +66,7 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            //mode = 68;
+            mode = 68;
 #endif
             // Reset parameter values
             {
@@ -837,12 +837,14 @@ namespace my
 
                 // Grid-based: tiles are repelled by actively moving particles, but then they return back
                 case 68:
-                    doClearBuffer = myUtils.randomChance(rand, 4, 5);
+                    doClearBuffer  = myUtils.randomChance(rand, 4, 5);
+                    doCreateAtOnce = myUtils.randomChance(rand, 2, 3);
 
                     oldRenderDelay = renderDelay;
                     renderDelay = rand.Next(11) + 3;
 
-                    max = rand.Next(25) + 25;                                               // Size of a cell
+                    max = rand.Next(30) + 20;                                               // Size of a cell
+
                     prm_i[0] = 3;                                                           // Number of active particles
                     prm_i[1] = rand.Next(10) + 1;                                           // Distance between the grid cells
                     prm_i[2] = rand.Next(3);                                                // Draw mode
@@ -4205,6 +4207,8 @@ namespace my
                             float activeFactor = 0.05f;
                             float returnFactor = 0.0005f;
 
+                            float maxSquared = max * max;
+
                             // Interact with active particle(s)
                             for (int i = 0; i < prm_i[0]; i++)
                             {
@@ -4215,9 +4219,11 @@ namespace my
 
                                 float dist = (float)Math.Sqrt(X * X + Y * Y) + 0.0001f;
 
+                                // todo: should move this into upper section.
+                                // find out what cell id we're at, and visit only the cells around it
+
                                 if (dist < max * obj.X)
                                 {
-                                    // The larger the particle is, the lesser it is affected
                                     float F = (float)(obj.da * activeFactor / dist);
 
                                     dx -= F * X;
