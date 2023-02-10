@@ -64,9 +64,9 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            mode = rand.Next(67);
+            mode = rand.Next(69);
 #if DEBUG
-            mode = 68;
+            //mode = 57;
 #endif
             // Reset parameter values
             {
@@ -679,10 +679,11 @@ namespace my
                     N = 1;
                     max = rand.Next(50) + 35;
                     prm_i[0] = rand.Next(11) + 1;                                           // Grid interval
-                    prm_i[1] = rand.Next(5);                                                // Brick mode (const size Square vs rand width Rectangle)
+                    prm_i[1] = rand.Next(5);                                                // Brick mode (const size Square (0-1) vs rand width Rectangle(2-4))
                     prm_i[2] = rand.Next(2);                                                // Const vs random opacity
                     prm_i[3] = rand.Next(2);                                                // Generate new before every new run
                     prm_i[4] = rand.Next(2);                                                // Random offset for every brick
+                    prm_i[5] = rand.Next(12);                                               // Increase height with each line (for values > 5)
                     dimAlpha /= (1.0f + 0.1f * (rand.Next(60)));
 
                     if (myUtils.randomChance(rand, 1, 3))
@@ -844,6 +845,7 @@ namespace my
                     max = rand.Next(25) + 25;                                               // Size of a cell
                     prm_i[0] = 3;                                                           // Number of active particles
                     prm_i[1] = rand.Next(10) + 1;                                           // Distance between the grid cells
+                    prm_i[2] = rand.Next(3);                                                // Draw mode
 
                     // Get N, depending on the cell size
                     {
@@ -2422,6 +2424,7 @@ namespace my
                             width = height = 5;
                             a = 1;
                             da = rand.Next(5) + 1;      // acts as a attraction factor
+                            X = rand.Next(5) + 3;       // acts as a interaction raduis
                         }
                         else
                         {
@@ -2439,7 +2442,7 @@ namespace my
 
                             dx = dy = 0;
                             width = height = max;
-                            a = 0.5f;
+                            a = 0.85f;
                         }
                     }
                     break;
@@ -3623,13 +3626,44 @@ namespace my
                     if (prm_i[2] == 1)
                         a = myUtils.randFloat(rand);
 
-                    if (prm_i[1] > 0)
-                        width = max + rand.Next(3 * max);
+                    switch (prm_i[1])
+                    {
+                        // Square
+                        case 0: case 1:
+                            break;
+
+                        // Rectangle
+                        case 2: case 3: case 4:
+                            width = max + rand.Next(3 * max);
+                            break;
+                    }
 
                     if (X >= gl_Width)
                     {
-                        X = 0;
-                        Y += max + prm_i[0];
+                        X = prm_i[1] != 1 ? 0 : -rand.Next(max);        // For a square (1) initial x is random
+                        Y += height + prm_i[0];
+
+                        // Increase height for every new line
+                        if (prm_i[5] > 5)
+                        {
+                            int hIncrement = 0;
+
+                            switch (prm_i[5])
+                            {
+                                case 6: case 7: case 8:
+                                    hIncrement = rand.Next(prm_i[5] - 5) + 1;
+                                    break;
+
+                                case 9: case 10: case 11:
+                                    hIncrement = rand.Next(prm_i[5] - 8) + 1;
+                                    Y += hIncrement;
+                                    break;
+                            }
+
+                            height = (height < gl_Height/3)
+                                ? height + hIncrement
+                                : max;
+                        }
 
                         if (Y >= gl_Height)
                         {
@@ -4139,7 +4173,7 @@ namespace my
 
                         if (id < prm_i[0])
                         {
-                            float repelFactor = 0.5f;
+                            float repelFactor = 0.05f;
 
                             if (x < 0)
                                 dx += repelFactor;
@@ -4168,7 +4202,7 @@ namespace my
 
                                 float dist = (float)Math.Sqrt(X * X + Y * Y) + 0.0001f;
 
-                                if (dist < max * 3)
+                                if (dist < max * obj.X)
                                 {
                                     // The larger the particle is, the lesser it is affected
                                     float F = (float)(obj.da * activeFactor / dist);
@@ -5074,7 +5108,21 @@ namespace my
                     break;
 
                 case 68:
-                    tex.Draw((int)x - width, (int)y - height, 2*width, 2*height, (int)x - width, (int)y - height, 2*width, 2*height);
+                    switch (prm_i[2])
+                    {
+                        case 0:
+                            tex.Draw((int)x - width, (int)y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
+                            break;
+
+                        case 1:
+                            tex.Draw((int)x - width, (int)y - height, 2 * width, 2 * height, (int)X - width, (int)Y - height, 2 * width, 2 * height);
+                            break;
+
+                        case 2:
+                            tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
+                            break;
+                    }
+
                     break;
             }
 
@@ -5101,6 +5149,7 @@ namespace my
             }
             else
             {
+                glDrawBuffer(GL_BACK);
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
