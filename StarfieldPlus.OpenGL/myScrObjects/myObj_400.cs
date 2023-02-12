@@ -74,6 +74,7 @@ namespace my
             string str = $"Obj = myObj_400\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
                             $"mode = {mode}\n"                          +
+                            $"doClearBuffer = {doClearBuffer}\n"        +
                             $"maxCnt = {maxCnt}\n"                      +
                             $"maxSize = {maxSize}\n"                    +
                             $"renderDelay = {renderDelay}\n"            +
@@ -254,17 +255,7 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
-            }
+            clearScreenSetup(doClearBuffer, 0.1f);
 
             while (!Glfw.WindowShouldClose(window))
             {
