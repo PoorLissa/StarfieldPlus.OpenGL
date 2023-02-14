@@ -6,10 +6,10 @@ using System;
 
 public class myHexagonInst : myInstancedPrimitive
 {
-    private static float[] vertices = null;
+    private float[] vertices = null;
 
-    private static uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
-    private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0;
+    private uint ebo_fill = 0, ebo_outline = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
+    private int locationColor = 0, locationScrSize = 0, locationRotateMode = 0;
 
     private static float sqrt3_div2 = 0;
     private static float h_div_w = 0;
@@ -20,57 +20,57 @@ public class myHexagonInst : myInstancedPrimitive
 
     public myHexagonInst(int maxInstCount)
     {
+        if (sqrt3_div2 == 0)
+            sqrt3_div2 = (float)(Math.Sqrt(3.0) / 2.0);
+
+        if (h_div_w == 0)
+            h_div_w = (float)Height / (float)Width;
+
         // Number of elements in [instanceArray] that define one single instance:
         // - 3 floats for Coordinates (x, y, radius of an escribed circle) + 1 float for angle
         // - 4 floats for RGBA
         n = 8;
+        N = 0;
 
-        if (vertices == null)
-        {
-            N = 0;
+        vertices = new float[18];
+        instanceArray = new float[maxInstCount * n];
 
-            sqrt3_div2 = (float)(Math.Sqrt(3.0) / 2.0);
-            h_div_w    = (float)Height / (float)Width;
+        for (int i = 0; i < 18; i++)
+            vertices[i] = 0.0f;
 
-            vertices = new float[18];
-            instanceArray = new float[maxInstCount * n];
+        float fr = pixelY;                      // Radius
+        float frx = fr * h_div_w;               // Radius adjusted for x-coordinate
 
-            for (int i = 0; i < 18; i++)
-                vertices[i] = 0.0f;
+        float frx_sqrt = fr * sqrt3_div2;
+        float frx_half = frx * 0.5f;
 
-            float fr = pixelY;                      // Radius
-            float frx = fr * h_div_w;               // Radius adjusted for x-coordinate
-
-            float frx_sqrt = fr * sqrt3_div2;
-            float frx_half = frx * 0.5f;
-
-            vertices[00] = -frx;
-            vertices[01] = 0;
-            vertices[03] = -frx_half;
-            vertices[04] = +frx_sqrt;
-            vertices[06] = +frx_half;
-            vertices[07] = +frx_sqrt;
-            vertices[09] = +frx;
-            vertices[10] = 0;
-            vertices[12] = +frx_half;
-            vertices[13] = -frx_sqrt;
-            vertices[15] = -frx_half;
-            vertices[16] = -frx_sqrt;
+        vertices[00] = -frx;
+        vertices[01] = 0;
+        vertices[03] = -frx_half;
+        vertices[04] = +frx_sqrt;
+        vertices[06] = +frx_half;
+        vertices[07] = +frx_sqrt;
+        vertices[09] = +frx;
+        vertices[10] = 0;
+        vertices[12] = +frx_half;
+        vertices[13] = -frx_sqrt;
+        vertices[15] = -frx_half;
+        vertices[16] = -frx_sqrt;
 
 
-            CreateProgram();
-            glUseProgram(shaderProgram);
-            locationColor      = glGetUniformLocation(shaderProgram, "myColor");
-            locationScrSize    = glGetUniformLocation(shaderProgram, "myScrSize");
-            locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
+        CreateProgram();
+        glUseProgram(shaderProgram);
+        locationColor      = glGetUniformLocation(shaderProgram, "myColor");
+        locationScrSize    = glGetUniformLocation(shaderProgram, "myScrSize");
+        locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
 
-            instVbo     = glGenBuffer();
-            quadVbo     = glGenBuffer();
-            ebo_fill    = glGenBuffer();
-            ebo_outline = glGenBuffer();
+        instVbo     = glGenBuffer();
+        quadVbo     = glGenBuffer();
+        ebo_fill    = glGenBuffer();
+        ebo_outline = glGenBuffer();
 
-            updateIndices();
-        }
+        updateIndices();
+
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -109,7 +109,7 @@ public class myHexagonInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static void CreateProgram()
+    private void CreateProgram()
     {
         // mat2x4 mData is a [2 x 4] matrix of floats, where:
         // - first  4 floats are [x, y, w, angle];
@@ -231,7 +231,7 @@ public class myHexagonInst : myInstancedPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Move vertices data from CPU to GPU -- needs to be called each time we change the Hexagon's coordinates
-    private static unsafe void updateVertices()
+    private unsafe void updateVertices()
     {
         // Bind a buffer;
         // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
@@ -249,7 +249,7 @@ public class myHexagonInst : myInstancedPrimitive
 
     // Move indices data from CPU to GPU -- needs to be called only once, as we have 2 different EBOs, and they are not going to change;
     // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo1 : ebo2);
-    private static unsafe void updateIndices()
+    private unsafe void updateIndices()
     {
         int usage = GL_STATIC_DRAW;
 
