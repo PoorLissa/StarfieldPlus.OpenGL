@@ -66,7 +66,7 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            //mode = 68;
+            mode = 68;
 #endif
             // Reset parameter values
             {
@@ -847,7 +847,7 @@ namespace my
 
                     prm_i[0] = 3;                                                           // Number of active particles
                     prm_i[1] = rand.Next(10) + 1;                                           // Distance between the grid cells
-                    prm_i[2] = rand.Next(3);                                                // Draw mode
+                    prm_i[2] = rand.Next(5);                                                // Draw mode
 
                     // Get N, depending on the cell size
                     {
@@ -2443,9 +2443,12 @@ namespace my
                         {
                             // Passive particles
                             int ID = (int)id - prm_i[0];
-                            int c = 2 * max + prm_i[1];
-                            int w = (gl_Width  % c == 0) ? (gl_Width  / c) : (gl_Width  / c) + 1;
-                            int h = (gl_Height % c == 0) ? (gl_Height / c) : (gl_Height / c) + 1;
+                            int c = 2 * max + prm_i[1];                                                 // total cell width (including the distance between cells)
+                            int w = (gl_Width  % c == 0) ? (gl_Width  / c) : (gl_Width  / c) + 1;       // number of cells in a screen row
+                            int h = (gl_Height % c == 0) ? (gl_Height / c) : (gl_Height / c) + 1;       // number of cells in a screen column
+
+                            cellIdX = ID % w;
+                            cellIdY = ID / w;
 
                             int x0 = 0 - (c - gl_Width  % c) / 2;
                             int y0 = 0 - (c - gl_Height % c) / 2;
@@ -4186,6 +4189,17 @@ namespace my
                         x += dx;
                         y += dy;
 
+                        if (false)
+                        {
+                            if (id < prm_i[0])
+                            {
+                            }
+                            else
+                            {
+                            }
+                            break;
+                        }
+
                         if (id < prm_i[0])
                         {
                             float repelFactor = 0.05f;
@@ -5131,21 +5145,55 @@ namespace my
                     break;
 
                 case 68:
-                    switch (prm_i[2])
                     {
-                        case 0:
-                            tex.Draw((int)x - width, (int)y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
-                            break;
+                        int x1 = 0, y1 = 0, x2 = 0, y2 = 0, w = 0, h = 0;
 
-                        case 1:
-                            tex.Draw((int)x - width, (int)y - height, 2 * width, 2 * height, (int)X - width, (int)Y - height, 2 * width, 2 * height);
-                            break;
+                        switch (prm_i[2])
+                        {
+                            case 0:
+                                x1 = x2 = (int)x - width;
+                                y1 = y2 = (int)y - height;
+                                w = 2 * width;
+                                h = 2 * height;
+                                break;
 
-                        case 2:
-                            tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
-                            break;
+                            case 1:
+                                x1 = (int)x - width;
+                                y1 = (int)y - height;
+                                w = 2 * width;
+                                h = 2 * height;
+                                x2 = (int)X - width;
+                                y2 = (int)Y - height;
+                                break;
+
+                            case 2:
+                                x1 = (int)X - width;
+                                y1 = (int)Y - height;
+                                w = 2 * width;
+                                h = 2 * height;
+                                x2 = (int)x - width;
+                                y2 = (int)y - height;
+                                break;
+
+                            case 3:
+                                x1 = x2 = (int)X - 2 * width;
+                                y1 = y2 = (int)Y - 2 * height;
+                                w = 4 * width;
+                                h = 4 * height;
+                                tex.setAngle((x - X) * (y - Y) * 0.01f);
+                                break;
+
+                            case 4:
+                                x1 = x2 = (int)x - width;
+                                y1 = y2 = (int)y - height;
+                                w = 2 * width;
+                                h = 2 * height;
+                                tex.setAngle((x - X) * (y - Y) * 0.01f);
+                                break;
+                        }
+
+                        tex.Draw(x1, y1, w, h, x2, y2, w, h);
                     }
-
                     break;
             }
 
