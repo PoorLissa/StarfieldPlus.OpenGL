@@ -4,7 +4,7 @@ using System;
 
 
 // todo:
-//  - triangles are lrger then other shapes with the same radius
+//  - triangles are larger then other shapes with the same radius
 
 
 public class myTriangleInst : myInstancedPrimitive
