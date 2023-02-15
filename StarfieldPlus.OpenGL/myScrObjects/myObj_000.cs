@@ -357,6 +357,8 @@ namespace my
         {
             staticStarBgr = new myHexagonInst(staticStarsN + cometsN * 3);
 
+            myPrimitive.init_Triangle();
+
             base.initShapes(shape, N * 3, 0);
         }
 
@@ -678,10 +680,11 @@ namespace my
     // ===================================================================================================================
 
 
+    // Falling Star (Comet) Class
     class myObj_000_Comet : myObj_000
     {
         private float X, Y;
-        private int lifeCounter = 0, xOld = 0, yOld = 0;
+        private int lifeCounter = 0;
 
         protected override void generateNew()
         {
@@ -697,6 +700,7 @@ namespace my
             float b = y1 - a * x1;
 
             float speed = rand.Next(200) + 200.0f + myUtils.randFloat(rand);
+            //speed *= 0.01f;
 
             double dist = Math.Sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
             double sp_dist = speed / dist;
@@ -706,14 +710,14 @@ namespace my
 
             if (dx > 0)
             {
-                x = X = xOld = 0;
-                y = Y = yOld = (int)b;
+                x = X = 0;
+                y = Y = (int)b;
             }
             else
             {
-                X = x = xOld = gl_Width;
+                X = x = gl_Width;
                 y = a * x + b;
-                Y = yOld = (int)y;
+                Y = (int)y;
             }
 
             size = rand.Next(5) + 1;
@@ -731,16 +735,25 @@ namespace my
             {
                 // Background glow
                 {
-                    int bgrSize = (int)size + rand.Next(11) + 5;
-                    float bgrA = 0.025f;
+                    int bgrSize = (int)size + rand.Next(13) + 33;
+                    float bgrA = 0.05f;
 
-                    float r = R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
-                    float g = G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
-                    float b = B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                    float r = 1.00f - myUtils.randFloat(rand) * 0.1f;
+                    float g = 0.26f + myUtils.randFloat(rand) * 0.1f;
+                    float b = 0.05f + myUtils.randFloat(rand) * 0.1f;
+
+                    staticStarBgr.setInstanceCoords(x, y, bgrSize * size, myUtils.randFloat(rand));
+                    staticStarBgr.setInstanceColor(r, g, b, bgrA);
+
+                    bgrSize = (int)size + rand.Next(11) + 5;
+                    bgrA = 0.025f;
+
+                    r = R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                    g = G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                    b = B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
 
                     staticStarBgr.setInstanceCoords(x, y, bgrSize * size, 0);
                     staticStarBgr.setInstanceColor(r, g, b, bgrA);
-
 
                     bgrSize = (int)size + rand.Next(3) + 3;
                     bgrA = 0.05f;
@@ -753,6 +766,36 @@ namespace my
                     staticStarBgr.setInstanceColor(r, g, b, bgrA);
                 }
 
+                // Tail: Draw some triangles
+                {
+                    int x1 = (int)x;
+                    int y1 = (int)y;
+                    int x2 = (int)x;
+                    int y2 = (int)y;
+
+                    if (Math.Abs(dx) > Math.Abs(dy))
+                    {
+                        y1 -= (int)size;
+                        y2 += (int)size;
+                    }
+                    else
+                    {
+                        x1 -= (int)size;
+                        x2 += (int)size;
+                    }
+
+                    float a1 = 0.05f + myUtils.randFloat(rand) * 0.1f;
+                    float a2 = 0.05f + myUtils.randFloat(rand) * 0.2f;
+
+                    // Length of the tail depends on the speed. For slow speeds tail will be very short
+
+                    myPrimitive._Triangle.SetColor(1, 1, 1, a1);
+                    myPrimitive._Triangle.Draw(x1, y1, x2, y2, x - dx * 7, y - dy * 7, true);
+
+                    myPrimitive._Triangle.SetColor(1.0f - myUtils.randFloat(rand) * 0.2f, 0, 0, a2);
+                    myPrimitive._Triangle.Draw(x1, y1, x2, y2, x - dx * 4, y - dy * 4, true);
+                }
+
                 base.Show();
             }
         }
@@ -762,16 +805,13 @@ namespace my
             // Wait for the counter to reach zero. Then start moving the comet
             if (lifeCounter-- < 0)
             {
-                xOld = (int)X;
-                yOld = (int)Y;
-
                 x += dx;
                 y += dy;
 
                 X = (int)x;
                 Y = (int)y;
 
-                if ((dx > 0 && X > gl_Width) || (dx < 0 && X < 0))
+                if ((dx > 0 && X > gl_Width + 1000) || (dx < 0 && X < -1000) || (dy > 0 && Y > gl_Height + 1000) || (dy < 0 && Y < -1000))
                 {
                     generateNew();
                 }
