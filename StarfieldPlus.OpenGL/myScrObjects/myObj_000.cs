@@ -203,7 +203,7 @@ namespace my
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, size, angle);
+                    triangleInst.setInstanceCoords(x, y, size/2, angle);
                     triangleInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -211,7 +211,7 @@ namespace my
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                    ellipseInst.setInstanceCoords(x, y, size, angle);
                     ellipseInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -219,7 +219,7 @@ namespace my
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    pentagonInst.setInstanceCoords(x, y, size, angle);
                     pentagonInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -227,7 +227,7 @@ namespace my
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    hexagonInst.setInstanceCoords(x, y, size, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
             }
@@ -355,7 +355,7 @@ namespace my
 
         private void initShapes()
         {
-            staticStarBgr = new myHexagonInst(staticStarsN + cometsN);
+            staticStarBgr = new myHexagonInst(staticStarsN + cometsN * 3);
 
             base.initShapes(shape, N * 3, 0);
         }
@@ -596,12 +596,12 @@ namespace my
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size / 2, y - size / 2, size, size);
-                    rectInst.setInstanceColor(R, G, B, A/2);
+                    rectInst.setInstanceCoords(x - size * 0.5f, y - size * 0.5f, size, size);
+                    rectInst.setInstanceColor(R, G, B, A * 0.5f);
                     rectInst.setInstanceAngle(angle);
 
-                    rectInst.setInstanceCoords(x - size / 2, y - size / 2, size, size);
-                    rectInst.setInstanceColor(R, G, B, A/2);
+                    rectInst.setInstanceCoords(x - size * 0.5f, y - size * 0.5f, size, size);
+                    rectInst.setInstanceColor(R, G, B, A * 0.5f);
                     rectInst.setInstanceAngle(angle + (float)Math.PI * 0.25f);
                     break;
 
@@ -610,17 +610,17 @@ namespace my
                     var triangleInst = inst as myTriangleInst;
 
                     triangleInst.setInstanceCoords(x, y, size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A/2);
+                    triangleInst.setInstanceColor(R, G, B, A * 0.5f);
 
                     triangleInst.setInstanceCoords(x, y, size, angle + (float)Math.PI);
-                    triangleInst.setInstanceColor(R, G, B, A/2);
+                    triangleInst.setInstanceColor(R, G, B, A * 0.5f);
                     break;
 
                 // Instanced circles
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                    ellipseInst.setInstanceCoords(x, y, size, angle);
                     ellipseInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -628,10 +628,10 @@ namespace my
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    pentagonInst.setInstanceCoords(x, y, size, angle);
                     pentagonInst.setInstanceColor(R, G, B, A);
 
-                    pentagonInst.setInstanceCoords(x, y, 2 * size, angle + (float)Math.PI);
+                    pentagonInst.setInstanceCoords(x, y, size, angle + (float)Math.PI);
                     pentagonInst.setInstanceColor(R, G, B, A * 0.75f);
                     break;
 
@@ -639,7 +639,7 @@ namespace my
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, 2 * size, angle);
+                    hexagonInst.setInstanceCoords(x, y, size, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
             }
@@ -696,7 +696,7 @@ namespace my
             float a = (float)(y1 - y0) / (float)(x1 - x0);
             float b = y1 - a * x1;
 
-            int speed = rand.Next(200) + 200;
+            float speed = rand.Next(200) + 200.0f + myUtils.randFloat(rand);
 
             double dist = Math.Sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
             double sp_dist = speed / dist;
@@ -731,12 +731,23 @@ namespace my
             {
                 // Background glow
                 {
-                    int bgrSize = (int)size + rand.Next(3) + 3;
-                    float bgrA = 0.25f;
+                    int bgrSize = (int)size + rand.Next(11) + 5;
+                    float bgrA = 0.025f;
 
                     float r = R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
                     float g = G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
                     float b = B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+
+                    staticStarBgr.setInstanceCoords(x, y, bgrSize * size, 0);
+                    staticStarBgr.setInstanceColor(r, g, b, bgrA);
+
+
+                    bgrSize = (int)size + rand.Next(3) + 3;
+                    bgrA = 0.05f;
+
+                    r = R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                    g = G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                    b = B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
 
                     staticStarBgr.setInstanceCoords(x, y, bgrSize * size, 0);
                     staticStarBgr.setInstanceColor(r, g, b, bgrA);
