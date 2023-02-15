@@ -19,8 +19,8 @@ namespace my
         protected int cnt = 0, max = 0;
 
         protected static int drawMode = 0, colorMode = 0, angleMode = 0;
-        protected static int N = 0, staticStarsN = 0, cometsN = 0, shape = 0;
-        private static bool doFillShapes = true, doCreateAllAtOnce = true;
+        protected static int N = 0, staticStarsN = 0, cometsN = 0, lightsN = 0, shape = 0;
+        protected static bool doFillShapes = true, doCreateAllAtOnce = true, doConnectStatics = true;
 
         protected static myHexagonInst staticStarBgr = null;
 
@@ -47,9 +47,11 @@ namespace my
 
                 N = rand.Next(333) + 100;                       // Fast moving stars
                 cometsN = 3;                                    // Comets
+                lightsN = 3;                                    // Vague roaming lights
                 staticStarsN = rand.Next(333) + 333;            // Very slow moving stars which make up constellations
                 N += staticStarsN;
                 N += cometsN;
+                N += lightsN;
             }
 
             initLocal();
@@ -62,8 +64,9 @@ namespace my
         {
             doFillShapes      = myUtils.randomChance(rand, 1, 2);
             doCreateAllAtOnce = myUtils.randomChance(rand, 1, 9);
+            doConnectStatics  = myUtils.randomChance(rand, 1, 2);
 
-            colorMode = rand.Next(3);
+            colorMode = rand.Next(4);
 
             return;
         }
@@ -74,17 +77,18 @@ namespace my
         {
             height = 700;
 
-            string str = $"Obj = myObj_000 (Starfield)\n\n"          +
-                            $"Total N = {list.Count} of ({N})\n"     +
-                            $"moving stars N = {N - staticStarsN}\n" +
-                            $"static stars N = {staticStarsN}\n"     +
-                            $"comets N = {cometsN}\n"                +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"doFillShapes = {doFillShapes}\n"       +
-                            $"shape = {shape}\n"                     +
-                            $"colorMode = {colorMode}\n"             +
-                            $"angleMode = {angleMode}\n"             +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = myObj_000 (Starfield)\n\n"            +
+                            $"Total N = {list.Count} of ({N})\n"       +
+                            $"moving stars N = {N - staticStarsN}\n"   +
+                            $"static stars N = {staticStarsN}\n"       +
+                            $"comets N = {cometsN}\n"                  +
+                            $"doClearBuffer = {doClearBuffer}\n"       +
+                            $"doFillShapes = {doFillShapes}\n"         +
+                            $"doConnectStatics = {doConnectStatics}\n" +
+                            $"shape = {shape}\n"                       +
+                            $"colorMode = {colorMode}\n"               +
+                            $"angleMode = {angleMode}\n"               +
+                            $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -172,6 +176,13 @@ namespace my
                             break;
                     }
                     break;
+
+                // White
+                case 3:
+                    R = 1.0f - myUtils.randFloat(rand) * 0.2f;
+                    G = 1.0f - myUtils.randFloat(rand) * 0.2f;
+                    B = 1.0f - myUtils.randFloat(rand) * 0.2f;
+                    break;
             }
 
             return;
@@ -251,24 +262,32 @@ namespace my
                 glClearColor(0, 0, 0, 1);
             }
 
-            // Add static stars (constellations)
-            for (int i = 0; i < staticStarsN; i++)
+            // Create all the stars and other objects
             {
-                list.Add(new myObj_000_StaticStar());
-            }
+                // Add static stars (constellations)
+                for (int i = 0; i < staticStarsN; i++)
+                {
+                    list.Add(new myObj_000_StaticStar());
+                }
 
-            // Add comets
-            for (int i = 0; i < cometsN; i++)
-            {
-                list.Add(new myObj_000_Comet());
-            }
+                // Add comets
+                for (int i = 0; i < cometsN; i++)
+                {
+                    list.Add(new myObj_000_Comet());
+                }
 
-            if (doCreateAllAtOnce)
-            {
-                while (list.Count < N)
-                    list.Add(new myObj_000_Star());
-            }
+                // Add vague roaming lights
+                for (int i = 0; i < cometsN; i++)
+                {
+                    list.Add(new myObj_000_VagueLight());
+                }
 
+                if (doCreateAllAtOnce)
+                {
+                    while (list.Count < N)
+                        list.Add(new myObj_000_Star());
+                }
+            }
 
             // Gradually display the background Galaxy
             if (true)
@@ -316,6 +335,11 @@ namespace my
                     inst.ResetBuffer();
                     staticStarBgr.ResetBuffer();
 
+                    if (doConnectStatics)
+                    {
+                        myPrimitive._LineInst.ResetBuffer();
+                    }
+
                     int Count = list.Count;
 
                     for (int i = 0; i != Count; i++)
@@ -324,6 +348,11 @@ namespace my
 
                         obj.Show();
                         obj.Move();
+                    }
+
+                    if (doConnectStatics)
+                    {
+                        myPrimitive._LineInst.Draw();
                     }
 
                     staticStarBgr.Draw(true);
@@ -355,9 +384,11 @@ namespace my
 
         private void initShapes()
         {
-            staticStarBgr = new myHexagonInst(staticStarsN + cometsN * 3);
+            staticStarBgr = new myHexagonInst(staticStarsN + cometsN * 3 + lightsN);
 
             myPrimitive.init_Triangle();
+
+            myPrimitive.init_LineInst(staticStarsN * staticStarsN);
 
             base.initShapes(shape, N * 3, 0);
         }
@@ -539,11 +570,15 @@ namespace my
     {
         private int lifeCounter = 0;
         protected int alpha = 0, bgrAlpha = 0;
-        private static int factor = 1;
+        private static int factor = 1, maxDist = 15000;
         private static bool doMove = true;
+
+        private List<myObj_000_StaticStar> neighbours = new List<myObj_000_StaticStar>();
 
         protected override void generateNew()
         {
+            dx = dy = 0;
+
             base.generateNew();
 
             lifeCounter = (rand.Next(500) + 500) * factor;
@@ -563,7 +598,7 @@ namespace my
 
             dAngle = myUtils.randFloat(rand) * 0.001f * myUtils.randomSign(rand);
 
-            A *= 0.5f;
+            A = myUtils.randFloat(rand, 0.2f) * 0.33f;
 
             // Make our static stars not so static
             if (doMove)
@@ -575,6 +610,8 @@ namespace my
                 dx = (float)((x - gl_x0) * sp_dist);
                 dy = (float)((y - gl_y0) * sp_dist);
             }
+
+            findNeighbours();
         }
 
         protected override void Show()
@@ -646,18 +683,32 @@ namespace my
                     break;
             }
 
+            if (doConnectStatics == true)
+            {
+                for (int i = 0; i < neighbours.Count; i++)
+                {
+                    float distSquared = (x - neighbours[i].x) * (x - neighbours[i].x) + (y - neighbours[i].y) * (y - neighbours[i].y);
+
+                    if (distSquared > maxDist)
+                    {
+                        neighbours.RemoveAt(i);
+                    }
+                    else
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(x, y, neighbours[i].x, neighbours[i].y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.11f * distSquared / maxDist);
+                    }
+                }
+            }
+
             return;
         }
 
         protected override void Move()
         {
+            x += dx;
+            y += dy;
             angle += dAngle;
-
-            if (doMove)
-            {
-                x += dx;
-                y += dy;
-            }
 
             if (lifeCounter-- == 0)
             {
@@ -669,7 +720,40 @@ namespace my
                 if (cnt++ > max)
                 {
                     cnt = 0;
-                    size = rand.Next(5) + 1;
+                    size = rand.Next(5) + rand.Next(2) + 1;
+                    A += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+
+                    A = A < 0.066f ? 0.066f : A;
+
+                    if (myUtils.randomChance(rand, 1, 5))
+                    {
+                        findNeighbours();
+                    }
+                }
+            }
+        }
+
+        private void findNeighbours()
+        {
+            neighbours.Clear();
+
+            int Count = list.Count;
+
+            for (int i = 0; i != Count; i++)
+            {
+                if (list[i] is myObj_000_StaticStar)
+                {
+                    myObj_000_StaticStar obj = list[i] as myObj_000_StaticStar;
+
+                    if (obj != this)
+                    {
+                        float distSquared = (x - obj.x) * (x - obj.x) + (y - obj.y) * (y - obj.y);
+
+                        if (distSquared < maxDist)
+                        {
+                            neighbours.Add(obj);
+                        }
+                    }
                 }
             }
         }
@@ -720,8 +804,17 @@ namespace my
                 Y = (int)y;
             }
 
-            size = rand.Next(5) + 1;
-            size = rand.Next(7) + 3;
+            // Set comet size
+            switch (rand.Next(5))
+            {
+                case 0: case 1: case 2: case 3:
+                    size = rand.Next(7) + 3;
+                    break;
+
+                case 4:
+                    size = rand.Next(20) + 5;
+                    break;
+            }
 
             R = 1.0f - myUtils.randFloat(rand) * 0.23f;
             G = 0.0f + myUtils.randFloat(rand) * 0.23f;
@@ -816,6 +909,58 @@ namespace my
                     generateNew();
                 }
             }
+        }
+    };
+
+
+    // ===================================================================================================================
+    // ===================================================================================================================
+
+
+    // Vague Roaming Light Class
+    class myObj_000_VagueLight : myObj_000
+    {
+        protected override void generateNew()
+        {
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
+
+            size = rand.Next(666) + 234;
+            angle = myUtils.randFloat(rand);
+            dAngle = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * 0.005f;
+
+            dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
+            dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
+
+            R = 1.0f - myUtils.randFloat(rand) * 0.5f;
+            G = 1.0f - myUtils.randFloat(rand) * 0.5f;
+            B = 1.0f - myUtils.randFloat(rand) * 0.5f;
+            A = myUtils.randFloat(rand) * 0.025f + 0.001f;
+        }
+
+        protected override void Show()
+        {
+            staticStarBgr.setInstanceCoords(x, y, size, angle);
+            staticStarBgr.setInstanceColor(R, G, B, A);
+        }
+
+        protected override void Move()
+        {
+            x += dx;
+            y += dy;
+            angle += dAngle;
+
+            if (x < 0)
+                dx += 0.01f;
+
+            if (y < 0)
+                dy += 0.01f;
+
+            if (x > gl_Width)
+                dx -= 0.01f;
+
+            if (y > gl_Height)
+                dy -= 0.01f;
         }
     };
 
