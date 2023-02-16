@@ -933,7 +933,7 @@ namespace my
                 X = (int)x;
                 Y = (int)y;
 
-                if ((dx > 0 && X > gl_Width + 1000) || (dx < 0 && X < -1000) || (dy > 0 && Y > gl_Height + 1000) || (dy < 0 && Y < -1000))
+                if ((dx > 0 && X > gl_Width + 999) || (dx < 0 && X < -999) || (dy > 0 && Y > gl_Height + 999) || (dy < 0 && Y < -999))
                 {
                     generateNew();
                 }
