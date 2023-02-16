@@ -18,7 +18,7 @@ namespace my
         protected float x, y, dx, dy, acceleration = 1.0f;
         protected int cnt = 0, max = 0;
 
-        protected static int drawMode = 0, colorMode = 0, angleMode = 0;
+        protected static int drawMode = 0, colorMode = 0, angleMode = 0, accelerationMode = 0;
         protected static int N = 0, staticStarsN = 0, cometsN = 0, lightsN = 0, shape = 0;
         protected static bool doFillShapes = true, doCreateAllAtOnce = true, doConnectStatics = true;
         protected static float connectOpacity = 0;
@@ -68,6 +68,7 @@ namespace my
             doConnectStatics  = myUtils.randomChance(rand, 1, 2);
 
             colorMode = rand.Next(4);
+            accelerationMode = rand.Next(2);
 
             connectOpacity = 0.03f + myUtils.randFloat(rand, 0.1f) * 0.05f;
 
@@ -91,6 +92,7 @@ namespace my
                             $"shape = {shape}\n"                       +
                             $"colorMode = {colorMode}\n"               +
                             $"angleMode = {angleMode}\n"               +
+                            $"accelerationMode = {accelerationMode}\n" +
                             $"connectOpacity = {connectOpacity}\n"     +
                             $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
@@ -553,12 +555,17 @@ namespace my
                 cnt = 0;
 
                 // Accelerate acceleration rate
-                //acceleration *= (1.0f + (size * 0.001f));
+                if (accelerationMode == 1)
+                {
+                    acceleration *= (1.0f + (size * 0.001f));
+                }
             }
 
             // Accelerate our moving stars
-            dx *= acceleration;
-            dy *= acceleration;
+            {
+                dx *= acceleration;
+                dy *= acceleration;
+            }
 
             if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
             {
