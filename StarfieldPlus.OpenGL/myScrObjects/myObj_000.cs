@@ -964,7 +964,7 @@ namespace my
             R = 1.0f - myUtils.randFloat(rand) * 0.5f;
             G = 1.0f - myUtils.randFloat(rand) * 0.5f;
             B = 1.0f - myUtils.randFloat(rand) * 0.5f;
-            A = myUtils.randFloat(rand) * 0.025f + 0.001f;
+            A = myUtils.randFloat(rand) * 0.023f + 0.001f;
         }
 
         protected override void Show()
