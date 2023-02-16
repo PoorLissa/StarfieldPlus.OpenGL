@@ -21,6 +21,7 @@ namespace my
         protected static int drawMode = 0, colorMode = 0, angleMode = 0;
         protected static int N = 0, staticStarsN = 0, cometsN = 0, lightsN = 0, shape = 0;
         protected static bool doFillShapes = true, doCreateAllAtOnce = true, doConnectStatics = true;
+        protected static float connectOpacity = 0;
 
         protected static myHexagonInst staticStarBgr = null;
 
@@ -68,6 +69,8 @@ namespace my
 
             colorMode = rand.Next(4);
 
+            connectOpacity = 0.03f + myUtils.randFloat(rand, 0.1f) * 0.05f;
+
             return;
         }
 
@@ -88,6 +91,7 @@ namespace my
                             $"shape = {shape}\n"                       +
                             $"colorMode = {colorMode}\n"               +
                             $"angleMode = {angleMode}\n"               +
+                            $"connectOpacity = {connectOpacity}\n"     +
                             $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -505,6 +509,11 @@ namespace my
             size = 0;
             dSize = myUtils.randFloat(rand) * 0.1f;
 
+            if (myUtils.randomChance(rand, 1, 1000))
+            {
+                dSize = myUtils.randFloat(rand) * 0.5f;
+            }
+
             angle = 0;
 
             switch (angleMode)
@@ -683,6 +692,9 @@ namespace my
                     break;
             }
 
+            // Also, each star could have its own maxDist
+            // This way, constellations would look a bit different
+
             if (doConnectStatics == true)
             {
                 for (int i = 0; i < neighbours.Count; i++)
@@ -696,7 +708,7 @@ namespace my
                     else
                     {
                         myPrimitive._LineInst.setInstanceCoords(x, y, neighbours[i].x, neighbours[i].y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.11f * distSquared / maxDist);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, connectOpacity * distSquared / maxDist);
                     }
                 }
             }
@@ -767,13 +779,22 @@ namespace my
     // Falling Star (Comet) Class
     class myObj_000_Comet : myObj_000
     {
-        private float X, Y;
+        private float X, Y, tailR, tailG, tailB;
         private int lifeCounter = 0;
 
         protected override void generateNew()
         {
-            lifeCounter = rand.Next(1000) + 666;
+            lifeCounter = rand.Next(2000) + 999;
             //lifeCounter = rand.Next(100) + 66;
+
+            R = 1.0f - myUtils.randFloat(rand) * 0.23f;
+            G = 0.0f + myUtils.randFloat(rand) * 0.23f;
+            B = 0.0f + myUtils.randFloat(rand) * 0.23f;
+            A = 1.0f - myUtils.randFloat(rand) * 0.10f;
+
+            tailR = 1.0f - myUtils.randFloat(rand) * 0.33f;
+            tailG = 0.0f + myUtils.randFloat(rand) * 0.33f;
+            tailB = 0.0f + myUtils.randFloat(rand) * 0.33f;
 
             int x0 = rand.Next(gl_Width);
             int y0 = rand.Next(gl_Height);
@@ -785,6 +806,24 @@ namespace my
 
             float speed = rand.Next(200) + 200.0f + myUtils.randFloat(rand);
             //speed *= 0.01f;
+
+            // Set comet size
+            switch (rand.Next(11))
+            {
+                case 0:
+                    size = rand.Next(20) + 5;
+                    break;
+
+                case 1:
+                    size = rand.Next(3) + 1;
+                    speed /= (rand.Next(25) + 25);
+                    A /= 3;
+                    break;
+
+                default:
+                    size = rand.Next(7) + 3;
+                    break;
+            }
 
             double dist = Math.Sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
             double sp_dist = speed / dist;
@@ -803,23 +842,6 @@ namespace my
                 y = a * x + b;
                 Y = (int)y;
             }
-
-            // Set comet size
-            switch (rand.Next(5))
-            {
-                case 0: case 1: case 2: case 3:
-                    size = rand.Next(7) + 3;
-                    break;
-
-                case 4:
-                    size = rand.Next(20) + 5;
-                    break;
-            }
-
-            R = 1.0f - myUtils.randFloat(rand) * 0.23f;
-            G = 0.0f + myUtils.randFloat(rand) * 0.23f;
-            B = 0.0f + myUtils.randFloat(rand) * 0.23f;
-            A = 1.0f - myUtils.randFloat(rand) * 0.10f;
         }
 
         protected override void Show()
@@ -883,10 +905,10 @@ namespace my
                     // Length of the tail depends on the speed. For slow speeds tail will be very short
 
                     myPrimitive._Triangle.SetColor(1, 1, 1, a1);
-                    myPrimitive._Triangle.Draw(x1, y1, x2, y2, x - dx * 7, y - dy * 7, true);
+                    myPrimitive._Triangle.Draw(x1, y1, x2, y2, x - dx * 7, y - dy * 7, myUtils.randomChance(rand, 2, 3));
 
-                    myPrimitive._Triangle.SetColor(1.0f - myUtils.randFloat(rand) * 0.2f, 0, 0, a2);
-                    myPrimitive._Triangle.Draw(x1, y1, x2, y2, x - dx * 4, y - dy * 4, true);
+                    myPrimitive._Triangle.SetColor(tailR, tailG, tailB, a2);
+                    myPrimitive._Triangle.Draw(x1, y1, x2, y2, x - dx * 4, y - dy * 4, myUtils.randomChance(rand, 2, 3));
                 }
 
                 base.Show();
