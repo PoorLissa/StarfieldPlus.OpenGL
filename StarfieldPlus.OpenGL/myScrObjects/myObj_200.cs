@@ -67,7 +67,7 @@ namespace my
             varLineWidth = myUtils.randomBool(rand);
             shapeType = rand.Next(6);
 
-            moveType = rand.Next(3);
+            moveType = rand.Next(4);
             dimMode = rand.Next(3);                         // 0 = const base value, 1 = const random value, 2 = oscillating value
             baseDt = 0.001f + 0.001f * rand.Next(1000);
 
@@ -126,12 +126,23 @@ namespace my
 
         protected override void generateNew()
         {
-            x = gl_x0;
-            y = gl_y0;
+            switch (moveType)
+            {
+                case 0: case 1: case 2:
+                    x = gl_x0;
+                    y = gl_y0;
+                    break;
+
+                case 3:
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    break;
+            }
+
             rad = Rad;
 
-            lineTh = rand.Next(5) + 1;
-            A = (float)rand.NextDouble() + 0.1f;
+            lineTh = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
+            A = myUtils.randFloat(rand, 0.1f);
 
             colorPicker.getColorRand(ref R, ref G, ref B);
 
@@ -192,6 +203,10 @@ namespace my
                     x = gl_x0 + (float)Math.Sin(time) * 111;
                     y = gl_y0 + (float)Math.Cos(time) * 111;
                     break;
+
+                // Spiraling to the center, each shape has its own center
+                case 3:
+                    break;
             }
 
             if (rad <= 0)
@@ -204,13 +219,13 @@ namespace my
 
         protected override void Show()
         {
-            if (varLineWidth && rad > 100)
+            if (varLineWidth)
             {
-                glLineWidth(rad/100);
+                glLineWidth(rad > 100 ? rad / 100 : 1);
             }
             else
             {
-                glLineWidth(1);
+                glLineWidth(lineTh);
             }
 
             switch (shape)
@@ -218,11 +233,11 @@ namespace my
                 case 0:
                     myPrimitive._Rectangle.SetAngle(time / 10);
 
-                    glLineWidth(3);
+                    glLineWidth(lineTh + 2);
                     myPrimitive._Rectangle.SetColor(R, G, B, 0.15f);
                     myPrimitive._Rectangle.Draw(x - rad - 1, y - rad - 1, 2 * rad + 2, 2 * rad + 2, false);
 
-                    glLineWidth(1);
+                    glLineWidth(lineTh);
                     myPrimitive._Rectangle.SetColor(R, G, B, A);
                     myPrimitive._Rectangle.Draw(x - rad, y - rad, 2 * rad, 2 * rad, false);
                     break;

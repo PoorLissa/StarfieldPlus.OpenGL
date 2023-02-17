@@ -17,7 +17,7 @@ public class ScreenSaver
         myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
-        myObj_400, myObj_410, myObj_420, myObj_430,
+        myObj_400, myObj_410, myObj_420, myObj_430, myObj_440,
         myObj_999a,
         myObj_last
     };
@@ -86,7 +86,6 @@ public class ScreenSaver
     // - moving ponts generator, where the moment of generation depends on sin(time)
     // - battle ships
     // - grid over an image. grid pulses, increasing and decreasing its cells size. each cell is displaying average img color
-    // - bouncing ball and lots of triangles rotating to point to it
     // - mandlebrot
 
     // todo:
@@ -108,7 +107,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_010;
+        id = ids.myObj_440;
 #endif
 
         switch (id)
@@ -333,6 +332,11 @@ public class ScreenSaver
             // Shooters move across the screen, shooting at each other
             case ids.myObj_430:
                 _obj = new my.myObj_430();
+                break;
+
+            // Bouncing ball and lots of triangles rotating to point to it
+            case ids.myObj_440:
+                _obj = new my.myObj_440();
                 break;
 
             // Test rotating shape, unfinished yet good

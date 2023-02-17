@@ -19,7 +19,7 @@ namespace my
         private float R, G, B, A;
 
         private static int N = 1;
-        private static float baseDt = 1.0f, dimAlpha = 0.025f;
+        private static float baseDt = 1.0f, dimAlpha = 0.025f, lineTh = 1.0f;
         private static bool doOscillateDimRate = false;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -59,6 +59,8 @@ namespace my
         private void initLocal()
         {
             doOscillateDimRate = myUtils.randomBool(rand);
+
+            lineTh = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -69,6 +71,7 @@ namespace my
                             $"N = {list.Count} of {N}\n"                    +
                             $"doClearBuffer = {doClearBuffer}\n"            +
                             $"doOscillateDimRate = {doOscillateDimRate}\n"  +
+                            $"lineTh = {lineTh}\n"                          +
                             $"renderDelay = {renderDelay}\n"                +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -76,6 +79,14 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void setNextMode()
+        {
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
 
         protected override void generateNew()
         {
@@ -165,23 +176,23 @@ namespace my
                     //for (int i = 0; i < 33; i++)
                     {
                         myPrimitive._Line.SetAngle((float)rand.NextDouble() * rand.Next(123));
-                        myPrimitive._Line.Draw(x - rand.Next(33), y, x + rand.Next(33), y);
+                        myPrimitive._Line.Draw(x - rand.Next(33), y, x + rand.Next(33), y, lineTh);
                     }
                     break;
 
                 case 1:
                     myPrimitive._Line.SetAngle(time1);
-                    myPrimitive._Line.Draw(x - rad, y, x + rad, y);
+                    myPrimitive._Line.Draw(x - rad, y, x + rad, y, lineTh);
                     break;
 
                 case 2:
                     myPrimitive._Line.SetAngle(time1);
-                    myPrimitive._Line.Draw(x, y, x + rad, y);
+                    myPrimitive._Line.Draw(x, y, x + rad, y, lineTh);
                     break;
 
                 case 3:
                     myPrimitive._Line.SetAngle((float)Math.Sin(time1 * dt1Factor));
-                    myPrimitive._Line.Draw(x - rad, y, x + rad, y);
+                    myPrimitive._Line.Draw(x - rad, y, x + rad, y, lineTh);
                     break;
             }
 
@@ -201,7 +212,7 @@ namespace my
                 dimScreenRGB_SetRandom(0.1f, ligtmMode: myUtils.randomChance(rand, 1, 11));
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
-    
+
             while (!Glfw.WindowShouldClose(window))
             {
                 cnt++;
