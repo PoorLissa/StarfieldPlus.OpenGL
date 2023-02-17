@@ -17,7 +17,7 @@ namespace my
         protected float x, y, dx, dy;
         protected float size, a, da, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
+        protected static int N = 0, shape = 0, moveMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineTh = 1.0f;
 
@@ -50,6 +50,7 @@ namespace my
                     case 0:  shape = 0; break;      // Square
                     case 1:  shape = 3; break;      // Pentagon
                     case 2:  shape = 4; break;      // Hexagon
+                    case 3:  shape = 5; break;      // Line
                     default: shape = 1; break;      // Triangle (default)
                 }
             }
@@ -65,6 +66,7 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doFillShapes  = myUtils.randomChance(rand, 1, 2);
 
+            moveMode = rand.Next(2);
             renderDelay = rand.Next(11) + 5;
 
             dimAlpha = 0.25f;
@@ -214,6 +216,12 @@ namespace my
                     hexagonInst.setInstanceCoords(x, y, size2x, angle);
                     hexagonInst.setInstanceColor(R, G, B, a);
                     break;
+
+                case 5:
+                    myPrimitive._Line.SetColor(R, G, B, a);
+                    myPrimitive._Line.SetAngle((float)Math.PI - angle);
+                    myPrimitive._Line.Draw(x, y-2*size, x, y+2*size, lineTh);
+                    break;
             }
 
             return;
@@ -231,7 +239,7 @@ namespace my
             // Add moving ball
             list.Add(new myObj_440_Ball());
 
-#if true
+#if false
             while (list.Count < N)
                 list.Add(new myObj_440());
 #endif
@@ -260,7 +268,8 @@ namespace my
 
                 // Render Frame
                 {
-                    inst.ResetBuffer();
+                    if (shape != 5)
+                        inst.ResetBuffer();
 
                     int Count = list.Count;
 
@@ -272,16 +281,19 @@ namespace my
                         obj.Move();
                     }
 
-                    if (doFillShapes)
+                    if (shape != 5)
                     {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
-                    }
+                        if (doFillShapes)
+                        {
+                            // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                            inst.SetColorA(-0.5f);
+                            inst.Draw(true);
+                        }
 
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
+                        // Tell the fragment shader to do nothing with the existing instance opacity:
+                        inst.SetColorA(0);
+                        inst.Draw(false);
+                    }
                 }
 
                 if (list.Count < N)
@@ -301,7 +313,12 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, N, 0);
+            myPrimitive.init_Line();
+
+            if (shape != 5)
+            {
+                base.initShapes(shape, N, 0);
+            }
 
             return;
         }
@@ -316,9 +333,17 @@ namespace my
 
     public class myObj_440_Ball : myObj_440
     {
+        private int radx, rady;
+        private float t, dt;
+
         protected override void generateNew()
         {
             myPrimitive.init_Ellipse();
+
+            t = myUtils.randFloat(rand);
+            dt = (0.005f + myUtils.randFloat(rand) * 0.025f) * myUtils.randomSign(rand);
+            radx = 666 + rand.Next(1234);
+            rady = 666 + rand.Next(1234);
 
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
@@ -351,23 +376,38 @@ namespace my
 
         protected override void Move()
         {
-            x += dx;
-            y += dy;
+            switch (moveMode)
+            {
+                case 0:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (x < 0)
+                            dx += 0.1f;
+
+                        if (y < 0)
+                            dy += 0.1f;
+
+                        if (x > gl_Width)
+                            dx -= 0.1f;
+
+                        if (y > gl_Height)
+                            dy -= 0.1f;
+                    }
+                    break;
+
+                case 1:
+                    {
+                        x = gl_x0 + (float)Math.Sin(t) * radx;
+                        y = gl_y0 + (float)Math.Cos(t) * rady;
+                        t += dt;
+                    }
+                    break;
+            }
 
             centerX = x;
             centerY = y;
-
-            if (x < 0)
-                dx += 0.1f;
-
-            if (y < 0)
-                dy += 0.1f;
-
-            if (x > gl_Width)
-                dx -= 0.1f;
-
-            if (y > gl_Height)
-                dy -= 0.1f;
 
             return;
         }
