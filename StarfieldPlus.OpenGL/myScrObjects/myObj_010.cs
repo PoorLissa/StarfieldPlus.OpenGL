@@ -360,6 +360,7 @@ namespace my
             else
             {
                 glDrawBuffer(GL_FRONT_AND_BACK);
+                glDrawBuffer(GL_BACK);
             }
 
             while (!Glfw.WindowShouldClose(window))
