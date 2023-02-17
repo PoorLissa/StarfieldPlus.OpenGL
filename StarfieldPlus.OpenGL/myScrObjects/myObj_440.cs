@@ -43,10 +43,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 1 + rand.Next(6666) + rand.Next(3333) + 1234;
-
-                N = 33333;
-                N = 3333;
+                N = 1 + rand.Next(9999) + rand.Next(9999) + rand.Next(6666) + rand.Next(3333) + 1234;
 
                 switch (rand.Next(13))
                 {
