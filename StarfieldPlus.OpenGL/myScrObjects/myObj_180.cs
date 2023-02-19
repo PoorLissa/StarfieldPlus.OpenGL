@@ -18,7 +18,7 @@ namespace my
                             doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true, doRandomizeCenter = false,
                             doUseTestFunc = false, doDrawTwice = true;
 
-        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0,
+        private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0, xyGenMode = 0,
                            shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, rateBase = 50, rateMode = 0,
                            heightRatioMode = 0, connectionMode = 0, dXYgenerationMode = -1, startDispersionRate = 0, centerRandSize = 0,
                            testFuncNo = -1;
@@ -79,6 +79,7 @@ namespace my
             rateMode                = rand.Next(3);
             dispersionMode          = rand.Next(6);
             heightRatioMode         = rand.Next(5);
+            xyGenMode               = rand.Next(2);
 
             // Set up x-offset
             if (doUseXOffset)
@@ -301,10 +302,29 @@ namespace my
             shape = shapeType;
             lifeCnt = WaveLifeCnt;
 
-            float dist = (float)(Math.Sqrt((x - x0) * (x - x0) + (y - x0) * (y - x0)));
+            float dist = 0;
 
-            dx = (x - x0) * Speed / dist;
-            dy = (y - x0) * Speed / dist;
+            switch (xyGenMode)
+            {
+                case 0:
+                    dist = (float)(Math.Sqrt((x - x0) * (x - x0) + (y - x0) * (y - x0)));
+
+                    dx = (x - x0) * Speed / dist;
+                    dy = (y - x0) * Speed / dist;
+                    break;
+
+                case 1:
+                    {
+                        float X = rand.Next(gl_Width);
+                        float Y = rand.Next(gl_Width);
+
+                        dist = (float)(Math.Sqrt((x - X) * (x - X) + (y - Y) * (y - Y)));
+
+                        dx = (x - X) * Speed / dist;
+                        dy = (y - Y) * Speed / dist;
+                    }
+                    break;
+            }
 
             if (heightRatioMode > 2)
             {
@@ -541,7 +561,7 @@ namespace my
             }
             else
             {
-
+                glDrawBuffer(GL_BACK);
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -610,7 +630,9 @@ namespace my
                         }
                     }
 
-                    for (i = 0; i != list.Count; i++)
+                    int Count = list.Count;
+
+                    for (i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_180;
 
