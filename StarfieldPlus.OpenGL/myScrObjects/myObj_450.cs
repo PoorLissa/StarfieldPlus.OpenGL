@@ -54,6 +54,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            // Max color offset
             switch (rand.Next(3))
             {
                 case 0:
@@ -73,12 +74,12 @@ namespace my
                     break;
             }
 
-            renderDelay = rand.Next(11) + 3;
-
             offsetMode = rand.Next(13);
             maxSize = rand.Next(35) + 15;
             opacityMode = rand.Next(9);
             angleMode = rand.Next(4);
+
+            renderDelay = rand.Next(11) + 3;
 
             return;
         }
