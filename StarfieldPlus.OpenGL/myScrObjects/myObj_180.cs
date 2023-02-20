@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Generator of waves that are made of particles
+    - Generator of waves that are made of large number of particles
 */
 
 
@@ -16,7 +16,7 @@ namespace my
         private static bool doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,
                             doUseIntConversion = false, doUseStartDispersion = false, doShowParticles = true, doRandomizeCenter = false,
-                            doUseTestFunc = false, doDrawTwice = true;
+                            doUseTestFunc = false, doDrawTwice = true, doUsePredefinedMode = true;
 
         private static int x0, y0, N = 1, deadCnt = 0, waveSizeBase = 3111, WaveLifeCnt = 0, LifeCntBase = 0, xyGenMode = 0,
                            shapeType = 0, rotationMode = 0, rotationSubMode = 0, dispersionMode = 0, rateBase = 50, rateMode = 0,
@@ -40,22 +40,30 @@ namespace my
 
         public myObj_180()
         {
-            if (colorPicker == null)
-            {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-                myFuncGenerator1.myExpr.rand = rand;
-
-                init();
-            }
-
             generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+            myFuncGenerator1.myExpr.rand = rand;
+
+            doClearBuffer = false;
+
+            N = 1111 + rand.Next(2345);
+            renderDelay = rand.Next(10);
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         // One-time initialization
-        private void init()
+        private void initLocal()
         {
             x0 = gl_x0;
             y0 = gl_y0;
@@ -64,6 +72,7 @@ namespace my
             startDispersionRate = 5;
 
             doShowParticles         = true;
+            doUsePredefinedMode     = false;
             doFillShapes            = myUtils.randomBool(rand);
             doUseRandomSpeed        = myUtils.randomBool(rand);
             doClearBuffer           = myUtils.randomChance(rand, 4, 5);
@@ -148,14 +157,14 @@ namespace my
             }
 
             // Set up additional dx/dy generation mode:
-            // todo: remove true later
             if (myUtils.randomChance(rand, 2, 5))
             {
                 dXYgen_useRandSign1 = myUtils.randomBool(rand);
                 dXYgen_useRandSign2 = myUtils.randomBool(rand);
 
-                if (true)
+                if (myUtils.randomBool(rand))
                 {
+                    // Randomly generated mode:
                     dXYgenerationMode = rand.Next(6);
 
                     int argModesQty = (int)myFuncGenerator1.myArgs.argsFunc(-1, 0, 0);
@@ -177,7 +186,7 @@ namespace my
                 }
                 else
                 {
-                    // Set predefined mode
+                    // Predefined mode:
                     setPredefinedMode();
                 }
             }
@@ -242,27 +251,28 @@ namespace my
                 return $"\n Short: {res}";
             }
 
-            string str = $"Obj = myObj_180\n\n"                             +
-                            $"N = {N}\n"                                    +
-                            $"doClearBuffer = {doClearBuffer}\n"            +
-                            $"doDrawTwice = {doDrawTwice}\n"                +
-                            $"deadCnt = {deadCnt}\n"                        + 
-                            $"renderDelay = {renderDelay}\n"                +
-                            $"shapeType = {shapeType}\n"                    +
-                            $"rotationMode = {rotationMode}\n"              +
-                            $"rotationSubMode = {rotationSubMode}\n"        +
-                            $"doUseDispersion = {doUseDispersion}\n"        +
-                            $"doUseStartDispersion = {doUseStartDispersion}\n" +
-                            $"dispersionMode = {dispersionMode}\n" +
-                            $"dispersionConst = {dispersionConst}\n" +
-                            $"connectionMode = {connectionMode}\n" +
-                            $"heightRatioMode = {heightRatioMode}\n" +
-                            $"doUseXOffset = {doUseXOffset}\n" +
-                            $"doShiftCenter = {doShiftCenter}\n" +
-                            $"doUseIntConversion = {doUseIntConversion}\n" +
-                            $"doShowParticles = {doShowParticles}\n" +
-                            $"LifeCntBase = {LifeCntBase}\n" +
-                            getFuncGeneratorParams() + "\n" + 
+            string str = $"Obj = myObj_180\n\n"                                 +
+                            $"N = {N}\n"                                        +
+                            $"deadCnt = {deadCnt}\n"                            +
+                            $"doClearBuffer = {doClearBuffer}\n"                +
+                            $"doUsePredefinedMode = {doUsePredefinedMode}\n"    +
+                            $"doDrawTwice = {doDrawTwice}\n"                    +
+                            $"renderDelay = {renderDelay}\n"                    +
+                            $"shapeType = {shapeType}\n"                        +
+                            $"rotationMode = {rotationMode}\n"                  +
+                            $"rotationSubMode = {rotationSubMode}\n"            +
+                            $"doUseDispersion = {doUseDispersion}\n"            +
+                            $"doUseStartDispersion = {doUseStartDispersion}\n"  +
+                            $"dispersionMode = {dispersionMode}\n"              +
+                            $"dispersionConst = {dispersionConst}\n"            +
+                            $"connectionMode = {connectionMode}\n"              +
+                            $"heightRatioMode = {heightRatioMode}\n"            +
+                            $"doUseXOffset = {doUseXOffset}\n"                  +
+                            $"doShiftCenter = {doShiftCenter}\n"                +
+                            $"doUseIntConversion = {doUseIntConversion}\n"      +
+                            $"doShowParticles = {doShowParticles}\n"            +
+                            $"LifeCntBase = {LifeCntBase}\n"                    +
+                            getFuncGeneratorParams() + "\n"                     +
                             getFuncGeneratorParamsShort()
                 ;
             return str;
@@ -278,7 +288,7 @@ namespace my
             var oldShapeType = shapeType;
             var oldConnectionMode = connectionMode;
 
-            init();
+            initLocal();
 
             shapeType = oldShapeType;
             connectionMode = oldConnectionMode;
@@ -925,6 +935,8 @@ namespace my
         // Set predefined mode
         private void setPredefinedMode()
         {
+            doUsePredefinedMode = true;
+
 #if false
                 //dx = (float)Math.Cos(dx);
                 //dy = (float)Math.Sin(dy);
