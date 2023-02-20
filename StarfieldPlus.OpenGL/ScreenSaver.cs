@@ -17,7 +17,7 @@ public class ScreenSaver
         myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
-        myObj_400, myObj_410, myObj_420, myObj_430, myObj_440,
+        myObj_400, myObj_410, myObj_420, myObj_430, myObj_440, myObj_450,
         myObj_999a,
         myObj_last
     };
@@ -86,7 +86,7 @@ public class ScreenSaver
     // - moving ponts generator, where the moment of generation depends on sin(time)
     // - battle ships
     // - grid over an image. grid pulses, increasing and decreasing its cells size. each cell is displaying average img color
-    // - mandlebrot
+    // - mandlebrot (can i calculate the color of pixels in the shader?..)
 
     // todo:
     // - number of rotating lines. the length of each line is changing over time
@@ -96,7 +96,6 @@ public class ScreenSaver
             // (maybe allow placing on the inside)
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
-    // - get colors from image and slightly offset the colors. Then put color spots (grid or not) on the screen
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - rain with pseudo-depth (the farther away are the drops, the slower is their speed, the higher is bottom threshold)
     // - similar to myObj_180, but there are lots of generators, each located in the intersection of a grid.
@@ -107,7 +106,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_180;
+        id = ids.myObj_450;
 #endif
 
         switch (id)
@@ -337,6 +336,11 @@ public class ScreenSaver
             // Bouncing ball and lots of triangles rotating to point to it
             case ids.myObj_440:
                 _obj = new my.myObj_440();
+                break;
+
+            // Get color from image and slightly offset this color. Then put color spots
+            case ids.myObj_450:
+                _obj = new my.myObj_450();
                 break;
 
             // Test rotating shape, unfinished yet good
