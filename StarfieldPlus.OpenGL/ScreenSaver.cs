@@ -338,7 +338,7 @@ public class ScreenSaver
                 _obj = new my.myObj_440();
                 break;
 
-            // Get color from image and slightly offset this color. Then put color spots
+            // Get color from image and slightly offset this color. Then put the color spots on the screen
             case ids.myObj_450:
                 _obj = new my.myObj_450();
                 break;
