@@ -14,10 +14,10 @@ namespace my
     public class myObj_440 : myObject
     {
         private int cnt;
-        protected float x, y, dx, dy;
-        protected float size, a, da, A, R, G, B, angle = 0;
+        protected float x, y, dx, dy, tmpx, tmpy;
+        protected float size, dSize, a, da, A, R, G, B, angle = 0;
 
-        protected static int N = 0, shape = 0, moveMode = 0;
+        protected static int N = 0, shape = 0, ballMoveMode = 0, moveMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineTh = 1.0f;
 
@@ -66,8 +66,9 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doFillShapes  = myUtils.randomChance(rand, 1, 2);
 
-            moveMode = rand.Next(2);
-            renderDelay = rand.Next(11) + 5;
+            moveMode = rand.Next(3);
+            ballMoveMode = rand.Next(2);
+            renderDelay  = rand.Next(11) + 5;
 
             dimAlpha = 0.25f;
 
@@ -88,6 +89,8 @@ namespace my
             string str = $"Obj = myObj_440\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"shape = {shape}\n"                     +
+                            $"moveMode = {moveMode}\n"               +
+                            $"ballMoveMode = {ballMoveMode}\n"       +
                             $"lineTh = {fStr(lineTh)}\n"             +
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"renderDelay = {renderDelay}\n"         +
@@ -113,7 +116,11 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
+            dx = myUtils.randomSign(rand) * myUtils.randFloat(rand);
+            dy = myUtils.randomSign(rand) * myUtils.randFloat(rand);
+
             size = rand.Next(33) + 3;
+            dSize = myUtils.randFloat(rand) + 0.0001f;
 
             A = myUtils.randFloat(rand, 0.33f);                     // Target opacity
             a = 0;                                                  // Current opacity
@@ -133,19 +140,19 @@ namespace my
                 if (a < A)
                     a += da;
 
-                dx = x - centerX;
-                dy = y - centerY;
+                tmpx = x - centerX;
+                tmpy = y - centerY;
 
-                if (dx > 0)
+                if (tmpx > 0)
                 {
-                    angle = (float)(_1pi2 - Math.Atan(dy / dx));
+                    angle = (float)(_1pi2 - Math.Atan(tmpy / tmpx));
                 }
                 else
                 {
-                    angle = (float)(_3pi2 - Math.Atan(dy / dx));
+                    angle = (float)(_3pi2 - Math.Atan(tmpy / tmpx));
                 }
 
-                float distSquared = dx * dx + dy * dy;
+                float distSquared = tmpx * tmpx + tmpy * tmpy;
 
                 if (distSquared < 110000)
                 {
@@ -158,6 +165,36 @@ namespace my
                 else
                 {
                     cnt = rand.Next(3);
+                }
+
+                // Define different behaviour modes
+                switch (moveMode)
+                {
+                    // Static
+                    case 0:
+                        break;
+
+                    case 1:
+                        if ((size += dSize) > 123)
+                        {
+                            a -= 3 * da;
+
+                            if (a <= 0)
+                            {
+                                generateNew();
+                            }
+                        }
+                        break;
+
+                    case 2:
+                        x += dx;
+                        y += dy;
+
+                        if (x < -size || x > gl_Width + size || y < -size || y > gl_Height + size)
+                        {
+                            generateNew();
+                        }
+                        break;
                 }
             }
             else
@@ -376,7 +413,7 @@ namespace my
 
         protected override void Move()
         {
-            switch (moveMode)
+            switch (ballMoveMode)
             {
                 case 0:
                     {
