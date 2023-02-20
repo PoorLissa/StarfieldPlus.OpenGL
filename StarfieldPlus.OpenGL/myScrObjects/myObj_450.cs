@@ -13,10 +13,10 @@ namespace my
 {
     public class myObj_450 : myObject
     {
-        private float x, y;
-        private float size, A, R, G, B, angle = 0;
+        private float x, y, w, h;
+        private float A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, maxSize = 1, opacityMode = 0, angleMode = 0;
+        private static int N = 0, shape = 0, maxSize = 1, opacityMode = 0, angleMode = 0, offsetMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, maxOffset = 1;
 
@@ -41,7 +41,7 @@ namespace my
                 doFillShapes = true;
 
                 N = rand.Next(10) + 10;
-                shape = rand.Next(5);
+                shape = rand.Next(6);
 
                 dimAlpha = 0.001f;
             }
@@ -54,12 +54,31 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            maxOffset = myUtils.randFloat(rand) * 0.2f;
+            switch (rand.Next(3))
+            {
+                case 0:
+                    maxOffset = myUtils.randFloat(rand) * 0.05f;
+                    break;
+
+                case 1:
+                    maxOffset = myUtils.randFloat(rand) * 0.10f;
+                    break;
+
+                case 2:
+                    maxOffset = myUtils.randFloat(rand) * 0.20f;
+                    break;
+
+                case 3:
+                    maxOffset = myUtils.randFloat(rand) * 0.30f;
+                    break;
+            }
+
             renderDelay = rand.Next(11) + 3;
 
+            offsetMode = rand.Next(13);
             maxSize = rand.Next(35) + 15;
             opacityMode = rand.Next(9);
-            angleMode = rand.Next(3);
+            angleMode = rand.Next(4);
 
             return;
         }
@@ -75,7 +94,9 @@ namespace my
 
             string str = $"Obj = myObj_450\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"shape = {shape}\n"                     +
                             $"maxSize = {maxSize}\n"                 +
+                            $"offsetMode = {offsetMode}\n"           +
                             $"opacityMode = {opacityMode}\n"         +
                             $"angleMode = {angleMode}\n"             +
                             $"dimAlpha = {fStr(dimAlpha)}\n"         +
@@ -101,7 +122,8 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            size = rand.Next(maxSize) + 3;
+            w = rand.Next(maxSize) + 3;
+            h = rand.Next(maxSize) + 3;
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -137,7 +159,7 @@ namespace my
             }
 
             // Offset picked color
-            switch (rand.Next(7))
+            switch (offsetMode < 7 ? offsetMode : rand.Next(7))
             {
                 case 0:
                     R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
@@ -184,6 +206,10 @@ namespace my
                 case 2:
                     angle = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.05f;
                     break;
+
+                case 3:
+                    angle = myUtils.randFloat(rand);
+                    break;
             }
 
             return;
@@ -202,7 +228,7 @@ namespace my
 
         protected override void Show()
         {
-            float size2x = size * 2;
+            float size2x = w * 2;
 
             switch (shape)
             {
@@ -210,7 +236,7 @@ namespace my
                 case 0:
                     var rectInst = inst as myRectangleInst;
 
-                    rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                    rectInst.setInstanceCoords(x - w, y - w, size2x, size2x);
                     rectInst.setInstanceColor(R, G, B, A);
                     rectInst.setInstanceAngle(angle);
                     break;
@@ -245,6 +271,15 @@ namespace my
 
                     hexagonInst.setInstanceCoords(x, y, size2x, angle);
                     hexagonInst.setInstanceColor(R, G, B, A);
+                    break;
+
+                // Instanced rectangles
+                case 5:
+                    var rectInst2 = inst as myRectangleInst;
+
+                    rectInst2.setInstanceCoords(x - w, y - h, 2 * w, 2 * h);
+                    rectInst2.setInstanceColor(R, G, B, A);
+                    rectInst2.setInstanceAngle(angle);
                     break;
             }
 
@@ -333,7 +368,8 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, N, 0);
+
+            base.initShapes(shape < 5 ? shape : 0, N, 0);
 
             return;
         }
