@@ -3,6 +3,7 @@ using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 
 
 /*
@@ -254,6 +255,47 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        public Bitmap GenerateStars(int width, int height)
+        {
+            Bitmap bmp = new Bitmap(width, height);
+
+            // задаем начальный цвет для градиента
+            Color startColor = Color.Black;
+
+            // создаем пустой объект Bitmap и объект Graphics для него
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                // задаем режим интерполяции для градиента
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+                // создаем градиент с начальным и конечным цветами
+                LinearGradientBrush brush = new LinearGradientBrush(new Point(0, 0), new Point(0, height), startColor, Color.Transparent);
+
+                // добавляем в градиент несколько цветов туманностей
+                brush.InterpolationColors = new ColorBlend()
+                {
+                    Colors = new Color[]
+                    {
+                        Color.FromArgb(255, 0, 0, 0),
+                        Color.FromArgb(255, rand.Next(20), rand.Next(20), rand.Next(20)),
+                        Color.FromArgb(255, rand.Next(50), rand.Next(50), rand.Next(50)),
+                        Color.FromArgb(255, rand.Next(20), rand.Next(20), rand.Next(20)),
+                        Color.FromArgb(255, 0, 0, 0)
+                    },
+
+                    Positions = new float[] { 0f, 0.2f, 0.5f, 0.8f, 1f } // позиции цветов
+                };
+
+                // заполняем битмап градиентом
+                g.FillRectangle(brush, new Rectangle(0, 0, width, height));
+
+                // освобождаем ресурсы градиента
+                brush.Dispose();
+            }
+
+            return bmp;
+        }
+
         protected override void Process(Window window)
         {
             uint cnt = 0;
@@ -261,6 +303,8 @@ namespace my
 
             // Build the background Galaxy
             var bgrTex = new myTexRectangle(buildGalaxy());
+
+            //var bgrTex = new myTexRectangle(GenerateStars(gl_Width, gl_Height));
 
             if (doClearBuffer)
             {
@@ -410,8 +454,51 @@ namespace my
             using (var gr = Graphics.FromImage(bmp))
             using (var br = new SolidBrush(Color.Red))
             {
+                RectangleF rect = new RectangleF(0, 0, gl_Width, gl_Height);
+
                 // Black background
-                gr.FillRectangle(Brushes.Black, 0, 0, gl_Width, gl_Height);
+                //gr.FillRectangle(Brushes.Black, 0, 0, gl_Width, gl_Height);
+
+                /*
+                                LinearGradientBrush brush = new LinearGradientBrush(rect, Color.Black, Color.FromArgb(5, 5, 25), LinearGradientMode.Vertical);
+                                gr.FillRectangle(brush, rect);
+                */
+
+
+                // задаем начальный цвет для градиента
+                Color startColor = Color.Black;
+
+                // создаем пустой объект Bitmap и объект Graphics для него
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    // задаем режим интерполяции для градиента
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+                    // создаем градиент с начальным и конечным цветами
+                    LinearGradientBrush brush = new LinearGradientBrush(new Point(0, 0), new Point(0, gl_Height), startColor, Color.Transparent);
+
+                    // добавляем в градиент несколько цветов туманностей
+                    brush.InterpolationColors = new ColorBlend()
+                    {
+                        Colors = new Color[]
+                        {
+                        Color.FromArgb(255, 0, 0, 0),
+                        Color.FromArgb(255, rand.Next(20), rand.Next(20), rand.Next(20)),
+                        Color.FromArgb(255, rand.Next(33), rand.Next(33), rand.Next(33)),
+                        Color.FromArgb(255, rand.Next(20), rand.Next(20), rand.Next(20)),
+                        Color.FromArgb(255, 0, 0, 0)
+                        },
+
+                        Positions = new float[] { 0f, 0.2f, 0.5f, 0.8f, 1f } // позиции цветов
+                    };
+
+                    // заполняем битмап градиентом
+                    g.FillRectangle(brush, new Rectangle(0, 0, gl_Width, gl_Height));
+
+                    // освобождаем ресурсы градиента
+                    brush.Dispose();
+                }
+
 
                 // Add low opacity colored spots
                 for (int i = 0; i < 10; i++)
