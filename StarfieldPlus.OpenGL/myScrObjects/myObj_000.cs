@@ -26,6 +26,8 @@ namespace my
 
         protected static myHexagonInst staticStarBgr = null;
 
+        static string ssstmp = "";
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_000()
@@ -97,6 +99,8 @@ namespace my
                             $"connectOpacity = {connectOpacity}\n"     +
                             $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
+
+                            + "\n\n" + ssstmp;
                 ;
             return str;
         }
@@ -255,47 +259,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public Bitmap GenerateStars(int width, int height)
-        {
-            Bitmap bmp = new Bitmap(width, height);
-
-            // задаем начальный цвет для градиента
-            Color startColor = Color.Black;
-
-            // создаем пустой объект Bitmap и объект Graphics для него
-            using (Graphics g = Graphics.FromImage(bmp))
-            {
-                // задаем режим интерполяции для градиента
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-
-                // создаем градиент с начальным и конечным цветами
-                LinearGradientBrush brush = new LinearGradientBrush(new Point(0, 0), new Point(0, height), startColor, Color.Transparent);
-
-                // добавляем в градиент несколько цветов туманностей
-                brush.InterpolationColors = new ColorBlend()
-                {
-                    Colors = new Color[]
-                    {
-                        Color.FromArgb(255, 0, 0, 0),
-                        Color.FromArgb(255, rand.Next(20), rand.Next(20), rand.Next(20)),
-                        Color.FromArgb(255, rand.Next(50), rand.Next(50), rand.Next(50)),
-                        Color.FromArgb(255, rand.Next(20), rand.Next(20), rand.Next(20)),
-                        Color.FromArgb(255, 0, 0, 0)
-                    },
-
-                    Positions = new float[] { 0f, 0.2f, 0.5f, 0.8f, 1f } // позиции цветов
-                };
-
-                // заполняем битмап градиентом
-                g.FillRectangle(brush, new Rectangle(0, 0, width, height));
-
-                // освобождаем ресурсы градиента
-                brush.Dispose();
-            }
-
-            return bmp;
-        }
-
         protected override void Process(Window window)
         {
             uint cnt = 0;
@@ -303,8 +266,6 @@ namespace my
 
             // Build the background Galaxy
             var bgrTex = new myTexRectangle(buildGalaxy());
-
-            //var bgrTex = new myTexRectangle(GenerateStars(gl_Width, gl_Height));
 
             if (doClearBuffer)
             {
@@ -446,118 +407,183 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Build random Galaxy background
+        private void setUpBackground(Graphics g, int w, int h)
+        {
+            switch (rand.Next(5))
+            {
+                // Black background
+                case 0:
+                    {
+                        ssstmp = "mode0";
+                        g.FillRectangle(Brushes.Black, 0, 0, w, h);
+                    }
+                    break;
+
+                // Linear 2-color gradient in a random direction
+                case 1:
+                case 2:
+                    {
+                        ssstmp = "mode1";
+                        RectangleF rect = new RectangleF(0, 0, w, h);
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+                        Color color1 = myUtils.randomBool(rand) ? Color.Black : Color.FromArgb(255, rand.Next(23), rand.Next(23), rand.Next(23));
+                        Color color2 =  (color1 != Color.Black) ? Color.Black : Color.FromArgb(255, rand.Next(23), rand.Next(23), rand.Next(23));
+
+                        LinearGradientBrush grad = new LinearGradientBrush(rect, color1, color2, (LinearGradientMode)rand.Next(4));
+
+                        g.FillRectangle(grad, rect);
+                        grad.Dispose();
+                    }
+                    break;
+
+                // Linear multi-color gradient
+                case 3:
+                case 4:
+                    {
+                        Color startColor = Color.Black;                                 // задаем начальный цвет для градиента
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;     // задаем режим интерполяции для градиента
+
+                        // создаем градиент с начальным и конечным цветами
+                        LinearGradientBrush grad = new LinearGradientBrush(new Point(0, 0), new Point(0, h), startColor, Color.Transparent);
+
+                        // todo: limit max value for each r+g+b triplet. The value over 60 seems to be too much already.
+
+                        int r2 = rand.Next(20);
+                        int g2 = rand.Next(20);
+                        int b2 = rand.Next(20);
+
+                        int r3 = rand.Next(33);
+                        int g3 = rand.Next(33);
+                        int b3 = rand.Next(33);
+
+                        int r4 = rand.Next(20);
+                        int g4 = rand.Next(20);
+                        int b4 = rand.Next(20);
+
+                        ssstmp = $"{r2}-{g2}-{b2} == {r2+g2+b2}\n{r3}-{g3}-{b3} == {r3+g3+b3}\n{r4}-{g4}-{b4} == {r4+g4+b4}";
+
+                        // добавляем в градиент несколько цветов туманностей
+                        grad.InterpolationColors = new ColorBlend()
+                        {
+                            // Colors
+                            Colors = new Color[]
+                            {
+                                Color.FromArgb(255, rand.Next(05), rand.Next(05), rand.Next(05)),
+                                Color.FromArgb(255, r2, g2, b2),
+                                Color.FromArgb(255, r3, g3, b3),
+                                Color.FromArgb(255, r4, g4, b4),
+                                Color.FromArgb(255, rand.Next(05), rand.Next(05), rand.Next(05))
+                            },
+
+                            // Color positions
+                            Positions = new float[]
+                            {
+                                0.0f,
+                                0.2f + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.10f,
+                                0.5f + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.15f,
+                                0.8f + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.10f,
+                                1.0f 
+                            }
+                        };
+
+                        // заполняем битмап градиентом
+                        g.FillRectangle(grad, new Rectangle(0, 0, w, h));
+
+                        // освобождаем ресурсы градиента
+                        grad.Dispose();
+                    }
+                    break;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Build random Galaxy
         private Bitmap buildGalaxy()
         {
-            Bitmap bmp = new Bitmap(gl_Width, gl_Height);
-            int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+            Bitmap bmp = null;
 
-            using (var gr = Graphics.FromImage(bmp))
-            using (var br = new SolidBrush(Color.Red))
+            int w = gl_Width;
+            int h = gl_Height;
+
+            try
             {
-                RectangleF rect = new RectangleF(0, 0, gl_Width, gl_Height);
+                int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 
-                // Black background
-                //gr.FillRectangle(Brushes.Black, 0, 0, gl_Width, gl_Height);
+                bmp = new Bitmap(w, h);
 
-                /*
-                                LinearGradientBrush brush = new LinearGradientBrush(rect, Color.Black, Color.FromArgb(5, 5, 25), LinearGradientMode.Vertical);
-                                gr.FillRectangle(brush, rect);
-                */
-
-
-                // задаем начальный цвет для градиента
-                Color startColor = Color.Black;
-
-                // создаем пустой объект Bitmap и объект Graphics для него
-                using (Graphics g = Graphics.FromImage(bmp))
+                using (var gr = Graphics.FromImage(bmp))
+                using (var br = new SolidBrush(Color.Red))
                 {
-                    // задаем режим интерполяции для градиента
-                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    // Add background
+                    setUpBackground(gr, w, h);
 
-                    // создаем градиент с начальным и конечным цветами
-                    LinearGradientBrush brush = new LinearGradientBrush(new Point(0, 0), new Point(0, gl_Height), startColor, Color.Transparent);
-
-                    // добавляем в градиент несколько цветов туманностей
-                    brush.InterpolationColors = new ColorBlend()
+                    // Add low opacity colored spots
+                    for (int i = 0; i < 10; i++)
                     {
-                        Colors = new Color[]
+                        int opacity = rand.Next(7) + 1;
+
+                        x1 = rand.Next(w);
+                        y1 = rand.Next(h);
+
+                        x2 = rand.Next(333) + 100 * opacity;
+                        y2 = rand.Next(333) + 100 * opacity;
+
+                        br.Color = Color.FromArgb(1, rand.Next(256), rand.Next(256), rand.Next(256));
+
+                        while (opacity != 0)
                         {
-                        Color.FromArgb(255, 0, 0, 0),
-                        Color.FromArgb(255, rand.Next(20), rand.Next(20), rand.Next(20)),
-                        Color.FromArgb(255, rand.Next(33), rand.Next(33), rand.Next(33)),
-                        Color.FromArgb(255, rand.Next(20), rand.Next(20), rand.Next(20)),
-                        Color.FromArgb(255, 0, 0, 0)
-                        },
+                            gr.FillRectangle(br, x1, y1, x2, y2);
 
-                        Positions = new float[] { 0f, 0.2f, 0.5f, 0.8f, 1f } // позиции цветов
-                    };
-
-                    // заполняем битмап градиентом
-                    g.FillRectangle(brush, new Rectangle(0, 0, gl_Width, gl_Height));
-
-                    // освобождаем ресурсы градиента
-                    brush.Dispose();
-                }
-
-
-                // Add low opacity colored spots
-                for (int i = 0; i < 10; i++)
-                {
-                    int opacity = rand.Next(7) + 1;
-
-                    x1 = rand.Next(gl_Width);
-                    y1 = rand.Next(gl_Height);
-
-                    x2 = rand.Next(333) + 100 * opacity;
-                    y2 = rand.Next(333) + 100 * opacity;
-
-                    br.Color = Color.FromArgb(1, rand.Next(256), rand.Next(256), rand.Next(256));
-
-                    while (opacity != 0)
-                    {
-                        gr.FillRectangle(br, x1, y1, x2, y2);
-
-                        x1 += rand.Next(25) + 25;
-                        y1 += rand.Next(25) + 25;
-                        x2 -= rand.Next(50) + 50;
-                        y2 -= rand.Next(50) + 50;
-                        opacity--;
+                            x1 += rand.Next(25) + 25;
+                            y1 += rand.Next(25) + 25;
+                            x2 -= rand.Next(50) + 50;
+                            y2 -= rand.Next(50) + 50;
+                            opacity--;
+                        }
                     }
-                }
 
-                // Add nebulae
-                for (int k = 0; k < 111; k++)
-                {
-                    for (int i = 0; i < 3; i++)
+                    // Add nebulae
+                    for (int k = 0; k < 111; k++)
                     {
-                        x1 = rand.Next(gl_Width);
-                        y1 = rand.Next(gl_Height);
-
-                        int masterOpacity = rand.Next(100) + 100;
-                        int radius1 = rand.Next(250) + 100;
-                        int radius2 = rand.Next(250) + 100;
-                        colorPicker.getColor(br, x1, y1, masterOpacity);
-
-                        gr.FillRectangle(br, x1, y1, 1, 1);
-
-                        for (int j = 0; j < 100; j++)
+                        for (int i = 0; i < 3; i++)
                         {
-                            x2 = x1 + rand.Next(radius1) - radius1 / 2;
-                            y2 = y1 + rand.Next(radius2) - radius2 / 2;
+                            x1 = rand.Next(w);
+                            y1 = rand.Next(h);
 
-                            int maxSlaveOpacity = 50 + rand.Next(50);
-                            int slaveOpacity = rand.Next(maxSlaveOpacity);
+                            int masterOpacity = rand.Next(100) + 100;
+                            int radius1 = rand.Next(250) + 100;
+                            int radius2 = rand.Next(250) + 100;
+                            colorPicker.getColor(br, x1, y1, masterOpacity);
 
-                            br.Color = Color.FromArgb(slaveOpacity, br.Color.R, br.Color.G, br.Color.B);
-                            gr.FillRectangle(br, x2, y2, 1, 1);
+                            gr.FillRectangle(br, x1, y1, 1, 1);
 
-                            int r = rand.Next(2) + 3;
+                            for (int j = 0; j < 100; j++)
+                            {
+                                x2 = x1 + rand.Next(radius1) - radius1 / 2;
+                                y2 = y1 + rand.Next(radius2) - radius2 / 2;
 
-                            br.Color = Color.FromArgb(3, br.Color.R, br.Color.G, br.Color.B);
-                            gr.FillRectangle(br, x2 - r, y2 - r, 2 * r, 2 * r);
+                                int maxSlaveOpacity = 50 + rand.Next(50);
+                                int slaveOpacity = rand.Next(maxSlaveOpacity);
+
+                                br.Color = Color.FromArgb(slaveOpacity, br.Color.R, br.Color.G, br.Color.B);
+                                gr.FillRectangle(br, x2, y2, 1, 1);
+
+                                int r = rand.Next(2) + 3;
+
+                                br.Color = Color.FromArgb(3, br.Color.R, br.Color.G, br.Color.B);
+                                gr.FillRectangle(br, x2 - r, y2 - r, 2 * r, 2 * r);
+                            }
                         }
                     }
                 }
+            }
+            catch (System.Exception ex)
+            {
+                throw ex;
             }
 
             return bmp;
