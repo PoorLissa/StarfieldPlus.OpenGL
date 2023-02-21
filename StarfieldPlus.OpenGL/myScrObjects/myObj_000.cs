@@ -409,6 +409,19 @@ namespace my
         // Build random Galaxy background
         private void setUpBackground(Graphics g, int w, int h)
         {
+            void localGetRGB(int maxValue, int maxAggregate, ref int R, ref int G, ref int B)
+            {
+                do
+                {
+                    R = rand.Next(maxValue);
+                    G = rand.Next(maxValue);
+                    B = rand.Next(maxValue);
+                }
+                while (R + G + B > maxAggregate);
+            }
+
+            // ---------------------------------------------------------------------------
+
             switch (rand.Next(5))
             {
                 // Black background
@@ -449,17 +462,13 @@ namespace my
 
                         // todo: limit max value for each r+g+b triplet. The value over 60 seems to be too much already.
 
-                        int r2 = rand.Next(20);
-                        int g2 = rand.Next(20);
-                        int b2 = rand.Next(20);
+                        int r2 = 0, g2 = 0, b2 = 0;
+                        int r3 = 0, g3 = 0, b3 = 0;
+                        int r4 = 0, g4 = 0, b4 = 0;
 
-                        int r3 = rand.Next(33);
-                        int g3 = rand.Next(33);
-                        int b3 = rand.Next(33);
-
-                        int r4 = rand.Next(20);
-                        int g4 = rand.Next(20);
-                        int b4 = rand.Next(20);
+                        localGetRGB(20, 35, ref r2, ref g2, ref b2);
+                        localGetRGB(33, 50, ref r3, ref g3, ref b3);
+                        localGetRGB(20, 35, ref r4, ref g4, ref b4);
 
                         ssstmp = $"{r2}-{g2}-{b2} == {r2+g2+b2}\n{r3}-{g3}-{b3} == {r3+g3+b3}\n{r4}-{g4}-{b4} == {r4+g4+b4}";
 
