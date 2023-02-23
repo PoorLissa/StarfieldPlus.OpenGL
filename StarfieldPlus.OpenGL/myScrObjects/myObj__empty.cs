@@ -38,6 +38,8 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
+
+                shape = rand.Next(5);
             }
 
             initLocal();
