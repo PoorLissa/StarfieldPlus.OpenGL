@@ -458,7 +458,7 @@ namespace my
                         g.InterpolationMode = InterpolationMode.HighQualityBicubic;     // задаем режим интерполяции для градиента
 
                         // создаем градиент с начальным и конечным цветами
-                        LinearGradientBrush grad = new LinearGradientBrush(new Point(0, 0), new Point(0, h), startColor, Color.Transparent);
+                        LinearGradientBrush grad = new LinearGradientBrush(new Point(0, 0), new Point(0, h), startColor, Color.Black);
 
                         // todo: limit max value for each r+g+b triplet. The value over 60 seems to be too much already.
 
@@ -466,9 +466,9 @@ namespace my
                         int r3 = 0, g3 = 0, b3 = 0;
                         int r4 = 0, g4 = 0, b4 = 0;
 
-                        localGetRGB(20, 35, ref r2, ref g2, ref b2);
-                        localGetRGB(33, 50, ref r3, ref g3, ref b3);
-                        localGetRGB(20, 35, ref r4, ref g4, ref b4);
+                        localGetRGB(10, 13, ref r2, ref g2, ref b2);
+                        localGetRGB(15, 17, ref r3, ref g3, ref b3);
+                        localGetRGB(10, 13, ref r4, ref g4, ref b4);
 
                         ssstmp = $"{r2}-{g2}-{b2} == {r2+g2+b2}\n{r3}-{g3}-{b3} == {r3+g3+b3}\n{r4}-{g4}-{b4} == {r4+g4+b4}";
 
