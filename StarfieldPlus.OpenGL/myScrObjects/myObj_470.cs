@@ -19,8 +19,9 @@ namespace my
         private float lineTh;
         private int cnt, dir;
 
-        private static int N = 0;
-        private static float dimAlpha = 0.05f, angleFactor = 1;
+        private static int N = 0, dirMode = 0, drawMode = 0, di = 0;
+        private static float dimAlpha = 0.05f, angleFactor = 1, dA;
+        private static bool doUseRandSpeed = true;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -39,7 +40,18 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(100) + 1000;
+                switch (rand.Next(5))
+                {
+                    case 0:
+                        N = rand.Next(100) + 10000;
+                        dA = 0;
+                        break;
+
+                    default:
+                        N = rand.Next(100) + 100;
+                        dA = -0.0075f;
+                        break;
+                }
             }
 
             initLocal();
@@ -50,12 +62,27 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer  = myUtils.randomChance(rand, 2, 3);
+            doUseRandSpeed = myUtils.randomChance(rand, 1, 3);
 
-            angleFactor = rand.Next(10) + 1.0f + myUtils.randFloat(rand);
+            dirMode  = rand.Next(13);
+            drawMode = N < 1000 ? rand.Next(2) : 0;
 
-            renderDelay = rand.Next(7) + 3;
-            dimAlpha = 0.2f;
+            // AngleFactor of 1 will result in parallel lines
+            switch (rand.Next(7))
+            {
+                case 0:
+                    angleFactor = 1;
+                    break;
+
+                default:
+                    angleFactor = rand.Next(10) + 1.0f + myUtils.randFloat(rand);
+                    break;
+            }
+
+            di = rand.Next(10) + 1;                 // In drawMode1, height step
+            renderDelay = rand.Next(10);
+            dimAlpha = 0.2f + myUtils.randFloat(rand) * 0.25f;
 
             return;
         }
@@ -67,12 +94,17 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_470\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"doClearBuffer = {doClearBuffer}\n"        +
-                            $"renderDelay = {renderDelay}\n"            +
+            string str = $"Obj = myObj_470\n\n"                      +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doUseRandSpeed = {doUseRandSpeed}\n"   +
+                            $"dirMode = {dirMode}\n"                 +
+                            $"drawMode = {drawMode}\n"               +
+                            $"di = {di}\n"                           +
+                            $"renderDelay = {renderDelay}\n"         +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -91,51 +123,96 @@ namespace my
         protected override void generateNew()
         {
             cnt = rand.Next(100) + 13;
-            dir = rand.Next(2);
+
+            switch (dirMode)
+            {
+                case 0:
+                case 1:
+                    dir = rand.Next(2);
+                    break;
+
+                case 2:
+                case 3:
+                    dir = rand.Next(2) + 2;
+                    break;
+
+                case 4:
+                    dir = myUtils.randomBool(rand) ? 0 : 2;
+                    break;
+
+                case 5:
+                    dir = myUtils.randomBool(rand) ? 1 : 3;
+                    break;
+
+                default:
+                    dir = rand.Next(4);
+                    break;
+            }
+
+            // dy
+            float DY = myUtils.randFloat(rand, 0.1f) * 5;
+
+            if (doUseRandSpeed == false)
+            {
+                DY = 3;
+            }
 
             switch (dir)
             {
                 case 0:
                     {
-                        x1 = 0;
-                        y1 = gl_Height + 3;
+                        x1 = -10;
+                        x2 = gl_Width + 10;
+                        y1 = y2 = gl_Height + 3;
 
-                        x2 = gl_Width;
-                        y2 = gl_Height + 3;
-
-                        dx1 = 0;
-                        dy1 = myUtils.randFloat(rand, 0.1f) * 5;
-                        dx2 = 0;
+                        dx1 = dx2 = 0;
+                        dy1 = -DY;
                         dy2 = dy1 * angleFactor;
-
-                        dy1 *= -1;
-                        dy2 *= -1;
                     }
                     break;
 
                 case 1:
                     {
-                        x1 = 0;
-                        y1 = gl_Height + 3;
+                        x1 = -10;
+                        x2 = gl_Width + 10;
+                        y1 = y2 = gl_Height + 3;
 
-                        x2 = gl_Width;
-                        y2 = gl_Height + 3;
-
-                        dx2 = 0;
-                        dy2 = myUtils.randFloat(rand, 0.1f) * 5;
-                        dx1 = 0;
+                        dx1 = dx2 = 0;
+                        dy2 = -DY;
                         dy1 = dy2 * angleFactor;
+                    }
+                    break;
 
-                        dy1 *= -1;
-                        dy2 *= -1;
+                case 2:
+                    {
+                        x1 = -10;
+                        x2 = gl_Width + 10;
+                        y1 = y2 = -3;
+
+                        dx1 = dx2 = 0;
+                        dy2 = DY;
+                        dy1 = dy2 * angleFactor;
+                    }
+                    break;
+
+                case 3:
+                    {
+                        x1 = -10;
+                        x2 = gl_Width + 10;
+                        y1 = y2 = -3;
+
+                        dx1 = dx2 = 0;
+                        dy1 = DY;
+                        dy2 = dy1 * angleFactor;
                     }
                     break;
             }
 
-            lineTh = rand.Next(10) + myUtils.randFloat(rand);
+            lineTh = rand.Next(3) + myUtils.randFloat(rand);
 
             colorPicker.getColorRand(ref R, ref G, ref B);
-            A = myUtils.randFloat(rand, 0.1f);
+
+            A = N < 1000 ? myUtils.randFloat(rand, 0.1f) : 0.1f;
 
             return;
         }
@@ -151,7 +228,7 @@ namespace my
                 x2 += dx2;
                 y2 += dy2;
 
-                A -= 0.0075f;
+                A += dA;
 
                 if (true)
                 {
@@ -159,19 +236,26 @@ namespace my
                     dy2 *= 1.001f;
                 }
 
-                switch (dir)
+                if (A < 0)
                 {
-                    case 0:
-                    case 1:
-                        if (y1 < 0 && y2 < 0)
-                            generateNew();
-                        break;
+                    generateNew();
+                }
+                else
+                {
+                    switch (dir)
+                    {
+                        case 0:
+                        case 1:
+                            if (y1 < 0 && y2 < 0)
+                                generateNew();
+                            break;
 
-                    case 2:
-                    case 3:
-                        if (y1 > gl_Height && y2 > gl_Height)
-                            generateNew();
-                        break;
+                        case 2:
+                        case 3:
+                            if (y1 > gl_Height && y2 > gl_Height)
+                                generateNew();
+                            break;
+                    }
                 }
             }
 
@@ -182,8 +266,32 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._Line.SetColor(R, G, B, A);
-            myPrimitive._Line.Draw(x1, y1, x2, y2, lineTh);
+            switch (drawMode)
+            {
+                case 0:
+                    {
+                        myPrimitive._Line.SetColor(R, G, B, A / 4);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2, lineTh * 5);
+
+                        myPrimitive._Line.SetColor(R, G, B, A / 2);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2, lineTh * 3);
+
+                        myPrimitive._Line.SetColor(R, G, B, A);
+                        myPrimitive._Line.Draw(x1, y1, x2, y2, lineTh);
+                    }
+                    break;
+
+                case 1:
+                    {
+                        myPrimitive._Line.SetColor(R, G, B, A);
+
+                        for (int i = 0; i < 30; i += di)
+                        {
+                            myPrimitive._Line.Draw(x1, y1 + i, x2, y2 + i, lineTh);
+                        }
+                    }
+                    break;
+            }
 
             return;
         }
