@@ -110,6 +110,7 @@ namespace my
                             $"size = {size}\n"                          +
                             $"moveMode = {moveMode}\n"                  +
                             $"drawMode = {drawMode}\n"                  +
+                            $"doClearBuffer = {doClearBuffer}\n"        +
                             $"doUseCells = {doUseCells}\n"              +
                             $"doUseExtraDim = {doUseExtraDim}\n"        +
                             $"doDrawCellBorder = {doDrawCellBorder}\n"  +
@@ -267,7 +268,10 @@ namespace my
             // Glfw.SwapInterval(0);
 
             dimScreenRGB_SetRandom(0.1f);
+            glDrawBuffer(GL_BACK);
             glDrawBuffer(GL_FRONT_AND_BACK);
+
+            //clearScreenSetup(doClearBuffer, 0.1f);
 
             while (!Glfw.WindowShouldClose(window))
             {
