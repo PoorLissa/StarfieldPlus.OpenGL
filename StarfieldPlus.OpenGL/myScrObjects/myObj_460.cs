@@ -14,11 +14,11 @@ namespace my
     public class myObj_460 : myObject
     {
         private float x, y, dx, dy, oldx, oldy, rad;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, angle = 0, dAngle = 0;
 
         private static int N = 0, n = 1, shape = 0, generatorMoveMode = 0, pointDirMode = 0, pointMoveMode = 0;
         private static bool doFillShapes = false, doShowTrails = true, doRandomizeSpeedVector = true;
-        private static float dimAlpha = 0.05f, t = 0, dt = 0, timeFactor = 0, gravityFactor = 1;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0, tRad = 0, dtRad = 0, timeFactor = 0, gravityFactor = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -50,6 +50,7 @@ namespace my
             initLocal();
 
             t = 0;
+            tRad = 0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -62,24 +63,10 @@ namespace my
             doRandomizeSpeedVector = myUtils.randomBool(rand);
 
             generatorMoveMode = rand.Next(2);
-            pointMoveMode     = rand.Next(4);
+            pointMoveMode     = rand.Next(5);
             pointDirMode      = rand.Next(5);
 
             dimAlpha = 0.15f;
-
-            dt = 0.033f;
-
-            // Set up dt (The less is dt, the larger becomes final radius)
-            {
-                dt *= 0.1f;
-                //rad /= 3; -- change it in generateNew
-            }
-
-            switch (rand.Next(2))
-            {
-                case 0: dt *= +1; break;
-                case 1: dt *= -1; break;
-            }
 
             // Set Time Factor
             {
@@ -95,6 +82,16 @@ namespace my
                         timeFactor = rand.Next(maxTimeFactor) + 1 + myUtils.randFloat(rand);
                         break;
                 }
+            }
+
+            // Set up dt (The less is dt, the larger becomes final radius)
+            {
+                dt = myUtils.randomSign(rand) * 0.033f;
+                dtRad = 0.033f;
+
+                //dt *= 0.1f;
+                //timeFactor *= 2;
+                //rad /= 3; -- change it in generateNew
             }
 
             // Set Gravity Factor
@@ -159,7 +156,7 @@ namespace my
             if (id < n)
             {
                 rad = 666;
-                rad /= 5;
+                //rad /= 5;
 
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Height);
@@ -236,7 +233,7 @@ namespace my
                     case 0:
                         break;
 
-                    // Slow the particles down using the same rate
+                    // Slow down the particles using the same rate
                     case 1:
                         rate = 0.25f;
                         dx *= rate;
@@ -259,11 +256,23 @@ namespace my
                             dy = 0;
                         }
                         break;
+
+                    // Radial out mode
+                    case 4:
+                        {
+                            double dist = Math.Sqrt((x - gl_x0) * (x - gl_x0) + (y - gl_y0) * (y - gl_y0));
+                            double sp_dist = 10 / dist;
+
+                            dx = (float)((x - gl_x0) * sp_dist);
+                            dy = (float)((y - gl_y0) * sp_dist);
+                        }
+                        break;
                 }
 
                 size = rand.Next(1) + 3;
                 A = myUtils.randFloat(rand, 0.1f) * 0.5f;
                 angle = myUtils.randFloat(rand);
+                dAngle = myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.01f;
             }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -284,12 +293,13 @@ namespace my
                 y = gl_y0 + (float)Math.Cos(t) * rad;
 
                 t += dt;
+                tRad += dtRad;
 
                 switch (generatorMoveMode)
                 {
                     case 0:
                     case 1:
-                        rad -= (float)Math.Sin(t * timeFactor) * 10;
+                        rad -= (float)Math.Sin(tRad * timeFactor) * 10;
                         break;
                 }
             }
@@ -311,6 +321,8 @@ namespace my
                 // Keep track of the trail
                 oldx += dx * 0.75f;
                 oldy += dy * 0.75f;
+
+                angle += dAngle;
 
                 switch (pointMoveMode)
                 {
