@@ -17,7 +17,7 @@ public class ScreenSaver
         myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
-        myObj_400, myObj_410, myObj_420, myObj_430, myObj_440, myObj_450, myObj_460,
+        myObj_400, myObj_410, myObj_420, myObj_430, myObj_440, myObj_450, myObj_460, myObj_470,
         myObj_999a,
         myObj_last
     };
@@ -100,6 +100,7 @@ public class ScreenSaver
     // - rain with pseudo-depth (the farther away are the drops, the slower is their speed, the higher is bottom threshold)
     // - similar to myObj_180, but there are lots of generators, each located in the intersection of a grid.
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
+    // - 
     
 
 
@@ -108,7 +109,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_460;
+        id = ids.myObj_470;
 #endif
 
         switch (id)
@@ -348,6 +349,11 @@ public class ScreenSaver
             // - point cyclically moves on a spiral, constantly leaving a trail. Trail is made of particles that move outwards from the center OR in a point's opposite direction
             case ids.myObj_460:
                 _obj = new my.myObj_460();
+                break;
+
+            // - ... skewed lines
+            case ids.myObj_470:
+                _obj = new my.myObj_470();
                 break;
 
             // Test rotating shape, unfinished yet good
