@@ -110,7 +110,8 @@ namespace my
                             $"colorMode = {colorMode}\n"                +
                             $"fillMode = {fillMode}\n"                  +
                             $"lineMode = {lineMode}\n"                  +
-                            $"maxRnd = {maxRnd}\n"
+                            $"maxRnd = {maxRnd}\n"                      +
+                            $"renderDelay = {renderDelay}\n"
                 ;
         }
 
