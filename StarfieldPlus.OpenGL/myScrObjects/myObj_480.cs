@@ -16,9 +16,11 @@ namespace my
         private float x, y, oldx, oldy, dx, dy;
         private float size, A, R, G, B;
 
-        private static int N = 0, colorMode = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, t = 0, dt = 0;
+        private static int N = 0, dtCount = 0, colorMode = 0, moveMode = 0;
+        private static bool doUseDdt = true, doUseNoise = true;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0, ddt = 0, lineTh = 1;
+
+        private static int[] prm_i = new int[5];
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -49,12 +51,35 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
+            doUseNoise = myUtils.randomChance(rand, 1, 3);      // Add some random noise to the final signal
+            doUseDdt = myUtils.randomBool(rand);                // true: dt is going to change over time
 
+            moveMode = rand.Next(9);
             colorMode = rand.Next(2);
 
             dt = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * 0.1f;
 
             dimAlpha = 0.1f + myUtils.randFloat(rand) * 0.2f;
+
+            lineTh = 0.25f + myUtils.randFloat(rand) * rand.Next(10);
+
+            switch (moveMode)
+            {
+                case 004:
+                    prm_i[0] = rand.Next(100) + 3;
+                    break;
+
+                case 005:
+                    break;
+
+                case 006:
+                    prm_i[0] = rand.Next(13) + 2;
+                    prm_i[1] = rand.Next(33) + 1;
+                    prm_i[2] = rand.Next(10) + 1;
+                    break;
+            }
+
+            renderDelay = rand.Next(11) + 3;
 
             return;
         }
@@ -69,8 +94,14 @@ namespace my
             string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_480\n\n"                       +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"renderDelay = {renderDelay}\n"            +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"  +
+                            $"moveMode = {moveMode}\n"                +
+                            $"colorMode = {colorMode}\n"              +
+                            $"doUseDdt = {doUseDdt}\n"                +
+                            $"doUseNoise = {doUseNoise}\n"            +
+                            $"lineTh = {fStr(lineTh)}\n"              +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"          +
+                            $"renderDelay = {renderDelay}\n"          +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -96,7 +127,23 @@ namespace my
 
             size = rand.Next(333) + 111;
 
-            colorPicker.getColorRand(ref R, ref G, ref B);
+            switch (colorMode)
+            {
+                case 0:
+                    colorPicker.getColorRand(ref R, ref G, ref B);
+                    break;
+
+                case 1:
+                    do
+                    {
+                        R = myUtils.randFloat(rand);
+                        G = myUtils.randFloat(rand);
+                        B = myUtils.randFloat(rand);
+                    }
+                    while (R + G + B < 0.33f);
+                    break;
+            }
+
             A = 1;
 
             return;
@@ -107,6 +154,28 @@ namespace my
         protected override void Move()
         {
             t += dt;
+
+            if (doUseDdt)
+            {
+                if (dtCount == 0)
+                {
+                    ddt = 0;
+
+                    if (myUtils.randomChance(rand, 1, 33))
+                    {
+                        if (myUtils.randomChance(rand, 1, 3))
+                        {
+                            ddt = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.001f;
+                            dtCount = rand.Next(100);
+                        }
+                    }
+                }
+                else
+                {
+                    dtCount--;
+                    dt += ddt;
+                }
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -119,6 +188,7 @@ namespace my
             y = gl_y0 + (float)Math.Sin(x * xFactor + t) * size;
 
             myPrimitive._LineInst.ResetBuffer();
+            myPrimitive._RectangleInst.ResetBuffer();
 
             while (x <= gl_Width)
             {
@@ -127,21 +197,66 @@ namespace my
 
                 x += dx;
                 y = (float)Math.Sin(x * xFactor + t);
-                y += (float)Math.Cos(y*t);
+
+                float Y = y;
+
+                switch (moveMode)
+                {
+                    case 000:
+                        y += myUtils.randFloat(rand) * 0.5f;
+                        break;
+
+                    case 001:
+                        y += (float)Math.Cos(y * t);
+                        break;
+
+                    case 002:
+                        y += (float)Math.Cos(y * y);
+                        y += (float)Math.Cos(y * t);
+                        break;
+
+                    case 003:
+                        y += (float)Math.Cos(x / 2 * xFactor + t);
+                        break;
+
+                    case 004:
+                        y += (float)Math.Cos(Math.Cos(x/prm_i[0]));
+                        break;
+
+                    case 005:
+                        y += (int)(Math.Cos(x * xFactor + t/2) * 3);
+                        break;
+
+                    case 006:
+                        y += (int)(Math.Cos(x * xFactor / prm_i[2] + t / prm_i[1]) * prm_i[0]) / (prm_i[0] / 2);
+                        break;
+
+                    case 007:
+                        y += (float)(Math.Sin(Y * Y * Y * t/10) * 50) / 49;
+                        break;
+
+                    case 008:
+                        y += (int)(Math.Sin(Y * Y * Y * t / 10) * 50) / 49;
+                        break;
+                }
+
+                if (doUseNoise)
+                {
+                    y += myUtils.randFloat(rand) * 0.1f;
+                }
 
                 y = gl_y0 + y * size;
 
                 myPrimitive._LineInst.setInstanceCoords(x, y, oldx, oldy);
+                myPrimitive._LineInst.setInstanceColor(R, G, B, A/2);
 
-                if (colorMode == 1)
-                {
-                    colorPicker.getColor(x, y, ref R, ref G, ref B);
-                }
-
-                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                myPrimitive._RectangleInst.setInstanceCoords(x - 3, y - 3, 6, 6);
+                myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                myPrimitive._RectangleInst.setInstanceAngle(0);
             }
 
             myPrimitive._LineInst.Draw();
+            myPrimitive._RectangleInst.Draw();
 
             return;
         }
@@ -190,6 +305,8 @@ namespace my
 
                 // Render Frame
                 {
+                    glLineWidth(lineTh);
+
                     for (int i = 0; i != list.Count; i++)
                     {
                         var obj = list[i] as myObj_480;
@@ -218,6 +335,8 @@ namespace my
             myPrimitive.init_ScrDimmer();
 
             myPrimitive.init_LineInst(gl_Width);
+
+            base.initShapes(0, gl_Width, 0);
 
             return;
         }
