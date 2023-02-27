@@ -62,6 +62,30 @@ namespace my
             N = 2345;
             N = 3333;
 
+            // As it is a very processor-consuming task, reduce the number of particles in most of the cases:
+            switch (rand.Next(5))
+            {
+                case 0:
+                    N = rand.Next(666) + 666;
+                    break;
+
+                case 1:
+                    N = rand.Next(777) + 777;
+                    break;
+
+                case 2:
+                    N = rand.Next(1111) + 1111;
+                    break;
+
+                case 3:
+                    N = 2345;
+                    break;
+
+                case 4:
+                    N = 3333;
+                    break;
+            }
+
             doUseRandomMass = myUtils.randomBool(rand);
 
             //doUseRandomMass = false;
@@ -83,10 +107,11 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_230\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"nTaskCount = {nTaskCount}\n" +
-                            $"proc = {proc}\n" +
+            string str = $"Obj = myObj_230\n\n"                 +
+                            $"N = {list.Count} of {N}\n"        +
+                            $"nTaskCount = {nTaskCount}\n"      +
+                            $"proc = {proc}\n"                  +
+                            $"renderDelay = {renderDelay}\n"    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

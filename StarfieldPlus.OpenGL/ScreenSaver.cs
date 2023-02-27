@@ -67,6 +67,9 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // todo:
+    //  - make every object report its number of submodes; then use this number in a ramdom picking of the active object -- to level out every mode's probability
+
     // todo from the old StarfieldPlus:
     // - divide the screen in squares and swap them randomly
     // - gravity
@@ -109,7 +112,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_041;
+        //id = ids.myObj_050;
 #endif
 
         switch (id)
