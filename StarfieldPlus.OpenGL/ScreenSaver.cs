@@ -17,7 +17,7 @@ public class ScreenSaver
         myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
-        myObj_400, myObj_410, myObj_420, myObj_430, myObj_440, myObj_450, myObj_460, myObj_470,
+        myObj_400, myObj_410, myObj_420, myObj_430, myObj_440, myObj_450, myObj_460, myObj_470, myObj_480,
         myObj_999a,
         myObj_last
     };
@@ -67,6 +67,9 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // todo:
+    //  - make every object report its number of submodes; then use this number in a ramdom picking of the active object -- to level out every mode's probability
+
     // todo from the old StarfieldPlus:
     // - divide the screen in squares and swap them randomly
     // - gravity
@@ -109,7 +112,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_330;
+        id = ids.myObj_480;
 #endif
 
         switch (id)
@@ -354,6 +357,11 @@ public class ScreenSaver
             // - ... skewed lines
             case ids.myObj_470:
                 _obj = new my.myObj_470();
+                break;
+
+            // - ... harmonic oscillations
+            case ids.myObj_480:
+                _obj = new my.myObj_480();
                 break;
 
             // Test rotating shape, unfinished yet good

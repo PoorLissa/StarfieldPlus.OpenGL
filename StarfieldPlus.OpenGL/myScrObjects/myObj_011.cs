@@ -99,15 +99,15 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_011 -- Randomly Roaming Lines\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"pN = {pN}\n" +
-                            $"maxOpacity = {maxOpacity.ToString("0.000")}f\n" +
-                            $"moveMode = {moveMode}\n" +
-                            $"borderOffset = {borderOffset}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"stepsPerFrame = {stepsPerFrame}\n" +
-                            $"renderDelay = {renderDelay}\n" +
+            string str = $"Obj = myObj_011 -- Randomly Roaming Lines\n\n"       +
+                            $"N = {list.Count} of {N}\n"                        +
+                            $"pN = {pN}\n"                                      +
+                            $"maxOpacity = {maxOpacity.ToString("0.000")}f\n"   +
+                            $"moveMode = {moveMode}\n"                          +
+                            $"borderOffset = {borderOffset}\n"                  +
+                            $"doClearBuffer = {doClearBuffer}\n"                +
+                            $"stepsPerFrame = {stepsPerFrame}\n"                +
+                            $"renderDelay = {renderDelay}\n"                    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -138,6 +138,19 @@ namespace my
                     case 02:
                         item.dx = myUtils.randFloat(rand) * rand.Next(1234);
                         item.dy = myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                        break;
+
+                    case 03:
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            item.dx = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
+                            item.dy = 0;
+                        }
+                        else
+                        {
+                            item.dy = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
+                            item.dx = 0;
+                        }
                         break;
                 }
 
@@ -232,6 +245,25 @@ namespace my
                             item.x = x0 + (int)(Math.Sin(item.dx) * (rand.Next(rad) + rad));
                             item.y = y0 + (int)(Math.Cos(item.dx) * (rand.Next(rad) + rad));
                             item.dx += item.dy;
+                        }
+                        break;
+
+                    case 03:
+                        {
+                            item.x += item.dx;
+                            item.y += item.dy;
+
+                            if (item.x < 0 - borderOffset || item.x > gl_Width + borderOffset)
+                            {
+                                item.dx *= -1;
+                                item.count = 100;
+                            }
+
+                            if (item.y < 0 - borderOffset || item.y > gl_Height + borderOffset)
+                            {
+                                item.dy *= -1;
+                                item.count = 100;
+                            }
                         }
                         break;
                 }

@@ -15,8 +15,9 @@ namespace my
         private int x, y, sizeX, sizeY, sizeDst, sizeSrc;
         private bool isVertical;
 
-        private static bool doShowImage = false, doShowInPlace = false;
+        private static bool doShowImage = false, doShowInPlace = false, doShowInPlaceSometimes = true;
         private static int N = 0, mode = 0, opacityMode = 0, angleMode = 0, compressMode = 0;
+        private static int inPlaceCounter = 0;
 
         static myTexRectangle tex = null;
 
@@ -47,6 +48,8 @@ namespace my
             doShowImage = myUtils.randomBool(rand);
             doShowInPlace = myUtils.randomChance(rand, 1, 5);
 
+            doShowInPlaceSometimes = doShowInPlace ? false : myUtils.randomChance(rand, 1, 2);
+
             N = rand.Next(3) + 1;
 
             mode = rand.Next(3);
@@ -63,16 +66,18 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_050\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"doShowInPlace = {doShowInPlace}\n" +
-                            $"mode = {mode}\n" +
-                            $"opacityMode = {opacityMode}\n" +
-                            $"angleMode = {angleMode}\n" +
-                            $"compressMode = {compressMode}\n" +
-                            $"sizeX = {sizeX}\n" +
-                            $"sizeY = {sizeY}\n" +
+            string str = $"Obj = myObj_050\n\n"                                    +
+                            $"N = {list.Count} of {N}\n"                           +
+                            $"doClearBuffer = {doClearBuffer}\n"                   +
+                            $"doShowInPlace = {doShowInPlace}\n"                   +
+                            $"doShowInPlaceSometimes = {doShowInPlaceSometimes}\n" +
+                            $"mode = {mode}\n"                                     +
+                            $"opacityMode = {opacityMode}\n"                       +
+                            $"angleMode = {angleMode}\n"                           +
+                            $"compressMode = {compressMode}\n"                     +
+                            $"sizeX = {sizeX}\n"                                   +
+                            $"sizeY = {sizeY}\n"                                   +
+                            $"renderDelay = {renderDelay}\n"                       +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -101,6 +106,29 @@ namespace my
 
         protected override void Move()
         {
+            if (doShowInPlaceSometimes)
+            {
+                // Sometimes set 'doShowInPlace' to true, so the image would kind of 'appear' out of the chaos;
+                // Set the counter, and when it reaches 0, set 'doShowInPlace' to false
+                if (inPlaceCounter == 0)
+                {
+                    doShowInPlace = false;
+
+                    if (myUtils.randomChance(rand, 1, 100))
+                    {
+                        if (myUtils.randomChance(rand, 1, 10))
+                        {
+                            doShowInPlace = true;
+                            inPlaceCounter = rand.Next(500) + 500;
+                        }
+                    }
+                }
+                else
+                {
+                    inPlaceCounter--;
+                }
+            }
+
             switch (mode)
             {
                 case 0:
