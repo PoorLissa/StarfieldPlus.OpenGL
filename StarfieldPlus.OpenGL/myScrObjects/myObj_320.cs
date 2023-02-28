@@ -15,13 +15,14 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
-        private int cnt, stepx, stepy, steps;
-        private float x, y, dx, dy, sizex, sizey, R, G, B, A;
+        private int cnt, steps, Steps;
+        private float x, y, dx, dy, sizex, sizey, R, G, B, A, stepx, stepy;
         private float x1, y1, x2, y2, x3, y3, x4, y4, x4old, y4old;
 
         private static int N = 1000, objN = 0;
         private static int drawMode = 0, maxSteps = 0, gridMode = 0, maxSize = 0, gridSpacing = 0;
         private static float dimAlpha = 0.05f;
+        private static bool doRecalcStep = true;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -50,6 +51,8 @@ namespace my
         // One-time initialization
         private void initLocal()
         {
+            doRecalcStep = myUtils.randomBool(rand);            // Only used in drawMode 2
+
             maxSteps = rand.Next(51) + 5;
             gridMode = rand.Next(5);
             drawMode = rand.Next(3);
@@ -70,13 +73,14 @@ namespace my
         {
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_320\n\n"              +
-                            $"objN = {objN}\n"               +
-                            $"drawMode = {drawMode}\n"       +
-                            $"gridMode = {gridMode}\n"       +
-                            $"maxSteps = {maxSteps}\n"       +
-                            $"dimAlpha = {fStr(dimAlpha)}\n" +
-                            $"renderDelay = {renderDelay}\n" +
+            string str = $"Obj = myObj_320\n\n"                 +
+                            $"objN = {objN}\n"                  +
+                            $"drawMode = {drawMode}\n"          +
+                            $"gridMode = {gridMode}\n"          +
+                            $"maxSteps = {maxSteps}\n"          +
+                            $"doRecalcStep = {doRecalcStep}\n"  +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"    +
+                            $"renderDelay = {renderDelay}\n"    +
                             $"file: {colorPicker.GetFileName()}"
             ;
             return str;
@@ -90,9 +94,6 @@ namespace my
 
             x = rand.Next(gl_Width + 123);
             y = rand.Next(gl_Height + 123);
-
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
-            A = 0.05f;
 
             switch (gridMode)
             {
@@ -149,20 +150,23 @@ namespace my
                     break;
             }
 
+            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            A = 0.05f;
+
             // Additional setup for drawMode == 1
             if (drawMode == 1)
             {
-                steps = rand.Next(maxSteps) + 2;
-                stepx = (int)sizex * 2 / steps;
-                stepy = (int)sizey * 2 / steps;
+                steps = Steps = rand.Next(maxSteps) + 2;
+                stepx = sizex * 2 / Steps;
+                stepy = sizey * 2 / Steps;
             }
 
             // Additional setup for drawMode == 2
             if (drawMode == 2)
             {
-                steps = rand.Next(maxSteps) + 10;
-                stepx = (int)sizex * 2 / steps;
-                stepy = (int)sizey * 2 / steps;
+                steps = Steps = rand.Next(maxSteps) + 10;
+                stepx = sizex * 2 / Steps;
+                stepy = sizey * 2 / Steps;
 
                 // Draw the first square with high opacity
                 A = 0.85f;
@@ -193,18 +197,9 @@ namespace my
 
         protected override void setNextMode()
         {
-            initLocal();
-
             list.Clear();
-
-            var obj = new myObj_320();
-
-            obj.x = gl_x0;
-            obj.y = gl_y0;
-
-            obj.sizex = obj.sizey = 500;
-
-            list.Add(obj);
+            dimScreen(0.25f);
+            initLocal();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -257,8 +252,8 @@ namespace my
                         x4 += X4;
                         y4 += Y4;
 
-                        stepx = (int)dist / steps;
-                        stepy = (int)dist / steps;
+                        stepx = (float)(dist / Steps);
+                        stepy = (float)(dist / Steps);
 
                         if (stepx < 5 || dist < 100)
                         {
@@ -301,6 +296,12 @@ namespace my
                         y4 += Y4;
 
                         A = 0.5f;
+
+                        if (doRecalcStep)
+                        {
+                            stepx = (float)(dist / Steps);
+                            stepy = (float)(dist / Steps);
+                        }
 
                         if (steps > 0)
                         {
