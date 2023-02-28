@@ -13,11 +13,11 @@ namespace my
 {
     public class myObj_480 : myObject
     {
-        private float x, y, oldx, oldy, dx, dy;
+        private float x, y, oldx, oldy, dx;
         private float size, A, R, G, B;
 
-        private static int N = 0, dtCount = 0, colorMode = 0, moveMode = 0;
-        private static bool doUseDdt = true, doUseNoise = true;
+        private static int N = 0, shape = 0, dtCount = 0, colorMode = 0, moveMode = 0, DX = 1;
+        private static bool doUseDdt = true, doUseNoise = true, doShowLine = true;
         private static float dimAlpha = 0.05f, t = 0, dt = 0, ddt = 0, lineTh = 1;
 
         private static int[] prm_i = new int[5];
@@ -39,7 +39,9 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 1;
+                N = rand.Next(3) + 1;
+
+                shape = rand.Next(6);
             }
 
             initLocal();
@@ -53,10 +55,14 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doUseNoise = myUtils.randomChance(rand, 1, 3);      // Add some random noise to the final signal
             doUseDdt = myUtils.randomBool(rand);                // true: dt is going to change over time
+            doShowLine = (shape == 5)
+                ? false
+                : myUtils.randomChance(rand, 1, 2);
 
-            moveMode = rand.Next(9);
+            moveMode = rand.Next(13);
             colorMode = rand.Next(2);
 
+            DX = myUtils.randomChance(rand, 4, 5) ? rand.Next(5) + 1 : rand.Next(11) + 1;
             dt = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * 0.1f;
 
             dimAlpha = 0.1f + myUtils.randFloat(rand) * 0.2f;
@@ -95,12 +101,16 @@ namespace my
 
             string str = $"Obj = myObj_480\n\n"                       +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"  +
+                            $"shape = {shape}\n"                      +
                             $"moveMode = {moveMode}\n"                +
                             $"colorMode = {colorMode}\n"              +
+                            $"doClearBuffer = {doClearBuffer}\n"      +
+                            $"doShowLine = {doShowLine}\n"            +
                             $"doUseDdt = {doUseDdt}\n"                +
                             $"doUseNoise = {doUseNoise}\n"            +
                             $"lineTh = {fStr(lineTh)}\n"              +
                             $"dimAlpha = {fStr(dimAlpha)}\n"          +
+                            $"dx = {DX}\n"                            +
                             $"renderDelay = {renderDelay}\n"          +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -122,8 +132,7 @@ namespace my
             x = 0;
             y = gl_y0;
 
-            dx = 5;
-            dy = 0;
+            dx = DX;
 
             size = rand.Next(333) + 111;
 
@@ -187,8 +196,12 @@ namespace my
             x = 0;
             y = gl_y0 + (float)Math.Sin(x * xFactor + t) * size;
 
+            if (shape < 5)
+            {
+                inst.ResetBuffer();
+            }
+
             myPrimitive._LineInst.ResetBuffer();
-            myPrimitive._RectangleInst.ResetBuffer();
 
             while (x <= gl_Width)
             {
@@ -238,6 +251,34 @@ namespace my
                     case 008:
                         y += (int)(Math.Sin(Y * Y * Y * t / 10) * 50) / 49;
                         break;
+
+                    case 009:
+                        y += (float)Math.Cos(x / 2 * xFactor + t);
+                        y += (float)Math.Sin(x + y);
+                        break;
+
+                    case 010:
+                        y += (float)Math.Cos(x / 2 * xFactor + t);
+                        y += (float)Math.Sin(x + y);
+                        y += (float)Math.Cos(y);
+                        break;
+
+                    case 011:
+                        {
+                            y += (float)Math.Cos(y);
+                            y += (float)Math.Cos(x);
+                        }
+                        break;
+
+                    case 012:
+                        {
+                            //y += (float)(x * Math.Sin(x) * Math.Cos(Y)) / 3000;
+                            //y = (float)(x * x * Math.Sin(x) * Math.Cos(Y)) / 3000000;
+                            //y = (float)(x * y * Math.Sin(x) * Math.Cos(Y)) / 1000;
+                            //y = (float)(x * Math.Sin(x * y * 0.001)) / 1000;
+                            y += (float)(Y * Math.Sin(x * Y * 0.001)) * 2;
+                        }
+                        break;
                 }
 
                 if (doUseNoise)
@@ -247,16 +288,69 @@ namespace my
 
                 y = gl_y0 + y * size;
 
-                myPrimitive._LineInst.setInstanceCoords(x, y, oldx, oldy);
-                myPrimitive._LineInst.setInstanceColor(R, G, B, A/2);
+                switch (shape)
+                {
+                    // Instanced squares
+                    case 0:
+                        var rectInst = inst as myRectangleInst;
 
-                myPrimitive._RectangleInst.setInstanceCoords(x - 3, y - 3, 6, 6);
-                myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                myPrimitive._RectangleInst.setInstanceAngle(0);
+                        rectInst.setInstanceCoords(x - 3, y - 3, 6, 6);
+                        rectInst.setInstanceColor(R, G, B, A);
+                        rectInst.setInstanceAngle(0);
+                        break;
+
+                    // Instanced triangles
+                    case 1:
+                        var triangleInst = inst as myTriangleInst;
+
+                        triangleInst.setInstanceCoords(x, y, 6, 0);
+                        triangleInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced circles
+                    case 2:
+                        var ellipseInst = inst as myEllipseInst;
+
+                        ellipseInst.setInstanceCoords(x, y, 6, 0);
+                        ellipseInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced pentagons
+                    case 3:
+                        var pentagonInst = inst as myPentagonInst;
+
+                        pentagonInst.setInstanceCoords(x, y, 6, 0);
+                        pentagonInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced hexagons
+                    case 4:
+                        var hexagonInst = inst as myHexagonInst;
+
+                        hexagonInst.setInstanceCoords(x, y, 6, 0);
+                        hexagonInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced lines
+                    case 5:
+                        myPrimitive._LineInst.setInstanceCoords(x, y, oldx, oldy);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                        break;
+                }
+
+                if (doShowLine)
+                {
+                    myPrimitive._LineInst.setInstanceCoords(x, y, oldx, oldy);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A/2);
+                }
             }
 
             myPrimitive._LineInst.Draw();
-            myPrimitive._RectangleInst.Draw();
+
+            if (shape < 5)
+            {
+                inst.Draw(false);
+            }
 
             return;
         }
@@ -334,9 +428,12 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
 
-            myPrimitive.init_LineInst(gl_Width);
+            myPrimitive.init_LineInst(gl_Width + 1);
 
-            base.initShapes(0, gl_Width, 0);
+            if (shape < 5)
+            {
+                base.initShapes(shape, gl_Width + 1, 0);
+            }
 
             return;
         }

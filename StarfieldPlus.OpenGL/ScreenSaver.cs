@@ -112,7 +112,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_480;
+        id = ids.myObj_320;
 #endif
 
         switch (id)
@@ -279,7 +279,7 @@ public class ScreenSaver
                 _obj = new my.myObj_310();
                 break;
 
-            // Spiralling doodles (?..)
+            // Spiralling doodles made of squares
             case ids.myObj_320:
                 _obj = new my.myObj_320();
                 break;

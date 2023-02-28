@@ -5,10 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    --
-
-    todo:
-        - draw mode 2 does not have any generate new call
+    - Spiralling doodles made of squares
 */
 
 
@@ -18,13 +15,13 @@ namespace my
     {
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static int N = 1000, objN = 0;
-        private static int shapeType = 0, drawMode = 0, maxSteps = 0, gridMode = 0;
-
+        private int cnt, stepx, stepy, steps;
         private float x, y, dx, dy, sizex, sizey, R, G, B, A;
-        private int cnt = 0, stepx = 0, stepy = 0, steps = 0;
-
         private float x1, y1, x2, y2, x3, y3, x4, y4, x4old, y4old;
+
+        private static int N = 1000, objN = 0;
+        private static int drawMode = 0, maxSteps = 0, gridMode = 0, maxSize = 0, gridSpacing = 0;
+        private static float dimAlpha = 0.05f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -41,7 +38,9 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
-            objN = 10;
+            {
+                doClearBuffer = false;
+            }
 
             initLocal();
         }
@@ -52,13 +51,15 @@ namespace my
         private void initLocal()
         {
             maxSteps = rand.Next(51) + 5;
-            gridMode = rand.Next(3);
-            drawMode = rand.Next(2);            // mode 2 removed temporarily
+            gridMode = rand.Next(5);
+            drawMode = rand.Next(3);
 
-            if (gridMode > 0)
-            {
-                objN = 30;
-            }
+            maxSize = rand.Next(100) + 50;
+            gridSpacing = rand.Next(20);
+
+            objN = rand.Next(13) + 1;
+            dimAlpha = 0.01f;
+            renderDelay = rand.Next(25) + 1;
 
             return;
         }
@@ -67,12 +68,16 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_320\n\n" +
-                            $"gridMode = {gridMode}\n" +
-                            $"drawMode = {drawMode}\n" +
-                            $"maxSteps = {maxSteps}\n" +
-                            $"file: {colorPicker.GetFileName()}" + 
-                            ""
+            string fStr(float f) { return f.ToString("0.000"); }
+
+            string str = $"Obj = myObj_320\n\n"              +
+                            $"objN = {objN}\n"               +
+                            $"drawMode = {drawMode}\n"       +
+                            $"gridMode = {gridMode}\n"       +
+                            $"maxSteps = {maxSteps}\n"       +
+                            $"dimAlpha = {fStr(dimAlpha)}\n" +
+                            $"renderDelay = {renderDelay}\n" +
+                            $"file: {colorPicker.GetFileName()}"
             ;
             return str;
         }
@@ -83,82 +88,104 @@ namespace my
         {
             cnt = rand.Next(111) + 11;
 
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            x = rand.Next(gl_Width + 123);
+            y = rand.Next(gl_Height + 123);
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            sizex = sizey = rand.Next(2222) + 666;
-            steps = rand.Next(maxSteps) + 2;
+            A = 0.05f;
 
             switch (gridMode)
             {
-                // No grid
+                // No grid, random size
                 case 0:
+                    sizex = sizey = rand.Next(500) + 50;
+                    dx = dy = rand.Next(20) + 3;
                     break;
 
-                // Grid, no large objects
+                // No grid, const size
                 case 1:
-                    x += 75 - x % 205;
-                    y += 50 - y % 205;
-                    sizex = sizey = 100;
+                    sizex = sizey = maxSize;
+                    dx = dy = rand.Next(13) + 3;
                     break;
 
-                // Grid, large objects are rare
+                // Grid, intersected by half size
                 case 2:
-                    x += 75 - x % 205;
-                    y += 50 - y % 205;
+                    x += - x % maxSize;
+                    y += - y % maxSize;
 
-                    if (myUtils.randomChance(rand, 499, 500))
-                        sizex = sizey = 100;
+                    sizex = sizey = maxSize;
+                    dx = dy = rand.Next(11) + 5;
+                    break;
+
+                // Grid, no intersections
+                case 3:
+                    x -= x % (maxSize * 2 + gridSpacing);
+                    y -= y % (maxSize * 2 + gridSpacing);
+
+                    sizex = sizey = maxSize;
+                    dx = dy = rand.Next(11) + 5;
+                    break;
+
+                // Grid, no intersections, chance to generate larger cell
+                case 4:
+                    if (myUtils.randomChance(rand, 1, 33))
+                    {
+                        int Size = rand.Next(250) + maxSize;
+
+                        x -= x % (Size * 2 + gridSpacing);
+                        y -= y % (Size * 2 + gridSpacing);
+
+                        sizex = sizey = Size;
+                        dx = dy = rand.Next(11) + 5;
+                    }
+                    else
+                    {
+                        x -= x % (maxSize * 2 + gridSpacing);
+                        y -= y % (maxSize * 2 + gridSpacing);
+
+                        sizex = sizey = maxSize;
+                        dx = dy = rand.Next(11) + 5;
+                    }
                     break;
             }
 
-            stepx = (int)sizex * 2 / steps;
-            stepy = (int)sizey * 2 / steps;
+            // Additional setup for drawMode == 1
+            if (drawMode == 1)
+            {
+                steps = rand.Next(maxSteps) + 2;
+                stepx = (int)sizex * 2 / steps;
+                stepy = (int)sizey * 2 / steps;
+            }
 
-            x1 = x - sizex;
-            y1 = y - sizey;
+            // Additional setup for drawMode == 2
+            if (drawMode == 2)
+            {
+                steps = rand.Next(maxSteps) + 10;
+                stepx = (int)sizex * 2 / steps;
+                stepy = (int)sizey * 2 / steps;
 
-            x2 = x + sizex;
-            y2 = y - sizey;
+                // Draw the first square with high opacity
+                A = 0.85f;
+            }
 
-            x3 = x + sizex;
-            y3 = y + sizey;
+            // Precalc the 4 points
+            {
+                x1 = x - sizex;
+                y1 = y - sizey;
 
-            x4old = x4 = x - sizex;
-            y4old = y4 = y + sizey;
+                x2 = x + sizex;
+                y2 = y - sizey;
 
-            A = gridMode > 0 ? 0 : 0.05f;
+                x3 = x + sizex;
+                y3 = y + sizey;
 
-            dx = dy = rand.Next(10) + 3;
-/*
-x1 = 333;
-y1 = 333;
+                x4 = x - sizex;
+                y4 = y + sizey;
 
-x2 = 1000;
-y2 = 444;
+                x4old = x4;
+                y4old = y4;
+            }
 
-x3 = 1200;
-y3 = 777;
-
-x4old = x4 = 222;
-y4old = y4 = 666;
-
-x1 = rand.Next(gl_Width);
-y1 = rand.Next(gl_Height);
-
-x2 = rand.Next(gl_Width); ;
-y2 = rand.Next(gl_Height);
-
-x3 = rand.Next(gl_Width); ;
-y3 = rand.Next(gl_Height);
-
-x4old = x4 = rand.Next(gl_Width); ;
-y4old = y4 = rand.Next(gl_Height);
-
-A = 0.5f;
-*/
             return;
         }
 
@@ -186,21 +213,32 @@ A = 0.5f;
         {
             switch (drawMode)
             {
+                // Draw 4 lines each step, moving end points along 1 side of the square
                 case 0:
-                    if (x1 < x2)
                     {
-                        x1 += dx;
-                        x3 -= dx;
-                        y2 += dy;
-                        y4 -= dy;
-                    }
-                    else
-                    {
-                        if (--cnt == 0)
-                            generateNew();
+                        if (x2 - x1 > dx)
+                        {
+                            x1 += dx;
+                            x3 -= dx;
+                            y2 += dy;
+                            y4 -= dy;
+                        }
+                        else
+                        {
+                            x1 = x2;
+                            x3 = x4;
+                            y2 = y3;
+                            y4 = y1;
+
+                            A -= 0.02f;
+
+                            if (--cnt == 0)
+                                generateNew();
+                        }
                     }
                     break;
 
+                // Draws square inside square inside square, each one is rotated a bit
                 case 1:
                     {
                         float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, X3 = 0, Y3 = 0, X4 = 0, Y4 = 0;
@@ -238,9 +276,9 @@ A = 0.5f;
                     }
                     break;
 
+                // Might look like a [case 1], but starting with the second iteration, it is actually a spiral, not a square-inside-square
                 case 2:
                     {
-                        // seems not to be working.
                         float X1 = 0, Y1 = 0, X2 = 0, Y2 = 0, X3 = 0, Y3 = 0, X4 = 0, Y4 = 0;
 
                         double dist = recalc(ref X1, ref Y1, x1, y1, x2, y2);
@@ -262,7 +300,17 @@ A = 0.5f;
                         x4 += X4;
                         y4 += Y4;
 
-                        A = 0.85f;
+                        A = 0.5f;
+
+                        if (steps > 0)
+                        {
+                            steps--;
+                        }
+                        else
+                        {
+                            if (--cnt == 0)
+                                generateNew();
+                        }
                         return;
                     }
                     break;
@@ -287,22 +335,39 @@ A = 0.5f;
 
         protected override void Show()
         {
-            myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+            switch (drawMode)
+            {
+                case 0:
+                case 1:
+                    myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-            myPrimitive._LineInst.setInstanceCoords(x2, y2, x3, y3);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._LineInst.setInstanceCoords(x2, y2, x3, y3);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-            myPrimitive._LineInst.setInstanceCoords(x3, y3, x4, y4);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._LineInst.setInstanceCoords(x3, y3, x4, y4);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-            if (drawMode < 2)
-                myPrimitive._LineInst.setInstanceCoords(x4, y4, x1, y1);
+                    myPrimitive._LineInst.setInstanceCoords(x4, y4, x1, y1);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    break;
 
-            if (drawMode == 2)
-                myPrimitive._LineInst.setInstanceCoords(x4old, y4old, x1, y1);
+                // The last line is supposed to be drawn to the point where it intersects with the 1st one (spiral-like structure)
+                case 2:
+                    myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._LineInst.setInstanceCoords(x2, y2, x3, y3);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+                    myPrimitive._LineInst.setInstanceCoords(x3, y3, x4, y4);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+
+                    myPrimitive._LineInst.setInstanceCoords(x4old, y4old, x1, y1);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    break;
+            }
 
             return;
         }
@@ -315,13 +380,10 @@ A = 0.5f;
 
             initShapes();
 
-            while (list.Count < objN)
-            {
-                list.Add(new myObj_320());
-            }
 
+            clearScreenSetup(doClearBuffer, 0.1f);
             glDrawBuffer(GL_FRONT_AND_BACK);
-            glClearColor(0, 0, 0, 1);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -333,15 +395,25 @@ A = 0.5f;
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                //glClear(GL_COLOR_BUFFER_BIT);
+                // Dim screen
+                {
+                    if (doClearBuffer)
+                    {
+                        glClear(GL_COLOR_BUFFER_BIT);
+                    }
+                    else
+                    {
+                        dimScreen(dimAlpha);
 
-                myPrimitive._Rectangle.SetColor(0, 0, 0, 0.01f);
-                myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+                        if (myUtils.randomChance(rand, 1, 1234))
+                        {
+                            dimScreen(0.05f);
+                        }
+                    }
+                }
 
                 // Render Frame
                 {
-                    inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i < list.Count; i++)
@@ -352,9 +424,11 @@ A = 0.5f;
                     }
 
                     myPrimitive._LineInst.Draw();
+                }
 
-                    inst.SetColorA(0);
-                    inst.Draw(false);
+                if (list.Count < objN)
+                {
+                    list.Add(new myObj_320());
                 }
 
                 System.Threading.Thread.Sleep(renderDelay);
@@ -367,10 +441,8 @@ A = 0.5f;
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(N);
-
-            base.initShapes(shapeType, N, 0);
 
             return;
         }
