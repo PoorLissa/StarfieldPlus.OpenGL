@@ -66,7 +66,7 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            mode = 68;
+            mode = 23;
 #endif
             // Reset parameter values
             {
@@ -4395,6 +4395,7 @@ namespace my
                     break;
 
                 case 23:
+                    specialCaseClearBuffer();
                     if (cnt == 0)
                     {
                         //tex.setOpacity(a);
