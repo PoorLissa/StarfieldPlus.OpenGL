@@ -19,7 +19,7 @@ namespace my
         private float A, R, G, B, angle = 0;
 
         private static int N = 0, n = 0, shape = 0;
-        private static float dimAlpha = 0.05f, t = 0, dt = 0;
+        private static float dimAlpha = 0.05f, nInvert = 0, t = 0, dt = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -41,7 +41,11 @@ namespace my
                 doClearBuffer = false;
 
                 N = 1;
-                n = 50000;
+                n = 333;
+                
+                n = rand.Next(333) + 200;
+
+                nInvert = 1.0f / n;
                 shape = 0;
 
                 t = 0;
@@ -56,7 +60,7 @@ namespace my
         private void initLocal()
         {
             dt = 0.001f;
-
+            
             renderDelay = rand.Next(11) + 3;
 
             dimAlpha = 0.1f;
@@ -75,6 +79,7 @@ namespace my
 
             string str = $"Obj = myObj_490\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                            $"n = {nStr(n)}\n"                          +
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"renderDelay = {renderDelay}\n"            +
                             $"dimAlpha = {fStr(dimAlpha)}\n"            +
@@ -114,64 +119,95 @@ namespace my
             int max = +33;
             int len = max - min;
 
-            for (int i = 0; i != n; i++)
+            float stepx = len * nInvert;
+            float stepy = len * nInvert;
+
+            float fToScr = gl_Width / len;
+
+            // Use larger size as an option!
+            int size1x = 2;
+            int size2x = 2 * size1x;
+
+            //for (int i = 0; i != n; i++)
+            for (float i = min; i < max; i += stepx)
             {
-                float fx = (rand.Next(len + 1) - max) + myUtils.randFloat(rand);
-                float fy = (rand.Next(len + 1) - max) + myUtils.randFloat(rand);
-
-                double F = fx * Math.Sin(fx * t) * Math.Cos(fy * t);
-
-                //double F = fx * Math.Sin(fx * fy);    // this is a good one -- needs F(x or y)
-                //double F = fx * fy * Math.Cos(fx * fy) * Math.Sin(fx + fy);
-                //double F = fx * fx * fx * Math.Sin(fy) * Math.Sin(fy) + Math.Cos(fx);
-
-                //double F = fx * fx  + fy * fy;
-                //double F = fx * fx * fy * fy;
-
-                double df = F - fy;
-
-                if (df > 0 && df < 1)
+                for (float j = min; j < max; j += stepy)
                 {
-                    A = (float)(df * 1.0);
+                    //float fx = (rand.Next(len + 1) - max) + myUtils.randFloat(rand);
+                    //float fy = (rand.Next(len + 1) - max) + myUtils.randFloat(rand);
 
-                    x = (int)(fx * gl_Width / (len)) + gl_x0;
-                    y = (int)(fy * gl_Width / (len)) + gl_y0;
+                    float fx = i;
+                    float fy = j;
 
-                    rectInst.setInstanceCoords(x - 1, y - 1, 2, 2);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-                }
-                else
-                {
-                    rectInst.setInstanceCoords(x - 1, y - 1, 2, 2);
-                    rectInst.setInstanceColor(R, G, B, 0);
-                    rectInst.setInstanceAngle(angle);
-                }
+                    double F = fx * Math.Sin(fx * t) * Math.Cos(fy * t);
 
-                if (false)
-                {
-                    double F2 = fx * Math.Sin(fx * fy * t);
+                    //double F = fx * Math.Sin(fx) * Math.Cos(fy);
 
-                    double dfx = Math.Abs(F2 - fx);
-                    double dfy = Math.Abs(F2 - fy);
+                    // !!!
+                    //F += (fx * fx + fy * fy) * 0.1;
 
-                    if (dfy < 0.5 || dfx < 0.1)
+                    // !!!
+                    //F += Math.Sin(fx * fx + fy * fy);
+
+                    //double F = t * fx * Math.Sin(fx) * Math.Cos(fy);          // 1st variation
+                    //double F = t * fx * Math.Sin(fx * t) * Math.Cos(fy * t);  // 2nd variation
+
+
+                    //double F = fx * Math.Sin(fx * fy);    // this is a good one -- needs F(x or y)
+                    //double F = fx * fy * Math.Cos(fx * fy) * Math.Sin(fx + fy);
+                    //double F = fx * fx * fx * Math.Sin(fy) * Math.Sin(fy) + Math.Cos(fx);
+
+                    //double F = fx * fx  + fy * fy;
+                    //double F = fx * fx * fy * fy;
+
+                    double df = F - fy;
+
+                    if (df > 0 && df < 1)                 // this one just kind of resizes the image
+                    //if (df > 10 && df < 11)               // this one makes it also shift
+                    //if (df > 1.0f * t && df < 2.0f * t)     // should look like moving along z-axis
                     {
-                        // draw
+                        A = (float)(df * 1.0);
+
+                        // Translate fx, fy to screen coordinates:
+                        x = (int)(fx * fToScr) + gl_x0;
+                        y = (int)(fy * fToScr) + gl_y0;
+
+                        //colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                        rectInst.setInstanceCoords(x - size1x, y - size1x, size2x, size2x);
+                        rectInst.setInstanceColor(R, G, B, A);
+                        rectInst.setInstanceAngle(angle);
+                        angle += 0.0001f;
                     }
-                }
+                    else
+                    {
+                    }
+
+                    if (false)
+                    {
+                        double F2 = fx * Math.Sin(fx * fy * t);
+
+                        double dfx = Math.Abs(F2 - fx);
+                        double dfy = Math.Abs(F2 - fy);
+
+                        if (dfy < 0.5 || dfx < 0.1)
+                        {
+                            // draw
+                        }
+                    }
 
 /*
-                if (Math.Abs(F - fy) < 0.5 || Math.Abs(F - fx) < 0.1)
-                {
-                    x = (int)(fx * gl_Width / (len)) + gl_x0;
-                    y = (int)(fy * gl_Width / (len)) + gl_y0;
+                    if (Math.Abs(F - fy) < 0.5 || Math.Abs(F - fx) < 0.1)
+                    {
+                        x = (int)(fx * gl_Width / (len)) + gl_x0;
+                        y = (int)(fy * gl_Width / (len)) + gl_y0;
 
-                    rectInst.setInstanceCoords(x - 1, y - 1, 2, 2);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-                }
+                        rectInst.setInstanceCoords(x - 1, y - 1, 2, 2);
+                        rectInst.setInstanceColor(R, G, B, A);
+                        rectInst.setInstanceAngle(angle);
+                    }
 */
+                }
             }
 
             return;
@@ -260,7 +296,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, n, 0);
+            base.initShapes(shape, n * n + 2, 0);
 
             return;
         }
