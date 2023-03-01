@@ -145,6 +145,9 @@ namespace my
             divider = 2;
             shape = 0;
 #endif
+
+            moveMode = 201;
+
             return;
         }
 
@@ -286,6 +289,12 @@ namespace my
             }
             while (dx == 0 && dy == 0);
 #endif
+
+            if (moveMode == 201)
+            {
+                x = -123;
+                y = -123;
+            }
 
             return;
         }
@@ -612,6 +621,33 @@ namespace my
 
                     break;
 
+                case 201:
+                    {
+                        int min = -66;
+                        int max = +66;
+                        int len = max - min;
+
+                        float fx = (rand.Next(len + 1) - max) + myUtils.randFloat(rand);
+                        float fy = (rand.Next(len + 1) - max) + myUtils.randFloat(rand);
+
+                        double F = fx * Math.Sin(fx) * Math.Cos(fy);
+
+                        //double F = fx * fx  + fy * fy;
+                        //double F = fx * fx * fy * fy;
+
+                        if (Math.Abs(F - fy) < 0.5 || Math.Abs(F - fx) < 0.1)
+                        {
+                            x = (int)(fx * gl_Width / (len)) + gl_x0;
+                            y = (int)(fy * gl_Width / (len)) + gl_y0;
+                        }
+                        else
+                        {
+                            x = -123;
+                            y = -123;
+                        }
+                    }
+                    break;
+
 #if false
                 case 995:
                     X += (int)(Math.Sin(Y * Math.Tan(time)) * 3);
@@ -806,9 +842,11 @@ namespace my
                 {
                     inst.ResetBuffer();
 
+                    int Count = list.Count;
+
                     for (step = 0; step != stepsPerFrame; step++)
                     {
-                        for (i = 0; i != list.Count; i++)
+                        for (i = 0; i != Count; i++)
                         {
                             var obj = list[i] as myObj_042;
 
