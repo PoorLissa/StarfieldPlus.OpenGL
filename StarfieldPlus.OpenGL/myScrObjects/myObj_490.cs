@@ -166,11 +166,42 @@ additiveFunc = 0;
 
             float fToScr = gl_Width / len;
 
+            double F = 0;
+
             for (float fx = min; fx < max; fx += stepx)
             {
                 for (float fy = min; fy < max; fy += stepy)
                 {
-                    double F = getFunc(fx, fy);
+#if true
+                    F = fx * t * Math.Sin(fx) * Math.Cos(fy);
+
+                    double df1 = F - fy;
+                    double df2 = F - 1.0;
+
+                    bool oldCondition = df1 > 0 && df1 < 1;         // condition: F == dy
+                    bool newCondition = df2 > 0 && df2 < 1.0;       // condition: F == 1
+
+                    bool ok = 2 == 1
+                        ? oldCondition
+                        : newCondition;
+
+                    if (ok)
+                    {
+                        A = 1;
+
+                        // Translate fx, fy to screen coordinates:
+                        x = fx * fToScr + gl_x0;
+                        y = fy * fToScr + gl_y0;
+
+                        rectInst.setInstanceCoords(x - 1, y - 1, 2, 2);
+                        rectInst.setInstanceColor(R, G, B, A);
+                        rectInst.setInstanceAngle(angle);
+                        angle += 0.0001f;
+                    }
+
+                    continue;
+#endif
+                    F = getFunc(fx, fy);
 
                     switch (additiveFunc)
                     {
@@ -192,27 +223,8 @@ additiveFunc = 0;
                             break;
                     }
 
-                    if (false)
-                    {
-                        //F = fx * fx + fy * fy;
-
-                        if (F > 1 && F < 3)
-                        {
-                            A = 1;
-
-                            // Translate fx, fy to screen coordinates:
-                            x = (float)(fx * fToScr) + gl_x0;
-                            y = (float)(fy * fToScr) + gl_y0;
-
-                            rectInst.setInstanceCoords(x - size1x, y - size1x, size2x, size2x);
-                            rectInst.setInstanceColor(R, G, B, A);
-                            rectInst.setInstanceAngle(angle);
-                            angle += 0.0001f;
-                        }
-
-                        continue;
-                    }
-
+                    // This condition will check for (F == dy)
+                    // There could be lots of different conditions here -- not only this one
                     double dF = F - fy;
 
                     if (isOk(dF))
@@ -220,8 +232,8 @@ additiveFunc = 0;
                         A = (float)(dF * 1.0);
 
                         // Translate fx, fy to screen coordinates:
-                        x = (float)(fx * fToScr) + gl_x0;
-                        y = (float)(fy * fToScr) + gl_y0;
+                        x = fx * fToScr + gl_x0;
+                        y = fy * fToScr + gl_y0;
 
                         //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
