@@ -121,6 +121,7 @@
     <Compile Include="myUtils\__funcGenerator.cs" />
     <Compile Include="myUtils\__ini_file.cs" />
     <Compile Include="myUtils\__myColorPicker.cs" />
+    <Compile Include="myUtils\__myHelperClasses.cs" />
     <Compile Include="myUtils\__myUtils.cs" />
     <Compile Include="OpenGL\myPrimitives\_Hexagon_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Line_Instanced.cs" />

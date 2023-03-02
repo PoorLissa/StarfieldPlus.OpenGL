@@ -18,10 +18,12 @@ namespace my
         private float x, y;
         private float A, R, G, B, angle = 0;
 
-        private static int N = 0, n = 0, shape = 0, funcNo = 0, conditionMode = 0, additiveFunc = 0;
-        private static float dimAlpha = 0.05f, nInvert = 0, t = 0, dt = 0;
-
+        private static int N = 0, n = 0, shape = 0, funcNo = 0, passConditionMode = 0, additiveFunc = 0;
         private static int size1x = 1, size2x = 2;
+        private static float dimAlpha = 0.05f, nInvert = 0, t = 0, dt = 0;
+        private static bool doUseVariations = true;
+
+        private static ptrArray arrPtr = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -37,6 +39,14 @@ namespace my
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
+
+            unsafe
+            {
+                fixed (float *ptr_t = &t)
+                {
+                    arrPtr = new ptrArray(ptr_t, 10, defaultValue: 1.0f);
+                }
+            }
 
             // Global unmutable constants
             {
@@ -61,9 +71,22 @@ namespace my
         {
             dt = 0.001f;
 
-            funcNo = rand.Next(16);
-            conditionMode = rand.Next(3);
+            funcNo = rand.Next(8);
+            passConditionMode = rand.Next(3);
             additiveFunc = rand.Next(5);
+additiveFunc = 0;
+
+            doUseVariations = myUtils.randomChance(rand, 1, 3);
+
+            // Set up variations engine
+            if (doUseVariations)
+            {
+                generateVariations(10);
+            }
+            else
+            {
+                arrPtr.Reset();
+            }
 
             size1x = myUtils.randomChance(rand, 2, 3)
                 ? rand.Next(03) + 1
@@ -91,8 +114,9 @@ namespace my
                             $"n = {nStr(n)}\n"                          +
                             $"funcNo = {funcNo}\n"                      +
                             $"size = {size2x}\n"                        +
+                            $"doUseVariations = {doUseVariations}\n"    +
                             $"additiveFunc = {additiveFunc}\n"          +
-                            $"conditionMode = {conditionMode}\n"        +
+                            $"passConditionMode = {passConditionMode}\n"+
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"renderDelay = {renderDelay}\n"            +
                             $"dimAlpha = {fStr(dimAlpha)}\n"            +
@@ -168,6 +192,27 @@ namespace my
                             break;
                     }
 
+                    if (false)
+                    {
+                        //F = fx * fx + fy * fy;
+
+                        if (F > 1 && F < 3)
+                        {
+                            A = 1;
+
+                            // Translate fx, fy to screen coordinates:
+                            x = (float)(fx * fToScr) + gl_x0;
+                            y = (float)(fy * fToScr) + gl_y0;
+
+                            rectInst.setInstanceCoords(x - size1x, y - size1x, size2x, size2x);
+                            rectInst.setInstanceColor(R, G, B, A);
+                            rectInst.setInstanceAngle(angle);
+                            angle += 0.0001f;
+                        }
+
+                        continue;
+                    }
+
                     double dF = F - fy;
 
                     if (isOk(dF))
@@ -175,8 +220,8 @@ namespace my
                         A = (float)(dF * 1.0);
 
                         // Translate fx, fy to screen coordinates:
-                        x = (int)(fx * fToScr) + gl_x0;
-                        y = (int)(fy * fToScr) + gl_y0;
+                        x = (float)(fx * fToScr) + gl_x0;
+                        y = (float)(fy * fToScr) + gl_y0;
 
                         //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -316,94 +361,48 @@ namespace my
         // Calculate current function value
         private double getFunc(float x, float y)
         {
-            double res = 0;
-
-            //funcNo = 99;
-
             switch (funcNo)
             {
+                // x * sin(x) * cos(y)
                 case 000:
-                    res = x * Math.Sin(x * t) * Math.Cos(y * t);
-                    break;
+                    return x * arrPtr.Get(0) * Math.Sin(x * arrPtr.Get(1)) * Math.Cos(y * arrPtr.Get(2));
 
-                // 1st variation of 000
+                // x * y * sin(x) * cos(y)
                 case 001:
-                    res = t * x * Math.Sin(x) * Math.Cos(y);
-                    break;
+                    return x * y * arrPtr.Get(0) * Math.Sin(x * arrPtr.Get(1)) * Math.Cos(y * arrPtr.Get(2));
 
-                // 2nd variation of 000
+                // x * y * cos(x * y) * sin(x + y)
                 case 002:
-                    res = t * x * Math.Sin(x * t) * Math.Cos(y * t);
-                    break;
+                    return x * y * arrPtr.Get(0) * Math.Cos(x * y * arrPtr.Get(1)) * Math.Sin(x + y + arrPtr.Get(2));
 
+                // x^3 * sin(y) * sin(y) + cos(x)
                 case 003:
-                    res = t * x * x * x * Math.Sin(y) * Math.Sin(y) + Math.Cos(x);
-                    break;
+                    return x * x * x * arrPtr.Get(0) * Math.Sin(y * arrPtr.Get(1)) * Math.Sin(y * arrPtr.Get(2)) + Math.Cos(x * arrPtr.Get(3));
 
-                // 1st variation of 003
+                // x^2 * y^2
                 case 004:
-                    res = x * x * x * Math.Sin(y * t) * Math.Sin(y) + Math.Cos(x);
-                    break;
+                    return x * x * y * y * arrPtr.Get(0);
 
-                // 2nd variation of 003
+                // x * y + (x^2 + y^2)
                 case 005:
-                    res = x * x * x * Math.Sin(y * t) * Math.Sin(y * t) + Math.Cos(x);
-                    break;
+                    return x * y + (x * x + y * y) * arrPtr.Get(1);
 
-                // 3rd variation of 003
+                // t * sin(x + y)
                 case 006:
-                    res = x * x * x * Math.Sin(y) * Math.Sin(y * t) + Math.Cos(x * t);
-                    break;
+                    return t * Math.Sin(x + y);
 
-                // 4th variation of 003
+                // sin(cos(x * y) * t) * 25
                 case 007:
-                    res = x * x * x * Math.Sin(y * t) * Math.Sin(y * t) + Math.Cos(x * t);
-                    break;
+                    return Math.Sin(Math.Cos(x * y) * t) * 25;
 
-                // 5th variation of 003
+                // test, not working yet
                 case 008:
-                    res = t * x * x * x * Math.Sin(y * t) * Math.Sin(y * t) + Math.Cos(x * t);
-                    break;
-
-                case 009:
-                    res = t * x * y * Math.Cos(x * y) * Math.Sin(x + y);
-                    break;
-
-                // 1st variation of 009
-                case 010:
-                    res = x * y * Math.Cos(x * y * t) * Math.Sin(x + y);
-                    break;
-
-                // 2nd variation of 009
-                case 011:
-                    res = x * y * Math.Cos(x * y * t) * Math.Sin(x + y + t);
-                    break;
-
-                // 3rd variation of 009
-                case 012:
-                    res = t * x * y * Math.Cos(x * y * t) * Math.Sin(x + y + t);
-                    break;
-
-                case 013:
-                    res = x * x * y * y * t;
-                    break;
-
-                case 014:
-                    res = x * y + t * (x * x + y * y);
-                    break;
-
-                case 015:
-                    res = t * Math.Sin(x + y);
-                    break;
-
-                //double F = fx * Math.Sin(fx * fy);    // this is a good one -- needs F(x or y)
-
-                default:
-                    res = 1;
-                    break;
+                    return Math.Abs(x * t) + Math.Abs(y * t);
             }
 
-            return res;
+            //double F = fx * Math.Sin(fx * fy);    // this is a good one -- needs F(x or y)
+
+            return 1.0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -411,7 +410,7 @@ namespace my
         // Check if the function value meets the displaying condition
         private bool isOk(double dF)
         {
-            switch (conditionMode)
+            switch (passConditionMode)
             {
                 // Kind of resizes the image
                 case 00:
@@ -427,6 +426,16 @@ namespace my
             }
 
             return false;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void generateVariations(int n)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                arrPtr.Set(i, myUtils.randomBool(rand));
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
