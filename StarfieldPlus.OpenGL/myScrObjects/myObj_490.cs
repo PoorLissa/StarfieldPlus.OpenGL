@@ -20,10 +20,14 @@ namespace my
 
         private static int N = 0, n = 0, shape = 0, funcNo = 0, passConditionMode = 0, additiveFunc = 0;
         private static int size1x = 1, size2x = 2;
-        private static float dimAlpha = 0.05f, nInvert = 0, t = 0, dt = 0;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0;
         private static bool doUseVariations = true;
 
         private static ptrArray arrPtr = null;
+        private static myRectangleInst rectInst = null;
+
+        private static int min = 0, max = 0, len = 0;
+        private static float stepx = 0, stepy = 0, fToScr = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -55,10 +59,18 @@ namespace my
                 N = 1;
                 n = rand.Next(333) + 200;
 
-                nInvert = 1.0f / n;
                 shape = 0;
 
                 t = 0;
+
+                min = -33;
+                max = +33;
+                len = max - min;
+
+                stepx = (float)len / (float)n;
+                stepy = (float)len / (float)n;
+
+                fToScr = (float)gl_Width / (float)len;
             }
 
             initLocal();
@@ -155,18 +167,8 @@ additiveFunc = 0;
 
         protected override void Move()
         {
-            var rectInst = inst as myRectangleInst;
-
-            int min = -33;
-            int max = +33;
-            int len = max - min;
-
-            float stepx = len * nInvert;
-            float stepy = len * nInvert;
-
-            float fToScr = gl_Width / len;
-
             double F = 0;
+            double df1, df2;
 
             for (float fx = min; fx < max; fx += stepx)
             {
@@ -175,8 +177,8 @@ additiveFunc = 0;
 #if true
                     F = fx * t * Math.Sin(fx) * Math.Cos(fy);
 
-                    double df1 = F - fy;
-                    double df2 = F - 1.0;
+                    df1 = F - fy;
+                    df2 = F - 1.0;
 
                     bool oldCondition = df1 > 0 && df1 < 1;         // condition: F == dy
                     bool newCondition = df2 > 0 && df2 < 1.0;       // condition: F == 1
@@ -364,6 +366,8 @@ additiveFunc = 0;
         {
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, n * n + 2, 0);
+
+            rectInst = inst as myRectangleInst;
 
             return;
         }
