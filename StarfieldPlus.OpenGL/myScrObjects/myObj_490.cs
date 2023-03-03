@@ -170,12 +170,15 @@ additiveFunc = 0;
             double F = 0;
             double df1, df2;
 
+            // todo: as of now, we're operating on a square, but its upper and lower parts are not displayed in a full screen
+            // need to reduce y-axis range: max = max * height / width
+
             for (float fx = min; fx < max; fx += stepx)
             {
                 for (float fy = min; fy < max; fy += stepy)
                 {
 #if true
-                    F = fx * t * Math.Sin(fx) * Math.Cos(fy);
+                    F = fx * t * Math.Sin(fx * t) * Math.Cos(fy);
 
                     df1 = F - fy;
                     df2 = F - 1.0;
