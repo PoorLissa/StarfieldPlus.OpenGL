@@ -96,10 +96,11 @@ namespace my
         {
             dt = 0.001f;
 
-            funcNo = rand.Next(8);
+            funcNo = rand.Next(10);
             passConditionMode = rand.Next(3);
             resultMode = rand.Next(3);
             additiveFunc = rand.Next(5);
+
 additiveFunc = 0;
 
             doUseVariations = myUtils.randomChance(rand, 1, 3);
@@ -190,38 +191,8 @@ additiveFunc = 0;
             {
                 for (float fy = miny; fy < maxy; fy += stepy)
                 {
-#if false
-                    F = fx * t * Math.Sin(fx) * Math.Cos(fy);
-
-                    df1 = F - fy;
-                    df2 = F - 1.0;
-
-                    bool oldCondition = df1 > 0 && df1 < 1;         // condition: F == dy
-                    bool newCondition = df2 > 0 && df2 < 1.0;       // condition: F == 1
-
-                    bool ok = 2 == 1
-                        ? oldCondition
-                        : newCondition;
-
-                    if (ok)
-                    {
-                        A = 1;
-
-                        // Translate fx, fy to screen coordinates:
-                        x = fx * fToScr + gl_x0;
-                        y = fy * fToScr + gl_y0;
-
-                        rectInst.setInstanceCoords(x - 1, y - 1, 2, 2);
-                        rectInst.setInstanceColor(R, G, B, A);
-                        rectInst.setInstanceAngle(angle);
-                        angle += 0.0001f;
-                    }
-
-                    continue;
-#endif
                     F = getFunc(fx, fy);
 
-/*
                     switch (additiveFunc)
                     {
                         case 0:
@@ -241,7 +212,6 @@ additiveFunc = 0;
                             F += Math.Sin(fx * fx + fy * fy);
                             break;
                     }
-*/
 
                     switch (resultMode)
                     {
@@ -258,7 +228,7 @@ additiveFunc = 0;
                         case 2:
                             Result = 33 + (fx * Math.Sin(5*t)) / (fy * Math.Cos(5*t));
                             // Result = 33 + (fx * Math.Sin(fx * t)) / (fy * Math.Cos(fy * t));
-                            //Result = 33 + (fx * Math.Sin(fx * t)) / (fy * Math.Cos(fx * t));
+                            // Result = 33 + (fx * Math.Sin(fx * t)) / (fy * Math.Cos(fx * t));
                             break;
                     }
 
