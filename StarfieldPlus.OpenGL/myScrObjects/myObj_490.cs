@@ -18,7 +18,7 @@ namespace my
         private float x, y;
         private float A, R, G, B, angle = 0;
 
-        private static int N = 0, n = 0, shape = 0, funcNo = 0, passConditionMode = 0, additiveFunc = 0;
+        private static int N = 0, n = 0, shape = 0, funcNo = 0, passConditionMode = 0, resultMode = 0, additiveFunc = 0;
         private static int size1x = 1, size2x = 2;
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
         private static bool doUseVariations = true;
@@ -26,7 +26,7 @@ namespace my
         private static ptrArray arrPtr = null;
         private static myRectangleInst rectInst = null;
 
-        private static int min = 0, max = 0, len = 0;
+        private static int minx = 0, maxx = 0, miny = 0, maxy = 0;
         private static float stepx = 0, stepy = 0, fToScr = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -63,14 +63,27 @@ namespace my
 
                 t = 0;
 
-                min = -33;
-                max = +33;
-                len = max - min;
+                // Half of the x-axis
+                int len = 11 + rand.Next(22);
+
+                minx = -len;
+                maxx = +len;
+                miny = -len;
+                maxy = +len;
+
+                len = maxx - minx;
 
                 stepx = (float)len / (float)n;
                 stepy = (float)len / (float)n;
 
+                stepx /= 1;
+                stepy /= 1;
+
                 fToScr = (float)gl_Width / (float)len;
+
+                // Recalc y-axis range to reflect the screen's aspect ratio
+                miny = miny * gl_Height / gl_Width;
+                maxy = maxy * gl_Height / gl_Width;
             }
 
             initLocal();
@@ -85,6 +98,7 @@ namespace my
 
             funcNo = rand.Next(8);
             passConditionMode = rand.Next(3);
+            resultMode = rand.Next(3);
             additiveFunc = rand.Next(5);
 additiveFunc = 0;
 
@@ -167,18 +181,17 @@ additiveFunc = 0;
 
         protected override void Move()
         {
-            double F = 0;
-            double df1, df2;
+            double F = 0, Result = 0, dF = 0;
 
-            // todo: as of now, we're operating on a square, but its upper and lower parts are not displayed in a full screen
-            // need to reduce y-axis range: max = max * height / width
+            // resultMode = 2;
+            // funcNo = 9;
 
-            for (float fx = min; fx < max; fx += stepx)
+            for (float fx = minx; fx < maxx; fx += stepx)
             {
-                for (float fy = min; fy < max; fy += stepy)
+                for (float fy = miny; fy < maxy; fy += stepy)
                 {
-#if true
-                    F = fx * t * Math.Sin(fx * t) * Math.Cos(fy);
+#if false
+                    F = fx * t * Math.Sin(fx) * Math.Cos(fy);
 
                     df1 = F - fy;
                     df2 = F - 1.0;
@@ -208,6 +221,7 @@ additiveFunc = 0;
 #endif
                     F = getFunc(fx, fy);
 
+/*
                     switch (additiveFunc)
                     {
                         case 0:
@@ -227,14 +241,32 @@ additiveFunc = 0;
                             F += Math.Sin(fx * fx + fy * fy);
                             break;
                     }
+*/
 
-                    // This condition will check for (F == dy)
-                    // There could be lots of different conditions here -- not only this one
-                    double dF = F - fy;
+                    switch (resultMode)
+                    {
+                        // This condition will check for (F == dy)
+                        case 0:
+                            Result = fy;
+                            break;
+
+                        // This condition will check for (F == 1)
+                        case 1:
+                            Result = 1.0;
+                            break;
+
+                        case 2:
+                            Result = 33 + (fx * Math.Sin(5*t)) / (fy * Math.Cos(5*t));
+                            // Result = 33 + (fx * Math.Sin(fx * t)) / (fy * Math.Cos(fy * t));
+                            //Result = 33 + (fx * Math.Sin(fx * t)) / (fy * Math.Cos(fx * t));
+                            break;
+                    }
+
+                    dF = F - Result;
 
                     if (isOk(dF))
                     {
-                        A = (float)(dF * 1.0);
+                        A = (float)(dF);
 
                         // Translate fx, fy to screen coordinates:
                         x = fx * fToScr + gl_x0;
@@ -242,11 +274,23 @@ additiveFunc = 0;
 
                         //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
-                        // Draw the point
-                        rectInst.setInstanceCoords(x - size1x, y - size1x, size2x, size2x);
-                        rectInst.setInstanceColor(R, G, B, A);
-                        rectInst.setInstanceAngle(angle);
-                        angle += 0.0001f;
+                        if (true)
+                        {
+                            // Draw the point
+                            rectInst.setInstanceCoords(x - size1x, y - size1x, size2x, size2x);
+                            rectInst.setInstanceColor(R, G, B, A);
+                            rectInst.setInstanceAngle(angle);
+                            angle += 0.0001f;
+                        }
+                        else
+                        {
+                            float oldx = x;
+                            float oldy = y;
+
+                            // Draw line
+                            myPrimitive._LineInst.setInstanceCoords(x, y, oldx, oldy);
+                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, 1);
+                        }
                     }
 
                     if (false)
@@ -335,6 +379,7 @@ additiveFunc = 0;
                 // Render Frame
                 {
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i != list.Count; i++)
                     {
@@ -347,6 +392,8 @@ additiveFunc = 0;
                     // Tell the fragment shader to do nothing with the existing instance opacity:
                     inst.SetColorA(0);
                     inst.Draw(false);
+
+                    myPrimitive._LineInst.Draw();
                 }
 
                 cnt++;
@@ -367,6 +414,8 @@ additiveFunc = 0;
 
         private void initShapes()
         {
+            myPrimitive.init_LineInst(n * n + 2);
+
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, n * n + 2, 0);
 
@@ -417,6 +466,10 @@ additiveFunc = 0;
                 // test, not working yet
                 case 008:
                     return Math.Abs(x * t) + Math.Abs(y * t);
+
+                // x^2 + y^2
+                case 009:
+                    return x * x + y * y;
             }
 
             //double F = fx * Math.Sin(fx * fy);    // this is a good one -- needs F(x or y)
