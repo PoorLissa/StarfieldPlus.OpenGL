@@ -8,6 +8,8 @@ using System.Collections.Generic;
     - F (x, y)
 
     https://www.desmos.com/calculator/sjm3wwv9bs
+    https://www.reddit.com/r/math/comments/du4ss8/interesting_graphs_of_sin_and_cos/
+    https://mathweb.ucsd.edu/~ashenk/Section14_1.pdf
 */
 
 
