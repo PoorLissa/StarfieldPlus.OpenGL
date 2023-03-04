@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 /*
     -- Textures, Take 1
-    https://www.youtube.com/watch?v=sA4p3wuDLo8&ab_channel=FranklyGaming
 
     // todo:
     // mode. like 24, but the waves are wider and are going maybe in radial direction. the objects are generated with sin or cos or smth
