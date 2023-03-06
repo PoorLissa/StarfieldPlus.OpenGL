@@ -18,8 +18,8 @@ namespace my
         private float size, A, R, G, B, angle, dAngle;
 
         private static int N = 0, n = 0, shape = 0, rate = 1, rateBase = 50, generatorLocationMode = 0,
-                           sizeBase = 3, sizeMode = 0, waveSize = 1, waveSizeBase = 3000;
-        private static bool doFillShapes = true, doUseRandomSpeed = true, doUseGravity = true, doMoveGenerators = true;
+                           sizeBase = 3, sizeMode = 0, waveSize = 1, waveSizeBase = 3000, moveMode = 0;
+        private static bool doFillShapes = true, doUseRandomSpeed = true, doUseGravity = true;
         private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f, gravityValue = 0.0f;
 
         private static int deadCnt = 0;
@@ -66,10 +66,10 @@ namespace my
             doFillShapes     = myUtils.randomBool(rand);
             doUseRandomSpeed = myUtils.randomBool(rand);
             doUseGravity     = myUtils.randomChance(rand, 1, 7);
-            doMoveGenerators = myUtils.randomChance(rand, 1, 3);
 
             generatorLocationMode = rand.Next(3);
             sizeMode = rand.Next(4);
+            moveMode = myUtils.randomChance(rand, 1, 3) ? rand.Next(4) : 0;
 
             renderDelay = rand.Next(11) + 3;
 
@@ -77,7 +77,7 @@ namespace my
 
             waveSize = myUtils.randomChance(rand, 1, 5) ? rand.Next(waveSizeBase) + 123 : waveSizeBase;
 
-            gravityValue = myUtils.randFloat(rand) * rand.Next(3);
+            gravityValue = myUtils.randFloat(rand) * 0.01f;
 
             return;
         }
@@ -94,11 +94,11 @@ namespace my
             string str = $"Obj = myObj_181 -- Particle Wave Generators\n\n"         +
                             $"N = {nStr(N - n)} (+ {nStr(n)} generator(s))\n"       +
                             $"liveCnt / deadCnt = {N-n-deadCnt} / {deadCnt}\n"      +
-                            $"sizeMode= {sizeMode}\n"                               +
+                            $"sizeMode = {sizeMode}\n"                              +
+                            $"moveMode = {moveMode}\n"                              +
                             $"rate = {rate}\n"                                      +
                             $"waveSize = {waveSize}\n"                              +
                             $"doUseRandomSpeed = {doUseRandomSpeed}\n"              +
-                            $"doMoveGenerators= {doMoveGenerators}\n"               +
                             $"renderDelay = {renderDelay}\n"                        +
                             $"dimAlpha = {fStr(dimAlpha)}\n"                        +
                             $"gravity = {fStr(doUseGravity ? gravityValue : 0)}\n"  +
@@ -143,20 +143,30 @@ namespace my
                         break;
                 }
 
-                switch (doMoveGenerators)
+                // Set generator's move pattern
+                switch (moveMode)
                 {
-                    case true:
-                        dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
-                        dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
+                    case 0:
+                        dx = dy = 0;
                         break;
 
-                    case false:
-                        dx = dy = 0;
+                    case 1:
+                        dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
+                        dy = 0;
+                        break;
+
+                    case 2:
+                        dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
+                        dx = 0;
+                        break;
+
+                    case 3:
+                        dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
+                        dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
                         break;
                 }
 
                 size = 7;
-                R = G = B = 1;
                 A = 0.33f;
             }
             else
@@ -196,11 +206,10 @@ namespace my
                         break;
                 }
 
-                colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-                //R = G = B = 0.1f;
-                A = 0.75f;
+                A = myUtils.randFloat(rand, 0.01f);
             }
+
+            colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
         }
@@ -210,22 +219,24 @@ namespace my
         protected override void Move()
         {
             // Generator
-            if (doMoveGenerators && id < n)
+            if (id < n && moveMode > 0)
             {
                 x += dx;
                 y += dy;
 
                 if (x < 0)
-                    dx += 0.1f;
+                    dx += 0.01f;
 
                 if (x > gl_Width)
-                    dx -= 0.1f;
+                    dx -= 0.01f;
 
                 if (y < 0)
-                    dy += 0.1f;
+                    dy += 0.01f;
 
                 if (y > gl_Height)
-                    dy -= 0.1f;
+                    dy -= 0.01f;
+
+                return;
             }
 
             // Particle
@@ -238,7 +249,7 @@ namespace my
 
                 if (doUseGravity)
                 {
-                    y += gravityValue;
+                    dy += gravityValue;
                 }
 
                 switch (sizeMode)
@@ -248,7 +259,7 @@ namespace my
                         break;
                 }
 
-                if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+                if (x < -123 || x > gl_Width + 123 || y < -123 || y > gl_Height + 123)
                 {
                     isLive = false;
                     deadCnt++;
@@ -367,20 +378,28 @@ namespace my
                     {
                         var obj = list[i] as myObj_181;
 
-                        if (obj.isLive)
+                        if (obj.id < n)
                         {
                             obj.Show();
                             obj.Move();
                         }
                         else
                         {
-                            if (newWaveCnt > 0)
+                            if (obj.isLive)
                             {
-                                obj.generateNew();
+                                obj.Show();
+                                obj.Move();
+                            }
+                            else
+                            {
+                                if (newWaveCnt > 0)
+                                {
+                                    obj.generateNew();
 
-                                obj.isLive = true;
-                                deadCnt--;
-                                newWaveCnt--;
+                                    obj.isLive = true;
+                                    deadCnt--;
+                                    newWaveCnt--;
+                                }
                             }
                         }
                     }
