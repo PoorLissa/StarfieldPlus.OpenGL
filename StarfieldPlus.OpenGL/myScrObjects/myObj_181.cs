@@ -5,27 +5,33 @@ using System.Collections.Generic;
 
 
 /*
-    - Empty object. Use as a template to create new objects
+    - Generators of waves that are made of particles
 */
 
 
 namespace my
 {
-    public class myObj_empty : myObject
+    public class myObj_181 : myObject
     {
+        private bool isLive;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, n = 0, shape = 0, rate = 1, rateBase = 50, generatorLocationMode = 0,
+                           sizeBase = 3, sizeMode = 0, waveSize = 1, waveSizeBase = 3000;
+        private static bool doFillShapes = true, doUseRandomSpeed = true;
+        private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f;
+
+        private static int deadCnt = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_empty()
+        public myObj_181()
         {
             if (id != uint.MaxValue)
                 generateNew();
+
+            isLive = false;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -38,7 +44,9 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
+                N = 100000;                     // Number of particles
+                n = rand.Next(9) + 2;           // Number of generators
+                N += n;
 
                 shape = rand.Next(5);
             }
@@ -51,14 +59,23 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer    = myUtils.randomChance(rand, 9, 10);
+            doFillShapes     = myUtils.randomBool(rand);
+            doUseRandomSpeed = myUtils.randomBool(rand);
+
+            generatorLocationMode = rand.Next(3);
+            sizeMode = rand.Next(4);
+
+            renderDelay = rand.Next(11) + 3;
+
+            rate = rateBase + myUtils.randomSign(rand) * rand.Next(33);
+
+            waveSize = myUtils.randomChance(rand, 1, 5) ? rand.Next(waveSizeBase) + 123 : waveSizeBase;
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
-#pragma warning disable
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
@@ -67,15 +84,20 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_empty\n\n"                       +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"renderDelay = {renderDelay}\n"            +
+            string str = $"Obj = myObj_181\n\n"                             +
+                            $"N = {nStr(N - n)} + {nStr(n)} generator(s)\n" +
+                            $"liveCnt = {N - n - deadCnt}\n"                +
+                            $"deadCnt = {deadCnt}\n"                        +
+                            $"sizeMode= {sizeMode}\n"                       +
+                            $"rate = {rate}\n"                              +
+                            $"waveSize = {waveSize}\n"                      +
+                            $"doUseRandomSpeed = {doUseRandomSpeed}\n"      +
+                            $"renderDelay = {renderDelay}\n"                +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"                +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
-
-#pragma warning restore
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -89,20 +111,77 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            if (id < n)
+            {
+                // Place Generators:
+                switch (generatorLocationMode)
+                {
+                    // Randomly
+                    case 0:
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+                        break;
 
-            dx = myUtils.randFloat(rand);
-            dy = myUtils.randFloat(rand);
+                    // On a central line, evenly distributed
+                    case 1:
+                        x = (id + 1) * gl_Width / (n + 1);
+                        y = gl_y0;
+                        break;
 
-            size = rand.Next(11) + 3;
+                    // On a central line, randomly distributed
+                    case 2:
+                        x = rand.Next(gl_Width);
+                        y = gl_y0;
+                        break;
+                }
 
-            A = 1;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
+                dx = dy = 0;
+                size = 7;
+                R = G = B = 1;
+                A = 0.33f;
+            }
+            else
+            {
+                isLive = false;
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+                // Generator's id
+                int i = rand.Next(n);
+
+                x = (list[i] as myObj_181).x;
+                y = (list[i] as myObj_181).y;
+
+                float dX = gl_x0 - rand.Next(gl_Width);
+                float dY = gl_x0 - rand.Next(gl_Width);
+
+                double dist = Math.Sqrt(dX * dX + dY * dY);
+
+                dx = (float)(dX * Speed / dist);
+                dy = (float)(dY * Speed / dist);
+
+                switch (sizeMode)
+                {
+                    case 0:
+                        size = 0;
+                        break;
+
+                    case 1:
+                        size = sizeBase;
+                        break;
+
+                    case 2:
+                        size = rand.Next(sizeBase) + 1;
+                        break;
+
+                    case 3:
+                        size = rand.Next(sizeBase * 3) + 1;
+                        break;
+                }
+
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                //R = G = B = 0.1f;
+                A = 0.75f;
+            }
 
             return;
         }
@@ -111,12 +190,24 @@ namespace my
 
         protected override void Move()
         {
-            x += dx;
-            y += dy;
-
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+            if (isLive)
             {
-                generateNew();
+                x += dx;
+                y += dy;
+
+                switch (sizeMode)
+                {
+                    case 0:
+                        size += 0.025f;
+                        break;
+                }
+
+                if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+                {
+                    deadCnt++;
+                    x = -1234;
+                    y = -1234;
+                }
             }
 
             return;
@@ -182,20 +273,15 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
+            clearScreenSetup(doClearBuffer, 0.1f);
 
-            if (doClearBuffer)
+            while (list.Count < N)
             {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
+                list.Add(new myObj_181());
+                deadCnt++;
             }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
-            }
+
+            deadCnt -= n;
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -221,12 +307,35 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
-                    {
-                        var obj = list[i] as myObj_empty;
+                    int newWaveCnt = (cnt % rate == 0) && deadCnt >= waveSize ? waveSize : 0;
 
-                        obj.Show();
-                        obj.Move();
+                    if (newWaveCnt > 0)
+                    {
+                        Speed = doUseRandomSpeed ? 0.75f + 0.01f * rand.Next(500) : speedBase;
+                    }
+
+                    int Count = list.Count;
+
+                    for (int i = 0; i != Count; i++)
+                    {
+                        var obj = list[i] as myObj_181;
+
+                        if (obj.isLive)
+                        {
+                            obj.Show();
+                            obj.Move();
+                        }
+                        else
+                        {
+                            if (newWaveCnt > 0)
+                            {
+                                obj.generateNew();
+
+                                obj.isLive = true;
+                                deadCnt--;
+                                newWaveCnt--;
+                            }
+                        }
                     }
 
                     if (doFillShapes)
@@ -239,11 +348,6 @@ namespace my
                     // Tell the fragment shader to do nothing with the existing instance opacity:
                     inst.SetColorA(0);
                     inst.Draw(false);
-                }
-
-                if (list.Count < N)
-                {
-                    list.Add(new myObj_empty());
                 }
 
                 cnt++;

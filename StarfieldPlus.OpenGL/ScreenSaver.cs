@@ -1,10 +1,16 @@
 ﻿//
 // https://learnopengl.com/
 //
+// https://thebookofshaders.com/
+//
 // If you want to read a rectangular area form the framebuffer, then you can use GL.ReadPixels;
 // For instance: https://stackoverflow.com/questions/64573427/save-drawn-texture-with-opengl-in-to-a-file
 //
 
+// Some cool links:
+/*
+    https://www.shadertoy.com/view/3tXXRn
+*/
 
 public class ScreenSaver
 {
@@ -14,7 +20,7 @@ public class ScreenSaver
     private enum ids
     {
         myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_031, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
-        myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180,
+        myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180, myObj_181,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
         myObj_400, myObj_410, myObj_420, myObj_430, myObj_440, myObj_450, myObj_460, myObj_470, myObj_480, myObj_490,
@@ -112,7 +118,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_490;
+        id = ids.myObj_181;
 #endif
 
         switch (id)
@@ -247,6 +253,11 @@ public class ScreenSaver
             // Generator of waves that are made of particles
             case ids.myObj_180:
                 _obj = new my.myObj_180();
+                break;
+
+            // Generators of waves that are made of particles
+            case ids.myObj_181:
+                _obj = new my.myObj_181();
                 break;
 
             // Spiraling out shapes
