@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Generators of waves that are made of particles
+    - Multiple generators of particle waves
 */
 
 
@@ -15,11 +15,11 @@ namespace my
     {
         private bool isLive;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, angle, dAngle;
 
         private static int N = 0, n = 0, shape = 0, rate = 1, rateBase = 50, generatorLocationMode = 0,
                            sizeBase = 3, sizeMode = 0, waveSize = 1, waveSizeBase = 3000;
-        private static bool doFillShapes = true, doUseRandomSpeed = true, doUseGravity = true;
+        private static bool doFillShapes = true, doUseRandomSpeed = true, doUseGravity = true, doMoveGenerators = true;
         private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f, gravityValue = 0.0f;
 
         private static int deadCnt = 0;
@@ -32,6 +32,9 @@ namespace my
                 generateNew();
 
             isLive = false;
+
+            angle = 0;
+            dAngle = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * 0.01f;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -63,6 +66,7 @@ namespace my
             doFillShapes     = myUtils.randomBool(rand);
             doUseRandomSpeed = myUtils.randomBool(rand);
             doUseGravity     = myUtils.randomChance(rand, 1, 7);
+            doMoveGenerators = myUtils.randomChance(rand, 1, 3);
 
             generatorLocationMode = rand.Next(3);
             sizeMode = rand.Next(4);
@@ -94,6 +98,7 @@ namespace my
                             $"rate = {rate}\n"                                      +
                             $"waveSize = {waveSize}\n"                              +
                             $"doUseRandomSpeed = {doUseRandomSpeed}\n"              +
+                            $"doMoveGenerators= {doMoveGenerators}\n"               +
                             $"renderDelay = {renderDelay}\n"                        +
                             $"dimAlpha = {fStr(dimAlpha)}\n"                        +
                             $"gravity = {fStr(doUseGravity ? gravityValue : 0)}\n"  +
@@ -138,7 +143,18 @@ namespace my
                         break;
                 }
 
-                dx = dy = 0;
+                switch (doMoveGenerators)
+                {
+                    case true:
+                        dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
+                        dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f);
+                        break;
+
+                    case false:
+                        dx = dy = 0;
+                        break;
+                }
+
                 size = 7;
                 R = G = B = 1;
                 A = 0.33f;
@@ -193,10 +209,32 @@ namespace my
 
         protected override void Move()
         {
+            // Generator
+            if (doMoveGenerators && id < n)
+            {
+                x += dx;
+                y += dy;
+
+                if (x < 0)
+                    dx += 0.1f;
+
+                if (x > gl_Width)
+                    dx -= 0.1f;
+
+                if (y < 0)
+                    dy += 0.1f;
+
+                if (y > gl_Height)
+                    dy -= 0.1f;
+            }
+
+            // Particle
             if (isLive)
             {
                 x += dx;
                 y += dy;
+
+                angle += dAngle;
 
                 if (doUseGravity)
                 {
@@ -212,6 +250,7 @@ namespace my
 
                 if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
                 {
+                    isLive = false;
                     deadCnt++;
                     x = -1234;
                     y = -1234;

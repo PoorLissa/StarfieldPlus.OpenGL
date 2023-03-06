@@ -250,12 +250,12 @@ public class ScreenSaver
                 _obj = new my.myObj_170();
                 break;
 
-            // Generator of waves that are made of particles
+            // Single generator of particle waves
             case ids.myObj_180:
                 _obj = new my.myObj_180();
                 break;
 
-            // Generators of waves that are made of particles
+            // Multiple generators of particle waves
             case ids.myObj_181:
                 _obj = new my.myObj_181();
                 break;
