@@ -19,8 +19,8 @@ namespace my
 
         private static int N = 0, n = 0, shape = 0, rate = 1, rateBase = 50, generatorLocationMode = 0,
                            sizeBase = 3, sizeMode = 0, waveSize = 1, waveSizeBase = 3000;
-        private static bool doFillShapes = true, doUseRandomSpeed = true;
-        private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f;
+        private static bool doFillShapes = true, doUseRandomSpeed = true, doUseGravity = true;
+        private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f, gravityValue = 0.0f;
 
         private static int deadCnt = 0;
 
@@ -62,6 +62,7 @@ namespace my
             doClearBuffer    = myUtils.randomChance(rand, 9, 10);
             doFillShapes     = myUtils.randomBool(rand);
             doUseRandomSpeed = myUtils.randomBool(rand);
+            doUseGravity     = myUtils.randomChance(rand, 1, 7);
 
             generatorLocationMode = rand.Next(3);
             sizeMode = rand.Next(4);
@@ -71,6 +72,8 @@ namespace my
             rate = rateBase + myUtils.randomSign(rand) * rand.Next(33);
 
             waveSize = myUtils.randomChance(rand, 1, 5) ? rand.Next(waveSizeBase) + 123 : waveSizeBase;
+
+            gravityValue = myUtils.randFloat(rand) * rand.Next(3);
 
             return;
         }
@@ -84,16 +87,16 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_181\n\n"                             +
-                            $"N = {nStr(N - n)} + {nStr(n)} generator(s)\n" +
-                            $"liveCnt = {N - n - deadCnt}\n"                +
-                            $"deadCnt = {deadCnt}\n"                        +
-                            $"sizeMode= {sizeMode}\n"                       +
-                            $"rate = {rate}\n"                              +
-                            $"waveSize = {waveSize}\n"                      +
-                            $"doUseRandomSpeed = {doUseRandomSpeed}\n"      +
-                            $"renderDelay = {renderDelay}\n"                +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"                +
+            string str = $"Obj = myObj_181 -- Particle Wave Generators\n\n"         +
+                            $"N = {nStr(N - n)} (+ {nStr(n)} generator(s))\n"       +
+                            $"liveCnt / deadCnt = {N-n-deadCnt} / {deadCnt}\n"      +
+                            $"sizeMode= {sizeMode}\n"                               +
+                            $"rate = {rate}\n"                                      +
+                            $"waveSize = {waveSize}\n"                              +
+                            $"doUseRandomSpeed = {doUseRandomSpeed}\n"              +
+                            $"renderDelay = {renderDelay}\n"                        +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"                        +
+                            $"gravity = {fStr(doUseGravity ? gravityValue : 0)}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -194,6 +197,11 @@ namespace my
             {
                 x += dx;
                 y += dy;
+
+                if (doUseGravity)
+                {
+                    y += gravityValue;
+                }
 
                 switch (sizeMode)
                 {
