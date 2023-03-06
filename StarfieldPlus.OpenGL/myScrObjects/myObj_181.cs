@@ -13,11 +13,12 @@ namespace my
 {
     public class myObj_181 : myObject
     {
+        private int parent_id;
         private bool isLive;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle, dAngle;
 
-        private static int N = 0, n = 0, shape = 0, rate = 1, rateBase = 50, generatorLocationMode = 0,
+        private static int N = 0, n = 0, shape = 0, rate = 1, rateBase = 50, genLocationMode = 0, genOrderMode = 0,
                            sizeBase = 3, sizeMode = 0, waveSize = 1, waveSizeBase = 3000, moveMode = 0;
         private static bool doFillShapes = true, doUseRandomSpeed = true, doUseGravity = true;
         private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f, gravityValue = 0.0f;
@@ -67,9 +68,10 @@ namespace my
             doUseRandomSpeed = myUtils.randomBool(rand);
             doUseGravity     = myUtils.randomChance(rand, 1, 7);
 
-            generatorLocationMode = rand.Next(3);
+            genLocationMode = rand.Next(3);
             sizeMode = rand.Next(4);
             moveMode = myUtils.randomChance(rand, 1, 3) ? rand.Next(4) : 0;
+            genOrderMode = rand.Next(2);
 
             renderDelay = rand.Next(11) + 3;
 
@@ -96,6 +98,7 @@ namespace my
                             $"liveCnt / deadCnt = {N-n-deadCnt} / {deadCnt}\n"      +
                             $"sizeMode = {sizeMode}\n"                              +
                             $"moveMode = {moveMode}\n"                              +
+                            $"genOrderMode = {genOrderMode}\n"                      +
                             $"rate = {rate}\n"                                      +
                             $"waveSize = {waveSize}\n"                              +
                             $"doUseRandomSpeed = {doUseRandomSpeed}\n"              +
@@ -122,7 +125,7 @@ namespace my
             if (id < n)
             {
                 // Place Generators:
-                switch (generatorLocationMode)
+                switch (genLocationMode)
                 {
                     // Randomly
                     case 0:
@@ -173,11 +176,14 @@ namespace my
             {
                 isLive = false;
 
-                // Generator's id
-                int i = rand.Next(n);
+                // Attach this particle to a generator:
+                if (parent_id < 0)
+                {
+                    parent_id = rand.Next(n);
+                }
 
-                x = (list[i] as myObj_181).x;
-                y = (list[i] as myObj_181).y;
+                x = (list[parent_id] as myObj_181).x;
+                y = (list[parent_id] as myObj_181).y;
 
                 float dX = gl_x0 - rand.Next(gl_Width);
                 float dY = gl_x0 - rand.Next(gl_Width);
@@ -328,6 +334,7 @@ namespace my
 
         protected override void Process(Window window)
         {
+            int currentGenerator = 0;
             uint cnt = 0;
             initShapes();
 
@@ -394,6 +401,22 @@ namespace my
                             {
                                 if (newWaveCnt > 0)
                                 {
+                                    switch (genOrderMode)
+                                    {
+                                        case 0:
+                                            obj.parent_id = -1;
+                                            break;
+
+                                        case 1:
+                                            obj.parent_id = currentGenerator++;
+
+                                            if (currentGenerator == n)
+                                            {
+                                                currentGenerator = 0;
+                                            }
+                                            break;
+                                    }
+
                                     obj.generateNew();
 
                                     obj.isLive = true;
