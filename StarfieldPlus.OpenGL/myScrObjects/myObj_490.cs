@@ -328,6 +328,42 @@ additiveFunc = 0;
                 list.Add(new myObj_490());
             }
 
+#if false
+            // Threads
+            int nTaskCount = 1;
+            var thList = new System.Threading.Thread[nTaskCount];
+            var pauseEvents = new System.Threading.ManualResetEvent[nTaskCount];
+
+            {
+                for (int k = 0; k != nTaskCount; k++)
+                {
+                    thList[k] = new System.Threading.Thread(
+                        new System.Threading.ParameterizedThreadStart(thFunc))
+                    {
+                        Name = $"th_{k.ToString("000")}",
+                        Priority = System.Threading.ThreadPriority.Normal
+                    };
+
+                    pauseEvents[k] = new System.Threading.ManualResetEvent(true);   // Threads are initially NOT blocked
+                    thList[k].Start(k);
+                }
+
+                // Thread function
+                void thFunc(object obj)
+                {
+                    int threadId = (int)obj;
+
+                    int beg = (threadId + 0) * list.Count / nTaskCount;
+                    int end = (threadId + 1) * list.Count / nTaskCount;
+
+                    var pauseEvent = pauseEvents[threadId];
+
+
+
+                }
+            }
+#endif
+
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
