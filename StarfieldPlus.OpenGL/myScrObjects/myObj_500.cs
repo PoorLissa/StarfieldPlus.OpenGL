@@ -123,7 +123,7 @@ namespace my
             int max = 3;
             int mode = rand.Next(max);
 
-            mode = 2;
+            //mode = 2;
 
             // Default header
             header = " ";
