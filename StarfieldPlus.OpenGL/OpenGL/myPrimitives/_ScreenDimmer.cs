@@ -1,6 +1,45 @@
 ﻿using static OpenGL.GL;
 
+/*
+        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
+            "out vec4 result; uniform vec4 myColor;" +
 
+            @"float concentric(vec2 m, float repeat, float t) {
+                float r = length(m);
+                float v = sin((1.0 - r) * (1.0 - r) * repeat + t) * 0.5 + 0.5;
+                return v;
+            }
+
+            float spiral(vec2 m, float repeat, float dir, float t) {
+	            float r = length(m);
+	            float a = atan(m.y, m.x);
+	            float v = sin(repeat * (sqrt(r) + (1.0 / repeat) * dir * a - t)) * 0.5 + 0.5;
+	            return v;
+            }",
+
+            main: @"
+
+    vec2 iResolution = vec2(3840.0, 1600.0);
+
+    float aspect = iResolution.x / iResolution.y;
+    
+    vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0) * vec2(1.0, 1.0 / aspect);
+    float r = length(uv);
+
+    float c0 = 1.0 - sin(r * r) * 2.0;
+
+    float c1 = concentric(uv, 50.0, gl_FragCoord.y * 0.1) * 0.5 + 0.5;
+
+    float c3 = spiral(uv, 90.0, 1.0, gl_FragCoord.y * gl_FragCoord.x * 0.1) * 0.9 + 0.1;
+    float c4 = spiral(uv, 30.0, -1.0, gl_FragCoord.y * gl_FragCoord.x * 0.1) * 0.8 + 0.2;
+
+    vec3 col = vec3(c0 * c3);
+    
+    result = vec4(col, 1.0);
+
+                "
+    ); 
+*/
 
 public class myScrDimmer : myPrimitive
 {

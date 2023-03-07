@@ -193,6 +193,7 @@ namespace my
 
                 double dist = Math.Sqrt(dX * dX + dY * dY);
 
+                // Vary speed just a bit
                 dx = (float)(dX * (Speed + myUtils.randFloat(rand, 0.1f) * randSpeedFactor) / dist);
                 dy = (float)(dY * (Speed + myUtils.randFloat(rand, 0.1f) * randSpeedFactor) / dist);
 
@@ -253,6 +254,9 @@ namespace my
             {
                 x += dx;
                 y += dy;
+
+                //x += dx * myUtils.randFloat(rand);
+                //y += dy * myUtils.randFloat(rand);
 
                 angle += dAngle;
 
