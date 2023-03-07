@@ -8,6 +8,8 @@ using System.Collections.Generic;
     - Free shader experiments
 
     https://www.shadertoy.com/view/3tXXRn
+
+    Read this later https://miketuritzin.com/post/rendering-particles-with-compute-shaders/
 */
 
 
@@ -123,7 +125,7 @@ namespace my
             int max = 3;
             int mode = rand.Next(max);
 
-            //mode = 2;
+            //mode = 3;
 
             // Default header
             header = " ";
@@ -133,6 +135,7 @@ namespace my
                 case 0: getShader_000(ref header, ref main); break;
                 case 1: getShader_001(ref header, ref main); break;
                 case 2: getShader_002(ref header, ref main); break;
+                case 3: getShader_003(ref header, ref main); break;
             }
 
             return;
@@ -269,12 +272,30 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // Next one
+        // Test
         private void getShader_003(ref string header, ref string main)
         {
+            main = $@"
+
+                vec2 iResolution = vec2({gl_Width}, {gl_Height});
+                float aspect = iResolution.x / iResolution.y;
+    
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0) * vec2(1.0, 1.0 / aspect);
+                float r = length(uv);
+                r = r * r + sin(r * uTime);
+
+                if (r > 0.1)
+                    result = vec4(vec3(1-r), 1);
+            ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Next one
+        private void getShader_004(ref string header, ref string main)
+        {
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
     }
 };
