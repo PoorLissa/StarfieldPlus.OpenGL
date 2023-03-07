@@ -129,6 +129,7 @@
     <Compile Include="OpenGL\myPrimitives\_Pentagon_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Pentagon.cs" />
     <Compile Include="OpenGL\myPrimitives\_Ellipse_Instanced.cs" />
+    <Compile Include="OpenGL\myPrimitives\_FreeShader.cs" />
     <Compile Include="OpenGL\myPrimitives\_ScreenDimmer.cs" />
     <Compile Include="OpenGL\myPrimitives\_Rectangle_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_TexRectangle_Renderer.cs" />

@@ -376,6 +376,7 @@ namespace my
                 }
 
                 // Render Frame
+                //if (false)
                 {
                     inst.ResetBuffer();
 
