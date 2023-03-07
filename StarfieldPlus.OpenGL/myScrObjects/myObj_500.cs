@@ -123,6 +123,8 @@ namespace my
             int max = 3;
             int mode = rand.Next(max);
 
+            mode = 2;
+
             // Default header
             header = " ";
 
@@ -232,10 +234,10 @@ namespace my
                     d += distLine(ro, rd, vec3(0., 1., 0.));
                     d += distLine(ro, rd, vec3(1., 1., 0.));
                     d += distLine(ro, rd, vec3(1., 0., 0.));
-                    d += distLine(ro, rd, vec3(0., 0., 1.));
-                    d += distLine(ro, rd, vec3(0., 1., 1.));
-                    d += distLine(ro, rd, vec3(1., 1., 1.));
-                    d += distLine(ro, rd, vec3(1., 0., 1.));
+                    d += distLine(ro, rd, vec3(0., 0., 1.0));
+                    d += distLine(ro, rd, vec3(0., 1., 1.0));
+                    d += distLine(ro, rd, vec3(1., 1., 1.0));
+                    d += distLine(ro, rd, vec3(1., 0., 1.0));
 
 	                return d;
                 }
@@ -249,9 +251,9 @@ namespace my
                 uv -= 0.5;
                 uv.x *= iResolution.x/iResolution.y;
 
-                vec3 lookAt = vec3(.5);
+                vec3 lookAt = vec3(0.5);
                 vec3 ro = vec3(3.* sin(uTime * 0.1), 2. * cos(uTime * 0.1), -3.);
-                float zoom = 1.;
+                float zoom = 0.5 + sin(uTime * 0.1) * 0.2;
     
                 vec3 f = normalize(lookAt - ro);
                 vec3 r = cross(vec3(0., -1., 0.), f);
@@ -261,7 +263,7 @@ namespace my
                 vec3 rd = i - ro;
     
                 float d = box(ro, rd);
-                result = vec4(d, d, d, 0.25);
+                result = vec4(d * {R}, d * {G}, d * {B}, 0.25);
             ";
         }
 
