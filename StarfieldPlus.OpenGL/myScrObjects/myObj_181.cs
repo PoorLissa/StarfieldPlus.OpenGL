@@ -21,7 +21,7 @@ namespace my
         private static int N = 0, n = 0, shape = 0, rate = 1, rateBase = 50, genLocationMode = 0, genOrderMode = 0,
                            sizeBase = 3, sizeMode = 0, waveSize = 1, waveSizeBase = 3000, moveMode = 0;
         private static bool doFillShapes = true, doUseRandomSpeed = true, doUseGravity = true;
-        private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f, gravityValue = 0.0f;
+        private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f, gravityValue = 0.0f, randSpeedFactor = 0;
 
         private static int deadCnt = 0;
 
@@ -81,6 +81,8 @@ namespace my
 
             gravityValue = myUtils.randFloat(rand) * 0.01f;
 
+            randSpeedFactor = 0.01f * rand.Next(6);
+
             return;
         }
 
@@ -104,6 +106,7 @@ namespace my
                             $"doUseRandomSpeed = {doUseRandomSpeed}\n"              +
                             $"renderDelay = {renderDelay}\n"                        +
                             $"dimAlpha = {fStr(dimAlpha)}\n"                        +
+                            $"randSpeedFactor = {fStr(randSpeedFactor)}\n"          +
                             $"gravity = {fStr(doUseGravity ? gravityValue : 0)}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -190,8 +193,8 @@ namespace my
 
                 double dist = Math.Sqrt(dX * dX + dY * dY);
 
-                dx = (float)(dX * Speed / dist);
-                dy = (float)(dY * Speed / dist);
+                dx = (float)(dX * (Speed + myUtils.randFloat(rand, 0.1f) * randSpeedFactor) / dist);
+                dy = (float)(dY * (Speed + myUtils.randFloat(rand, 0.1f) * randSpeedFactor) / dist);
 
                 switch (sizeMode)
                 {
