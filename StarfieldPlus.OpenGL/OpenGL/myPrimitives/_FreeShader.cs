@@ -56,13 +56,12 @@ using System;
 
 public class myFreeShader : myPrimitive
 {
+    private long tBegin;
     private uint vbo = 0, ebo = 0, shaderProgram = 0;
     private float[] vertices = null;
 
     // Uniform ids:
     private static int u_Time;
-
-    private long tBegin;
 
     // -------------------------------------------------------------------------------------------------------------------
 
