@@ -90,6 +90,9 @@ namespace my
 
         protected override void Process(Window window)
         {
+            // Set culture to avoid incorrect float conversion in shader strings
+            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+
             uint cnt = 0;
 
             glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
@@ -125,7 +128,7 @@ namespace my
             int max = 3;
             int mode = rand.Next(max);
 
-            //mode = 3;
+            //mode = 0;
 
             // Default header
             header = " ";
