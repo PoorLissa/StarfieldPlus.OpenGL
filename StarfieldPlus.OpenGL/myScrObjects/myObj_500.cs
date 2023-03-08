@@ -23,6 +23,8 @@ namespace my
 
         private myFreeShader shader = null;
 
+        private int mode = 0;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_500()
@@ -58,6 +60,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            renderDelay = rand.Next(11) + 3;
+
             return;
         }
 
@@ -70,9 +74,11 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_500 -- Free Shader Experiments\n\n"  +
-                            $"N = {0}\n"                                    +
-                            $"renderDelay = {renderDelay}\n"                +
+            string str = $"Obj = myObj_500 -- Free Shader Experiments\n\n"   +
+                            $"N = {nStr(0)}\n"                               +
+                            $"R = {fStr(R)}; G = {fStr(G)}; B = {fStr(B)}\n" +
+                            $"mode = {mode}\n"                               +
+                            $"renderDelay = {renderDelay}\n"                 +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -122,10 +128,10 @@ namespace my
 
         private void getMainShader(ref string header, ref string main)
         {
-            int max = 3;
-            int mode = rand.Next(max);
+            int max = 4;
+            mode = rand.Next(max);
 
-            //mode = 3;
+            //mode = 0;
 
             // Default header
             header = " ";
@@ -136,6 +142,7 @@ namespace my
                 case 1: getShader_001(ref header, ref main); break;
                 case 2: getShader_002(ref header, ref main); break;
                 case 3: getShader_003(ref header, ref main); break;
+                case 4: getShader_004(ref header, ref main); break;
             }
 
             return;
@@ -146,25 +153,24 @@ namespace my
         // https://www.shadertoy.com/view/tdlBR8
         private void getShader_000(ref string header, ref string main)
         {
-            header = @"
+            header = $@"
 
-                float concentric(vec2 m, float repeat, float t) {
+                float concentric(vec2 m, float repeat, float t) {{
                     float r = length(m);
                     float v = sin((1.0 - r) * (1.0 - r) * repeat + t) * 0.5 + 0.5;
                     return v;
-                }
+                }}
 
-                float spiral(vec2 m, float repeat, float dir, float t) {
+                float spiral(vec2 m, float repeat, float dir, float t) {{
 	                float r = length(m);
 	                float a = atan(m.y, m.x);
 	                float v = sin(repeat * (sqrt(r) + (1.0 / repeat) * dir * a - t)) * 0.5 + 0.5;
 	                return v;
-                }
+                }}
             ";
 
             main = $@"
 
-                vec2 iResolution = vec2({gl_Width}, {gl_Height});
                 float aspect = iResolution.x / iResolution.y;
     
                 vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0) * vec2(1.0, 1.0 / aspect);
@@ -188,8 +194,6 @@ namespace my
         private void getShader_001(ref string header, ref string main)
         {
             main = $@"
-
-                vec2 iResolution = vec2({gl_Width}, {gl_Height});
 
                 // Normalized pixel coordinates (from 0 to 1)
                 vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5) / iResolution.y;
@@ -223,15 +227,15 @@ namespace my
         // https://www.shadertoy.com/view/MdKBzt
         private void getShader_002(ref string header, ref string main)
         {
-            header = @"
+            header = $@"
 
-                float distLine(vec3 ro, vec3 rd, vec3 p) {
+                float distLine(vec3 ro, vec3 rd, vec3 p) {{
                     float d = length(cross(p-ro, rd))/length(rd);
                     d = smoothstep(.06, .05, d);
 	                return d;
-                }
+                }}
 
-                float box(vec3 ro, vec3 rd) {
+                float box(vec3 ro, vec3 rd) {{
                     float d = 0.;
                     d += distLine(ro, rd, vec3(0., 0., 0.));
                     d += distLine(ro, rd, vec3(0., 1., 0.));
@@ -243,12 +247,10 @@ namespace my
                     d += distLine(ro, rd, vec3(1., 0., 1.0));
 
 	                return d;
-                }
+                }}
             ";
 
             main = $@"
-
-                vec2 iResolution = vec2({gl_Width}, {gl_Height});
 
                 vec2 uv = gl_FragCoord.xy/iResolution.xy;
                 uv -= 0.5;
@@ -272,20 +274,38 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // Test
+        // https://www.shadertoy.com/view/ddy3RW
         private void getShader_003(ref string header, ref string main)
         {
+            header = $@"
+
+                #define rotation(angle) mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+
+                float PI  = {Math.PI};
+                float TAU = {Math.PI} * 2.0;
+
+                float circleSDF(vec2 coords, float rad, vec2 offset)
+                {{
+                    return abs(length(coords-offset) - rad*rad) - 0.000002;
+                }}
+            ";
+
+            // uv is Texture Coordinates: 0-1
+
             main = $@"
+   
+                vec2 uv = ( gl_FragCoord.xy - .5 * iResolution.xy ) / iResolution.y;
+                float a = (PI/2.0) * pow((1.5-pow(length(uv),.5)), 3.5);
 
-                vec2 iResolution = vec2({gl_Width}, {gl_Height});
-                float aspect = iResolution.x / iResolution.y;
-    
-                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0) * vec2(1.0, 1.0 / aspect);
-                float r = length(uv);
-                r = r * r + sin(r * uTime);
+                float rad = {myUtils.randFloat(rand) * 0.5};
 
-                if (r > 0.1)
-                    result = vec4(vec3(1-r), 1);
+                uv *= rotation(a*sin(uTime+a));     // add rotation
+                uv = mod(uv, rad);
+                vec3 col;
+                float cSDF = circleSDF(uv, rad + 0.05, vec2(rad/2, rad/2));
+                col += smoothstep(0.006, -0.006, cSDF);
+
+                result = vec4(col * vec3({R}, {G}, {B}), 1);
             ";
         }
 
@@ -294,6 +314,11 @@ namespace my
         // Next one
         private void getShader_004(ref string header, ref string main)
         {
+            header = $@"
+            ";
+
+            main = $@"
+            ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------

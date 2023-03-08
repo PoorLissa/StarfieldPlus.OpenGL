@@ -6,6 +6,7 @@ namespace StarfieldPlus.OpenGL
 {
     class Program
     {
+        // todo: use it later to prevent the screensaver from starting while it is rinning from the VS
         private static System.Threading.Mutex mutex = null;
 
         // -------------------------------------------------------------------------------------------------------------------

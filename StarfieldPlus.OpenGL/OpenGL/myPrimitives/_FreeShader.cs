@@ -140,11 +140,11 @@ public class myFreeShader : myPrimitive
         vertices[01] = +1.0f;
         vertices[10] = +1.0f;
 
-        vertices[0] = +1.0f;
-        vertices[3] = +1.0f;
+        vertices[00] = +1.0f;
+        vertices[03] = +1.0f;
 
-        vertices[4] = -1.0f;
-        vertices[7] = -1.0f;
+        vertices[04] = -1.0f;
+        vertices[07] = -1.0f;
 
         updateVertices();
 
@@ -183,7 +183,12 @@ public class myFreeShader : myPrimitive
         else
         {
             // Extend the header with some pre-defined variables:
-            fHeader = "out vec4 result; uniform float uTime;" + fHeader;
+            fHeader = $"out vec4 result;"                            +
+                      $"uniform float uTime;"                        +
+
+                      $"vec2 iResolution = vec2({Width}, {Height});" +
+
+                      $"{fHeader}";
         }
 
         if (fMain.Length == 0)
