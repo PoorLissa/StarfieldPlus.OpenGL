@@ -9,6 +9,8 @@ using System.Collections.Generic;
 
     https://www.shadertoy.com/view/3tXXRn
 
+    GLSL Manual: https://registry.khronos.org/OpenGL-Refpages/es3.1/
+
     Read this later https://miketuritzin.com/post/rendering-particles-with-compute-shaders/
 */
 
@@ -103,7 +105,7 @@ namespace my
 
             glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
 
-            getMainShader(ref fHeader, ref fMain);
+            getShaderCode(ref fHeader, ref fMain);
 
             shader = new myFreeShader(fHeader: fHeader, fMain: fMain);
 
@@ -129,7 +131,8 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void getMainShader(ref string header, ref string main)
+        // Select random mode and get shader code: header + main func
+        private void getShaderCode(ref string header, ref string main)
         {
             int max = 4;
             mode = rand.Next(max);
