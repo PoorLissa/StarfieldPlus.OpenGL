@@ -141,8 +141,8 @@ public class myFreeShader_FullScreen : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create a shader program:
-    // - Vertex shader is default
-    // - Fragment shader must be provided by the user
+    // - Vertex shader uses the default implementation
+    // - Fragment shader code must be supplied by the user
     private void CreateProgram(string fHeader, string fMain)
     {
         // Vertex Shader Program
