@@ -109,9 +109,7 @@ namespace my
 
             glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
 
-            getShaderCode(ref fHeader, ref fMain);
-
-            shader = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
+            getShader(ref fHeader, ref fMain);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -124,7 +122,6 @@ namespace my
                 // Render Frame
                 {
                     shader.Draw();
-                    //shader.Draw(1200, 1000, 333, 333);
                 }
 
                 cnt++;
@@ -137,7 +134,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Select random mode and get shader code: header + main func
-        private void getShaderCode(ref string header, ref string main)
+        private void getShader(ref string header, ref string main)
         {
             int max = 4;
             mode = rand.Next(max);
@@ -152,6 +149,8 @@ namespace my
                 case 3: getShader_003(ref header, ref main); break;
                 case 4: getShader_004(ref header, ref main); break;
             }
+
+            shader = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
 
             return;
         }

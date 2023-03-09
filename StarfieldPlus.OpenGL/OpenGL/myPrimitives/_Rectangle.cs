@@ -20,6 +20,9 @@ public class myRectangle : myPrimitive
 
     private static float w1 = -1, w2 = -1;
 
+    private static int verticesLength = 12;
+    private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
+
     // -------------------------------------------------------------------------------------------------------------------
 
     public myRectangle()
@@ -29,7 +32,7 @@ public class myRectangle : myPrimitive
             w1 = 2.0f / (Width - 1);
             w2 = 2.0f / (Width + 1);
 
-            vertices = new float[12];
+            vertices = new float[verticesLength];
 
             CreateProgram();
             glUseProgram(shaderProgram);
@@ -190,10 +193,10 @@ public class myRectangle : myPrimitive
         {
             // Copy user-defined data into the currently bound buffer:
             fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+                glBufferData(GL_ARRAY_BUFFER, sizeofFloat_x_verticesLength, v, GL_DYNAMIC_DRAW);
         }
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeofFloat_x_3, NULL);
         glEnableVertexAttribArray(0);
     }
 
