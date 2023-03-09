@@ -161,9 +161,9 @@ public class myRectangle : myPrimitive
 
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
 
-            header: "out vec4 result; uniform vec4 myColor;",
+            header: $@"out vec4 result; uniform vec4 myColor;",
 
-                main: "result = myColor;"
+                main: $@"result = myColor;"
         );
 
         shaderProgram = glCreateProgram();
