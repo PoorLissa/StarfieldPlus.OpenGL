@@ -101,7 +101,7 @@ public class ScreenSaver
 
 #if DEBUG
         id = ids.myObj_500;
-        id = ids.myObj_110;
+        //id = ids.myObj_110;
 #endif
 
         switch (id)

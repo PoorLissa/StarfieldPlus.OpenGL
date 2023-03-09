@@ -3,6 +3,7 @@ using static OpenGL.GL;
 using System;
 
 
+
 public class myPentagonInst : myInstancedPrimitive
 {
     private static float[] vertices = null;

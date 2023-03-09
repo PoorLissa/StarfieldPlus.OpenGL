@@ -121,6 +121,7 @@ public class myRectangle : myPrimitive
             glUniform2f(myCenter, x + w / 2, y + h / 2);
         }
 
+        // Draw
         unsafe
         {
             if (doFill)

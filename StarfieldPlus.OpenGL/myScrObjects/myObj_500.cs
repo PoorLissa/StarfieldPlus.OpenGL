@@ -27,7 +27,8 @@ namespace my
 
         private string fHeader = "", fMain = "";
 
-        private myFreeShader_FullScreen shader = null;
+        private myFreeShader shader = null;
+        private myFreeShader_FullScreen shaderFull = null;
 
         private int mode = 0;
 
@@ -121,7 +122,8 @@ namespace my
 
                 // Render Frame
                 {
-                    shader.Draw();
+                    //shader.Draw(111, 222, 777, 777);
+                    shaderFull.Draw();
                 }
 
                 cnt++;
@@ -150,7 +152,10 @@ namespace my
                 case 4: getShader_004(ref header, ref main); break;
             }
 
-            shader = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
+            //shader = new myFreeShader(fHeader: fHeader, fMain: fMain);
+            shader = new myFreeShader();
+
+            shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
 
             return;
         }
