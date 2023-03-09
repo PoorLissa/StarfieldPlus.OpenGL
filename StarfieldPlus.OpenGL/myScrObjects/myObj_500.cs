@@ -12,6 +12,10 @@ using System.Collections.Generic;
     GLSL Manual: https://registry.khronos.org/OpenGL-Refpages/es3.1/
 
     Read this later https://miketuritzin.com/post/rendering-particles-with-compute-shaders/
+
+    // To investigate:
+    https://www.shadertoy.com/view/Xsl3z2
+    https://www.shadertoy.com/view/Ddy3zD
 */
 
 
@@ -120,6 +124,7 @@ namespace my
                 // Render Frame
                 {
                     shader.Draw();
+                    //shader.Draw(1200, 1000, 333, 333);
                 }
 
                 cnt++;
@@ -137,7 +142,7 @@ namespace my
             int max = 4;
             mode = rand.Next(max);
 
-            //mode = 0;
+            //mode = 1;
 
             // Default header
             header = " ";
@@ -199,6 +204,18 @@ namespace my
         // https://www.shadertoy.com/view/3dBXDy
         private void getShader_001(ref string header, ref string main)
         {
+            header = $@"
+
+                float rand(float x) {{
+                    return fract(sin(x) * 43758.5453);
+                }}
+
+                float noise(vec2 p)
+                {{
+                    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
+                }}
+            ";
+
             main = $@"
 
                 // Normalized pixel coordinates (from 0 to 1)
@@ -222,6 +239,19 @@ namespace my
                 final += smoothstep(0.5, 0.6, final);
 
                 //final = mask*10.0;
+
+                // Randomly add noise
+                switch({rand.Next(3)})
+                {{
+                    case 0:
+                        final *= 0.975 + rand((uv.x + uv.y) * sin(uTime)) * 0.025;
+                        final *= 0.975 + rand((uv.x - uv.y) * sin(uTime)) * 0.025;
+                        break;
+
+                    case 1:
+                        final *= 0.85 + noise(gl_FragCoord.xy * uv) * 0.15;
+                        break;
+                }}
 
                 // Output to screen
                 result = vec4(vec3(final * {R}, final * {G}, final * {B}), 1.0);
@@ -324,6 +354,16 @@ namespace my
             ";
 
             main = $@"
+
+                //gl_Position.x += +2.0 / myScrSize.x * (mData[0].x + mData[0].z/2) - 1.0;
+                //gl_Position.y += -2.0 / myScrSize.y * (mData[0].y + mData[0].w/2) + 1.0;
+
+                vec2 uv = ( gl_FragCoord.xy - .5 * iResolution.xy ) / iResolution.y;
+
+                if (length(uv) < 0.23)
+                {{
+                    result = vec4(0.85, 0.23, 0.11, 1);
+                }}
             ";
         }
 

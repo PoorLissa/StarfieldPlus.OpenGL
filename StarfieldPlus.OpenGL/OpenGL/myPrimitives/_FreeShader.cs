@@ -168,7 +168,7 @@ public class myFreeShader : myPrimitive
     {
         if (vHeader.Length == 0)
         {
-            vHeader = "layout (location = 0) in vec3 pos;";
+            vHeader = "layout (location=0) in vec3 pos;";
         }
 
         if (vMain.Length == 0)

@@ -68,7 +68,7 @@ namespace my
             brdrB = myUtils.randFloat(rand);
 
             // Border line width
-            lineWidth = 0.25f + myUtils.randFloat(rand) * rand.Next(3);
+            lineWidth = 0.25f + myUtils.randFloat(rand) + rand.Next(3);
 
             switch (rand.Next(21))
             {
