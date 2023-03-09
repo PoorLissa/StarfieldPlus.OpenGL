@@ -27,7 +27,7 @@ namespace my
 
         private string fHeader = "", fMain = "";
 
-        private myFreeShader shader = null;
+        private myFreeShader_FullScreen shader = null;
 
         private int mode = 0;
 
@@ -111,7 +111,7 @@ namespace my
 
             getShaderCode(ref fHeader, ref fMain);
 
-            shader = new myFreeShader(fHeader: fHeader, fMain: fMain);
+            shader = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -143,9 +143,6 @@ namespace my
             mode = rand.Next(max);
 
             //mode = 1;
-
-            // Default header
-            header = " ";
 
             switch (mode)
             {

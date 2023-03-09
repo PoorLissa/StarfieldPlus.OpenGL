@@ -4,7 +4,7 @@ using System;
 
 
 /*
-    This class lets the user to create custom shaders.
+    This class lets the user to create full-screen custom shaders.
 
     Example:
 
@@ -25,8 +25,6 @@ using System;
             ";
 
             string fragShader = $@"
-
-                vec2 iResolution = vec2({gl_Width}, {gl_Height});
 
                 float aspect = iResolution.x / iResolution.y;
     
@@ -54,7 +52,7 @@ using System;
 */
 
 
-public class myFreeShader : myPrimitive
+public class myFreeShader_FullScreen : myPrimitive
 {
     private long tBegin;
     private uint vbo = 0, ebo = 0, shaderProgram = 0;
@@ -63,17 +61,18 @@ public class myFreeShader : myPrimitive
     // Uniform ids:
     private static int u_Time;
 
+    private static int verticesLength = 12;
+    private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
+
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myFreeShader(string vHeader = "", string vMain = "", string fHeader = "", string fMain = "")
+    public myFreeShader_FullScreen(string fHeader = "", string fMain = "")
     {
         if (vertices == null)
         {
-            tBegin = DateTime.Now.Ticks;
+            vertices = new float[verticesLength];
 
-            vertices = new float[12];
-
-            CreateProgram(vHeader, vMain, fHeader, fMain);
+            CreateProgram(fHeader, fMain);
             glUseProgram(shaderProgram);
 
             // Uniforms
@@ -83,127 +82,104 @@ public class myFreeShader : myPrimitive
             ebo = glGenBuffer();
 
             updateIndices();
+
+            // Need to do this only once, as it will always be drawn as (0, 0, Width, Height)
+            {
+                vertices[06] = -1.0f;
+                vertices[09] = -1.0f;
+                vertices[01] = +1.0f;
+                vertices[10] = +1.0f;
+
+                vertices[00] = +1.0f;
+                vertices[03] = +1.0f;
+
+                vertices[04] = -1.0f;
+                vertices[07] = -1.0f;
+            }
+
+            // Start the timer
+            tBegin = DateTime.Now.Ticks;
         }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Draw(int x, int y, int w, int h)
-    {
-        // Recalc screen coordinates into Normalized Device Coordinates (NDC)
-
-        float fx = 2.0f * x / Width - 1.0f;
-        float fy = 1.0f - 2.0f * y / Height;
-
-        vertices[06] = fx;
-        vertices[09] = fx;
-        vertices[01] = fy;
-        vertices[10] = fy;
-
-        fx = 2.0f * (x + w) / Width - 1.0f;
-        vertices[0] = fx;
-        vertices[3] = fx;
-
-        fy = 1.0f - 2.0f * (y + h) / Height;
-        vertices[4] = fy;
-        vertices[7] = fy;
-
-        updateVertices();
-
-        glUseProgram(shaderProgram);
-
-        // Update uniforms:
-        glUniform1f(u_Time, (float)(TimeSpan.FromTicks(DateTime.Now.Ticks - tBegin).TotalSeconds));
-
-        unsafe
-        {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-        }
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    public void Draw(float x, float y, float w, float h)
-    {
-        Draw((int)x, (int)y, (int)w, (int)h);
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    // Draw full-screen: no need to recalculate any coordinates
+    // Draw;
+    // As this is only a full-screen shader, no need to recalculate any coordinates
     public void Draw()
     {
-        vertices[06] = -1.0f;
-        vertices[09] = -1.0f;
-        vertices[01] = +1.0f;
-        vertices[10] = +1.0f;
-
-        vertices[00] = +1.0f;
-        vertices[03] = +1.0f;
-
-        vertices[04] = -1.0f;
-        vertices[07] = -1.0f;
-
-        updateVertices();
-
         glUseProgram(shaderProgram);
 
         // Update uniforms:
         glUniform1f(u_Time, (float)(TimeSpan.FromTicks(DateTime.Now.Ticks - tBegin).TotalSeconds));
 
+        // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
         unsafe
         {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+            // Bind a buffer;
+            // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            {
+                // Copy user-defined data into the currently bound buffer:
+                fixed (float* v = &vertices[0])
+                    glBufferData(GL_ARRAY_BUFFER, sizeofFloat_x_verticesLength, v, GL_STREAM_DRAW);
+            }
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeofFloat_x_3, NULL);
+            glEnableVertexAttribArray(0);
+
+
+            // Draw
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+            }
         }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Create a shader program
-    private void CreateProgram(string vHeader, string vMain, string fHeader, string fMain)
+    // Create a shader program:
+    // - Vertex shader is default
+    // - Fragment shader must be provided by the user
+    private void CreateProgram(string fHeader, string fMain)
     {
-        if (vHeader.Length == 0)
-        {
-            vHeader = "layout (location=0) in vec3 pos;";
-        }
+        // Vertex Shader Program
+        string vHeader = "layout (location=0) in vec3 pos;";
+        string vMain   = "gl_Position = vec4(pos, 1.0);";
 
-        if (vMain.Length == 0)
+        // Fragment Shader Program
         {
-            vMain = "gl_Position = vec4(pos, 1.0);";
-        }
+            if (string.IsNullOrEmpty(fHeader))
+            {
+                // Default implementation
+                fHeader = "out vec4 result;";
+            }
+            else
+            {
+                // Extend the header with some pre-defined variables:
+                fHeader = $"out vec4 result;" +
+                          $"uniform float uTime;" +
+                          $"vec2 iResolution = vec2({Width}, {Height});" +
+                          $"{fHeader}";
+            }
 
-        if (fHeader.Length == 0)
-        {
-            fHeader = "out vec4 result;";
-        }
-        else
-        {
-            // Extend the header with some pre-defined variables:
-            fHeader = $"out vec4 result;"                            +
-                      $"uniform float uTime;"                        +
-
-                      $"vec2 iResolution = vec2({Width}, {Height});" +
-
-                      $"{fHeader}";
-        }
-
-        if (fMain.Length == 0)
-        {
-            fMain = "result = vec4(gl_FragCoord.x/800, gl_FragCoord.y/600, 1, 1);";
+            if (string.IsNullOrEmpty(fMain))
+            {
+                // Default implementation
+                fMain = $@"result = vec4(gl_FragCoord.x / {Width}, gl_FragCoord.y / {Height}, sin(uTime * 0.33), 1);";
+            }
         }
 
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             header : vHeader,
-            main   : vMain
+                main : vMain
         );
 
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
             header : fHeader,
-            main   : fMain
+                main : fMain
         );
 
         shaderProgram = glCreateProgram();
@@ -221,26 +197,8 @@ public class myFreeShader : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
-    private unsafe void updateVertices()
-    {
-        // Bind a buffer;
-        // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        {
-            // Copy user-defined data into the currently bound buffer:
-            fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
-        }
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
-        glEnableVertexAttribArray(0);
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    // Move indices data from CPU to GPU -- needs to be called only once, as we have 2 different EBOs, and they are not going to change;
-    // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo1 : ebo2);
+    // Move indices data from CPU to GPU -- needs to be called only once
+    // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     private unsafe void updateIndices()
     {
         int usage = GL_STATIC_DRAW;
