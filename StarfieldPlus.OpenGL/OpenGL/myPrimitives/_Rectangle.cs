@@ -18,7 +18,7 @@ public class myRectangle : myPrimitive
     private static float _angle;
     private static int myColor = 0, myAngle = 0, myCenter = 0;
 
-    private static float w1 = -1, w2 = -1;
+    private static float w1 = -1, w2 = -1, invW = -1, invH = -1;
 
     private static int verticesLength = 12;
     private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
@@ -32,10 +32,15 @@ public class myRectangle : myPrimitive
             w1 = 2.0f / (Width - 1);
             w2 = 2.0f / (Width + 1);
 
+            invW = 2.0f / Width;
+            invH = 2.0f / Height;
+
             vertices = new float[verticesLength];
 
             CreateProgram();
             glUseProgram(shaderProgram);
+
+            // Uniforms
             myColor  = glGetUniformLocation(shaderProgram, "myColor");
             myAngle  = glGetUniformLocation(shaderProgram, "myAngle");
             myCenter = glGetUniformLocation(shaderProgram, "myCenter");
@@ -56,28 +61,29 @@ public class myRectangle : myPrimitive
         {
             // Recalc screen coordinates into Normalized Device Coordinates (NDC)
 
+            // https://stackoverflow.com/questions/70146951/opengl-how-to-fix-missing-corner-pixel-in-rect-lines-or-line-loop
+
             //float fx = 2.0f * x / Width - 1.0f;
 
             // Shift Width a bit to get rid of incomplete left bottom angle
             //float fx = 2.0f * x / (Width + 1) - 1.0f;
-            float fx = 2.0f * x / (Width) - 1.0f;
-
+            //float fx = 2.0f * x / (Width) - 1.0f;
             //float fx = (x < Width / 2) ? (w1 * x - 1.0f) : (w2 * x - 1.0f);
             //float fx = 2.0f * x / (Width) - 1.0f;
 
-            // https://stackoverflow.com/questions/70146951/opengl-how-to-fix-missing-corner-pixel-in-rect-lines-or-line-loop
+            float fx = -1.0f + x * invW;        // 2.0 * x / Width - 1.0;
+            float fy = +1.0f - y * invH;        // 1.0 + 2.0 * y / Height;
 
-            float fy = 1.0f - 2.0f * y / Height;
             vertices[06] = fx;
             vertices[09] = fx;
             vertices[01] = fy;
             vertices[10] = fy;
 
-            fx = 2.0f * (x + w) / Width - 1.0f;
+            fx = -1.0f + (x + w) * invW;
+            fy = +1.0f - (y + h) * invH;
+
             vertices[0] = fx;
             vertices[3] = fx;
-
-            fy = 1.0f - 2.0f * (y + h) / Height;
             vertices[4] = fy;
             vertices[7] = fy;
         }
@@ -86,16 +92,17 @@ public class myRectangle : myPrimitive
             // Leave coordinates as they are, and recalc them in the shader
             float fx = x;
             float fy = y;
+
             vertices[06] = fx;
             vertices[09] = fx;
             vertices[01] = fy;
             vertices[10] = fy;
 
             fx = x + w;
+            fy = y + h;
+
             vertices[0] = fx;
             vertices[3] = fx;
-
-            fy = y + h;
             vertices[4] = fy;
             vertices[7] = fy;
         }
