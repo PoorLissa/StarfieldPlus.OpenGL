@@ -24,7 +24,6 @@ public class myTexRectangle_Renderer : myPrimitive
 
     private const int verticesLength = 12;
     private const int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
-    private const int sizeofFloat_x_3 = sizeof(float) * 3;
 
     // -------------------------------------------------------------------------------------------------------------------
 
