@@ -131,11 +131,16 @@ namespace my
 
                     //shaderFull.Draw();
 
+                    myPrimitive._Ellipse.SetColor(0.5f, 0.25f, 0.1f, 0.75f);
+                    shader.SetColor(0.25f, 0.66f, 0.33f, 0.75f);
+                    int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
+
                     for (int i = 0; i < gl_Width; i += 200)
                     {
                         for (int j = 0; j < gl_Height; j += 200)
                         {
-                            shader.Draw(i, j, 200, 200);
+                            shader.Draw(i, j, 300, 300);
+                            //myPrimitive._Ellipse.Draw(i - rad, j - rad, 2*rad, 2*rad, true);
                         }
                     }
                 }
@@ -170,6 +175,8 @@ namespace my
             shader = new myFreeShader("//", "//");
 
             shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
+
+            myPrimitive.init_Ellipse();
 
             return;
         }

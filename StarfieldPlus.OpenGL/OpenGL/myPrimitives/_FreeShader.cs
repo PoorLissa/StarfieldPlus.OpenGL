@@ -32,7 +32,7 @@ public class myFreeShader : myPrimitive
     private float[] vertices = null;
 
     // Uniform ids:
-    private static int u_Time, myCenter;
+    private static int u_Time, myCenter, myColor;
 
     private static float invW = -1, invH = -1;
 
@@ -56,6 +56,7 @@ public class myFreeShader : myPrimitive
             // Uniforms
             u_Time   = glGetUniformLocation(shaderProgram, "uTime");
             myCenter = glGetUniformLocation(shaderProgram, "myCenter");
+            myColor  = glGetUniformLocation(shaderProgram, "myColor");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();
@@ -93,6 +94,7 @@ public class myFreeShader : myPrimitive
         glUseProgram(shaderProgram);
 
         // Update uniforms:
+        glUniform4f(myColor, _r, _g, _b, _a);
         glUniform1f(u_Time, (float)(TimeSpan.FromTicks(DateTime.Now.Ticks - tBegin).TotalSeconds));
         glUniform2f(myCenter, x - w / 2, y - w / 2);
 
@@ -116,15 +118,15 @@ public class myFreeShader : myPrimitive
 
         // Vertex Shader Program
         {
-            vHeader = "layout (location=0) in vec3 pos; uniform vec2 myCenter; out vec2 zzz;";
+            vHeader = "layout (location=0) in vec3 pos; uniform vec2 myCenter; out vec2 C;";
 
             // Recalc coordinates in the shader
             vMain = $@"
                 gl_Position.x = -1.0 + pos.x * {2.0 / Width };
                 gl_Position.y = +1.0 - pos.y * {2.0 / Height};
 
-                zzz.x = (-1.0 + myCenter.x * {2.0 / Width });
-                zzz.y = (+1.0 - myCenter.y * {2.0 / Height});
+                C.x = (-1.0 + myCenter.x * {2.0 / Width });
+                C.y = (+1.0 - myCenter.y * {2.0 / Height});
             ";
         }
 
@@ -134,8 +136,7 @@ public class myFreeShader : myPrimitive
             {
                 // Default implementation
                 fHeader = $"out vec4 result;" +
-                          $"uniform float uTime;" +
-                          $"uniform vec2 myCenter;"
+                          $"uniform float uTime;"
                 ;
             }
             else
@@ -144,8 +145,9 @@ public class myFreeShader : myPrimitive
                 fHeader = $@"
 
                     out vec4 result;
-                    in vec2 zzz;
+                    in vec2 C;
                     uniform float uTime;
+                    uniform vec4 myColor;
                     vec2 iResolution = vec2({Width}, {Height});
 
                     vec2 aspect = vec2(1.0, {1.0 * Height / Width});
@@ -166,14 +168,25 @@ public class myFreeShader : myPrimitive
            
                     vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
-                    uv -= zzz;
+                    uv -= C;
                     uv *= aspect;
 
-                    float rad = 0.03;
-                    float c = circle(uv, rad - sin(uTime) * 0.0025);
+                    float rad = (0.01 + gl_FragCoord.y * 0.00003) - sin(uTime) * 0.003;
+                    float c = circle(uv, rad);
 
-                    if (length(uv) <= c)
-                        result = vec4(vec3(0.5, 0.2, 0.3) * c, 1);
+                    if (false)
+                    {{
+                        if (length(uv) <= rad)
+                            result = vec4(myColor.xyz, myColor.w);
+                    }}
+                    else
+                    {{
+                        if (length(uv) <= c)
+                            //result = vec4(myColor.xyz * c, myColor.w);
+                            result = vec4(vec3(0.5) * c, myColor.w * c);
+                        else
+                            result = vec4(vec3(0.3, 0.2, 0.1), 0.0);
+                    }}
                 ";
             }
         }
