@@ -123,26 +123,40 @@ namespace my
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 // Render Frame
+                if (true)
                 {
                     //shader.Draw(1666, 666, 500, 500);
                     //shader.Draw(1500, 666, 500, 500);
                     //shader.Draw(2000, 2000, 150, 150);
                     //shader.Draw(2500, 1000, 333, 444);
 
-                    //shaderFull.Draw();
-
                     myPrimitive._Ellipse.SetColor(0.5f, 0.25f, 0.1f, 0.75f);
                     shader.SetColor(0.25f, 0.66f, 0.33f, 0.75f);
                     int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
 
+                    int size = 900;
+
+                    shader.Draw(1000, 1111, size, size);
+
+                    shader.Draw(1333, 1111, size, size);
+
+                    shader.Draw(1666, 1111, size, size);
+
+                    shader.Draw(2000, 1111, size, size);
+
+                    if (false)
                     for (int i = 0; i < gl_Width; i += 200)
                     {
                         for (int j = 0; j < gl_Height; j += 200)
                         {
-                            shader.Draw(i, j, 300, 300);
+                            shader.Draw(i, j, 400, 400);
                             //myPrimitive._Ellipse.Draw(i - rad, j - rad, 2*rad, 2*rad, true);
                         }
                     }
+                }
+                else
+                {
+                    shaderFull.Draw();
                 }
 
                 cnt++;
@@ -160,7 +174,7 @@ namespace my
             int max = 4;
             mode = rand.Next(max);
 
-            //mode = 1;
+            mode = 1;
 
             switch (mode)
             {
@@ -243,7 +257,7 @@ namespace my
                 // Normalized pixel coordinates (from 0 to 1)
                 vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5) / iResolution.y;
 
-                float mask = smoothstep(0.5, 0.0, length(uv));
+                float mask = smoothstep(0.5, 0.0, length(uv) * 1.0);      // 1.0 changes size ?..
                 mask *= 1.0 - (uv.y + 0.5);
 
                 float f = 10.0;

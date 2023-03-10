@@ -172,22 +172,28 @@ public class myFreeShader : myPrimitive
                     uv -= C;
                     uv *= aspect;
 
-                    float rad = (0.01 + gl_FragCoord.y * 0.00003) - sin(uTime) * 0.003;
-                    float c = circle(uv, rad);
+                float mask = smoothstep(0.5, 0.0, length(uv) * 4);
+                mask *= 1.0 - (uv.y + 0.5);
 
-                    if (false)
-                    {{
-                        if (length(uv) <= rad)
-                            result = vec4(myColor.xyz, myColor.w);
-                    }}
-                    else
-                    {{
-                        if (length(uv) <= c)
-                            //result = vec4(myColor.xyz * c, myColor.w);
-                            result = vec4(vec3(0.5) * c, myColor.w * c);
-                        else
-                            result = vec4(vec3(0.3, 0.2, 0.1), 0.0);
-                    }}
+                float f = 10.0;
+                float newTime = uTime * 3.0;
+                float d = (uv.y + 0.5) + 1.0;
+
+                float final = 0.05 * sin(dot(uv, vec2(sin(newTime * 0.2), cos(newTime * 0.15))) * 10.5 * d + newTime);
+                final += 0.15 * sin(dot(uv, vec2(sin(newTime * +0.20 + 1.42), cos(newTime * +0.15 + 1.46))) * 06.5 * d * d + newTime);
+                final += 0.15 * sin(dot(uv, vec2(sin(newTime * -0.20 + 2.42), cos(newTime * -0.20 + 2.42))) * 20.5 + newTime);
+                final += 0.09 * sin(dot(uv, vec2(sin(newTime * +0.26 + 2.42), cos(newTime * +0.26 + 2.42))) * 16.5 + newTime);
+
+                final = final * 0.5 + 0.5;
+                final *= mask;
+                final += mask * 0.7;
+
+                final += smoothstep(0.5, 0.6, final);
+
+                if (final > 0)
+                    result = vec4(vec3(myColor.xyz * final), 1.0);
+                else
+                    result = vec4(0);
                 ";
             }
         }
