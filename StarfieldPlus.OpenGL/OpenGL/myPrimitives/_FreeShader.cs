@@ -164,6 +164,7 @@ public class myFreeShader : myPrimitive
             }
             else
             {
+                // Shape overlapping will only be visible when the quads overlap!
                 fMain = $@"
            
                     vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
