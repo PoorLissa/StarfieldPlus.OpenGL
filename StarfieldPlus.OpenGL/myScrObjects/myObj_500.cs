@@ -120,10 +120,24 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
+                glClear(GL_COLOR_BUFFER_BIT);
+
                 // Render Frame
                 {
-                    //shader.Draw(111, 222, 777, 777);
-                    shaderFull.Draw();
+                    //shader.Draw(1666, 666, 500, 500);
+                    //shader.Draw(1500, 666, 500, 500);
+                    //shader.Draw(2000, 2000, 150, 150);
+                    //shader.Draw(2500, 1000, 333, 444);
+
+                    //shaderFull.Draw();
+
+                    for (int i = 0; i < gl_Width; i += 200)
+                    {
+                        for (int j = 0; j < gl_Height; j += 200)
+                        {
+                            shader.Draw(i, j, 200, 200);
+                        }
+                    }
                 }
 
                 cnt++;
@@ -153,7 +167,7 @@ namespace my
             }
 
             //shader = new myFreeShader(fHeader: fHeader, fMain: fMain);
-            shader = new myFreeShader();
+            shader = new myFreeShader("//", "//");
 
             shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
 

@@ -72,46 +72,21 @@ public class myFreeShader : myPrimitive
     // Draw;
     public void Draw(int x, int y, int w, int h)
     {
-        if (_angle == 0)
+        // Leave coordinates as they are, and recalc them in the shader
         {
-            // Recalc screen coordinates into Normalized Device Coordinates (NDC)
+            vertices[06] = x;
+            vertices[09] = x;
+            vertices[01] = y;
+            vertices[10] = y;
 
-            float fx = -1.0f + x * invW;        // 2.0 * x / Width - 1.0;
-            float fy = +1.0f - y * invH;        // 1.0 + 2.0 * y / Height;
+            x += w;
+            y += h;
 
-            vertices[06] = fx;
-            vertices[09] = fx;
-            vertices[01] = fy;
-            vertices[10] = fy;
-
-            fx = -1.0f + (x + w) * invW;
-            fy = +1.0f - (y + h) * invH;
-
-            vertices[0] = fx;
-            vertices[3] = fx;
-            vertices[4] = fy;
-            vertices[7] = fy;
+            vertices[0] = x;
+            vertices[3] = x;
+            vertices[4] = y;
+            vertices[7] = y;
         }
-        else
-        {
-            // Leave coordinates as they are, and recalc them in the shader
-            float fx = x;
-            float fy = y;
-
-            vertices[06] = fx;
-            vertices[09] = fx;
-            vertices[01] = fy;
-            vertices[10] = fy;
-
-            fx = x + w;
-            fy = y + h;
-
-            vertices[0] = fx;
-            vertices[3] = fx;
-            vertices[4] = fy;
-            vertices[7] = fy;
-        }
-
 
         updateVertices();
 
@@ -119,7 +94,7 @@ public class myFreeShader : myPrimitive
 
         // Update uniforms:
         glUniform1f(u_Time, (float)(TimeSpan.FromTicks(DateTime.Now.Ticks - tBegin).TotalSeconds));
-        glUniform2f(myCenter, x + w / 2, y + w / 2);
+        glUniform2f(myCenter, x - w / 2, y - w / 2);
 
         // Draw
         unsafe
@@ -137,9 +112,21 @@ public class myFreeShader : myPrimitive
     // - Fragment shader code must be supplied by the user
     private void CreateProgram(string fHeader, string fMain)
     {
+        string vHeader, vMain;
+
         // Vertex Shader Program
-        string vHeader = "layout (location=0) in vec3 pos;";
-        string vMain   = "gl_Position = vec4(pos, 1.0); gl_Position.x -= 0.01;";
+        {
+            vHeader = "layout (location=0) in vec3 pos; uniform vec2 myCenter; out vec2 zzz;";
+
+            // Recalc coordinates in the shader
+            vMain = $@"
+                gl_Position.x = -1.0 + pos.x * {2.0 / Width };
+                gl_Position.y = +1.0 - pos.y * {2.0 / Height};
+
+                zzz.x = (-1.0 + myCenter.x * {2.0 / Width });
+                zzz.y = (+1.0 - myCenter.y * {2.0 / Height});
+            ";
+        }
 
         // Fragment Shader Program
         {
@@ -154,51 +141,42 @@ public class myFreeShader : myPrimitive
             else
             {
                 // Extend the header with some pre-defined variables:
-                fHeader = $"out vec4 result;" +
-                          $"uniform float uTime;" +
-                          $"vec2 iResolution = vec2({Width}, {Height});" +
-                          $"{fHeader}";
+                fHeader = $@"
+
+                    out vec4 result;
+                    in vec2 zzz;
+                    uniform float uTime;
+                    vec2 iResolution = vec2({Width}, {Height});
+
+                    vec2 aspect = vec2(1.0, {1.0 * Height / Width});
+
+                    float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
+                ";
             }
 
             if (string.IsNullOrEmpty(fMain))
             {
                 // Default implementation
-                //fMain = $@"result = vec4(gl_FragCoord.x / {Width}, gl_FragCoord.y / {Height}, sin(uTime * 0.33), 1);";
-
-
                 fMain = $@"
-
-                    vec2 iResolution = vec2({Width}, {Height});
-
-                    //vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5) / iResolution.y;
-
-                    vec2 zzz = vec2((gl_FragCoord.x - (2.0 * myCenter.x * {Width} - 1.0)),
-                                   ((gl_FragCoord.y - (1.0 - 2.0 * myCenter.y * {Height}))));
-
-                    if (length(zzz) < 0.75)
-                        result = vec4(1, sin(uTime), 1, 1);
-
                 ";
+            }
+            else
+            {
+                fMain = $@"
+           
+                    vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
-                //result = vec4(gl_FragCoord.x / {Width}, gl_FragCoord.y / {Height}, sin(uTime * 0.33), 1);
+                    uv -= zzz;
+                    uv *= aspect;
+
+                    float rad = 0.03;
+                    float c = circle(uv, rad - sin(uTime) * 0.0025);
+
+                    if (length(uv) <= c)
+                        result = vec4(vec3(0.5, 0.2, 0.3) * c, 1);
+                ";
             }
         }
-
-        fHeader = $@"out vec4 result;
-                    uniform float uTime;
-                    uniform vec2 myCenter;
-                    vec2 iResolution = vec2({Width}, {Height});
-        ";
-
-        fMain = $@"
-                    vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5) / iResolution.y;
-
-                    //if (gl_FragCoord.x < 112)
-                    //if (uv.x < -0.75)
-                    //if (uv.x < 0)
-                    if (gl_FragCoord.x < 115)
-                        result = vec4(1, sin(uTime), 1, 1);
-                ";
 
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             header : vHeader,
