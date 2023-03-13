@@ -7,15 +7,17 @@ using System.Collections.Generic;
 /*
     - Free shader experiments
 
-    https://www.shadertoy.com/view/3tXXRn
+    https://www.shadertoy.com/
 
     GLSL Manual: https://registry.khronos.org/OpenGL-Refpages/es3.1/
 
     Read this later https://miketuritzin.com/post/rendering-particles-with-compute-shaders/
 
-    // To investigate:
+    // To investigate later:
+    https://www.shadertoy.com/view/3tXXRn   -- tentacles (super cool but super complex)
     https://www.shadertoy.com/view/Xsl3z2
     https://www.shadertoy.com/view/Ddy3zD
+    https://www.shadertoy.com/view/DdyGzy
 */
 
 
@@ -123,20 +125,18 @@ namespace my
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 // Render Frame
-                if (true)
+                if (false)
                 {
-                    //shader.Draw(1666, 666, 500, 500);
-                    //shader.Draw(1500, 666, 500, 500);
-                    //shader.Draw(2000, 2000, 150, 150);
-                    //shader.Draw(2500, 1000, 333, 444);
-
-                    myPrimitive._Ellipse.SetColor(0.5f, 0.25f, 0.1f, 0.75f);
                     shader.SetColor(0.25f, 0.66f, 0.33f, 0.75f);
                     int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
 
-                    int size = 900;
+                    int size = 333;
+
+                    shader.Draw(333, 333, 111, 111);
 
                     shader.Draw(1000, 1111, size, size);
+
+                    shader.Draw(1111, 1111, size, size);
 
                     shader.Draw(1333, 1111, size, size);
 
@@ -150,7 +150,6 @@ namespace my
                         for (int j = 0; j < gl_Height; j += 200)
                         {
                             shader.Draw(i, j, 400, 400);
-                            //myPrimitive._Ellipse.Draw(i - rad, j - rad, 2*rad, 2*rad, true);
                         }
                     }
                 }
@@ -174,7 +173,7 @@ namespace my
             int max = 4;
             mode = rand.Next(max);
 
-            mode = 1;
+            //mode = 1;
 
             switch (mode)
             {
@@ -185,12 +184,22 @@ namespace my
                 case 4: getShader_004(ref header, ref main); break;
             }
 
-            //shader = new myFreeShader(fHeader: fHeader, fMain: fMain);
-            shader = new myFreeShader("//", "//");
+            shader = new myFreeShader($@"
+                    float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}",
+
+                    $@"
+                        vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                        uv -= C;
+                        uv *= aspect;
+
+                        float circ = circle(uv, 0.075);
+
+                        result = vec4(myColor.xyz * circ, 0.75 * circ);
+                "
+            );
 
             shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
-
-            myPrimitive.init_Ellipse();
 
             return;
         }

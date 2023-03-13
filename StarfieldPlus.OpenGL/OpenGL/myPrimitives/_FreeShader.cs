@@ -9,9 +9,18 @@ using System;
     Example:
 
             string fragHeader = @"
+                float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}"
             ";
 
             string fragShader = $@"
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                uv -= C;
+                uv *= aspect;
+
+                float circ = circle(uv, 0.075);
+
+                result = vec4(vec3(1) * circ, 0.75 * circ);
             ";
 
             ...
@@ -20,8 +29,14 @@ using System;
 
             ...
 
-            shader.Draw();
+            shader.Draw(333, 333, 333, 333);
 */
+
+
+
+// todo:
+// - implement passing size as a parameter, bo be able to change it for each object
+// - get rid of myCenter as it is now: pass the size and calculate the central position in the shader
 
 
 public class myFreeShader : myPrimitive
@@ -34,8 +49,6 @@ public class myFreeShader : myPrimitive
     // Uniform ids:
     private static int u_Time, myCenter, myColor;
 
-    private static float invW = -1, invH = -1;
-
     private static int verticesLength = 12;
     private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
 
@@ -45,9 +58,6 @@ public class myFreeShader : myPrimitive
     {
         if (vertices == null)
         {
-            invW = 2.0f / Width;
-            invH = 2.0f / Height;
-
             vertices = new float[verticesLength];
 
             CreateProgram(fHeader, fMain);
@@ -120,13 +130,14 @@ public class myFreeShader : myPrimitive
         {
             vHeader = "layout (location=0) in vec3 pos; uniform vec2 myCenter; out vec2 C;";
 
-            // Recalc coordinates in the shader
+            // Recalc gl_Position coordinates in the shader;
+            // Also, calculate center coordinates (C) of this particular instance to postion it on the screen
             vMain = $@"
                 gl_Position.x = -1.0 + pos.x * {2.0 / Width };
                 gl_Position.y = +1.0 - pos.y * {2.0 / Height};
 
-                C.x = (-1.0 + myCenter.x * {2.0 / Width });
-                C.y = (+1.0 - myCenter.y * {2.0 / Height});
+                C.x = -1.0 + myCenter.x * {2.0 / Width };
+                C.y = +1.0 - myCenter.y * {2.0 / Height};
             ";
         }
 
@@ -135,24 +146,26 @@ public class myFreeShader : myPrimitive
             if (string.IsNullOrEmpty(fHeader))
             {
                 // Default implementation
-                fHeader = $"out vec4 result;" +
-                          $"uniform float uTime;"
-                ;
+                fHeader = $@"
+                          out vec4 result;
+                          in vec2 C;
+                          uniform float uTime;
+                          uniform vec4 myColor;
+                          vec2 iResolution = vec2({Width}, {Height});
+                          vec2 aspect = vec2(1.0, {1.0 * Height / Width});
+                ";
             }
             else
             {
                 // Extend the header with some pre-defined variables:
                 fHeader = $@"
-
                     out vec4 result;
                     in vec2 C;
                     uniform float uTime;
                     uniform vec4 myColor;
                     vec2 iResolution = vec2({Width}, {Height});
-
                     vec2 aspect = vec2(1.0, {1.0 * Height / Width});
-
-                    float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
+                    {fHeader}
                 ";
             }
 
@@ -160,40 +173,37 @@ public class myFreeShader : myPrimitive
             {
                 // Default implementation
                 fMain = $@"
-                ";
-            }
-            else
-            {
-                // Shape overlapping will only be visible when the quads overlap!
-                fMain = $@"
-           
                     vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
                     uv -= C;
                     uv *= aspect;
 
-                float mask = smoothstep(0.5, 0.0, length(uv) * 4);
-                mask *= 1.0 - (uv.y + 0.5);
+                    float mask = smoothstep(0.5, 0.0, length(uv) * 1);
+//float mask = smoothstep(0.13, 0.0, length(uv));
+                    mask *= 1.0 - (uv.y + 0.5);
 
-                float f = 10.0;
-                float newTime = uTime * 3.0;
-                float d = (uv.y + 0.5) + 1.0;
+                    float f = 10.0;
+                    float newTime = uTime * 3.0;
+                    float d = (uv.y + 0.5) + 1.0;
 
-                float final = 0.05 * sin(dot(uv, vec2(sin(newTime * 0.2), cos(newTime * 0.15))) * 10.5 * d + newTime);
-                final += 0.15 * sin(dot(uv, vec2(sin(newTime * +0.20 + 1.42), cos(newTime * +0.15 + 1.46))) * 06.5 * d * d + newTime);
-                final += 0.15 * sin(dot(uv, vec2(sin(newTime * -0.20 + 2.42), cos(newTime * -0.20 + 2.42))) * 20.5 + newTime);
-                final += 0.09 * sin(dot(uv, vec2(sin(newTime * +0.26 + 2.42), cos(newTime * +0.26 + 2.42))) * 16.5 + newTime);
+                    float final = 0.05 * sin(dot(uv, vec2(sin(newTime * 0.2), cos(newTime * 0.15))) * 10.5 * d + newTime);
+                    final += 0.15 * sin(dot(uv, vec2(sin(newTime * +0.20 + 1.42), cos(newTime * +0.15 + 1.46))) * 06.5 * d * d + newTime);
+                    final += 0.15 * sin(dot(uv, vec2(sin(newTime * -0.20 + 2.42), cos(newTime * -0.20 + 2.42))) * 20.5 + newTime);
+                    final += 0.09 * sin(dot(uv, vec2(sin(newTime * +0.26 + 2.42), cos(newTime * +0.26 + 2.42))) * 16.5 + newTime);
 
-                final = final * 0.5 + 0.5;
-                final *= mask;
-                final += mask * 0.7;
+                    final = final * 0.5 + 0.5;
+                    final *= mask;
+                    final += mask * 0.7;
 
-                final += smoothstep(0.5, 0.6, final);
+                    final += smoothstep(0.5, 0.6, final);
 
-                if (final > 0)
-                    result = vec4(vec3(myColor.xyz * final), 1.0);
-                else
-                    result = vec4(0);
+                    result = vec4(vec3(myColor.xyz * final), final);
+                ";
+            }
+            else
+            {
+                fMain = $@"
+                    {fMain}
                 ";
             }
         }
