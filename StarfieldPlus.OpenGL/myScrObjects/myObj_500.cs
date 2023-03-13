@@ -18,6 +18,7 @@ using System.Collections.Generic;
     https://www.shadertoy.com/view/Xsl3z2
     https://www.shadertoy.com/view/Ddy3zD
     https://www.shadertoy.com/view/DdyGzy
+    https://www.shadertoy.com/view/dsy3Dw
 */
 
 
@@ -33,6 +34,8 @@ namespace my
         private myFreeShader_FullScreen shaderFull = null;
 
         private int mode = 0;
+
+        private static bool doUseFullScreenShader = true;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -69,6 +72,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doUseFullScreenShader = true;
+
             renderDelay = rand.Next(11) + 3;
 
             return;
@@ -112,7 +117,7 @@ namespace my
 
             glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
 
-            getShader(ref fHeader, ref fMain);
+            getShader(ref fHeader, ref fMain, doUseFullScreenShader);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -125,7 +130,11 @@ namespace my
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 // Render Frame
-                if (false)
+                if (doUseFullScreenShader)
+                {
+                    shaderFull.Draw();
+                }
+                else
                 {
                     shader.SetColor(0.25f, 0.66f, 0.33f, 0.75f);
                     int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
@@ -133,29 +142,18 @@ namespace my
                     int size = 333;
 
                     shader.Draw(333, 333, 111, 111);
-
                     shader.Draw(1000, 1111, size, size);
-
                     shader.Draw(1111, 1111, size, size);
-
                     shader.Draw(1333, 1111, size, size);
-
                     shader.Draw(1666, 1111, size, size);
-
                     shader.Draw(2000, 1111, size, size);
 
                     if (false)
-                    for (int i = 0; i < gl_Width; i += 200)
                     {
-                        for (int j = 0; j < gl_Height; j += 200)
-                        {
-                            shader.Draw(i, j, 400, 400);
-                        }
+                        for (int i = 0; i < gl_Width; i += 200)
+                            for (int j = 0; j < gl_Height; j += 200)
+                                shader.Draw(i, j, 400, 400);
                     }
-                }
-                else
-                {
-                    shaderFull.Draw();
                 }
 
                 cnt++;
@@ -168,38 +166,43 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Select random mode and get shader code: header + main func
-        private void getShader(ref string header, ref string main)
+        private void getShader(ref string header, ref string main, bool fullScreen)
         {
-            int max = 4;
-            mode = rand.Next(max);
-
-            //mode = 1;
-
-            switch (mode)
+            if (fullScreen)
             {
-                case 0: getShader_000(ref header, ref main); break;
-                case 1: getShader_001(ref header, ref main); break;
-                case 2: getShader_002(ref header, ref main); break;
-                case 3: getShader_003(ref header, ref main); break;
-                case 4: getShader_004(ref header, ref main); break;
-            }
+                int max = 4;
+                mode = rand.Next(max);
 
-            shader = new myFreeShader($@"
+                //mode = 1;
+
+                switch (mode)
+                {
+                    case 0: getShader_000(ref header, ref main); break;
+                    case 1: getShader_001(ref header, ref main); break;
+                    case 2: getShader_002(ref header, ref main); break;
+                    case 3: getShader_003(ref header, ref main); break;
+                    case 4: getShader_004(ref header, ref main); break;
+                }
+
+                shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
+            }
+            else
+            {
+                shader = new myFreeShader($@"
                     float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}",
 
-                    $@"
-                        vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+                        $@"
+                            vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
-                        uv -= C;
-                        uv *= aspect;
+                            uv -= C;
+                            uv *= aspect;
 
-                        float circ = circle(uv, 0.075);
+                            float circ = circle(uv, 0.075);
 
-                        result = vec4(myColor.xyz * circ, 0.75 * circ);
-                "
-            );
-
-            shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
+                            result = vec4(myColor.xyz * circ, 0.75 * circ);
+                        "
+                );
+            }
 
             return;
         }
