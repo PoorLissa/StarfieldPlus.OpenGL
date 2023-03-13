@@ -86,7 +86,7 @@ public class myEllipse : myPrimitive
 
     public void Draw(int x, int y, int w, int h, bool doFill = false)
     {
-        // Draw a rectangle but use shader to hide everything except for the ellipse
+        // Draw a rectangle quad, but use the shader to hide everything except for the ellipse shape
         unsafe void __draw()
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

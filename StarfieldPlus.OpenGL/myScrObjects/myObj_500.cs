@@ -74,6 +74,8 @@ namespace my
         {
             doUseFullScreenShader = true;
 
+            doUseFullScreenShader = false;
+
             renderDelay = rand.Next(11) + 3;
 
             return;
@@ -136,23 +138,19 @@ namespace my
                 }
                 else
                 {
-                    shader.SetColor(0.25f, 0.66f, 0.33f, 0.75f);
+                    shader.SetColor(0.25f, 0.66f, 0.33f, 1);
                     int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
 
-                    int size = 333;
-
-                    shader.Draw(333, 333, 111, 111);
-                    shader.Draw(1000, 1111, size, size);
-                    shader.Draw(1111, 1111, size, size);
-                    shader.Draw(1333, 1111, size, size);
-                    shader.Draw(1666, 1111, size, size);
-                    shader.Draw(2000, 1111, size, size);
+                    shader.Draw(333, 333, 222, 222, 3);
+                    shader.Draw(333, 333, 333 + (int)(Math.Cos(cnt * 0.1) * 66), 222 + (int)(Math.Sin(cnt * 0.1) * 33), 3);
 
                     if (false)
                     {
+                        shader.SetColor(0.66f, 0.33f, 0.22f, 0.33f);
+
                         for (int i = 0; i < gl_Width; i += 200)
                             for (int j = 0; j < gl_Height; j += 200)
-                                shader.Draw(i, j, 400, 400);
+                                shader.Draw(i, j, 66, 55, 3);
                     }
                 }
 
@@ -189,17 +187,24 @@ namespace my
             else
             {
                 shader = new myFreeShader($@"
-                    float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}",
+                        float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
+                        float Circle(vec2 uv, float rad) {{ return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv))); }}
+                    ",
 
                         $@"
                             vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
-                            uv -= C;
+                            uv -= Pos.xy;
                             uv *= aspect;
 
-                            float circ = circle(uv, 0.075);
+                            // Make an ellipse by changins aspect -- tried to move it into circle function, but it worked slower (needs more proof)
+                            if (Pos.w != Pos.z)
+                                uv *= vec2(1.0, Pos.z / Pos.w);
 
-                            result = vec4(myColor.xyz * circ, 0.75 * circ);
+                            float rad = Pos.z;
+                            float circ = Circle(uv, rad);
+
+                            result = vec4(myColor.xyz * circ, myColor.w * circ);
                         "
                 );
             }

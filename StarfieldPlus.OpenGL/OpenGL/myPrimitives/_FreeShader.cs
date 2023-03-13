@@ -9,18 +9,24 @@ using System;
     Example:
 
             string fragHeader = @"
-                float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}"
+                float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
+                float Circle(vec2 uv, float rad) {{ return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv))); }}
             ";
 
             string fragShader = $@"
                 vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
-                uv -= C;
-                uv *= aspect;
+                uv -= Pos.xy;           // Move the quad into our position
+                uv *= aspect;           // Adjust quad's aspect ratio
 
-                float circ = circle(uv, 0.075);
+                // Make an ellipse
+                if (Pos.w != Pos.z)
+                    uv *= vec2(1.0, Pos.z / Pos.w);
 
-                result = vec4(vec3(1) * circ, 0.75 * circ);
+                float circ = circle(uv, Pos.z);
+
+                result = vec4(myColor.xyz * circ, 0.75 * circ);     // ellipse
+                //result = vec4(myColor.xyz, 0.75);                 // rectangle
             ";
 
             ...
@@ -29,14 +35,8 @@ using System;
 
             ...
 
-            shader.Draw(333, 333, 333, 333);
+            shader.Draw(333, 333, 555, 333, extraOffset: 3);
 */
-
-
-
-// todo:
-// - implement passing size as a parameter, bo be able to change it for each object
-// - get rid of myCenter as it is now: pass the size and calculate the central position in the shader
 
 
 public class myFreeShader : myPrimitive
@@ -47,7 +47,7 @@ public class myFreeShader : myPrimitive
     private float[] vertices = null;
 
     // Uniform ids:
-    private static int u_Time, myCenter, myColor;
+    private static int u_Time, myPos, myColor;
 
     private static int verticesLength = 12;
     private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
@@ -64,9 +64,9 @@ public class myFreeShader : myPrimitive
             glUseProgram(shaderProgram);
 
             // Uniforms
-            u_Time   = glGetUniformLocation(shaderProgram, "uTime");
-            myCenter = glGetUniformLocation(shaderProgram, "myCenter");
-            myColor  = glGetUniformLocation(shaderProgram, "myColor");
+            u_Time  = glGetUniformLocation(shaderProgram, "uTime");
+            myPos   = glGetUniformLocation(shaderProgram, "myPos");
+            myColor = glGetUniformLocation(shaderProgram, "myColor");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();
@@ -81,22 +81,19 @@ public class myFreeShader : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Draw;
-    public void Draw(int x, int y, int w, int h)
+    // [x, y]: central point of the quad to draw;
+    // [w, h]: half-width and half-height of the quad;
+    // [extraOffset]: smooth images can sometimes put some pixels outside of the quad, creating visible edges.
+    //                to evade that, use additional offset to increase the quad some more;
+    public void Draw(int x, int y, int w, int h, int extraOffset = 0)
     {
-        // Leave coordinates as they are, and recalc them in the shader
+        // Calculate in-screen coordinates of the quad;
+        // Leave them in an in-screen space
         {
-            vertices[06] = x;
-            vertices[09] = x;
-            vertices[01] = y;
-            vertices[10] = y;
-
-            x += w;
-            y += h;
-
-            vertices[0] = x;
-            vertices[3] = x;
-            vertices[4] = y;
-            vertices[7] = y;
+            vertices[06] = vertices[09] = x - w - extraOffset;
+            vertices[01] = vertices[10] = y - h - extraOffset;
+            vertices[00] = vertices[03] = x + w + extraOffset;
+            vertices[04] = vertices[07] = y + h + extraOffset;
         }
 
         updateVertices();
@@ -106,7 +103,7 @@ public class myFreeShader : myPrimitive
         // Update uniforms:
         glUniform4f(myColor, _r, _g, _b, _a);
         glUniform1f(u_Time, (float)(TimeSpan.FromTicks(DateTime.Now.Ticks - tBegin).TotalSeconds));
-        glUniform2f(myCenter, x - w / 2, y - w / 2);
+        glUniform4f(myPos, x, y, w, h);
 
         // Draw
         unsafe
@@ -128,16 +125,21 @@ public class myFreeShader : myPrimitive
 
         // Vertex Shader Program
         {
-            vHeader = "layout (location=0) in vec3 pos; uniform vec2 myCenter; out vec2 C;";
+            vHeader = "layout (location=0) in vec3 pos; uniform vec4 myPos; out vec4 Pos;";
 
             // Recalc gl_Position coordinates in the shader;
-            // Also, calculate center coordinates (C) of this particular instance to postion it on the screen
+            // Also, recalc screen coordinates of a position vector into Normalized Device Coordinates (NDC)
             vMain = $@"
-                gl_Position.x = -1.0 + pos.x * {2.0 / Width };
-                gl_Position.y = +1.0 - pos.y * {2.0 / Height};
 
-                C.x = -1.0 + myCenter.x * {2.0 / Width };
-                C.y = +1.0 - myCenter.y * {2.0 / Height};
+                float wInv = {2.0 / Width };
+                float hInv = {2.0 / Height};
+
+                gl_Position.x = -1.0 + pos.x * wInv;
+                gl_Position.y = +1.0 - pos.y * hInv;
+
+                Pos.x = -1.0 + myPos.x * wInv;
+                Pos.y = +1.0 - myPos.y * hInv;
+                Pos.zw = myPos.zw * wInv;
             ";
         }
 
@@ -148,7 +150,7 @@ public class myFreeShader : myPrimitive
                 // Default implementation
                 fHeader = $@"
                           out vec4 result;
-                          in vec2 C;
+                          in vec4 Pos;
                           uniform float uTime;
                           uniform vec4 myColor;
                           vec2 iResolution = vec2({Width}, {Height});
@@ -160,7 +162,7 @@ public class myFreeShader : myPrimitive
                 // Extend the header with some pre-defined variables:
                 fHeader = $@"
                     out vec4 result;
-                    in vec2 C;
+                    in vec4 Pos;
                     uniform float uTime;
                     uniform vec4 myColor;
                     vec2 iResolution = vec2({Width}, {Height});
@@ -175,11 +177,10 @@ public class myFreeShader : myPrimitive
                 fMain = $@"
                     vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
-                    uv -= C;
+                    uv -= Pos.xy;
                     uv *= aspect;
 
-                    float mask = smoothstep(0.5, 0.0, length(uv) * 1);
-//float mask = smoothstep(0.13, 0.0, length(uv));
+                    float mask = smoothstep(0.5, 0.0, length(uv) * 1);      // change 1st param here to change size
                     mask *= 1.0 - (uv.y + 0.5);
 
                     float f = 10.0;
