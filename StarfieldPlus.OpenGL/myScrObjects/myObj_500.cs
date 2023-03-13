@@ -110,6 +110,12 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        class zzz
+        {
+            public int x, y, w, h;
+            public float t = 0, dt = myUtils.randFloat(rand) * 0.01f;
+        };
+
         protected override void Process(Window window)
         {
             // Set culture to avoid incorrect float conversion in shader strings
@@ -120,6 +126,23 @@ namespace my
             glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
 
             getShader(ref fHeader, ref fMain, doUseFullScreenShader);
+
+            int n = 1111;
+            List<zzz> lst = new List<zzz>();
+
+            shader.SetColor(myUtils.randFloat(rand), myUtils.randFloat(rand), myUtils.randFloat(rand), 0.85f);
+
+            for (int i = 0; i < 5; i++)
+            {
+                var z = new zzz();
+
+                z.x = rand.Next(gl_Width);
+                z.y = rand.Next(gl_Height);
+                z.w = rand.Next(333) + 33;
+                z.h = z.w / (rand.Next(5) + 1);
+
+                lst.Add(z);
+            }
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -138,6 +161,14 @@ namespace my
                 }
                 else
                 {
+                    for (int i = 0; i < lst.Count; i++)
+                    {
+                        var z = lst[i];
+
+                        shader.Draw(z.x, z.y, z.w + (int)(Math.Cos(cnt * 0.1 * z.t) * 66), z.h + (int)(Math.Sin(cnt * 0.1 * z.t) * 33), 3);
+                        z.t += z.dt;
+                    }
+/*
                     shader.SetColor(0.25f, 0.66f, 0.33f, 1);
                     int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
 
@@ -152,6 +183,7 @@ namespace my
                             for (int j = 0; j < gl_Height; j += 200)
                                 shader.Draw(i, j, 66, 55, 3);
                     }
+*/
                 }
 
                 cnt++;
