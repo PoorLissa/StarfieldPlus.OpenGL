@@ -11,6 +11,8 @@ using System.Collections.Generic;
 
     GLSL Manual: https://registry.khronos.org/OpenGL-Refpages/es3.1/
 
+    Online live shader tool: https://glslsandbox.com/e
+
     Read this later https://miketuritzin.com/post/rendering-particles-with-compute-shaders/
 
     // To investigate later:
@@ -529,17 +531,23 @@ namespace my
                 {{
                     vec2 n = floor(p)-0.5;
                     vec2 f = fract(p)-0.5;
+
+                    // vec o will move the shapes slightly off the grid
                     vec2 o = hash22(n)*.35;
 	                vec2 r = - f - o;
+
+                    // rotation
 	                r *= makem2(uTime + hash21(n)*3.14);
 	
-	                float d = 1.0 - smoothstep(thickness,thickness+0.09,abs(r.x));
-	                d *= 1.0 - smoothstep(lengt,lengt+0.02,abs(r.y));
+                    // 1st half of a shape
+	                float d1 = 1.0 - smoothstep(thickness,thickness+0.09,abs(r.x));
+	                d1 *= 1.0 - smoothstep(lengt,lengt+0.02,abs(r.y));
 	
+                    // 2nd half of a shape
 	                float d2 =  1.0-smoothstep(thickness,thickness+0.09,abs(r.y));
 	                d2 *= 1.-smoothstep(lengt,lengt+0.02,abs(r.x));
 	
-                    return max(d,d2);
+                    return max(d1, d2);
                 }}
             ";
 
@@ -555,10 +563,14 @@ namespace my
 
 	            for (float i = 0.0; i < layers; i++)
 	            {{
+                    // just get random vec2
                     vec2 ds = hash12(i * 2.5) * 0.20;
+
+                    // 1st part gets us our shapes
+                    // 2nd part is just a color
 		            col = max(col, field1((p+ds) * mul) * (sin(ds.x * 5100. + vec3(1.0, 2.0, 3.5)) * 0.4 + 0.6));
 	            }}
-	
+
 	            result = vec4(col, 1.0);
             ";
         }
