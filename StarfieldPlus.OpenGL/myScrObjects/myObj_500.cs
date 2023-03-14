@@ -74,8 +74,6 @@ namespace my
         {
             doUseFullScreenShader = true;
 
-            doUseFullScreenShader = false;
-
             renderDelay = rand.Next(11) + 3;
 
             return;
@@ -127,21 +125,27 @@ namespace my
 
             getShader(ref fHeader, ref fMain, doUseFullScreenShader);
 
-            int n = 1111;
-            List<zzz> lst = new List<zzz>();
 
-            shader.SetColor(myUtils.randFloat(rand), myUtils.randFloat(rand), myUtils.randFloat(rand), 0.85f);
-
-            for (int i = 0; i < 5; i++)
+            if (!doUseFullScreenShader)
             {
-                var z = new zzz();
+                int n = 111;
+                List<zzz> lst = new List<zzz>();
 
-                z.x = rand.Next(gl_Width);
-                z.y = rand.Next(gl_Height);
-                z.w = rand.Next(333) + 33;
-                z.h = z.w / (rand.Next(5) + 1);
+                shader.SetColor(myUtils.randFloat(rand), myUtils.randFloat(rand), myUtils.randFloat(rand), 0.85f);
 
-                lst.Add(z);
+                for (int i = 0; i < n; i++)
+                {
+                    var z = new zzz();
+
+                    z.x = rand.Next(gl_Width);
+                    z.y = rand.Next(gl_Height);
+                    z.w = rand.Next(333) + 33;
+                    z.h = z.w / (rand.Next(5) + 1);
+
+                    z.dt = 0.01f * (rand.Next(10) + 1);
+
+                    lst.Add(z);
+                }
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -161,13 +165,14 @@ namespace my
                 }
                 else
                 {
+/*
                     for (int i = 0; i < lst.Count; i++)
                     {
                         var z = lst[i];
 
-                        shader.Draw(z.x, z.y, z.w + (int)(Math.Cos(cnt * 0.1 * z.t) * 66), z.h + (int)(Math.Sin(cnt * 0.1 * z.t) * 33), 3);
+                        shader.Draw(z.x, z.y, z.w + (int)(Math.Cos(z.t) * 66), z.h + (int)(Math.Sin(z.t) * 33), 33);
                         z.t += z.dt;
-                    }
+                    }*/
 /*
                     shader.SetColor(0.25f, 0.66f, 0.33f, 1);
                     int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
@@ -200,10 +205,10 @@ namespace my
         {
             if (fullScreen)
             {
-                int max = 4;
+                int max = 5;
                 mode = rand.Next(max);
 
-                //mode = 1;
+                mode = 5;
 
                 switch (mode)
                 {
@@ -212,6 +217,7 @@ namespace my
                     case 2: getShader_002(ref header, ref main); break;
                     case 3: getShader_003(ref header, ref main); break;
                     case 4: getShader_004(ref header, ref main); break;
+                    case 5: getShader_005(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -432,23 +438,128 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // Next one
+        // https://www.shadertoy.com/view/ll2GD3
         private void getShader_004(ref string header, ref string main)
         {
             header = $@"
+
+                vec3 pal(float t, vec3 a, vec3 b, vec3 c, vec3 d)
+                {{
+                    return a + b * cos(6.28318*(c * t + d));
+                }}
+
+                float noise(vec2 p)
+                {{
+                    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
+                }}
+
             ";
 
             main = $@"
 
-                //gl_Position.x += +2.0 / myScrSize.x * (mData[0].x + mData[0].z/2) - 1.0;
-                //gl_Position.y += -2.0 / myScrSize.y * (mData[0].y + mData[0].w/2) + 1.0;
+	            vec2 p = gl_FragCoord.xy / iResolution.xy;
+    
+                // animate
+                p.x += {myUtils.randFloat(rand) * 0.23} * uTime;
 
-                vec2 uv = ( gl_FragCoord.xy - .5 * iResolution.xy ) / iResolution.y;
+                int n = {rand.Next(5) + 3};
 
-                if (length(uv) < 0.23)
+                // compute colors
+                            vec3 col = pal(p.x, vec3(0.5,0.5,0.5), vec3(0.5,0.5,0.5), vec3(1.0,1.0,1.0), vec3(0.0,0.33,0.67));
+                if (p.y > 1.0/n) col = pal(p.x, vec3(0.5,0.5,0.5), vec3(0.5,0.5,0.5), vec3(1.0,1.0,1.0), vec3(0.0,0.10,0.20));
+                if (p.y > 2.0/n) col = pal(p.x, vec3(0.5,0.5,0.5), vec3(0.5,0.5,0.5), vec3(1.0,1.0,1.0), vec3(0.3,0.20,0.20));
+                if (p.y > 3.0/n) col = pal(p.x, vec3(0.5,0.5,0.5), vec3(0.5,0.5,0.5), vec3(1.0,1.0,0.5), vec3(0.8,0.90,0.30));
+                if (p.y > 4.0/n) col = pal(p.x, vec3(0.5,0.5,0.5), vec3(0.5,0.5,0.5), vec3(1.0,0.7,0.4), vec3(0.0,0.15,0.20));
+                if (p.y > 5.0/n) col = pal(p.x, vec3(0.5,0.5,0.5), vec3(0.5,0.5,0.5), vec3(2.0,1.0,0.0), vec3(0.5,0.20,0.25));
+                if (p.y > 6.0/n) col = pal(p.x, vec3(0.8,0.5,0.4), vec3(0.2,0.4,0.2), vec3(2.0,1.0,1.0), vec3(0.0,0.25,0.25));
+
+                // band
+                float f = fract(p.y * n);
+
+                // borders
+                col *= smoothstep(0.49, 0.47, abs(f-0.5));
+
+                // shadowing
+                col *= 0.5 + 0.5 * sqrt(4.0 * f * (1.0-f));
+
+                // Noise
+                if ({rand.Next(2)} == 0)
+                    col *= 0.85 + noise(gl_FragCoord.xy * uTime * 0.00025) * {myUtils.randFloat(rand, 0.2f) * 0.5};
+
+	            result = vec4(col, 1.0);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // 
+        private void getShader_005(ref string header, ref string main)
+        {
+            header = $@"
+
+                float layers = 1;
+                float scale = 300;
+                float lengt = 0.13;
+                float thickness = 0.0;
+
+                vec2 hash12(float p)
                 {{
-                    result = vec4(0.85, 0.23, 0.11, 1);
+	                return fract(vec2(sin(p * 591.32), cos(p * 391.32)));
                 }}
+
+                float hash21(in vec2 n) 
+                {{
+	                return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+                }}
+
+                vec2 hash22(in vec2 p)
+                {{
+                    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+	                return fract(sin(p)*43758.5453);
+                }}
+
+                mat2 makem2(in float theta)
+                {{
+                    float c = cos(theta);
+	                float s = sin(theta);
+	                return mat2(c,-s,s,c);
+                }}
+
+                float field1(in vec2 p)
+                {{
+                    vec2 n = floor(p)-0.5;
+                    vec2 f = fract(p)-0.5;
+                    vec2 o = hash22(n)*.35;
+	                vec2 r = - f - o;
+	                r *= makem2(uTime + hash21(n)*3.14);
+	
+	                float d = 1.0 - smoothstep(thickness,thickness+0.09,abs(r.x));
+	                d *= 1.0 - smoothstep(lengt,lengt+0.02,abs(r.y));
+	
+	                float d2 =  1.0-smoothstep(thickness,thickness+0.09,abs(r.y));
+	                d2 *= 1.-smoothstep(lengt,lengt+0.02,abs(r.x));
+	
+                    return max(d,d2);
+                }}
+            ";
+
+            main = $@"
+
+	            vec2 p = gl_FragCoord.xy / iResolution.xy-0.5;
+
+	            p.x *= iResolution.x/iResolution.y;
+	
+	            float mul = (iResolution.x + iResolution.y) / scale;
+
+	            vec3 col = vec3(0);
+
+	            for (float i = 0.0; i < layers; i++)
+	            {{
+                    vec2 ds = hash12(i * 2.5) * 0.20;
+		            col = max(col, field1((p+ds) * mul) * (sin(ds.x * 5100. + vec3(1.0, 2.0, 3.5)) * 0.4 + 0.6));
+	            }}
+	
+	            result = vec4(col, 1.0);
             ";
         }
 
