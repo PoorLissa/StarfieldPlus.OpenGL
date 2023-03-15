@@ -21,6 +21,10 @@ using System.Collections.Generic;
     https://www.shadertoy.com/view/Ddy3zD
     https://www.shadertoy.com/view/DdyGzy
     https://www.shadertoy.com/view/dsy3Dw
+
+    // Math links:
+    dot     : https://www.cuemath.com/algebra/dot-product/
+    cross   : https://www.cuemath.com/geometry/cross-product/
 */
 
 
@@ -129,7 +133,6 @@ namespace my
 
             getShader(ref fHeader, ref fMain, doUseFullScreenShader);
 
-
             if (!doUseFullScreenShader)
             {
                 int n = 111;
@@ -152,6 +155,12 @@ namespace my
                 }
             }
 
+/*
+            // How to enable depth testing:
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LESS);
+            glDepthRange(0, 1);
+*/
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
@@ -160,7 +169,22 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                glClear(GL_COLOR_BUFFER_BIT);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                if (false)
+                {
+                    myPrimitive.init_Rectangle();
+
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.SetColor(0.25f, 0.5f, 0.15f, 0.9f);
+                    myPrimitive._Rectangle.Draw(123, 123, 222, 222, true);
+
+                    myPrimitive._Rectangle.SetAngle((float)(Math.PI / 3));
+                    myPrimitive._Rectangle.SetColor(0.5f, 0.25f, 0.33f, 0.9f);
+                    myPrimitive._Rectangle.Draw(111, 111, 333, 333, true);
+
+                    continue;
+                }
 
                 // Render Frame
                 if (doUseFullScreenShader)
@@ -209,10 +233,10 @@ namespace my
         {
             if (fullScreen)
             {
-                int max = 7;
+                int max = 8;
                 mode = rand.Next(max);
 #if DEBUG
-                mode = 7;
+                mode = 2;
 #endif
                 switch (mode)
                 {
@@ -224,6 +248,7 @@ namespace my
                     case 5: getShader_005(ref header, ref main); break;
                     case 6: getShader_006(ref header, ref main); break;
                     case 7: getShader_007(ref header, ref main); break;
+                    case 8: getShader_008(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -356,26 +381,26 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // https://www.shadertoy.com/view/MdKBzt
+        // Rotating cube made of 8 points
         private void getShader_002(ref string header, ref string main)
         {
             header = $@"
 
                 float distLine(vec3 ro, vec3 rd, vec3 p) {{
                     float d = length(cross(p-ro, rd))/length(rd);
-                    d = smoothstep(.06, .05, d);
-	                return d;
+                    return smoothstep(.06, .05, d);
                 }}
 
                 float box(vec3 ro, vec3 rd) {{
                     float d = 0.;
-                    d += distLine(ro, rd, vec3(0., 0., 0.));
-                    d += distLine(ro, rd, vec3(0., 1., 0.));
-                    d += distLine(ro, rd, vec3(1., 1., 0.));
-                    d += distLine(ro, rd, vec3(1., 0., 0.));
-                    d += distLine(ro, rd, vec3(0., 0., 1.0));
-                    d += distLine(ro, rd, vec3(0., 1., 1.0));
-                    d += distLine(ro, rd, vec3(1., 1., 1.0));
-                    d += distLine(ro, rd, vec3(1., 0., 1.0));
+                    d += distLine(ro, rd, vec3(0.0, 0.0, 0.0));
+                    d += distLine(ro, rd, vec3(0.0, 1.0, 0.0));
+                    d += distLine(ro, rd, vec3(1.0, 1.0, 0.0));
+                    d += distLine(ro, rd, vec3(1.0, 0.0, 0.0));
+                    d += distLine(ro, rd, vec3(0.0, 0.0, 1.0));
+                    d += distLine(ro, rd, vec3(0.0, 1.0, 1.0));
+                    d += distLine(ro, rd, vec3(1.0, 1.0, 1.0));
+                    d += distLine(ro, rd, vec3(1.0, 0.0, 1.0));
 
 	                return d;
                 }}
@@ -383,12 +408,12 @@ namespace my
 
             main = $@"
 
-                vec2 uv = gl_FragCoord.xy/iResolution.xy;
-                uv -= 0.5;
+                vec2 uv = (gl_FragCoord.xy/iResolution.xy - 0.5);
                 uv.x *= iResolution.x/iResolution.y;
 
                 vec3 lookAt = vec3(0.5);
                 vec3 ro = vec3(3.* sin(uTime * 0.1), 2. * cos(uTime * 0.1), -3.);
+
                 float zoom = 0.5 + sin(uTime * 0.1) * 0.2;
     
                 vec3 f = normalize(lookAt - ro);
@@ -686,5 +711,89 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // https://www.shadertoy.com/view/csVGR3
+        private void getShader_008(ref string header, ref string main)
+        {
+            header = $@"
+                {noiseFunc}
+                {randFunc}
+                {rotationMatrix}
+
+                mat3 rotateX(in float a)
+                {{
+                    return mat3(
+                        1.0, 0.0, 0.0,
+                        0.0, cos(a), -sin(a),
+                        0.0, sin(a), cos(a));
+                }}
+
+                mat3 rotateY(in float a)
+                {{
+                    return mat3(
+                        cos(a), 0.0, sin(a),
+                        0.0, 1.0, 0.0,
+                        -sin(a), 0.0, cos(a));
+                }}
+
+                float sdfBox(in vec3 p, in vec3 size)
+                {{
+                    vec3 d = abs(p) - size;
+                    return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
+                }}
+
+                float map(in vec3 p)
+                {{
+                    vec3 boxSize = vec3(1.0);
+                    vec3 q = rotateY(uTime) * rotateX(0.5 * uTime) * p;
+                    return sdfBox(q, boxSize);
+                }}
+
+                vec3 raymarch(in vec3 ro, in vec3 rd)
+                {{
+                    float t = 0.0;
+                    for (int i = 0; i < 64; i++)
+                    {{
+                        vec3 p = ro + t * rd;
+                        float d = map(p);
+                        if (d < 0.001) return p;
+                        t += d;
+                    }}
+                    return vec3(0.0);
+                }}
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+                float time = uTime;
+
+                vec3 cameraPos = vec3(0.0, 0.0, 14.0);
+                vec3 rd = normalize(vec3(uv, -1.0));        {"" /* calculate the unit vector in the same direction as the original vector */}
+                vec3 ro = cameraPos;
+
+                vec3 p = raymarch(ro, rd);
+
+                vec3 normal = normalize(vec3(
+                    map(p + vec3(0.001, 0.0, 0.0)) - map(p - vec3(0.001, 0.0, 0.0)),
+                    map(p + vec3(0.0, 0.001, 0.0)) - map(p - vec3(0.0, 0.001, 0.0)),
+                    map(p + vec3(0.0, 0.0, 0.001)) - map(p - vec3(0.0, 0.0, 0.001))
+                ));
+
+                vec3 light = vec3(0.0, 5.0, 5.0);
+                vec3 lightDir = normalize(light - p);
+
+                float diff = clamp(dot(lightDir, normal), 0.1, 1.0);
+
+                vec3 col = vec3(0.5, 0.7, 1.0) * diff;
+
+                result = vec4(col, 1.0);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+
+
     }
 };
