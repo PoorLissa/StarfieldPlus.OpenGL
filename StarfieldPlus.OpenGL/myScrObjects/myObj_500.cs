@@ -209,9 +209,9 @@ namespace my
             {
                 int max = 7;
                 mode = rand.Next(max);
-
-                //mode = 6;
-
+#if DEBUG
+                mode = 7;
+#endif
                 switch (mode)
                 {
                     case 0: getShader_000(ref header, ref main); break;
@@ -221,6 +221,7 @@ namespace my
                     case 4: getShader_004(ref header, ref main); break;
                     case 5: getShader_005(ref header, ref main); break;
                     case 6: getShader_006(ref header, ref main); break;
+                    case 7: getShader_007(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -252,6 +253,12 @@ namespace my
 
             return;
         }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private static string noiseFunc      = "float noise(vec2 p) {return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);}";
+        private static string randFunc       = "float rand(float x) {return fract(sin(x) * 43758.5453);}";
+        private static string rotationMatrix = "mat2 rot(float t) { float s = sin(t); float c = cos(t); return mat2(c, -s, s, c);}";
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -299,15 +306,7 @@ namespace my
         private void getShader_001(ref string header, ref string main)
         {
             header = $@"
-
-                float rand(float x) {{
-                    return fract(sin(x) * 43758.5453);
-                }}
-
-                float noise(vec2 p)
-                {{
-                    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
-                }}
+                {noiseFunc}{randFunc}
             ";
 
             main = $@"
@@ -408,9 +407,7 @@ namespace my
         private void getShader_003(ref string header, ref string main)
         {
             header = $@"
-
-                #define rotation(angle) mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
-
+                {rotationMatrix}
                 float PI  = {Math.PI};
                 float TAU = {Math.PI} * 2.0;
 
@@ -429,7 +426,7 @@ namespace my
 
                 float rad = {myUtils.randFloat(rand) * 0.5};
 
-                uv *= rotation(a*sin(uTime+a));     // add rotation
+                uv *= rot(a*sin(uTime+a));     // add rotation
                 uv = mod(uv, rad);
                 vec3 col;
                 float cSDF = circleSDF(uv, rad + 0.05, vec2(rad/2, rad/2));
@@ -500,6 +497,8 @@ namespace my
         {
             header = $@"
 
+                {rotationMatrix /* add rotation matrix function */}
+
                 float layers = 11;
                 float scale = 300;
                 float lengt = 0.13;
@@ -521,13 +520,6 @@ namespace my
 	                return fract(sin(p)*43758.5453);
                 }}
 
-                mat2 makem2(in float theta)
-                {{
-                    float c = cos(theta);
-	                float s = sin(theta);
-	                return mat2(c,-s,s,c);
-                }}
-
                 float field1(in vec2 p)
                 {{
                     vec2 n = floor(p)-0.5;
@@ -537,8 +529,8 @@ namespace my
                     vec2 o = hash22(n)*.35;
 	                vec2 r = - f - o;
 
-                    // rotation
-	                r *= makem2(uTime + hash21(n)*3.14);
+                    // add rotation
+	                r *= rot(uTime + hash21(n)*3.14);
 	
                     // 1st half of a shape
 	                float d1 = 1.0 - smoothstep(thickness,thickness+0.09,abs(r.x));
@@ -581,26 +573,20 @@ namespace my
         // my test
         private void getShader_006(ref string header, ref string main)
         {
-            header = $@"//
-
-                float noise(vec2 p)
-                {{
-                    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
-                }}
-
+            header = $@"
+                {noiseFunc}
+                {rotationMatrix}
             ";
 
             main = $@"
-
-                float rotSpd = 0.1;
-                mat2 rot = mat2(cos(uTime*rotSpd), -sin(uTime*rotSpd), sin(uTime*rotSpd), cos(uTime*rotSpd));
 
                 float aspect = iResolution.x / iResolution.y;
     
                 vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0) * vec2(1.0, 1.0 / aspect);
 
                 // rotation
-                //uv *= rot;
+                //float rotSpd = 0.1;
+                //uv *= rot(uTime*rotSpd);
 
                 float r = length(uv);
 
@@ -644,6 +630,23 @@ namespace my
 
         private void getShader_007(ref string header, ref string main)
         {
+            header = $@"
+                {noiseFunc}
+                {randFunc}
+            ";
+
+            main = $@"
+
+                vec2 v = gl_FragCoord.xy;
+
+                vec3 col = vec3(0);
+                col.x = 0.5;
+                col *= rand(v.x + uTime * 0.001);
+                col *= 0.85 + noise(v.xy * uTime * 0.00025) * 0.25;
+
+                result = vec4(col, 1);
+
+            ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------

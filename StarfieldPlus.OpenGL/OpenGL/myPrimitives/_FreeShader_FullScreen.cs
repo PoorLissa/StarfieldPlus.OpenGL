@@ -151,19 +151,12 @@ public class myFreeShader_FullScreen : myPrimitive
 
         // Fragment Shader Program
         {
-            if (string.IsNullOrEmpty(fHeader))
-            {
-                // Default implementation
-                fHeader = "out vec4 result;";
-            }
-            else
-            {
-                // Extend the header with some pre-defined variables:
-                fHeader = $"out vec4 result;" +
-                          $"uniform float uTime;" +
-                          $"vec2 iResolution = vec2({Width}, {Height});" +
-                          $"{fHeader}";
-            }
+            // Extend the header with some pre-defined variables:
+            fHeader = $@"out vec4 result;
+                        uniform float uTime;
+                        vec2 iResolution = vec2({Width}, {Height});
+                        {fHeader}
+            ";
 
             if (string.IsNullOrEmpty(fMain))
             {
