@@ -630,24 +630,58 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // my test
         private void getShader_007(ref string header, ref string main)
         {
             header = $@"
                 {noiseFunc}
                 {randFunc}
+                {rotationMatrix}
+
+                vec3 col = vec3({R}, {G}, {B});
             ";
 
             main = $@"
 
-                vec2 v = gl_FragCoord.xy;
+                float aspect = iResolution.x / iResolution.y;
+    
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0) * vec2(1.0, 1.0 / aspect);
 
-                vec3 col = vec3(0);
-                col.x = 0.5;
-                col *= rand(v.x + uTime * 0.001);
-                col *= 0.85 + noise(v.xy * uTime * 0.00025) * 0.25;
+                // rotation
+                float rotSpd = 0.1 * {myUtils.randomSign(rand)};
+                uv *= rot(uTime * rotSpd);
 
-                result = vec4(col, 1);
+                float r = length(uv);
 
+                float scale = {myUtils.randFloat(rand, 0.1f) + rand.Next(66) + 1};
+
+                scale *= sin(uTime*0.1) * 0.25;
+
+                float x = (uv.x) * scale;
+                float y = (uv.y) * scale;
+
+                float F = 0;
+
+                // ok functions:
+                F = x * sin(x) * cos(y) * uTime;
+
+                float res = sin(x / y) * sin(uTime);
+
+                float d = 0.01;
+
+                float dF = F - res;
+
+                //if (F - res < 0.5)
+                if (dF > 0 && dF < 10)
+                {{
+                    //d = smoothstep(0.05, 0.01, abs(F - res));
+
+                    d = smoothstep(0.0, 10.0, dF);
+                }}
+
+                col *= 0.85 + noise(gl_FragCoord.xy * uTime * 0.00025) * {myUtils.randFloat(rand, 0.2f) * 0.5};
+
+                result = vec4(col, d);
             ";
         }
 
