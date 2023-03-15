@@ -236,7 +236,7 @@ namespace my
                 int max = 8;
                 mode = rand.Next(max);
 #if DEBUG
-                mode = 2;
+                mode = 9;
 #endif
                 switch (mode)
                 {
@@ -249,6 +249,7 @@ namespace my
                     case 6: getShader_006(ref header, ref main); break;
                     case 7: getShader_007(ref header, ref main); break;
                     case 8: getShader_008(ref header, ref main); break;
+                    case 9: getShader_009(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -412,12 +413,12 @@ namespace my
                 uv.x *= iResolution.x/iResolution.y;
 
                 vec3 lookAt = vec3(0.5);
-                vec3 ro = vec3(3.* sin(uTime * 0.1), 2. * cos(uTime * 0.1), -3.);
+                vec3 ro = vec3(3.* sin(uTime * 0.1), 2. * cos(uTime * 0.1), -3.);       {"" /* Rotation vector */}
 
                 float zoom = 0.5 + sin(uTime * 0.1) * 0.2;
     
                 vec3 f = normalize(lookAt - ro);
-                vec3 r = cross(vec3(0., -1., 0.), f);
+                vec3 r = cross(vec3(0.0, -1.0, 0.0), f);
                 vec3 u = cross(r, f);
                 vec3 c = ro + f * zoom;
                 vec3 i = c + uv.x * r + uv.y * u;
@@ -792,6 +793,47 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // https://www.shadertoy.com/view/mdjXRd
+        private void getShader_009(ref string header, ref string main)
+        {
+            header = $@"
+                vec3 col = vec3(0);
+                float i, dist, anim;
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - iResolution/2) / iResolution.y;
+
+                // zoom out a bit
+                uv *= 2;
+
+                result.xyz *= 0;
+
+                for (i = 0; i < 22.0; i++)
+                {{
+                    // shape + distance
+                    dist = 0.004 / (abs(length(uv * uv) - i * 0.04) + 0.005);
+
+                    // color
+                    col = cos(vec3(0, 1, 2) + i) + 1.0;
+
+                    // animation
+                    anim = smoothstep(0.35, 0.4, abs(abs(mod(uTime, 2.0) - i * 0.1) - 1.0));
+
+                    result.xyz += dist * col * anim;
+
+                    // rotation
+                    uv *= mat2(cos((uTime + i) * 0.03 + vec4(0, 33, 11, 0)));
+                }}
+
+                result.w = 1;
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
 
 
 
