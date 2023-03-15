@@ -87,14 +87,14 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
+            string nStr(int n) { return n.ToString("N0"); }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_500 -- Free Shader Experiments\n\n"   +
-                            $"N = {nStr(0)}\n"                               +
+            string str = $"Obj = myObj_500 -- Free Shader Experiments\n\n" +
+                            $"N = {nStr(0)}\n" +
                             $"R = {fStr(R)}; G = {fStr(G)}; B = {fStr(B)}\n" +
-                            $"mode = {mode}\n"                               +
-                            $"renderDelay = {renderDelay}\n"                 +
+                            $"mode = {mode}\n" +
+                            $"renderDelay = {renderDelay}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -167,30 +167,30 @@ namespace my
                 }
                 else
                 {
-/*
-                    for (int i = 0; i < lst.Count; i++)
-                    {
-                        var z = lst[i];
+                    /*
+                                        for (int i = 0; i < lst.Count; i++)
+                                        {
+                                            var z = lst[i];
 
-                        shader.Draw(z.x, z.y, z.w + (int)(Math.Cos(z.t) * 66), z.h + (int)(Math.Sin(z.t) * 33), 33);
-                        z.t += z.dt;
-                    }*/
-/*
-                    shader.SetColor(0.25f, 0.66f, 0.33f, 1);
-                    int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
+                                            shader.Draw(z.x, z.y, z.w + (int)(Math.Cos(z.t) * 66), z.h + (int)(Math.Sin(z.t) * 33), 33);
+                                            z.t += z.dt;
+                                        }*/
+                    /*
+                                        shader.SetColor(0.25f, 0.66f, 0.33f, 1);
+                                        int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
 
-                    shader.Draw(333, 333, 222, 222, 3);
-                    shader.Draw(333, 333, 333 + (int)(Math.Cos(cnt * 0.1) * 66), 222 + (int)(Math.Sin(cnt * 0.1) * 33), 3);
+                                        shader.Draw(333, 333, 222, 222, 3);
+                                        shader.Draw(333, 333, 333 + (int)(Math.Cos(cnt * 0.1) * 66), 222 + (int)(Math.Sin(cnt * 0.1) * 33), 3);
 
-                    if (false)
-                    {
-                        shader.SetColor(0.66f, 0.33f, 0.22f, 0.33f);
+                                        if (false)
+                                        {
+                                            shader.SetColor(0.66f, 0.33f, 0.22f, 0.33f);
 
-                        for (int i = 0; i < gl_Width; i += 200)
-                            for (int j = 0; j < gl_Height; j += 200)
-                                shader.Draw(i, j, 66, 55, 3);
-                    }
-*/
+                                            for (int i = 0; i < gl_Width; i += 200)
+                                                for (int j = 0; j < gl_Height; j += 200)
+                                                    shader.Draw(i, j, 66, 55, 3);
+                                        }
+                    */
                 }
 
                 cnt++;
@@ -207,10 +207,10 @@ namespace my
         {
             if (fullScreen)
             {
-                int max = 5;
+                int max = 7;
                 mode = rand.Next(max);
 
-                mode = 5;
+                //mode = 6;
 
                 switch (mode)
                 {
@@ -220,6 +220,7 @@ namespace my
                     case 3: getShader_003(ref header, ref main); break;
                     case 4: getShader_004(ref header, ref main); break;
                     case 5: getShader_005(ref header, ref main); break;
+                    case 6: getShader_006(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -494,12 +495,12 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // 
+        // https://www.shadertoy.com/view/4dsXzM
         private void getShader_005(ref string header, ref string main)
         {
             header = $@"
 
-                float layers = 1;
+                float layers = 11;
                 float scale = 300;
                 float lengt = 0.13;
                 float thickness = 0.0;
@@ -573,6 +574,76 @@ namespace my
 
 	            result = vec4(col, 1.0);
             ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // my test
+        private void getShader_006(ref string header, ref string main)
+        {
+            header = $@"//
+
+                float noise(vec2 p)
+                {{
+                    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
+                }}
+
+            ";
+
+            main = $@"
+
+                float rotSpd = 0.1;
+                mat2 rot = mat2(cos(uTime*rotSpd), -sin(uTime*rotSpd), sin(uTime*rotSpd), cos(uTime*rotSpd));
+
+                float aspect = iResolution.x / iResolution.y;
+    
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0) * vec2(1.0, 1.0 / aspect);
+
+                // rotation
+                //uv *= rot;
+
+                float r = length(uv);
+
+                float scale = {myUtils.randFloat(rand, 0.1f) + rand.Next(66) + 1};
+
+                //scale = 1.23;
+
+                float x = (uv.x) * scale * uTime;
+                float y = (uv.y) * scale * uTime;
+
+                //x += uTime * 15;
+
+                float F = 0;
+
+                // ok functions:
+                F = x * sin(x) * cos(y);
+                //F = x * sin(x) + y * cos(y);
+                //F = (x + y) * x * y;
+
+                float res = y;
+
+                //F = x * y * cos(x * y * uTime) * sin(x + y);
+                //F = sin(cos(x * y) * uTime) * 1;
+
+                vec3 col = vec3({myUtils.randFloat(rand)}, {myUtils.randFloat(rand)}, {myUtils.randFloat(rand)});
+
+                float d = 0.01;
+
+                if ((F - res) < 0.1)
+                {{
+                    d = smoothstep(0.05, 0.45, abs(F - res));
+                }}
+
+                col *= 0.85 + noise(gl_FragCoord.xy * uTime * 0.00025) * {myUtils.randFloat(rand, 0.2f) * 0.5};
+
+                result = vec4(col, d);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_007(ref string header, ref string main)
+        {
         }
 
         // ---------------------------------------------------------------------------------------------------------------
