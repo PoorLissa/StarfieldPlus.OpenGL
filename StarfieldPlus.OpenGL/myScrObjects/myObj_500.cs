@@ -105,6 +105,8 @@ namespace my
         // 
         protected override void setNextMode()
         {
+            getShader(ref fHeader, ref fMain, doUseFullScreenShader);
+
             initLocal();
         }
 
