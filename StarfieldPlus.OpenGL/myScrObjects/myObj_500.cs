@@ -848,16 +848,18 @@ namespace my
                 {myShaderHelpers.SDF.boxSDF}
                 {myShaderHelpers.SDF.sphereSDF}
                 {myShaderHelpers.SDF.roundBoxSDF}
+                {myShaderHelpers.SDF.hexPrismSDF}
 
                 float GetDist(vec3 p)
                 {{
                     float d = 0;
 
-                    switch ({rand.Next(3)})
+                    switch ({rand.Next(4)})
                     {{
                         case 0: d = sphereSDF(p, 1); break;
                         case 1: d = boxSDF(p, vec3(1)); break;
                         case 2: d = roundBoxSDF(p, vec3(1), 0.33); break;
+                        case 3: d = hexPrismSDF(p, vec2(2, 0.66)); break;
                     }}
 
                     // Displacement
