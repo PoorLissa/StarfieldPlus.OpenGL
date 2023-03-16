@@ -236,20 +236,21 @@ namespace my
                 int max = 8;
                 mode = rand.Next(max);
 #if DEBUG
-                mode = 9;
+                mode = 10;
 #endif
                 switch (mode)
                 {
-                    case 0: getShader_000(ref header, ref main); break;
-                    case 1: getShader_001(ref header, ref main); break;
-                    case 2: getShader_002(ref header, ref main); break;
-                    case 3: getShader_003(ref header, ref main); break;
-                    case 4: getShader_004(ref header, ref main); break;
-                    case 5: getShader_005(ref header, ref main); break;
-                    case 6: getShader_006(ref header, ref main); break;
-                    case 7: getShader_007(ref header, ref main); break;
-                    case 8: getShader_008(ref header, ref main); break;
-                    case 9: getShader_009(ref header, ref main); break;
+                    case 00: getShader_000(ref header, ref main); break;
+                    case 01: getShader_001(ref header, ref main); break;
+                    case 02: getShader_002(ref header, ref main); break;
+                    case 03: getShader_003(ref header, ref main); break;
+                    case 04: getShader_004(ref header, ref main); break;
+                    case 05: getShader_005(ref header, ref main); break;
+                    case 06: getShader_006(ref header, ref main); break;
+                    case 07: getShader_007(ref header, ref main); break;
+                    case 08: getShader_008(ref header, ref main); break;
+                    case 09: getShader_009(ref header, ref main); break;
+                    case 10: getShader_010(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -834,6 +835,99 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // RayMarching starting point:
+        // https://www.shadertoy.com/view/WtGXDD
+        private void getShader_010(ref string header, ref string main)
+        {
+            header = $@"
+
+                #define MAX_STEPS 100
+                #define MAX_DIST 100.
+                #define SURF_DIST .001
+                #define TAU 6.283185
+                #define PI 3.141592
+                #define S smoothstep
+
+                {rotationMatrix}
+
+                float sdBox(vec3 p, vec3 s)
+                {{
+                    p = abs(p) - s;
+	                return length(max(p, 0.))+min(max(p.x, max(p.y, p.z)), 0.);
+                }}
+
+
+                float GetDist(vec3 p)
+                {{
+                    return sdBox(p, vec3(1));
+                }}
+
+                float RayMarch(vec3 ro, vec3 rd)
+                {{
+                    float dO=0.;
+    
+                    for (int i=0; i<MAX_STEPS; i++) {{
+    	                vec3 p = ro + rd*dO;
+                        float dS = GetDist(p);
+                        dO += dS;
+                        if(dO>MAX_DIST || abs(dS)<SURF_DIST) break;
+                    }}
+    
+                    return dO;
+                }}
+
+                vec3 GetNormal(vec3 p) {{
+                    vec2 e = vec2(.001, 0);
+                    vec3 n = GetDist(p) - vec3(GetDist(p-e.xyy), GetDist(p-e.yxy),GetDist(p-e.yyx));
+    
+                    return normalize(n);
+                }}
+
+                vec3 GetRayDir(vec2 uv, vec3 p, vec3 l, float z) {{
+                    vec3 
+                        f = normalize(l-p),
+                        r = normalize(cross(vec3(0,1,0), f)),
+                        u = cross(f,r),
+                        c = f*z,
+                        i = c + uv.x*r + uv.y*u;
+
+                    return normalize(i);
+                }}
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy)/iResolution.y;
+
+                vec3 ro = vec3(0, 3, -3);
+                ro.yz *= rot(uTime);
+                ro.yx *= rot(uTime);
+    
+                vec3 rd = GetRayDir(uv, ro, vec3(0,0.,0), 1.);
+                vec3 col = vec3(0);
+   
+                float d = RayMarch(ro, rd);
+    
+                float q = 0.0;
+
+                if (d < MAX_DIST)
+                {{
+                    vec3 p = ro + rd * d;
+                    vec3 n = GetNormal(p);
+                    vec3 r = reflect(rd, n);
+
+                    float dif = dot(n, normalize(vec3(1,2,3)))*.5+.5;
+                    col = vec3(dif);
+                    q = smoothstep(0.01, 0.1, dif);
+                }}
+    
+                col = pow(col, vec3(.4545));	// gamma correction
+    
+                result = vec4(col, q);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
 
 
