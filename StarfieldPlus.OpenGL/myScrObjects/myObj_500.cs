@@ -837,25 +837,22 @@ namespace my
 
         // RayMarching starting point:
         // https://www.shadertoy.com/view/WtGXDD
+        // https://michaelwalczyk.com/blog-ray-marching.html
         private void getShader_010(ref string header, ref string main)
         {
             header = $@"
 
-                #define MAX_STEPS 100
-                #define MAX_DIST 100.
-                #define SURF_DIST .001
-                #define TAU 6.283185
-                #define PI 3.141592
-                #define S smoothstep
+                #define MAX_STEPS   100
+                #define MAX_DIST    100.0
+                #define SURF_DIST   0.001
 
                 {rotationMatrix}
 
                 float sdBox(vec3 p, vec3 s)
                 {{
                     p = abs(p) - s;
-	                return length(max(p, 0.))+min(max(p.x, max(p.y, p.z)), 0.);
+	                return length(max(p, 0.0)) + min(max(p.x, max(p.y, p.z)), 0.0);
                 }}
-
 
                 float GetDist(vec3 p)
                 {{
@@ -866,11 +863,14 @@ namespace my
                 {{
                     float dO=0.;
     
-                    for (int i=0; i<MAX_STEPS; i++) {{
+                    for (int i=0; i < MAX_STEPS; i++)
+                    {{
     	                vec3 p = ro + rd*dO;
                         float dS = GetDist(p);
                         dO += dS;
-                        if(dO>MAX_DIST || abs(dS)<SURF_DIST) break;
+
+                        if (dO > MAX_DIST || abs(dS) < SURF_DIST)
+                            break;
                     }}
     
                     return dO;
@@ -899,31 +899,37 @@ namespace my
 
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy)/iResolution.y;
 
-                vec3 ro = vec3(0, 3, -3);
+                // Camera position
+                vec3 ro = vec3(13, 3, -3);
+
+                // Rotation matrix applied
                 ro.yz *= rot(uTime);
                 ro.yx *= rot(uTime);
     
-                vec3 rd = GetRayDir(uv, ro, vec3(0,0.,0), 1.);
+                // Ray direction
+                vec3 rayDir = GetRayDir(uv, ro, vec3(0, 0, 0), 1);
+
                 vec3 col = vec3(0);
-   
-                float d = RayMarch(ro, rd);
-    
-                float q = 0.0;
+                float opacity = 0.0;
+
+                // Cast a ray and get a distance to a point it hits
+                float d = RayMarch(ro, rayDir);
 
                 if (d < MAX_DIST)
                 {{
-                    vec3 p = ro + rd * d;
+                    vec3 p = ro + rayDir * d;
                     vec3 n = GetNormal(p);
-                    vec3 r = reflect(rd, n);
+                    vec3 r = reflect(rayDir, n);
 
-                    float dif = dot(n, normalize(vec3(1,2,3)))*.5+.5;
+                    float dif = dot(n, normalize(vec3(1, 2, 3))) * 0.5 + 0.5;
                     col = vec3(dif);
-                    q = smoothstep(0.01, 0.1, dif);
+                    opacity = smoothstep(0.01, 0.1, dif);
                 }}
     
-                col = pow(col, vec3(.4545));	// gamma correction
+                // gamma correction
+                col = pow(col, vec3(.4545));
     
-                result = vec4(col, q);
+                result = vec4(col, opacity);
             ";
         }
 
