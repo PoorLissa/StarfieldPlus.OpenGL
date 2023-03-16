@@ -251,6 +251,9 @@ namespace my
                     case 08: getShader_008(ref header, ref main); break;
                     case 09: getShader_009(ref header, ref main); break;
                     case 10: getShader_010(ref header, ref main); break;
+                    case 11: getShader_011(ref header, ref main); break;
+                    case 12: getShader_012(ref header, ref main); break;
+                    case 13: getShader_013(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -850,6 +853,7 @@ namespace my
                 {myShaderHelpers.SDF.roundBoxSDF}
                 {myShaderHelpers.SDF.hexPrismSDF}
 
+                {"" /* To display more than 1 shape, calculate all the shapes and then return the shortest distance */ }
                 float GetDist(vec3 p)
                 {{
                     float d = 0;
@@ -951,8 +955,8 @@ namespace my
                 vec3 rayOrigin = vec3(-2.0, 3.0, -5.0);
 
                 // Rotation matrix applied
-                //rayOrigin.yz *= rot(uTime/5);
-                //rayOrigin.yx *= rot(uTime/5);
+                rayOrigin.yz *= rot(uTime/{rand.Next(33)+1});
+                rayOrigin.yx *= rot(uTime/{rand.Next(33)+1});
     
                 // Ray direction as a unit vector
                 vec3 rayDir = GetRayDir(uv, rayOrigin, vec3(0, 0, 0), 1);
@@ -995,6 +999,38 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_011(ref string header, ref string main)
+        {
+            header = $@"
+            ";
+
+            main = $@"
+                vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5) / iResolution.y;
+
+                result = vec4(1, 1, 1, 1);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_012(ref string header, ref string main)
+        {
+            header = $@"";
+            main = $@"";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_013(ref string header, ref string main)
+        {
+            header = $@"";
+            main = $@"";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+
 
 
 
