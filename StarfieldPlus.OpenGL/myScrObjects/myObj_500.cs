@@ -870,7 +870,7 @@ namespace my
 
                 float sdBall_2(vec3 p, vec3 s)
                 {{
-                    float sphere = length(p) - s.x  + sin(uTime) / 5;
+                    float sphere = length(p) - s.x + sin(uTime) / 5;
 
                     // Displacement
                     float d1 = sin(5.0 * p.x + uTime) * sin(5.0 * p.y + uTime) * sin(5.0 * p.z + uTime) * 0.25;
@@ -954,8 +954,8 @@ namespace my
                 vec3 rayOrigin = vec3(0.0, 0.0, -5.0);
 
                 // Rotation matrix applied
-                rayOrigin.yz *= rot(uTime/5);
-                rayOrigin.yx *= rot(uTime/5);
+                //rayOrigin.yz *= rot(uTime/5);
+                //rayOrigin.yx *= rot(uTime/5);
     
                 // Ray direction as a unit vector
                 vec3 rayDir = GetRayDir(uv, rayOrigin, vec3(0, 0, 0), 1);
@@ -970,7 +970,7 @@ namespace my
                 {{
                     vec3 p = rayOrigin + rayDir * d;        // The point where the ray touches the surface
                     vec3 n = GetNormal(p);                  // The normal unit vector for this point (need this for shading)
-                    vec3 r = reflect(rayDir, n);            // reflection direction for the ray
+                    vec3 r = reflect(rayDir, n);            // reflection direction for the ray -- not used
 
                     // diffuse lighting
                     //float diffuse_intensity = dot(n, normalize(vec3(1, 2, 3))) * 0.5 + 0.5;
@@ -979,10 +979,14 @@ namespace my
                     vec3 direction_to_light = normalize(p - light_position);
                     float diffuse_intensity = max(0.0, dot(n, direction_to_light));
 
-                    //col = vec3(diffuse_intensity);
-                    col = vec3(1.0, 0.0, 0.0) * diffuse_intensity;
+                    // 2nd light source
+                    light_position = vec3(0.0, 5.0, 0.0);
+                    direction_to_light = normalize(p - light_position);
+                    float dif2 = max(0.0, dot(n, direction_to_light));
 
-                    //opacity = smoothstep(0.01, 0.1, diffuse_intensity);
+                    diffuse_intensity += dif2 * 0.25;
+
+                    col = vec3({R}, {G}, {B}) * diffuse_intensity;
                     opacity = smoothstep(0.01, 1.0, diffuse_intensity);
 
                     // gamma correction
