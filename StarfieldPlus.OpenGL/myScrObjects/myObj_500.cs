@@ -285,12 +285,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static string noiseFunc      = "float noise(vec2 p) {return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);}";
-        private static string randFunc       = "float rand(float x) {return fract(sin(x) * 43758.5453);}";
-        private static string rotationMatrix = "mat2 rot(float t) { float s = sin(t); float c = cos(t); return mat2(c, -s, s, c);}";
-
-        // ---------------------------------------------------------------------------------------------------------------
-
         // https://www.shadertoy.com/view/tdlBR8
         private void getShader_000(ref string header, ref string main)
         {
@@ -335,7 +329,8 @@ namespace my
         private void getShader_001(ref string header, ref string main)
         {
             header = $@"
-                {noiseFunc}{randFunc}
+                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.randFunc}
             ";
 
             main = $@"
@@ -436,7 +431,7 @@ namespace my
         private void getShader_003(ref string header, ref string main)
         {
             header = $@"
-                {rotationMatrix}
+                {myShaderHelpers.Generic.rotationMatrix}
                 float PI  = {Math.PI};
                 float TAU = {Math.PI} * 2.0;
 
@@ -526,7 +521,7 @@ namespace my
         {
             header = $@"
 
-                {rotationMatrix /* add rotation matrix function */}
+                {myShaderHelpers.Generic.rotationMatrix /* add rotation matrix function */}
 
                 float layers = 11;
                 float scale = 300;
@@ -603,8 +598,8 @@ namespace my
         private void getShader_006(ref string header, ref string main)
         {
             header = $@"
-                {noiseFunc}
-                {rotationMatrix}
+                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.rotationMatrix}
             ";
 
             main = $@"
@@ -661,9 +656,9 @@ namespace my
         private void getShader_007(ref string header, ref string main)
         {
             header = $@"
-                {noiseFunc}
-                {randFunc}
-                {rotationMatrix}
+                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.randFunc}
+                {myShaderHelpers.Generic.rotationMatrix}
 
                 vec3 col = vec3({R}, {G}, {B});
             ";
@@ -718,9 +713,9 @@ namespace my
         private void getShader_008(ref string header, ref string main)
         {
             header = $@"
-                {noiseFunc}
-                {randFunc}
-                {rotationMatrix}
+                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.randFunc}
+                {myShaderHelpers.Generic.rotationMatrix}
 
                 mat3 rotateX(in float a)
                 {{
@@ -836,8 +831,9 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // RayMarching starting point:
-        // https://www.shadertoy.com/view/WtGXDD
-        // https://michaelwalczyk.com/blog-ray-marching.html
+        // https://www.shadertoy.com/view/WtGXDD                                -- live example
+        // https://michaelwalczyk.com/blog-ray-marching.html                    -- good explanation
+        // https://timcoster.com/2020/02/17/raymarching-shader-pt4-primitives/  -- some explanation + src code for SDF primitives
         private void getShader_010(ref string header, ref string main)
         {
             header = $@"
@@ -846,51 +842,51 @@ namespace my
                 #define MAX_DIST    100.0
                 #define SURF_DIST   0.001           // change this to adjust artefacts
 
-                {rotationMatrix}
+                {myShaderHelpers.Generic.rotationMatrix}
+                {myShaderHelpers.Generic.noiseFunc}
 
-                // Signed Distance Function
-                float sdBox(vec3 p, vec3 s)
-                {{
-                    p = abs(p) - s;
-
-                    // Displacement
-                    float d1 = sin(5.0 * p.x + uTime) * sin(5.0 * p.y + uTime) * sin(5.0 * p.z + uTime) * 0.25;
-                    float d2 = sin(5.0 * p.x * uTime) * sin(5.0 * p.y * uTime) * sin(5.0 * p.z * uTime) * 0.25;
-
-                    float cube = length(max(p, 0.0)) + min(max(p.x, max(p.y, p.z)), 0.0);
-
-                    return cube + d1;
-                }}
-
-                float sdBall(vec3 p, vec3 s)
-                {{
-                    float sphere = length(p) - s.x;     // where s.x is a radius
-                    return sphere;
-                }}
-
-                float sdBall_2(vec3 p, vec3 s)
-                {{
-                    float sphere = length(p) - s.x + sin(uTime) / 5;
-
-                    // Displacement
-                    float d1 = sin(5.0 * p.x + uTime) * sin(5.0 * p.y + uTime) * sin(5.0 * p.z + uTime) * 0.25;
-                    float d2 = sin(5.0 * p.x * uTime) * sin(5.0 * p.y * uTime) * sin(5.0 * p.z * uTime) * 0.25;
-
-                    return sphere + d1 * 0.33 + d2 * 0.02;
-                    return sphere + d1 + d2 * sin(uTime);
-                }}
+                {myShaderHelpers.SDF.boxSDF}
+                {myShaderHelpers.SDF.sphereSDF}
+                {myShaderHelpers.SDF.roundBoxSDF}
 
                 float GetDist(vec3 p)
                 {{
-                    return sdBall_2(p, vec3(1));
-                    return sdBall(p, vec3(1));
-                    return sdBox(p, vec3(1));
+                    float d = 0;
+
+                    switch ({rand.Next(3)})
+                    {{
+                        case 0: d = sphereSDF(p, 1); break;
+                        case 1: d = boxSDF(p, vec3(1)); break;
+                        case 2: d = roundBoxSDF(p, vec3(1), 0.33); break;
+                    }}
+
+                    // Displacement
+                    float d1 = sin(5.0 * p.x + uTime) * sin(5.0 * p.y + uTime) * sin(5.0 * p.z + uTime) * 0.25;
+                    float d2 = sin(5.0 * p.x * uTime) * sin(5.0 * p.y * uTime) * sin(5.0 * p.z * uTime) * 0.25;
+
+                    float d3 = sin(5.0 * p.x + uTime * {R}) * sin(5.0 * p.y + uTime * {G}) * sin(5.0 * p.z + uTime * {B}) * 0.25;
+                    float d4 = sin(5.0 * p.x * uTime * {R}) * sin(5.0 * p.y * uTime * {G}) * sin(5.0 * p.z * uTime * {B}) * 0.25;
+
+                    switch ({rand.Next(4)})
+                    {{
+                        case 0:
+                            return d + d1 * 0.33 + d2 * 0.02;
+
+                        case 1:
+                            return d + d1 + d2 * sin(uTime);
+
+                        case 2:
+                            return d + d3 * 0.33 + d4 * 0.02;
+
+                        case 3:
+                            return d + d3 + d4 * sin(uTime) * 0.1;
+                    }}
                 }}
 
                 float RayMarch(vec3 ro, vec3 rd)
                 {{
-                    float dTotal = 0.0;                     {"" /* Total distance traveled */ }
-    
+                    float dTotal = 0.0;                     {"" /* Total distance the ray has traveled */ }
+
                     for (int i = 0; i < MAX_STEPS; i++)
                     {{
     	                vec3 curPos = ro + rd * dTotal;     {"" /* Move along the ray */ }
@@ -899,8 +895,7 @@ namespace my
 
                         {"" /* Here, dS is a distance to a closest object in a scene;
                                It is positive, when we're outside of an object, and is negative, when we're inside of it;
-                               When dS is within the tolerance interval, we assume we've hit the surface */
-                        }
+                               When dS is within the tolerance interval, we assume we've hit the surface */ }
                         if (dTotal > MAX_DIST || abs(dS) < SURF_DIST)
                             break;
                     }}
@@ -932,7 +927,7 @@ namespace my
                 vec3 GetRayDir(vec2 uv, vec3 ro, vec3 l, float z)
                 {{
                     {"" /* This also works, but draws things differently, depending on the camera position */}
-                    //return normalize(vec3(uv, .5));
+                    //return normalize(vec3(uv, 1));
 
                     {"" /* This code will orient the camera towards the object */}
                     vec3
@@ -948,10 +943,10 @@ namespace my
 
             main = $@"
 
-                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy)/iResolution.y;
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
 
                 // Camera position (Ray Origin)
-                vec3 rayOrigin = vec3(0.0, 0.0, -5.0);
+                vec3 rayOrigin = vec3(-2.0, 3.0, -5.0);
 
                 // Rotation matrix applied
                 //rayOrigin.yz *= rot(uTime/5);
