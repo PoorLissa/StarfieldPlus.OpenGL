@@ -842,53 +842,104 @@ namespace my
         {
             header = $@"
 
-                #define MAX_STEPS   100
+                #define MAX_STEPS   100             // change this to adjust artefacts
                 #define MAX_DIST    100.0
-                #define SURF_DIST   0.001
+                #define SURF_DIST   0.001           // change this to adjust artefacts
 
                 {rotationMatrix}
 
+                // Signed Distance Function
                 float sdBox(vec3 p, vec3 s)
                 {{
                     p = abs(p) - s;
-	                return length(max(p, 0.0)) + min(max(p.x, max(p.y, p.z)), 0.0);
+
+                    // Displacement
+                    float d1 = sin(5.0 * p.x + uTime) * sin(5.0 * p.y + uTime) * sin(5.0 * p.z + uTime) * 0.25;
+                    float d2 = sin(5.0 * p.x * uTime) * sin(5.0 * p.y * uTime) * sin(5.0 * p.z * uTime) * 0.25;
+
+                    float cube = length(max(p, 0.0)) + min(max(p.x, max(p.y, p.z)), 0.0);
+
+                    return cube + d1;
+                }}
+
+                float sdBall(vec3 p, vec3 s)
+                {{
+                    float sphere = length(p) - s.x;     // where s.x is a radius
+                    return sphere;
+                }}
+
+                float sdBall_2(vec3 p, vec3 s)
+                {{
+                    float sphere = length(p) - s.x  + sin(uTime) / 5;
+
+                    // Displacement
+                    float d1 = sin(5.0 * p.x + uTime) * sin(5.0 * p.y + uTime) * sin(5.0 * p.z + uTime) * 0.25;
+                    float d2 = sin(5.0 * p.x * uTime) * sin(5.0 * p.y * uTime) * sin(5.0 * p.z * uTime) * 0.25;
+
+                    return sphere + d1 * 0.33 + d2 * 0.02;
+                    return sphere + d1 + d2 * sin(uTime);
                 }}
 
                 float GetDist(vec3 p)
                 {{
+                    return sdBall_2(p, vec3(1));
+                    return sdBall(p, vec3(1));
                     return sdBox(p, vec3(1));
                 }}
 
                 float RayMarch(vec3 ro, vec3 rd)
                 {{
-                    float dO=0.;
+                    float dTotal = 0.0;                     {"" /* Total distance traveled */ }
     
-                    for (int i=0; i < MAX_STEPS; i++)
+                    for (int i = 0; i < MAX_STEPS; i++)
                     {{
-    	                vec3 p = ro + rd*dO;
-                        float dS = GetDist(p);
-                        dO += dS;
+    	                vec3 curPos = ro + rd * dTotal;     {"" /* Move along the ray */ }
+                        float dS = GetDist(curPos);         {"" /* Distance-aided ray marching: treat this as a rad of a Sphere centered around our curr position*/ }
+                        dTotal += dS;
 
-                        if (dO > MAX_DIST || abs(dS) < SURF_DIST)
+                        {"" /* Here, dS is a distance to a closest object in a scene;
+                               It is positive, when we're outside of an object, and is negative, when we're inside of it;
+                               When dS is within the tolerance interval, we assume we've hit the surface */
+                        }
+                        if (dTotal > MAX_DIST || abs(dS) < SURF_DIST)
                             break;
                     }}
     
-                    return dO;
+                    return dTotal;
                 }}
 
-                vec3 GetNormal(vec3 p) {{
-                    vec2 e = vec2(.001, 0);
-                    vec3 n = GetDist(p) - vec3(GetDist(p-e.xyy), GetDist(p-e.yxy),GetDist(p-e.yyx));
+                {"" /* The idea is, we can 'nudge' our point p slightly in the positive and negative direction along each of the X/Y/Z axes,
+                       recalculate our SDF, and see how the values change.
+                       If you are familiar with vector calculus, we are essentially calculating the gradient of the distance field at p. */
+                }
+                vec3 GetNormal(vec3 p)
+                {{
+                    //vec2 e = vec2(.001, 0);
+                    //vec3 n = GetDist(p) - vec3(GetDist(p-e.xyy), GetDist(p-e.yxy), GetDist(p-e.yyx));
+
+                    const vec3 small_step = vec3(0.001, 0.0, 0.0);
+
+                    float gradient_x = GetDist(p + small_step.xyy) - GetDist(p - small_step.xyy);
+                    float gradient_y = GetDist(p + small_step.yxy) - GetDist(p - small_step.yxy);
+                    float gradient_z = GetDist(p + small_step.yyx) - GetDist(p - small_step.yyx);
+
+                    vec3 n = vec3(gradient_x, gradient_y, gradient_z);
     
                     return normalize(n);
                 }}
 
-                vec3 GetRayDir(vec2 uv, vec3 p, vec3 l, float z) {{
-                    vec3 
-                        f = normalize(l-p),
-                        r = normalize(cross(vec3(0,1,0), f)),
-                        u = cross(f,r),
-                        c = f*z,
+                // Get unit vector of the ray's direction
+                vec3 GetRayDir(vec2 uv, vec3 ro, vec3 l, float z)
+                {{
+                    {"" /* This also works, but draws things differently, depending on the camera position */}
+                    //return normalize(vec3(uv, .5));
+
+                    {"" /* This code will orient the camera towards the object */}
+                    vec3
+                        f = normalize(l-ro),
+                        r = normalize(cross(vec3(0, 1, 0), f)),
+                        u = cross(f, r),
+                        c = f * z,
                         i = c + uv.x*r + uv.y*u;
 
                     return normalize(i);
@@ -899,36 +950,45 @@ namespace my
 
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy)/iResolution.y;
 
-                // Camera position
-                vec3 ro = vec3(13, 3, -3);
+                // Camera position (Ray Origin)
+                vec3 rayOrigin = vec3(0.0, 0.0, -5.0);
 
                 // Rotation matrix applied
-                ro.yz *= rot(uTime);
-                ro.yx *= rot(uTime);
+                rayOrigin.yz *= rot(uTime/5);
+                rayOrigin.yx *= rot(uTime/5);
     
-                // Ray direction
-                vec3 rayDir = GetRayDir(uv, ro, vec3(0, 0, 0), 1);
+                // Ray direction as a unit vector
+                vec3 rayDir = GetRayDir(uv, rayOrigin, vec3(0, 0, 0), 1);
 
                 vec3 col = vec3(0);
                 float opacity = 0.0;
 
-                // Cast a ray and get a distance to a point it hits
-                float d = RayMarch(ro, rayDir);
+                // Cast a ray and get a distance to the point it hits (if any)
+                float d = RayMarch(rayOrigin, rayDir);
 
                 if (d < MAX_DIST)
                 {{
-                    vec3 p = ro + rayDir * d;
-                    vec3 n = GetNormal(p);
-                    vec3 r = reflect(rayDir, n);
+                    vec3 p = rayOrigin + rayDir * d;        // The point where the ray touches the surface
+                    vec3 n = GetNormal(p);                  // The normal unit vector for this point (need this for shading)
+                    vec3 r = reflect(rayDir, n);            // reflection direction for the ray
 
-                    float dif = dot(n, normalize(vec3(1, 2, 3))) * 0.5 + 0.5;
-                    col = vec3(dif);
-                    opacity = smoothstep(0.01, 0.1, dif);
+                    // diffuse lighting
+                    //float diffuse_intensity = dot(n, normalize(vec3(1, 2, 3))) * 0.5 + 0.5;
+
+                    vec3 light_position = vec3(2.0, -5.0, 3.0);
+                    vec3 direction_to_light = normalize(p - light_position);
+                    float diffuse_intensity = max(0.0, dot(n, direction_to_light));
+
+                    //col = vec3(diffuse_intensity);
+                    col = vec3(1.0, 0.0, 0.0) * diffuse_intensity;
+
+                    //opacity = smoothstep(0.01, 0.1, diffuse_intensity);
+                    opacity = smoothstep(0.01, 1.0, diffuse_intensity);
+
+                    // gamma correction
+                    col = pow(col, vec3(.4545));
                 }}
-    
-                // gamma correction
-                col = pow(col, vec3(.4545));
-    
+   
                 result = vec4(col, opacity);
             ";
         }
