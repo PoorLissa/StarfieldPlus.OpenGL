@@ -22,6 +22,7 @@ using System.Collections.Generic;
     https://www.shadertoy.com/view/DdyGzy
     https://www.shadertoy.com/view/dsy3Dw
     https://www.shadertoy.com/view/ms3GzH
+    https://www.shadertoy.com/view/cdGGDK
 
     // Math links:
     dot     : https://www.cuemath.com/algebra/dot-product/
@@ -62,13 +63,6 @@ namespace my
 
             // Global unmutable constants
             {
-                do
-                {
-                    R = myUtils.randFloat(rand);
-                    G = myUtils.randFloat(rand);
-                    B = myUtils.randFloat(rand);
-                }
-                while (R + G + B < 0.33f);
             }
 
             initLocal();
@@ -81,7 +75,15 @@ namespace my
         {
             doUseFullScreenShader = true;
 
-            renderDelay = rand.Next(11) + 3;
+            renderDelay = 0;
+
+            do
+            {
+                R = myUtils.randFloat(rand);
+                G = myUtils.randFloat(rand);
+                B = myUtils.randFloat(rand);
+            }
+            while (R + G + B < 0.33f);
 
             return;
         }
@@ -111,6 +113,8 @@ namespace my
         protected override void setNextMode()
         {
             getShader(ref fHeader, ref fMain, doUseFullScreenShader);
+
+            System.Threading.Thread.Sleep(100);
 
             initLocal();
         }
@@ -194,34 +198,33 @@ namespace my
                 }
                 else
                 {
-                    /*
-                                        for (int i = 0; i < lst.Count; i++)
-                                        {
-                                            var z = lst[i];
+/*
+                    for (int i = 0; i < lst.Count; i++)
+                    {
+                        var z = lst[i];
 
-                                            shader.Draw(z.x, z.y, z.w + (int)(Math.Cos(z.t) * 66), z.h + (int)(Math.Sin(z.t) * 33), 33);
-                                            z.t += z.dt;
-                                        }*/
-                    /*
-                                        shader.SetColor(0.25f, 0.66f, 0.33f, 1);
-                                        int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
+                        shader.Draw(z.x, z.y, z.w + (int)(Math.Cos(z.t) * 66), z.h + (int)(Math.Sin(z.t) * 33), 33);
+                        z.t += z.dt;
+                    }*/
+/*
+                    shader.SetColor(0.25f, 0.66f, 0.33f, 1);
+                    int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
 
-                                        shader.Draw(333, 333, 222, 222, 3);
-                                        shader.Draw(333, 333, 333 + (int)(Math.Cos(cnt * 0.1) * 66), 222 + (int)(Math.Sin(cnt * 0.1) * 33), 3);
+                    shader.Draw(333, 333, 222, 222, 3);
+                    shader.Draw(333, 333, 333 + (int)(Math.Cos(cnt * 0.1) * 66), 222 + (int)(Math.Sin(cnt * 0.1) * 33), 3);
 
-                                        if (false)
-                                        {
-                                            shader.SetColor(0.66f, 0.33f, 0.22f, 0.33f);
+                    if (false)
+                    {
+                        shader.SetColor(0.66f, 0.33f, 0.22f, 0.33f);
 
-                                            for (int i = 0; i < gl_Width; i += 200)
-                                                for (int j = 0; j < gl_Height; j += 200)
-                                                    shader.Draw(i, j, 66, 55, 3);
-                                        }
-                    */
+                        for (int i = 0; i < gl_Width; i += 200)
+                            for (int j = 0; j < gl_Height; j += 200)
+                                shader.Draw(i, j, 66, 55, 3);
+                    }
+*/
                 }
 
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -234,10 +237,10 @@ namespace my
         {
             if (fullScreen)
             {
-                int max = 8;
+                int max = 12;
                 mode = rand.Next(max);
 #if DEBUG
-                mode = 10;
+                //mode = 11;
 #endif
                 switch (mode)
                 {
@@ -842,7 +845,7 @@ namespace my
         {
             header = $@"
 
-                #define MAX_STEPS   100             // change this to adjust artefacts
+                #define MAX_STEPS   150             // change this to adjust artefacts
                 #define MAX_DIST    100.0
                 #define SURF_DIST   0.001           // change this to adjust artefacts
 
@@ -853,18 +856,34 @@ namespace my
                 {myShaderHelpers.SDF.sphereSDF}
                 {myShaderHelpers.SDF.roundBoxSDF}
                 {myShaderHelpers.SDF.hexPrismSDF}
+                {myShaderHelpers.SDF.triPrismSDF}
+                {myShaderHelpers.SDF.capsuleSDF}
+                {myShaderHelpers.SDF.verticalCapsuleSDF}
+                {myShaderHelpers.SDF.cylinderSDF}
+                {myShaderHelpers.SDF.cappedCylinderSDF}
+                {myShaderHelpers.SDF.coneSDF}
+                {myShaderHelpers.SDF.torusSDF}
+                {myShaderHelpers.SDF.octahedronSDF}
 
                 {"" /* To display more than 1 shape, calculate all the shapes and then return the shortest distance */ }
                 float GetDist(vec3 p)
                 {{
                     float d = 0;
 
-                    switch ({rand.Next(4)})
+                    switch ({rand.Next(12)})
                     {{
-                        case 0: d = sphereSDF(p, 1); break;
-                        case 1: d = boxSDF(p, vec3(1)); break;
-                        case 2: d = roundBoxSDF(p, vec3(1), 0.33); break;
-                        case 3: d = hexPrismSDF(p, vec2(2, 0.66)); break;
+                        case  0: d = sphereSDF(p, 1); break;
+                        case  1: d = boxSDF(p, vec3(1)); break;
+                        case  2: d = roundBoxSDF(p, vec3(1), 0.33); break;
+                        case  3: d = hexPrismSDF(p, vec2(2, 0.66)); break;
+                        case  4: d = triPrismSDF(p, vec2(2, 0.66)); break;
+                        case  5: d = capsuleSDF(p, vec3(1, 2, 3)/2, vec3(3, 2, 1)/2, 0.5); break;
+                        case  6: d = verticalCapsuleSDF(p, 1.5, 0.75); break;
+                        case  7: d = cylinderSDF(p, vec3(1, 2, 3)); break;
+                        case  8: d = cappedCylinderSDF(p, 1.5, 1); break;
+                        case  9: d = coneSDF(p, vec2(1, 1)/{rand.Next(10)+1}); break;
+                        case 10: d = torusSDF(p, vec2(1, 0.5)); break;
+                        case 11: d = octahedronSDF(p, 1); break;
                     }}
 
                     // Displacement
@@ -874,16 +893,7 @@ namespace my
                     float d3 = sin(5.0 * p.x + uTime * {R}) * sin(5.0 * p.y + uTime * {G}) * sin(5.0 * p.z + uTime * {B}) * 0.25;
                     float d4 = sin(5.0 * p.x * uTime * {R}) * sin(5.0 * p.y * uTime * {G}) * sin(5.0 * p.z * uTime * {B}) * 0.25;
 
-
-float aa = 5 * sin(uTime / 2 + p.y);
-float bb = 5 * sin(uTime / 3 + p.z);
-float cc = 5 * sin(uTime / 4 + p.x);
-
-float zz = sin(aa * p.x + uTime * {R}) * sin(bb * p.y + uTime * {G}) * sin(cc * p.z + uTime * {B}) * 0.25;
-
-return d + zz;
-
-                    switch ({rand.Next(4)})
+                    switch ({rand.Next(5)})
                     {{
                         case 0:
                             return d + d1 * 0.33 + d2 * 0.02;
@@ -896,6 +906,16 @@ return d + zz;
 
                         case 3:
                             return d + d3 + d4 * sin(uTime) * 0.1;
+
+                        case 4:
+                        {{
+                            float aa = 5 * sin(uTime / 2 + p.y),
+                                  bb = 5 * sin(uTime / 3 + p.z),
+                                  cc = 5 * sin(uTime / 4 + p.x),
+                                  zz = sin(aa * p.x + uTime * {R}) * sin(bb * p.y + uTime * {G}) * sin(cc * p.z + uTime * {B}) * 0.25;
+
+                            return d + zz * 0.25;
+                        }}
                     }}
                 }}
 
@@ -990,12 +1010,7 @@ return d + zz;
                     vec3 direction_to_light = normalize(p - light_position);
                     float diffuse_intensity = max(0.0, dot(n, direction_to_light));
 
-                    // 2nd light source
-                    light_position = vec3(0.0, 5.0, 0.0);
-                    direction_to_light = normalize(p - light_position);
-                    float dif2 = max(0.0, dot(n, direction_to_light));
-
-                    diffuse_intensity += dif2 * 0.25;
+                    diffuse_intensity += 0.25;
 
                     col = vec3({R}, {G}, {B}) * diffuse_intensity;
                     opacity = smoothstep(0.01, 1.0, diffuse_intensity);
@@ -1010,15 +1025,62 @@ return d + zz;
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // My Mandelbrot Set
         private void getShader_011(ref string header, ref string main)
         {
             header = $@"
+                {myShaderHelpers.Generic.noiseFunc}
+
+                #define MOD3 vec3(.1031,.11369,.13787)
+
+                vec3 hash31(float p) {{
+                    vec3 p3 = fract(vec3(p * {myUtils.randFloat(rand)}) * MOD3);
+                    p3 += dot(p3, p3.yzx + 19.19);
+                    return fract(vec3((p3.x + p3.y)*p3.z, (p3.x+p3.z)*p3.y, (p3.y+p3.z)*p3.x));
+                }}
+
+                bool useHash = 0 == {rand.Next(2)};
             ";
 
             main = $@"
-                vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5) / iResolution.y;
 
-                result = vec4(1, 1, 1, 1);
+                vec2 c = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                float zoom = pow(1.01, uTime);
+
+                //c.x -= 0.50 + zoom * 0.5;
+                //c.y += 0.25 + zoom * 0.0;
+    
+                c /= zoom;
+
+                c.x -= 1.4 + zoom * 0.0001;
+    
+                vec2 z = vec2(0.0);
+                float clr = 0, i = 0.0, maxStep = 500.0, X, Y;
+    
+                for (; i < maxStep; i++)
+                {{
+                    X = z.x * z.x;
+                    Y = z.y * z.y;
+
+                    if (X + Y > 4.0)
+                        break;
+
+                    z = vec2(X - Y, 2.0 * z.x * z.y) + c;
+                }}
+
+                if (i >= maxStep)
+                {{
+                    clr = (0.1 + noise(gl_FragCoord.xy * c) * 0.23);
+                    result = vec4(clr);
+                }}
+                else
+                {{
+                    clr = (maxStep/10) * log(i * maxStep) / maxStep;
+                    float nz = 0.9 + noise(gl_FragCoord.xy * c) * 0.1;
+
+                    result = useHash ? vec4(hash31(i)*nz, clr) : vec4(vec3(clr*nz), clr);
+                }}
             ";
         }
 
