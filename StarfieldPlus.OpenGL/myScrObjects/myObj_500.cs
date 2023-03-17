@@ -21,6 +21,7 @@ using System.Collections.Generic;
     https://www.shadertoy.com/view/Ddy3zD
     https://www.shadertoy.com/view/DdyGzy
     https://www.shadertoy.com/view/dsy3Dw
+    https://www.shadertoy.com/view/ms3GzH
 
     // Math links:
     dot     : https://www.cuemath.com/algebra/dot-product/
