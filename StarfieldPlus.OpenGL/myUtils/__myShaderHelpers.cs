@@ -10,7 +10,7 @@ namespace my
         {
             public static string rotationMatrix = "mat2 rot(float t) { float s = sin(t); float c = cos(t); return mat2(c, -s, s, c);}";
 
-            public static string noiseFunc = "float noise(vec2 p) {return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);}";
+            public static string noiseFunc12_v1 = "float noise12_v1(vec2 p) {return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);}";
 
             public static string randFunc = "float rand(float x) {return fract(sin(x) * 43758.5453);}";
         };

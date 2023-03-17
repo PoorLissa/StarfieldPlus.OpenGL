@@ -27,6 +27,10 @@ using System.Collections.Generic;
     // Math links:
     dot     : https://www.cuemath.com/algebra/dot-product/
     cross   : https://www.cuemath.com/geometry/cross-product/
+
+    // TODO:
+    - Clock where we have 2 rotating bezels, one for hours and one for minutes. 
+      Something similar: http://mkweb.bcgsc.ca/fun/clock/
 */
 
 
@@ -237,10 +241,9 @@ namespace my
         {
             if (fullScreen)
             {
-                int max = 12;
-                mode = rand.Next(max);
+                mode = rand.Next(16);
 #if DEBUG
-                //mode = 11;
+                mode = 15;
 #endif
                 switch (mode)
                 {
@@ -258,6 +261,8 @@ namespace my
                     case 11: getShader_011(ref header, ref main); break;
                     case 12: getShader_012(ref header, ref main); break;
                     case 13: getShader_013(ref header, ref main); break;
+                    case 14: getShader_014(ref header, ref main); break;
+                    case 15: getShader_015(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -336,7 +341,7 @@ namespace my
         private void getShader_001(ref string header, ref string main)
         {
             header = $@"
-                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.noiseFunc12_v1}
                 {myShaderHelpers.Generic.randFunc}
             ";
 
@@ -373,7 +378,7 @@ namespace my
                         break;
 
                     case 1:
-                        final *= 0.85 + noise(gl_FragCoord.xy * uv) * 0.15;
+                        final *= 0.85 + noise12_v1(gl_FragCoord.xy * uv) * 0.15;
                         break;
                 }}
 
@@ -605,7 +610,7 @@ namespace my
         private void getShader_006(ref string header, ref string main)
         {
             header = $@"
-                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.noiseFunc12_v1}
                 {myShaderHelpers.Generic.rotationMatrix}
             ";
 
@@ -651,7 +656,7 @@ namespace my
                     d = smoothstep(0.05, 0.45, abs(F - res));
                 }}
 
-                col *= 0.85 + noise(gl_FragCoord.xy * uTime * 0.00025) * {myUtils.randFloat(rand, 0.2f) * 0.5};
+                col *= 0.85 + noise12_v1(gl_FragCoord.xy * uTime * 0.00025) * {myUtils.randFloat(rand, 0.2f) * 0.5};
 
                 result = vec4(col, d);
             ";
@@ -663,7 +668,7 @@ namespace my
         private void getShader_007(ref string header, ref string main)
         {
             header = $@"
-                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.noiseFunc12_v1}
                 {myShaderHelpers.Generic.randFunc}
                 {myShaderHelpers.Generic.rotationMatrix}
 
@@ -708,7 +713,7 @@ namespace my
                     d = smoothstep(0.0, 10.0, dF);
                 }}
 
-                col *= 0.85 + noise(gl_FragCoord.xy * uTime * 0.00025) * {myUtils.randFloat(rand, 0.2f) * 0.5};
+                col *= 0.85 + noise12_v1(gl_FragCoord.xy * uTime * 0.00025) * {myUtils.randFloat(rand, 0.2f) * 0.5};
 
                 result = vec4(col, d);
             ";
@@ -720,7 +725,7 @@ namespace my
         private void getShader_008(ref string header, ref string main)
         {
             header = $@"
-                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.noiseFunc12_v1}
                 {myShaderHelpers.Generic.randFunc}
                 {myShaderHelpers.Generic.rotationMatrix}
 
@@ -850,7 +855,7 @@ namespace my
                 #define SURF_DIST   0.001           // change this to adjust artefacts
 
                 {myShaderHelpers.Generic.rotationMatrix}
-                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.noiseFunc12_v1}
 
                 {myShaderHelpers.SDF.boxSDF}
                 {myShaderHelpers.SDF.sphereSDF}
@@ -1029,7 +1034,7 @@ namespace my
         private void getShader_011(ref string header, ref string main)
         {
             header = $@"
-                {myShaderHelpers.Generic.noiseFunc}
+                {myShaderHelpers.Generic.noiseFunc12_v1}
 
                 #define MOD3 vec3(.1031,.11369,.13787)
 
@@ -1071,13 +1076,13 @@ namespace my
 
                 if (i >= maxStep)
                 {{
-                    clr = (0.1 + noise(gl_FragCoord.xy * c) * 0.23);
+                    clr = (0.1 + noise12_v1(gl_FragCoord.xy * c) * 0.23);
                     result = vec4(clr);
                 }}
                 else
                 {{
                     clr = (maxStep/10) * log(i * maxStep) / maxStep;
-                    float nz = 0.9 + noise(gl_FragCoord.xy * c) * 0.1;
+                    float nz = 0.9 + noise12_v1(gl_FragCoord.xy * c) * 0.1;
 
                     result = useHash ? vec4(hash31(i)*nz, clr) : vec4(vec3(clr*nz), clr);
                 }}
@@ -1086,18 +1091,203 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // https://www.shadertoy.com/view/cdG3z3
         private void getShader_012(ref string header, ref string main)
         {
-            header = $@"";
-            main = $@"";
+            header = $@"
+
+                float noise(vec2 p) {{
+
+                    return sin(p.x) * cos(p.y);
+
+                    float nz = fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
+                    return nz * 0.25;
+                    return 0.25;
+                    //return texture(iChannel0, p * 0.05 ).x;
+                }}
+
+                float fbm(vec2 p) {{
+                    float a = 1.0;
+                    float f = 1.0;
+
+                    return a * 1.00 * noise(p)
+                         + a * 0.50 * noise(p*f*2.0)
+                         + a * 0.25 * noise(p*f*4.0)
+                         + a * 0.10 * noise(p*f*8.0);
+                }}
+
+                float circle(vec2 p) {{
+                    float r = length(p);
+                    float radius = 0.4;
+                    float height = 1.0;
+                    float width = 150.0;
+    
+	                return height - pow(r - radius, 2.0) * width;
+                }}
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                vec2 st = vec2(atan(uv.y, uv.x), length(uv) * 1.0 + uTime * 0.1);
+    
+                st.x += st.y * 1.1;                 // - iTime * 0.3;
+                st.x = mod(st.x, {Math.PI*2});
+    
+                float n = fbm(st) * 1.5 - 1.0;
+
+                n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11);
+
+n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noise(uv * uTime * 17);
+//result = vec4(vec3(n), 1.0); return;
+
+
+// good
+//n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11);
+//result = vec4(vec3(n), n); return;
+
+//result = vec4(vec3(n / uv.x), 1.0); return;
+
+                n = max(n, 0.1);
+
+                //n = 0.05;
+
+                float Circle = 1 - circle(uv);
+                Circle = max(Circle, 0.0);
+    
+                float color = n/Circle;
+
+                float mask = smoothstep(0.48, 0.4, length(uv));
+    
+                color *= mask;
+                vec3 rez = vec3(1.0, 0.5, 0.25) * color;
+
+                result = vec4(rez, 1.0);
+            ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // https://www.shadertoy.com/view/mdy3R3
         private void getShader_013(ref string header, ref string main)
         {
-            header = $@"";
-            main = $@"";
+            header = $@"
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                uv *= 2;
+
+                float time = uTime * 0.5;
+
+                float gearRadius = 0.4;
+                float toothSize = 0.1;
+                float toothWidth = 0.2;
+                float toothCount = 12;
+                float rotationSpeed = 1.0;
+    
+                vec2 gearCenter = vec2(0.0, 0.0);
+
+                //gearCenter = vec2(sin(time/3), cos(time/7)) / 10;
+
+                float angle = atan(uv.y, uv.x);                 // angle from the center to the current point (x, y)
+                float radius = length(uv - gearCenter);
+
+                //angle += sin(time * cos(angle));
+    
+                float toothAngle = {2.0 * Math.PI} / toothCount;
+                float toothDistance = mod(angle + time * rotationSpeed, toothAngle) - toothAngle * 0.5;
+                float toothRadius = gearRadius + toothSize * smoothstep(0.0, toothWidth, abs(toothDistance));
+
+                float circleDist = abs(radius - toothRadius) - toothSize * 0.5;
+
+                vec3 color = vec3(1.0 - smoothstep(0.0, 0.005, circleDist));
+
+                result = vec4(color, 1.0);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_014(ref string header, ref string main)
+        {
+            header = $@"
+
+                {myShaderHelpers.Generic.rotationMatrix}
+                {myShaderHelpers.Generic.noiseFunc12_v1}
+
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                uv *= rot(uTime * 0.5);
+
+                float nz1 = abs(noise12_v1(uv) * sin(uv.x * uTime * 5 + uv.y));
+                float nz2 = abs(noise12_v1(uv) * sin(uv.y * uTime * 5 + uv.x));
+
+                vec3 color1 = vec3(1.0 - smoothstep(0.0, 1.0, nz1 * 2));
+                vec3 color2 = vec3(1.0 - smoothstep(0.0, 1.0, nz2 * 2));
+
+                float opacity = 1.0;
+
+                opacity = smoothstep(0.0, 1.0, (nz1 + nz2)/2);
+
+                opacity *= (1 - length(uv));
+
+                result = vec4(color1 + color2, opacity);
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+                uv *= 3;
+
+                float t = uTime/2, d = 1;
+    
+                for (float i = 0; i < {2.0 * Math.PI}; i += {Math.PI/50})
+                {{
+                    d = min(d, length(uv-vec2(sin(5.*i-t), cos(7.*i-t))-.75*sin(i)));
+                }}
+    
+                result = vec4(1.0 - d * 3.0) * vec4(0.8, 0.95, 0.2, 1.0);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // https://www.shadertoy.com/view/mdG3Dw
+        private void getShader_015(ref string header, ref string main)
+        {
+            header = $@"
+
+                {myShaderHelpers.Generic.rotationMatrix}
+                {myShaderHelpers.Generic.noiseFunc12_v1}
+
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+                uv *= 3;
+
+                float t = uTime/2, d = 1;
+    
+                for (float i = 0; i < {2.0 * Math.PI}; i += {Math.PI / 50})
+                {{
+                    d = min(d, length(uv-vec2(sin(5.*i-t), cos(7.*i-t)) - 0.75 * sin(i)));
+                }}
+    
+                result = vec4(1.0 - d * 3.0) * vec4(0.8, 0.95, 0.2, 1.0);
+
+                float nz = 0.95 + noise12_v1(gl_FragCoord.xy) * 0.05;
+
+                result.xyz *= nz;
+            ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
