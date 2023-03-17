@@ -874,6 +874,15 @@ namespace my
                     float d3 = sin(5.0 * p.x + uTime * {R}) * sin(5.0 * p.y + uTime * {G}) * sin(5.0 * p.z + uTime * {B}) * 0.25;
                     float d4 = sin(5.0 * p.x * uTime * {R}) * sin(5.0 * p.y * uTime * {G}) * sin(5.0 * p.z * uTime * {B}) * 0.25;
 
+
+float aa = 5 * sin(uTime / 2 + p.y);
+float bb = 5 * sin(uTime / 3 + p.z);
+float cc = 5 * sin(uTime / 4 + p.x);
+
+float zz = sin(aa * p.x + uTime * {R}) * sin(bb * p.y + uTime * {G}) * sin(cc * p.z + uTime * {B}) * 0.25;
+
+return d + zz;
+
                     switch ({rand.Next(4)})
                     {{
                         case 0:
