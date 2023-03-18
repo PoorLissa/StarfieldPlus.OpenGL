@@ -1268,26 +1268,133 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 {myShaderHelpers.Generic.rotationMatrix}
                 {myShaderHelpers.Generic.noiseFunc12_v1}
 
+                vec4 myColor = vec4(0.8, 0.95, 0.2, 1.0);
+                float res, Dist = 100, step = 1;
+                int cnt = 0, n = 0;
             ";
 
             main = $@"
 
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
-                uv *= 3;
+                uv *= 5;";
 
-                float t = uTime/2, d = 1;
+            switch (rand.Next(3))
+            {
+                // Worm
+                case 0:
+                    main += $@"
+
+                        int drawMode = {rand.Next(5)}, colMode = {rand.Next(2)}, interval = 6;
+
+                        vec3 col = vec3(1);
+
+                        switch (drawMode)
+                        {{
+                            case 0: step = {0.05 + myUtils.randFloat(rand) * 0.20}; break;
+                            case 1: step = {0.01 + myUtils.randFloat(rand) * 0.04}; break;
+                            case 2: step = {0.05 + myUtils.randFloat(rand) * 0.03}; break;
+                            case 3: step = {0.01 + myUtils.randFloat(rand) * 0.24}; break;
+                            case 4: step = {0.05 + myUtils.randFloat(rand) * 0.20}; break;
+                        }}
+
+                        float nSteps = interval/step;
+
+                        float yTimeFactor = {0.1 + myUtils.randFloat(rand) + rand.Next(6)};
+                        float xTimeFactor = {0.1 + myUtils.randFloat(rand) * 1.0};
+
+                        for (float i = interval/2; i > -interval/2; i -= step)
+                        {{
+                            float y = sin(i + uTime * yTimeFactor),
+                                  x = i + cos(uTime * xTimeFactor),
+                               dist = length(uv - vec2(x, y));
+
+                            if (dist < Dist) {{
+                                Dist = dist;
+                                n = cnt;
+                            }}
+
+                            cnt++;
+                        }}
+
+                        switch (drawMode)
+                        {{
+                            case 0: res = 1 - Dist * 3.0; break;
+                            case 1: res = 1 - Dist * 3.0 * (n + 1 + 5); break;
+                            case 2: res = 1 - Dist * 3.0 * (n + 1); break;
+                            case 3: res = 1 - Dist * 3.0 * (0.05 * (n+5)); break;
+                            case 4: res = 1 - Dist * 0.1 * (0.95 * (interval/step - n)); break;
+                        }}
+
+                        switch (colMode)
+                        {{
+                            case 0: col = vec3(1); break;
+                            case 1: col = vec3(1-n/nSteps, n/nSteps, n/nSteps/2); break;
+                        }}
+
+                        result = vec4(vec3(res) * col, smoothstep(0.1, 0.2, res));
+                    ";
+                    break;
+
+                case 1:
+                    main += $@"
+
+                        //uv *= rot(uTime);
+
+                        float interval = 6;
+                        float step = 0.05;
+
+                        for (float i = 0; i < interval; i+=step)
+                        {{
+                            float y = 2 * sin(i * uTime/7);
+                            float x = (i - interval * 0.5) * (sin(i + uTime/3));
+
+                            float dist = length(uv - vec2(x, y));
+
+                            if (dist < Dist) {{
+                                Dist = dist;
+                                n = cnt;
+                            }}
+
+                            cnt++;
+                        }}
+
+                        res = 1 - Dist * 3;
+
+                        result = vec4(vec3(res), smoothstep(0.1, 0.2, res));
+                    ";
+                    break;
+
+                case 2:
+                    main += $@"
+                        //vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+
+                        uv *= rot(uTime/5);
+
+                        float t = uTime/2, d = 1;
+
+                        int cnt = 0;
     
-                for (float i = 0; i < {2.0 * Math.PI}; i += {Math.PI / 50})
-                {{
-                    d = min(d, length(uv-vec2(sin(5.*i-t), cos(7.*i-t)) - 0.75 * sin(i)));
-                }}
+                        for (float i = 0; i < {2.0 * Math.PI}; i += {Math.PI / 50})
+                        {{
+                            // Trajectory as a function of time (and i)
+                            vec2 traj = vec2(sin(5.0 * i - t), cos(7.0 * i - t));
+
+                            // For each i, get the distances between current uv point and the trajectory point
+                            float len = length(uv - traj - 0.75 * sin(i));
+
+                            // Select trajectory point which is the closest to out uv point
+                            d = min(d, len);
+
+                            //if(cnt++ == 3) break;
+                        }}
     
-                result = vec4(1.0 - d * 3.0) * vec4(0.8, 0.95, 0.2, 1.0);
+                        result = vec4(1.0 - d * 3.0) * myColor;
 
-                float nz = 0.95 + noise12_v1(gl_FragCoord.xy) * 0.05;
-
-                result.xyz *= nz;
-            ";
+                        float nz = 0.95 + noise12_v1(gl_FragCoord.xy) * 0.05;
+                        result.xyz *= nz;
+                    ";
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
