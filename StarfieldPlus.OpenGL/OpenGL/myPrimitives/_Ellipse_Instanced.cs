@@ -109,27 +109,27 @@ public class myEllipseInst : myInstancedPrimitive
 
                 main: @"rgbaColor = mData[1];
 
-                        gl_Position = vec4(pos.x * mData[0].z, pos.y * mData[0].z, 1.0, 1.0);
+                        gl_Position = vec4(pos.x * mData[0].z, pos.y * mData[0].z, 1, 1);
 
                         zzz = vec4(gl_Position.x, gl_Position.y * myScrSize.y / myScrSize.x, mData[0].z / myScrSize.x, 0);
 
                         float radSquared = zzz.z * zzz.z;
-                        //float lineThickness = 2.0f * (mData[0].w + 1) / myScrSize.x;
-                        float lineThickness = 4.0f / myScrSize.x;
+                        float lineThickness = 4.0 / myScrSize.x; //= 2.0 * (mData[0].w + 1) / myScrSize.x;
 
                         zzz.w = radSquared - zzz.z * lineThickness;
+                        zzz.z = radSquared;
 
                         if (myRttMode > 0)
                         {
-                            float sin_a = sin(mData[0].w);
-                            float cos_a = cos(mData[0].w);
+                            float s = sin(mData[0].w);
+                            float c = cos(mData[0].w);
 
                             // Additional pseudo-3d rotation:
                             switch (myRttMode)
                             {
-                                case 1: gl_Position.x *= sin_a; break;
-                                case 2: gl_Position.y *= cos_a; break;
-                                case 3: gl_Position.x *= sin_a; gl_Position.y *= cos_a; break;
+                                case 1: gl_Position.x *= s; break;
+                                case 2: gl_Position.y *= c; break;
+                                case 3: gl_Position.x *= s; gl_Position.y *= c; break;
                             }
                         }
 
@@ -138,27 +138,25 @@ public class myEllipseInst : myInstancedPrimitive
                         gl_Position.y += -2.0 / myScrSize.y * mData[0].y + 1.0;"
         );
 
-        // In case opacity in myColor vec is negative, we know that we should just multiply our instance's opacity by this value (with neg.sign)
+        // 1. zzz.z here is a radius squared;
+        // 2. In case opacity in myColor vec is negative, we know that we should just multiply our instance's opacity by this value (with neg.sign)
         // This is done to be able to draw all the instances the second time with changed opacity
         // For example: we want to draw set of filled-in rectangles with lower opacity, and then we want to give them borders with higher opacity
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-            "in vec4 zzz; in vec4 rgbaColor; out vec4 result; uniform int doFill; uniform vec4 myColor;",
+
+              header: "in vec4 zzz; in vec4 rgbaColor; out vec4 result; uniform int doFill; uniform vec4 myColor;",
 
                 main: @"float xySqd = zzz.x * zzz.x + zzz.y * zzz.y;
 
                         if (doFill == 0)
                         {
-                            if (xySqd <= zzz.z * zzz.z)
+                            if (xySqd <= zzz.z)
                                 result = rgbaColor;
-                            else
-                                result = vec4(0, 0, 0, 0);
                         }
                         else
                         {
-                            if (xySqd <= zzz.z * zzz.z && xySqd > zzz.w)
+                            if (xySqd <= zzz.z && xySqd > zzz.w)
                                 result = rgbaColor;
-                            else
-                                result = vec4(0, 0, 0, 0);
                         }
 
                         if (myColor.w < 0)
