@@ -1279,6 +1279,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 uv *= 5;";
 
             switch (rand.Next(3))
+            //switch (1)
             {
                 // Worm
                 case 0:
@@ -1338,15 +1339,16 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 case 1:
                     main += $@"
 
-                        //uv *= rot(uTime);
+                        //uv *= rot(uTime * 0.01);
 
                         float interval = 6;
                         float step = 0.05;
+                        float t = uTime;
 
                         for (float i = 0; i < interval; i+=step)
                         {{
-                            float y = 2 * sin(i * uTime/7);
-                            float x = (i - interval * 0.5) * (sin(i + uTime/3));
+                            float y = 2 * sin(i * t/7);
+                            float x = (i - interval * 0.5) * (sin(i + t/3));
 
                             float dist = length(uv - vec2(x, y));
 
@@ -1358,7 +1360,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                             cnt++;
                         }}
 
-                        res = 1 - Dist * 3;
+                        res = 1 - Dist * 7;
 
                         result = vec4(vec3(res), smoothstep(0.1, 0.2, res));
                     ";
