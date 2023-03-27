@@ -5,10 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
-
-    pseudo-3d-rain
-    requires an ellipse to draw the trace on the ground. Ellipse is still undeveloped :(
+    - pseudo-3d-rain
 */
 
 
@@ -16,13 +13,14 @@ namespace my
 {
     public class myObj_031 : myObject
     {
-        private int stage, depth, bottom;
+        private int stage, depth, bottom, count;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B;
 
         private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
+
+        private static myFreeShader shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -43,7 +41,6 @@ namespace my
             {
                 N = rand.Next(10) + 10;
                 N = 3000;
-                shape = 2;
             }
 
             initLocal();
@@ -54,8 +51,11 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 2, 3);
+
+            dimAlpha = 0.35f;
+
+            renderDelay = rand.Next(11);
 
             return;
         }
@@ -71,6 +71,8 @@ namespace my
 
             string str = $"Obj = myObj_031 -- TBD: implement ellipse at last!\n\n" +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"               +
+                            $"doClearBuffer = {doClearBuffer}\n"                   +
+                            $"renderDelay = {renderDelay}\n"                       +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -82,6 +84,8 @@ namespace my
         protected override void setNextMode()
         {
             initLocal();
+
+            clearScreenSetup(doClearBuffer, 0.1f);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -134,11 +138,9 @@ namespace my
             if (A < 0.1f)
                 A = 0.1f;
 
-            R = 1;
-            G = 1;
-            B = 1;
+            colorPicker.getColor(x, bottom, ref R, ref G, ref B);
 
-            //colorPicker.getColor(x, y, ref R, ref G, ref B);
+            count = 3 + rand.Next(23);
 
             return;
         }
@@ -164,9 +166,10 @@ namespace my
                 case 1:
                     {
                         size += 0.1f * (101 - depth);
+
                         A -= 0.05f * (1.0f / (depth * 0.1f));
 
-                        if (A < 0)
+                        if (A < 0 && --count == 0)
                         {
                             generateNew();
                         }
@@ -181,69 +184,37 @@ namespace my
 
         protected override void Show()
         {
-            if (stage == 0)
+            if (A > 0)
             {
-                float size2x = size * 2;
+                int ellipticFactor = 5;
 
-                switch (shape)
+                if (depth > 33)
+                    ellipticFactor++;
+
+                if (depth > 66)
+                    ellipticFactor++;
+
+                switch (stage)
                 {
-                    // Instanced squares
                     case 0:
-                        var rectInst = inst as myRectangleInst;
-
-                        rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                        rectInst.setInstanceColor(R, G, B, A);
-                        rectInst.setInstanceAngle(angle);
+                        shader.SetColor(R, G, B, 0.15f);
+                        shader.Draw((int)x, (int)y, 1, 1, 3);
                         break;
 
-                    // Instanced triangles
                     case 1:
-                        var triangleInst = inst as myTriangleInst;
+                        {
+                            shader.SetColor(R, G, B, A);
 
-                        triangleInst.setInstanceCoords(x, y, size2x, angle);
-                        triangleInst.setInstanceColor(R, G, B, A);
+                            int sz1 = (int)(size / 2);
+                            int sz2 = (int)(sz1 / ellipticFactor);
+
+                            sz1 = sz1 < 1 ? 1 : sz1;
+                            sz2 = sz2 < 1 ? 1 : sz2;
+
+                            shader.Draw((int)x, (int)y, sz1, sz2, 10);
+                            //shader.Draw((int)x, (int)y, sz1, sz1, 10);
+                        }
                         break;
-
-                    // Instanced circles
-                    case 2:
-                        var ellipseInst = inst as myEllipseInst;
-
-                        ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                        ellipseInst.setInstanceColor(R, G, B, A);
-                        break;
-
-                    // Instanced pentagons
-                    case 3:
-                        var pentagonInst = inst as myPentagonInst;
-
-                        pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                        pentagonInst.setInstanceColor(R, G, B, A);
-                        break;
-
-                    // Instanced hexagons
-                    case 4:
-                        var hexagonInst = inst as myHexagonInst;
-
-                        hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                        hexagonInst.setInstanceColor(R, G, B, A);
-                        break;
-                }
-            }
-
-            if (stage == 1)
-            {
-                int SizeX = (int)(size * 2);
-                int SizeY = (int)(size * 1);
-                float a = A;
-
-                while (SizeY > 3 && a > 0.05f)
-                {
-                    myPrimitive._Ellipse.SetColor(1, 1, 1, a);
-                    myPrimitive._Ellipse.Draw(x - SizeX, y - SizeX, SizeX * 2, SizeY * 2, false);
-
-                    SizeX -= SizeX / 3;
-                    SizeY -= SizeY / 3;
-                    a *= 0.5f;
                 }
             }
 
@@ -257,24 +228,9 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
+            clearScreenSetup(doClearBuffer, 0.1f);
 
-            doClearBuffer = false;
-
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
-            }
-
-            myPrimitive._Ellipse.setLineThickness(9);
+            getShader();
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -300,24 +256,15 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    int Count = list.Count;
+
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_031;
 
                         obj.Show();
                         obj.Move();
                     }
-
-                    if (doFillShapes)
-                    {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
-                    }
-
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
                 }
 
                 if (list.Count < N)
@@ -346,5 +293,63 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            shader = new myFreeShader($@"
+                        float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
+                        float Circl1(vec2 uv, float rad) {{ return 1.0 - smoothstep(0.0, 0.0075, abs(rad-length(uv))); }}
+
+                        float Circl2(vec2 uv, float rad)
+                        {{
+                            float len = length(uv);
+                            return (len <= rad)
+                                ? 1.0 - smoothstep(0.0, 0.6, abs(sin((rad-len)*50)))
+                                : 0;
+                        }}
+
+                        float Circl3(vec2 uv, float r1, float r2)
+                        {{
+                            float a = (uv.x * uv.x) / (r1 * r1);
+                            float b = (uv.y * uv.y) / (r2 * r2);
+
+                            if (a + b < 1.0)
+                            {{
+                                float val = abs(sin((a + b) * {5 + rand.Next(11)}));
+                                return 1.0 - smoothstep(0.0, 0.6, val);
+                            }}
+
+                            return 0;
+                        }}"
+                    ,
+
+                    $@"
+                            vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                            uv -= Pos.xy;
+                            uv *= aspect;
+
+                            float circ = 0;
+
+                            if (true)
+                            {{
+                                {"" /* Make an ellipse by changing aspect -- tried to move it into circle function, but it worked slower (needs more proof) */ }
+                                if (Pos.w != Pos.z)
+                                    uv *= vec2(1.0, Pos.z / Pos.w);
+
+                                circ = Circl2(uv, Pos.z);
+                            }}
+                            else
+                            {{
+                                circ = Circl3(uv, Pos.z, Pos.w);
+                            }}
+
+                            result = vec4(myColor * circ);
+                        "
+            );
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     }
 };

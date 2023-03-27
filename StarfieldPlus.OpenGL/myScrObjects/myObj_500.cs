@@ -1278,8 +1278,8 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
                 uv *= 5;";
 
-            switch (rand.Next(3))
-            //switch (1)
+            //switch (rand.Next(3))
+            switch (1)
             {
                 // Worm
                 case 0:
@@ -1343,12 +1343,15 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                         float interval = 6;
                         float step = 0.05;
-                        float t = uTime;
+                        float t = uTime + {myUtils.randFloat(rand) + rand.Next(1234)};
+
+                        float ytf = {1.0 / (myUtils.randFloat(rand) + rand.Next(11) + 0.0001)};
+                        float xtf = {1.0 / (myUtils.randFloat(rand) + rand.Next(11) + 0.0001)};
 
                         for (float i = 0; i < interval; i+=step)
                         {{
-                            float y = 2 * sin(i * t/7);
-                            float x = (i - interval * 0.5) * (sin(i + t/3));
+                            float y = 2 * sin(i * t * ytf);
+                            float x = (i - interval * 0.5) * (sin(i + t * xtf));
 
                             float dist = length(uv - vec2(x, y));
 

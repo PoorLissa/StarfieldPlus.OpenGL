@@ -77,8 +77,8 @@ namespace my
 
                 maxSize = myUtils.randomChance(rand, 1, 10) ? 33 : 11;
 
-                x0 = gl_Width /2;
-                y0 = gl_Height/2;
+                x0 = gl_x0;
+                y0 = gl_y0;
 
                 if (myUtils.randomBool(rand))
                 {
