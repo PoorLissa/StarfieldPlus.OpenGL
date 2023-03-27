@@ -241,9 +241,9 @@ namespace my
         {
             if (fullScreen)
             {
-                mode = rand.Next(16);
+                mode = rand.Next(17);
 #if DEBUG
-                mode = 15;
+                mode = 16;
 #endif
                 switch (mode)
                 {
@@ -263,6 +263,7 @@ namespace my
                     case 13: getShader_013(ref header, ref main); break;
                     case 14: getShader_014(ref header, ref main); break;
                     case 15: getShader_015(ref header, ref main); break;
+                    case 16: getShader_016(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -1404,6 +1405,70 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // My circle fractal
+        private void getShader_016(ref string header, ref string main)
+        {
+            header = $@"
+
+                        float Circl3(vec2 uv, int mode)
+                        {{
+                            float X = uv.x * uv.x;
+                            float Y = uv.y * uv.y;
+
+                            float a = X * 0.0125;
+                            float b = Y * 0.0125;
+
+                            float val = 0;
+
+                            switch (mode)
+                            {{
+                                case 0:
+                                    val = abs(sin((a + b) * 10001 + uTime * {rand.Next(5) + 1}));
+                                    return 1.0 - smoothstep(0.01, 0.99, val);
+
+                                case 1:
+                                    val = sin((a + b) * 10001 + uTime * {rand.Next(5) + 1});
+                                    return 1.0 - smoothstep(0.01, 0.99, val);
+
+                                case 2:
+                                    val = abs(sin((X + Y) * 10001 + uTime/10));
+                                    return 1.0 - smoothstep(0.0, 0.3, val);
+
+                                case 3:
+                                    val = sin((X + Y) * (1000 + {rand.Next(100000)}) + uTime * 2);
+                                    return smoothstep(0.00001, 0.9, val);
+                            }}
+
+                            return 0;
+                        }}
+
+            ";
+
+            main = $@"
+
+                int mode = {rand.Next(4)};
+                //mode = 1;
+
+                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                // Dive deeper
+                switch (mode)
+                {{
+                    case 0: uv *= {rand.Next(05) + 1}; break;
+                    case 1: uv *= {rand.Next(05) + 1}; break;
+                    case 2: uv *= {rand.Next(50) + 1}; break;
+                    case 3: uv *= {rand.Next(50) + 1}; break;
+                }}
+
+                float circ = Circl3(uv, mode);
+
+                result = vec4(circ) * myColor;
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
 
 

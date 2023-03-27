@@ -52,6 +52,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 2, 3);
+            doClearBuffer = false;
 
             dimAlpha = 0.35f;
 
@@ -140,6 +141,8 @@ namespace my
 
             colorPicker.getColor(x, bottom, ref R, ref G, ref B);
 
+R = G = B = 1;
+
             count = 3 + rand.Next(23);
 
             return;
@@ -165,9 +168,9 @@ namespace my
 
                 case 1:
                     {
-                        size += 0.1f * (101 - depth);
+                        size += (0.1f * (101 - depth)) / 1;
 
-                        A -= 0.05f * (1.0f / (depth * 0.1f));
+                        A -= (0.05f * (1.0f / (depth * 0.1f))) / 2;
 
                         if (A < 0 && --count == 0)
                         {
@@ -186,14 +189,6 @@ namespace my
         {
             if (A > 0)
             {
-                int ellipticFactor = 5;
-
-                if (depth > 33)
-                    ellipticFactor++;
-
-                if (depth > 66)
-                    ellipticFactor++;
-
                 switch (stage)
                 {
                     case 0:
@@ -203,6 +198,14 @@ namespace my
 
                     case 1:
                         {
+                            int ellipticFactor = 5;
+
+                            if (depth > 33)
+                                ellipticFactor++;
+
+                            if (depth > 66)
+                                ellipticFactor++;
+
                             shader.SetColor(R, G, B, A);
 
                             int sz1 = (int)(size / 2);
@@ -302,7 +305,11 @@ namespace my
 
                         float Circl2(vec2 uv, float rad)
                         {{
-                            float len = length(uv);
+                            {"" /* Make an ellipse by changing aspect -- tried to move it into circle function, but it worked slower (needs more proof) */ }
+                            //float len = length(uv);
+
+                            float len = length(uv * vec2(1, Pos.z / Pos.w));
+
                             return (len <= rad)
                                 ? 1.0 - smoothstep(0.0, 0.6, abs(sin((rad-len)*50)))
                                 : 0;
@@ -310,13 +317,21 @@ namespace my
 
                         float Circl3(vec2 uv, float r1, float r2)
                         {{
-                            float a = (uv.x * uv.x) / (r1 * r1);
-                            float b = (uv.y * uv.y) / (r2 * r2);
+                            float X = uv.x * uv.x;
+                            float Y = uv.y * uv.y;
+
+                            float a = X / (r1 * r1);
+                            float b = Y / (r2 * r2);
 
                             if (a + b < 1.0)
                             {{
-                                float val = abs(sin((a + b) * {5 + rand.Next(11)}));
-                                return 1.0 - smoothstep(0.0, 0.6, val);
+                                //float val = abs(sin((a + b) * {5 + rand.Next(11)}));
+
+//float val = (sin((a + b) * {5 + rand.Next(11)}));
+
+float val = abs(sin((X + Y) * 10001 + uTime/10));
+
+                                return 1.0 - smoothstep(0.0, 0.3, val);
                             }}
 
                             return 0;
@@ -333,10 +348,6 @@ namespace my
 
                             if (true)
                             {{
-                                {"" /* Make an ellipse by changing aspect -- tried to move it into circle function, but it worked slower (needs more proof) */ }
-                                if (Pos.w != Pos.z)
-                                    uv *= vec2(1.0, Pos.z / Pos.w);
-
                                 circ = Circl2(uv, Pos.z);
                             }}
                             else
