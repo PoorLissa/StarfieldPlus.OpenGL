@@ -1447,7 +1447,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
             main = $@"
 
                 int mode = {rand.Next(4)};
-                //mode = 1;
+                mode = 2;
 
                 vec4 myColor = vec4({R}, {G}, {B}, 1.0);
 
