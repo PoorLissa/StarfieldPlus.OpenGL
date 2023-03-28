@@ -1412,6 +1412,8 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                         float Circl3(vec2 uv, int mode)
                         {{
+                            float t = uTime;
+
                             float X = uv.x * uv.x;
                             float Y = uv.y * uv.y;
 
@@ -1432,7 +1434,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                                 case 2:
                                     val = abs(sin((X + Y) * 10001 + uTime/10));
-                                    return 1.0 - smoothstep(0.0, 0.3, val);
+                                    return 1.0 - smoothstep(0.0, 0.03, val);
 
                                 case 3:
                                     val = sin((X + Y) * (1000 + {rand.Next(100000)}) + uTime * 2);
