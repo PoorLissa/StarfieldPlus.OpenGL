@@ -1410,10 +1410,12 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
         {
             header = $@"
 
+                        #define t uTime
+
+                        vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+
                         float Circl3(vec2 uv, int mode)
                         {{
-                            float t = uTime;
-
                             float X = uv.x * uv.x;
                             float Y = uv.y * uv.y;
 
@@ -1425,33 +1427,33 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                             switch (mode)
                             {{
                                 case 0:
-                                    val = abs(sin((a + b) * 10001 + uTime * {rand.Next(5) + 1}));
+                                    val = abs(sin((a + b) * 10001 + t * {rand.Next(5) + 1}));
                                     return 1.0 - smoothstep(0.01, 0.99, val);
 
                                 case 1:
-                                    val = sin((a + b) * 10001 + uTime * {rand.Next(5) + 1});
+                                    val = sin((a + b) * 10001 + t * {rand.Next(5) + 1});
                                     return 1.0 - smoothstep(0.01, 0.99, val);
 
                                 case 2:
-                                    val = abs(sin((X + Y) * 10001 + uTime/10));
+                                    val = abs(sin((X + Y) * 10001 + t*0.1));
                                     return 1.0 - smoothstep(0.0, 0.03, val);
 
                                 case 3:
-                                    val = sin((X + Y) * (1000 + {rand.Next(100000)}) + uTime * 2);
+                                    val = abs(sin((X + Y) * 10001 + t*0.1));
+                                    return 1.0 - smoothstep(0.0, abs(sin(X + Y + t)), val);
+
+                                case 4:
+                                    val = sin((X + Y) * (1000 + {rand.Next(100000)}) + t * 2);
                                     return smoothstep(0.00001, 0.9, val);
                             }}
 
                             return 0;
                         }}
-
             ";
 
             main = $@"
 
-                int mode = {rand.Next(4)};
-                mode = 2;
-
-                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+                int mode = {rand.Next(5)};
 
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
 
@@ -1462,6 +1464,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                     case 1: uv *= {rand.Next(05) + 1}; break;
                     case 2: uv *= {rand.Next(50) + 1}; break;
                     case 3: uv *= {rand.Next(50) + 1}; break;
+                    case 4: uv *= {rand.Next(50) + 1}; break;
                 }}
 
                 float circ = Circl3(uv, mode);

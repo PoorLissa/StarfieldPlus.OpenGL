@@ -17,8 +17,8 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B;
 
-        private static int N = 0, shape = 0;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, shape = 0, ellipticMode = 0, xFlowMode = 0;
+        private static float dimAlpha = 0.05f, xWindValue = 0;
 
         private static myFreeShader shader = null;
 
@@ -51,10 +51,12 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 2, 3);
-            doClearBuffer = false;
+            doClearBuffer = myUtils.randomChance(rand, 10, 11);
 
+            ellipticMode = rand.Next(3);
+            xFlowMode = rand.Next(2);
             dimAlpha = 0.35f;
+            xWindValue = myUtils.randFloat(rand) * (rand.Next(4) + 0.001f);
 
             renderDelay = rand.Next(11);
 
@@ -68,11 +70,14 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_031 -- TBD: implement ellipse at last!\n\n" +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"               +
                             $"doClearBuffer = {doClearBuffer}\n"                   +
+                            $"ellipticMode = {ellipticMode}\n"                     +
+                            $"xFlowMode = {xFlowMode}\n"                           +
+                            $"xWindValue = {fStr(xWindValue)}\n"                   +
                             $"renderDelay = {renderDelay}\n"                       +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -113,35 +118,41 @@ namespace my
             bottom = gl_Height - depth * 15;
             bottom += myUtils.randomSign(rand) * rand.Next(bottom/5);
 
-            x = rand.Next(gl_Width + 200) - 100;
+            x = rand.Next(gl_Width + 400) - 200;
             y = 0;
 
             dx = rand.Next(3) - 1;
-            dy = 500.0f / depth;
 
-            dy = 200 / (float)Math.Log10(depth);
+            dx = myUtils.randFloat(rand) * myUtils.randomSign(rand);
 
-            size = 3 / (float)Math.Log10(depth);
+            if (myUtils.randomBool(rand))
+                dy = (40.0f + rand.Next(20)) / (float)Math.Log10(depth);
+            else
+                dy = 500.0f / depth;
 
-            if (size > 5)
+            // Set size
             {
-                size = 3;
+                size = 3 / (float)Math.Log10(depth);
+
+                if (size > 5)
+                    size = 5;
+
+                if (size < 1.0)
+                    size = 1;
             }
 
-            if (size < 1.0)
-                size = 1;
+            // Set opacity
+            {
+                A = 2.5f * 10.0f / depth;
 
-            A = 2.5f * 10.0f / depth;
+                if (A > 1)
+                    A = 1;
 
-            if (A > 1)
-                A = 1;
-
-            if (A < 0.1f)
-                A = 0.1f;
+                if (A < 0.1f)
+                    A = 0.1f;
+            }
 
             colorPicker.getColor(x, bottom, ref R, ref G, ref B);
-
-R = G = B = 1;
 
             count = 3 + rand.Next(23);
 
@@ -157,6 +168,7 @@ R = G = B = 1;
                 case 0:
                     {
                         x += dx;
+                        x += xWindValue;
                         y += dy;
 
                         if (y >= bottom)
@@ -168,6 +180,22 @@ R = G = B = 1;
 
                 case 1:
                     {
+                        // Add water flowing effect
+                        {
+                            switch (xFlowMode)
+                            {
+                                case 0:
+                                    x += myUtils.randFloat(rand, 0.1f) * (float)(gl_Height) / y;
+                                    break;
+
+                                case 1:
+                                    x += myUtils.randFloat(rand, 0.1f) * (3.0f * y) / gl_Height;
+                                    break;
+                            }
+
+                            y += myUtils.randFloat(rand, 0.1f) * 0.25f;
+                        }
+
                         size += (0.1f * (101 - depth)) / 1;
 
                         A -= (0.05f * (1.0f / (depth * 0.1f))) / 2;
@@ -192,30 +220,47 @@ R = G = B = 1;
                 switch (stage)
                 {
                     case 0:
-                        shader.SetColor(R, G, B, 0.15f);
-                        shader.Draw((int)x, (int)y, 1, 1, 3);
+                        shader.SetColor(R + 0.1f, G + 0.1f, B + 0.1f, 0.23f + myUtils.randFloat(rand) * 0.07f);
+                        shader.Draw((int)x, (int)y, 1, 1, 300/depth);
                         break;
 
                     case 1:
                         {
-                            int ellipticFactor = 5;
+                            float ellipticFactor = 1;
 
-                            if (depth > 33)
-                                ellipticFactor++;
+                            ellipticMode = 3;
 
-                            if (depth > 66)
-                                ellipticFactor++;
+                            switch (ellipticMode)
+                            {
+                                case 0:
+                                    ellipticFactor = 2;
+                                    break;
+
+                                case 1:
+                                    ellipticFactor += 1.0f * gl_Height / y;
+                                    break;
+
+                                case 2:
+                                    ellipticFactor += 2.0f * gl_Height / y;
+                                    break;
+
+                                case 3:
+                                    ellipticFactor += 3.0f * gl_Height / y;
+                                    break;
+                            }
 
                             shader.SetColor(R, G, B, A);
 
-                            int sz1 = (int)(size / 2);
+                            if (y < gl_y0)
+                            {
+                                float f = depth * 0.01f;
+                                shader.SetColor(R * f, G * f, B * f, A);
+                            }
+
+                            int sz1 = (int)(size * 0.5f);
                             int sz2 = (int)(sz1 / ellipticFactor);
 
-                            sz1 = sz1 < 1 ? 1 : sz1;
-                            sz2 = sz2 < 1 ? 1 : sz2;
-
                             shader.Draw((int)x, (int)y, sz1, sz2, 10);
-                            //shader.Draw((int)x, (int)y, sz1, sz1, 10);
                         }
                         break;
                 }
@@ -305,13 +350,10 @@ R = G = B = 1;
 
                         float Circl2(vec2 uv, float rad)
                         {{
-                            {"" /* Make an ellipse by changing aspect -- tried to move it into circle function, but it worked slower (needs more proof) */ }
-                            //float len = length(uv);
+                            float len = length(uv * vec2(1, Pos.z / Pos.w));    {"" /* Make an ellipse by changing aspect */ }
 
-                            float len = length(uv * vec2(1, Pos.z / Pos.w));
-
-                            return (len <= rad)
-                                ? 1.0 - smoothstep(0.0, 0.6, abs(sin((rad-len)*50)))
+                            return (len < rad + 0.0075)
+                                ? 1.0 - smoothstep(0.0, {0.2 + myUtils.randFloat(rand)*0.3}, abs(sin((rad-len)*50)))
                                 : 0;
                         }}
 
@@ -323,15 +365,13 @@ R = G = B = 1;
                             float a = X / (r1 * r1);
                             float b = Y / (r2 * r2);
 
-                            if (a + b < 1.0)
+                            if (a + b < 1.01)
                             {{
-                                //float val = abs(sin((a + b) * {5 + rand.Next(11)}));
+                                float val = abs(sin((a + b) * 15));
 
-//float val = (sin((a + b) * {5 + rand.Next(11)}));
+                                val *= abs(sin(a + b))*1.3;
 
-float val = abs(sin((X + Y) * 10001 + uTime/10));
-
-                                return 1.0 - smoothstep(0.0, 0.3, val);
+                                return 1.0 - smoothstep(0.0, 0.6, val);
                             }}
 
                             return 0;
