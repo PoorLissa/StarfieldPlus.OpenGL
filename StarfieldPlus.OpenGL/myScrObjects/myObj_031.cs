@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - pseudo-3d-rain
+    - Pseudo-3d-rain
 */
 
 
@@ -53,7 +53,7 @@ namespace my
         {
             doClearBuffer = myUtils.randomChance(rand, 10, 11);
 
-            ellipticMode = rand.Next(3);
+            ellipticMode = rand.Next(4);
             xFlowMode = rand.Next(2);
             dimAlpha = 0.35f;
             xWindValue = myUtils.randFloat(rand) * (rand.Next(4) + 0.001f);
@@ -227,8 +227,6 @@ namespace my
                     case 1:
                         {
                             float ellipticFactor = 1;
-
-                            ellipticMode = 3;
 
                             switch (ellipticMode)
                             {

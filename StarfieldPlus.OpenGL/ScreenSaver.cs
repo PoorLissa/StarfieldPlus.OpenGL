@@ -102,7 +102,6 @@ public class ScreenSaver
 #if DEBUG
         id = ids.myObj_500;
         //id = ids.myObj_490;
-        id = ids.myObj_031;
 #endif
 
         switch (id)
@@ -132,7 +131,7 @@ public class ScreenSaver
                 _obj = new my.myObj_030();
                 break;
 
-            // Rain Drops --- test
+            // Pseudo-3d-rain
             case ids.myObj_031:
                 _obj = new my.myObj_031();
                 break;

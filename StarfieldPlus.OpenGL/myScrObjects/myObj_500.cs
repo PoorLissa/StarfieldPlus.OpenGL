@@ -243,7 +243,7 @@ namespace my
             {
                 mode = rand.Next(17);
 #if DEBUG
-                mode = 16;
+                mode = 17;
 #endif
                 switch (mode)
                 {
@@ -264,6 +264,7 @@ namespace my
                     case 14: getShader_014(ref header, ref main); break;
                     case 15: getShader_015(ref header, ref main); break;
                     case 16: getShader_016(ref header, ref main); break;
+                    case 17: getShader_017(ref header, ref main); break;
                 }
 
                 shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -1410,45 +1411,44 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
         {
             header = $@"
 
-                        #define t uTime
+                #define t uTime
+                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
 
-                        vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+                float Circl3(vec2 uv, int mode)
+                {{
+                    float X = uv.x * uv.x;
+                    float Y = uv.y * uv.y;
 
-                        float Circl3(vec2 uv, int mode)
-                        {{
-                            float X = uv.x * uv.x;
-                            float Y = uv.y * uv.y;
+                    float a = X * 0.0125;
+                    float b = Y * 0.0125;
 
-                            float a = X * 0.0125;
-                            float b = Y * 0.0125;
+                    float val = 0;
 
-                            float val = 0;
+                    switch (mode)
+                    {{
+                        case 0:
+                            val = abs(sin((a + b) * 10001 + t * {rand.Next(5) + 1}));
+                            return 1.0 - smoothstep(0.01, 0.99, val);
 
-                            switch (mode)
-                            {{
-                                case 0:
-                                    val = abs(sin((a + b) * 10001 + t * {rand.Next(5) + 1}));
-                                    return 1.0 - smoothstep(0.01, 0.99, val);
+                        case 1:
+                            val = sin((a + b) * 10001 + t * {rand.Next(5) + 1});
+                            return 1.0 - smoothstep(0.01, 0.99, val);
 
-                                case 1:
-                                    val = sin((a + b) * 10001 + t * {rand.Next(5) + 1});
-                                    return 1.0 - smoothstep(0.01, 0.99, val);
+                        case 2:
+                            val = abs(sin((X + Y) * 10001 + t*0.1));
+                            return 1.0 - smoothstep(0.0, 0.03, val);
 
-                                case 2:
-                                    val = abs(sin((X + Y) * 10001 + t*0.1));
-                                    return 1.0 - smoothstep(0.0, 0.03, val);
+                        case 3:
+                            val = abs(sin((X + Y) * 10001 + t*0.1));
+                            return 1.0 - smoothstep(0.0, abs(sin(X + Y + t)), val);
 
-                                case 3:
-                                    val = abs(sin((X + Y) * 10001 + t*0.1));
-                                    return 1.0 - smoothstep(0.0, abs(sin(X + Y + t)), val);
+                        case 4:
+                            val = sin((X + Y) * (1000 + {rand.Next(100000)}) + t * 2);
+                            return smoothstep(0.00001, 0.9, val);
+                    }}
 
-                                case 4:
-                                    val = sin((X + Y) * (1000 + {rand.Next(100000)}) + t * 2);
-                                    return smoothstep(0.00001, 0.9, val);
-                            }}
-
-                            return 0;
-                        }}
+                    return 0;
+                }}
             ";
 
             main = $@"
@@ -1474,6 +1474,59 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // ...
+        private void getShader_017(ref string header, ref string main)
+        {
+            header = $@"
+
+                #define t uTime
+                #define pi {Math.PI}
+                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+
+                float aaa(vec2 uv, float rad, float th, float a, float t)
+                {{
+                    a = mod(a, 2*pi);
+
+                    float at = (atan(uv.y, uv.x));
+
+                    float arc = 0.5;
+
+                    if (at >= 0 && abs(at - a) > arc)
+                        return 0;
+
+                    if (at < 0 && abs(-at - mod(a, pi)) > arc)
+                        return 0;
+
+                    float len = length(uv);
+
+                    if (len < rad)
+                        return smoothstep(rad - th, rad, len);
+                    else
+                        return 1 - smoothstep(rad, rad + th, len);
+                }}
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                float f = 0;
+
+                f += aaa(uv, 0.25, 0.02, uTime, 0);
+
+                f += aaa(uv, 0.22, 0.02, uTime/2, 0);
+
+                f += aaa(uv, 0.19, 0.02, uTime/3, 0);
+
+                result = vec4(f) * myColor;
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+
+
 
 
 
