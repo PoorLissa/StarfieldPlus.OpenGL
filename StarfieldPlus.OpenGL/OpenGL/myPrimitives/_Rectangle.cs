@@ -41,9 +41,16 @@ public class myRectangle : myPrimitive
             glUseProgram(shaderProgram);
 
             // Uniforms
-            myColor  = glGetUniformLocation(shaderProgram, "myColor");
-            myAngle  = glGetUniformLocation(shaderProgram, "myAngle");
-            myCenter = glGetUniformLocation(shaderProgram, "myCenter");
+            {
+                myColor  = glGetUniformLocation(shaderProgram, "myColor");
+                myAngle  = glGetUniformLocation(shaderProgram, "myAngle");
+                myCenter = glGetUniformLocation(shaderProgram, "myCenter");
+
+                if (myColor < 0 || myAngle < 0 || myCenter < 0)
+                {
+                    throw new System.Exception("Failed to initialize uniform(s)");
+                }
+            }
 
             vbo         = glGenBuffer();
             ebo_fill    = glGenBuffer();

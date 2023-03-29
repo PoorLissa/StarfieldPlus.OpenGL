@@ -430,6 +430,7 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
+
             base.initShapes(shape, N, 0);
 
             myPrimitive.init_LineInst(N*8);

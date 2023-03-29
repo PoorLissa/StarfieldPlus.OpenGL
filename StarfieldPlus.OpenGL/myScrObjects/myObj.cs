@@ -198,7 +198,15 @@ namespace my
                 gl_x0 = gl_Width  / 2;
                 gl_y0 = gl_Height / 2;
 
+                // Set culture to avoid incorrect float conversion in shader strings
+                // Tags: locale, culture, en-US
+                System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+
+
+
                 Process(openGL_Window);
+
+
 
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Normal);
                 Glfw.Terminate();
