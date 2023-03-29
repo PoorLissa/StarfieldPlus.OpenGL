@@ -158,7 +158,7 @@ public class myRectangle : myPrimitive
 
             header: $@"layout (location = 0) in vec3 pos;
                         uniform float myAngle; uniform vec2 myCenter;
-                        float invW = {2.0f / Width}; float invH = {2.0f / Height};",
+                        float invW = {2.0 / Width}; float invH = {2.0 / Height};",
 
                 main: @"if (myAngle == 0)
                         {
