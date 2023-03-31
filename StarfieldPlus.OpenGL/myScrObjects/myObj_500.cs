@@ -1472,35 +1472,37 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // ...
+        // My rotating arcs
         private void getShader_017(ref string header, ref string main)
         {
             header = $@"
 
                 #define t uTime
-                #define pi {Math.PI}
+                #define pi1x {Math.PI}
+                #define pi2x {Math.PI * 2}
                 vec4 myColor = vec4({R}, {G}, {B}, 1.0);
 
                 float aaa(vec2 uv, float rad, float th, float a, float t)
                 {{
-                    a = mod(a, 2*pi);
-
                     float at = (atan(uv.y, uv.x));
 
-                    float arc = 0.5;
+                    a = mod(a, pi2x);
 
-                    if (at >= 0 && abs(at - a) > arc)
-                        return 0;
+//a = 3.1;
 
-                    if (at < 0 && abs(-at - mod(a, pi)) > arc)
-                        return 0;
+                    float arc = 0.25;
+
+                    //if (at >= 0 && abs(at - a) > arc) return 0.3;
+                    //if (at < 0 && abs(-at - mod(a, pi1x)) > arc) return 0.2;
+
+                    if (at < a)
+                        return 0.3;
+
+                    if (at > a + arc)
+                        return 0.3;
 
                     float len = length(uv);
-
-                    if (len < rad)
-                        return smoothstep(rad - th, rad, len);
-                    else
-                        return 1 - smoothstep(rad, rad + th, len);
+                    return len < rad ? smoothstep(rad - th, rad, len) : 1 - smoothstep(rad, rad + th, len);
                 }}
             ";
 
@@ -1509,12 +1511,9 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
 
                 float f = 0;
-
                 f += aaa(uv, 0.25, 0.02, uTime, 0);
-
-                f += aaa(uv, 0.22, 0.02, uTime/2, 0);
-
-                f += aaa(uv, 0.19, 0.02, uTime/3, 0);
+                //f += aaa(uv, 0.22, 0.02, uTime/2, 0);
+                //f += aaa(uv, 0.19, 0.02, uTime/3, 0);
 
                 result = vec4(f) * myColor;
             ";
