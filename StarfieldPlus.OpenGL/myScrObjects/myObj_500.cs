@@ -1490,20 +1490,23 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                     a = mod(a, pi2x);
 
+                    // This happens when uv.y < 0 -- Now [0 <= at <= 2P]
                     if (at < 0)
                       at = pi2x + at;
 
                     if (at < a)
                     {{
-                        if (a + arc < pi2x)
-                            return 0.4;
+                        if (a + arc > pi2x && at < a + arc - pi2x)
+                        {{
+                        }}
                         else
-                            return 0.2;
+                        {{
+                            return 0;
+                        }}
                     }}
-                   
-                    if (at > a + arc)
+                    else if (at > a + arc)
                     {{
-                        return 0.3;
+                        return 0;
                     }}
 
                     return len < rad ? smoothstep(rad - th, rad, len) : 1 - smoothstep(rad, rad + th, len);
@@ -1515,18 +1518,15 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
 
                 float f = 0;
-                f += aaa(uv, 0.25, 0.02, uTime, 0);
-                //f += aaa(uv, 0.22, 0.02, uTime/2, 0);
-                //f += aaa(uv, 0.19, 0.02, uTime/3, 0);
 
-                if (f == 0.2)
-                    result = vec4(1, 0, 0, 0.1);
-                else if (f == 0.3)
-                    result = vec4(0, 1, 0, 0.1);
-                else if (f == 0.4)
-                    result = vec4(0, 0, 1, 0.1);
-                else
-                    result = vec4(f) * myColor;
+                float th = {0.005 + myUtils.randFloat(rand) * 0.015};
+
+                for (int i = 0; i < 20; i++)
+                {{
+                    f += aaa(uv, 0.75 - i * 0.03, th, 1.5*uTime / (i + 1), 0);
+                }}
+
+                result = vec4(f) * myColor;
             ";
         }
 
