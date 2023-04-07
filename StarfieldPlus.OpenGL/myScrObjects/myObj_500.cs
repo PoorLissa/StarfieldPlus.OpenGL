@@ -1484,24 +1484,28 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                 float aaa(vec2 uv, float rad, float th, float a, float t)
                 {{
+                    float arc = 1.5;
                     float at = (atan(uv.y, uv.x));
+                    float len = length(uv);
 
                     a = mod(a, pi2x);
 
-//a = 3.1;
-
-                    float arc = 0.25;
-
-                    //if (at >= 0 && abs(at - a) > arc) return 0.3;
-                    //if (at < 0 && abs(-at - mod(a, pi1x)) > arc) return 0.2;
+                    if (at < 0)
+                      at = pi2x + at;
 
                     if (at < a)
-                        return 0.3;
-
+                    {{
+                        if (a + arc < pi2x)
+                            return 0.4;
+                        else
+                            return 0.2;
+                    }}
+                   
                     if (at > a + arc)
+                    {{
                         return 0.3;
+                    }}
 
-                    float len = length(uv);
                     return len < rad ? smoothstep(rad - th, rad, len) : 1 - smoothstep(rad, rad + th, len);
                 }}
             ";
@@ -1515,7 +1519,14 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 //f += aaa(uv, 0.22, 0.02, uTime/2, 0);
                 //f += aaa(uv, 0.19, 0.02, uTime/3, 0);
 
-                result = vec4(f) * myColor;
+                if (f == 0.2)
+                    result = vec4(1, 0, 0, 0.1);
+                else if (f == 0.3)
+                    result = vec4(0, 1, 0, 0.1);
+                else if (f == 0.4)
+                    result = vec4(0, 0, 1, 0.1);
+                else
+                    result = vec4(f) * myColor;
             ";
         }
 
