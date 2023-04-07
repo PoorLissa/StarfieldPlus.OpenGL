@@ -1482,9 +1482,8 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 #define pi2x {Math.PI * 2}
                 vec4 myColor = vec4({R}, {G}, {B}, 1.0);
 
-                float aaa(vec2 uv, float rad, float th, float a, float t)
+                float aaa(vec2 uv, float rad, float th, float a, float t, float arc)
                 {{
-                    float arc = 1.5;
                     float at = (atan(uv.y, uv.x));
                     float len = length(uv);
 
@@ -1523,7 +1522,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                 for (int i = 0; i < 20; i++)
                 {{
-                    f += aaa(uv, 0.75 - i * 0.03, th, 1.5*uTime / (i + 1), 0);
+                    f += aaa(uv, 0.75 - i * 0.03, th, 1.5*uTime / (i + 1), 0, 1.0 + i * 0.1);
                 }}
 
                 result = vec4(f) * myColor;
