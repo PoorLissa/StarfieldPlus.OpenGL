@@ -238,9 +238,9 @@ namespace my
         {
             if (fullScreen)
             {
-                mode = rand.Next(17);
+                mode = rand.Next(18);
 #if DEBUG
-                mode = 17;
+                //mode = 17;
 #endif
                 switch (mode)
                 {
@@ -1482,7 +1482,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 #define pi2x {Math.PI * 2}
                 vec4 myColor = vec4({R}, {G}, {B}, 1.0);
 
-                float aaa(vec2 uv, float rad, float th, float a, float t, float arc)
+                float arc(vec2 uv, float rad, float th, float a, float t, float arc)
                 {{
                     float at = (atan(uv.y, uv.x));
                     float len = length(uv);
@@ -1493,20 +1493,11 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                     if (at < 0)
                       at = pi2x + at;
 
-                    if (at < a)
-                    {{
-                        if (a + arc > pi2x && at < a + arc - pi2x)
-                        {{
-                        }}
-                        else
-                        {{
+                    if (at < a && (a + arc < pi2x || at > a + arc - pi2x))
                             return 0;
-                        }}
-                    }}
-                    else if (at > a + arc)
-                    {{
+                    
+                    if (at > a + arc)
                         return 0;
-                    }}
 
                     return len < rad ? smoothstep(rad - th, rad, len) : 1 - smoothstep(rad, rad + th, len);
                 }}
@@ -1520,9 +1511,12 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                 float th = {0.005 + myUtils.randFloat(rand) * 0.015};
 
-                for (int i = 0; i < 20; i++)
+                for (int i = 0; i < 25; i++)
                 {{
-                    f += aaa(uv, 0.75 - i * 0.03, th, 1.5*uTime / (i + 1), 0, 1.0 + i * 0.1);
+                    float rad = 0.75 - i * 0.03;
+                    float angle = uTime * (i + 1) * {0.05 + myUtils.randFloat(rand) * 0.15};
+
+                    f += arc(uv, rad, th, angle, 0, 1.0 + i * {0.05 + myUtils.randFloat(rand) * 0.15});
                 }}
 
                 result = vec4(f) * myColor;
