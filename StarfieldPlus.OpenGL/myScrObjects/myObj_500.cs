@@ -240,7 +240,7 @@ namespace my
             {
                 mode = rand.Next(18);
 #if DEBUG
-                //mode = 17;
+                mode = 17;
 #endif
                 switch (mode)
                 {
@@ -1477,7 +1477,6 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
         {
             header = $@"
 
-                #define t uTime
                 #define pi1x {Math.PI}
                 #define pi2x {Math.PI * 2}
                 vec4 myColor = vec4({R}, {G}, {B}, 1.0);
@@ -1511,12 +1510,21 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                 float th = {0.005 + myUtils.randFloat(rand) * 0.015};
 
-                for (int i = 0; i < 25; i++)
-                {{
-                    float rad = 0.75 - i * 0.03;
-                    float angle = uTime * (i + 1) * {0.05 + myUtils.randFloat(rand) * 0.15};
+                float t = uTime;
 
-                    f += arc(uv, rad, th, angle, 0, 1.0 + i * {0.05 + myUtils.randFloat(rand) * 0.15});
+int sign = 1;
+
+                for (int i = 0; i < 45; i++)
+                {{
+                    float rad = 1.25 - i * 0.03;
+                    float angle = t * (i + 1) * {0.05 + myUtils.randFloat(rand) * 0.15};
+
+//angle *= sign;
+//sign *= -1;
+
+                    f += arc(uv, rad, th, angle, 0, 1.0 + i * {0.05 + myUtils.randFloat(rand) * 0.15} * 0.5);
+
+t += 0.1 * sin(angle);
                 }}
 
                 result = vec4(f) * myColor;
