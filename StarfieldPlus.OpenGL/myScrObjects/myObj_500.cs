@@ -1488,12 +1488,12 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                     a = mod(a, pi2x);
 
-                    // This happens when uv.y < 0 -- Now [0 <= at <= 2P]
+                    // This happens when uv.y < 0; starting from here, [0 <= at <= 2P]
                     if (at < 0)
                       at = pi2x + at;
 
                     if (at < a && (a + arc < pi2x || at > a + arc - pi2x))
-                            return 0;
+                        return 0;
                     
                     if (at > a + arc)
                         return 0;
@@ -1507,24 +1507,18 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
 
                 float f = 0;
-
-                float th = {0.005 + myUtils.randFloat(rand) * 0.015};
-
                 float t = uTime;
-
-int sign = 1;
+                float th = {0.005 + myUtils.randFloat(rand) * 0.015};
 
                 for (int i = 0; i < 45; i++)
                 {{
                     float rad = 1.25 - i * 0.03;
                     float angle = t * (i + 1) * {0.05 + myUtils.randFloat(rand) * 0.15};
+                    float len = {myUtils.randFloat(rand)} + i * {0.05 + myUtils.randFloat(rand) * 0.15} * 0.5;
 
-//angle *= sign;
-//sign *= -1;
+                    f += arc(uv, rad, th, angle, 0, len);
 
-                    f += arc(uv, rad, th, angle, 0, 1.0 + i * {0.05 + myUtils.randFloat(rand) * 0.15} * 0.5);
-
-t += 0.1 * sin(angle);
+                    t += {myUtils.randFloat(rand) * 0.1 + 0.0001} * sin(angle);
                 }}
 
                 result = vec4(f) * myColor;
