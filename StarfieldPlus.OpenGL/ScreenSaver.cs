@@ -88,7 +88,6 @@ public class ScreenSaver
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
-    // - rain with pseudo-depth (the farther away are the drops, the slower is their speed, the higher is bottom threshold)
     // - similar to myObj_180, but there are lots of generators, each located in the intersection of a grid.
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
     // - 
@@ -100,7 +99,7 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        id = ids.myObj_500;
+        //id = ids.myObj_500;
         //id = ids.myObj_490;
 #endif
 
