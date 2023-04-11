@@ -229,6 +229,7 @@ namespace my
             {
                 case 0: getShader_000(ref fHeader, ref fMain); break;
                 case 1: getShader_001(ref fHeader, ref fMain); break;
+                case 2: getShader_002(ref fHeader, ref fMain); break;   // test
             }
 
             shader = new myFreeShader(fHeader, fMain);
@@ -297,5 +298,35 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // ...
+        private void getShader_002(ref string h, ref string m)
+        {
+            h = $@"
+
+                float circle(vec2 uv, float rad)
+                {{
+                    return 1.0 - smoothstep(0.0, 0.005, abs(rad - length(uv)));
+                }}
+            ";
+
+            m = $@"
+
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                uv -= Pos.xy;
+                uv *= aspect;
+
+                float r = circle(uv, Pos.z);
+
+                result = vec4(myColor.xyz, r);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+
+
+
     }
 };
