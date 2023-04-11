@@ -116,6 +116,13 @@ public class myFreeShader : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    public void Draw(float x, float y, float w, float h, int extraOffset = 0)
+    {
+        Draw((int)x, (int)y, (int)w, (int)h, extraOffset);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     // Create a shader program:
     // - Vertex shader uses the default implementation
     // - Fragment shader code must be supplied by the user

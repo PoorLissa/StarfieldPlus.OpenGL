@@ -20,7 +20,7 @@ public class ScreenSaver
     private enum ids
     {
         myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_031, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
-        myObj_101, myObj_102, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180, myObj_181,
+        myObj_101, myObj_102, myObj_103, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180, myObj_181,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
         myObj_400, myObj_410, myObj_420, myObj_430, myObj_440, myObj_450, myObj_460, myObj_470, myObj_480, myObj_490,
@@ -100,7 +100,7 @@ public class ScreenSaver
 
 #if DEBUG
         //id = ids.myObj_500;
-        id = ids.myObj_102;
+        id = ids.myObj_103;
 #endif
 
         switch (id)
@@ -186,7 +186,12 @@ public class ScreenSaver
                 _obj = new my.myObj_102();
                 break;
 
-            // Desktop 3: Puts random colored shapes all over the screen
+            // Desktop 3: - Random shapes with a color from the underlying image (point-based or average) -- uses custom shader
+            case ids.myObj_103:
+                _obj = new my.myObj_103();
+                break;
+
+            // Desktop 4: Puts random colored shapes all over the screen
             case ids.myObj_110:
                 _obj = new my.myObj_110();
                 break;
