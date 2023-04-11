@@ -100,7 +100,7 @@ public class ScreenSaver
 
 #if DEBUG
         //id = ids.myObj_500;
-        //id = ids.myObj_490;
+        id = ids.myObj_102;
 #endif
 
         switch (id)
@@ -322,7 +322,7 @@ public class ScreenSaver
                 _obj = new my.myObj_410();
                 break;
 
-            //     // - system, where the center attracts and repels all the particles at the same time. vary both forces
+            // - system, where the center attracts and repels all the particles at the same time. vary both forces
             case ids.myObj_420:
                 _obj = new my.myObj_420();
                 break;

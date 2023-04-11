@@ -21,7 +21,7 @@ namespace my
 
         private static bool doClearOnce = false, doUseGrid = false, doUseRandSize = false;
         private static int N = 0, nObj = 0, angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0,
-                           borderMode = 0, borderOffset = 0, randSizeFactor = 1, colorStep = 1;
+                           borderMode = 0, borderOffset = 0, opacityMode = 0, randSizeFactor = 1, colorStep = 1;
         private static float A = 1, lineWidth = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -67,12 +67,14 @@ namespace my
             doUseRandSize = myUtils.randomBool(rand);
 
             shapeMode      = rand.Next(6);
-            colorMode      = rand.Next(2);
+            colorMode      = rand.Next(2);                      // Color at a point vs area average color
             borderMode     = rand.Next(9);                      // Color of the border. Also, in modes 7-8 only the border is drawn
             borderOffset   = rand.Next(13) - 6;                 // Offset to the size of the border (-6 .. +6)
             angleMode      = rand.Next(13);
             randSizeFactor = rand.Next(3) + 1;
             colorStep      = rand.Next(5) + 1;
+            opacityMode    = myUtils.randomChance(rand, 1, 7)   // If > 0, opacity/size will depend on current color
+                                ? rand.Next(8) : 0;
 
             lineWidth = myUtils.randFloat(rand) * 2;
 
@@ -128,10 +130,10 @@ namespace my
             }
 
 #if false
-            angleMode = 2;
+            angleMode = 10;
             shapeMode = 0;
-            doUseGrid = true;
-            doUseRandSize = true;
+            doUseGrid = false;
+            doUseRandSize = false;
 #endif
 
             return;
@@ -150,6 +152,7 @@ namespace my
                             $"doUseGrid = {doUseGrid}\n"                +
                             $"doUseRandSize = {doUseRandSize}\n"        +
                             $"shapeMode = {shapeMode}\n"                +
+                            $"opacityMode = {opacityMode}\n"            +
                             $"colorMode = {colorMode}\n"                +
                             $"colorStep = {colorStep}\n"                +
                             $"angleMode = {angleMode}\n"                +
@@ -180,9 +183,11 @@ namespace my
         {
             initLocal();
 
-            //dimScreen(0.1f);
+            dimScreen(0.1f);
 
             doClearOnce = true;
+
+            System.Threading.Thread.Sleep(123);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -236,6 +241,57 @@ namespace my
                     if(myUtils.randomChance(rand, 1, 333))
                         angle = (float)rand.NextDouble();
                     break;
+            }
+
+            // In this mode, opacity and size depend on the color of current particle
+            if (opacityMode > 0)
+            {
+                float avg = (R + G + B) * 0.333f + 0.0001f;
+
+                switch (opacityMode)
+                {
+                    case 1:
+                        {
+                            size = (int)(100.0f * avg);             // size = [0 .. 100], the lighter, the larger
+                            /* A = A;*/;                            // A is standard
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            size = (int)(100.0f - 100.0f * avg);    // size = [0 .. 100], the darker, the larger
+                            /* A = A;*/;                            // A is standard
+                        }
+                        break;
+
+                    case 3:
+                        {
+                            size = (int)(100.0f * avg);             // size = [0 .. 100], the lighter, the larger
+                            A = avg;                                //   A  = [0 .. 1.0], the lighter, the higher
+                        }
+                        break;
+
+                    case 4:
+                        {
+                            size = (int)(100.0f * avg);             // size = [0 .. 100], the lighter, the larger
+                            A = 1.0f - avg;                         //   A  = [0 .. 1.0], the darker, the higher
+                        }
+                        break;
+
+                    case 5:
+                        {
+                            size = (int)(100.0f - 100.0f * avg);    // size = [0 .. 100], the darker, the larger
+                            A = avg;                                //   A  = [0 .. 1.0], the lighter, the higher
+                        }
+                        break;
+
+                    case 6:
+                        {
+                            size = (int)(100.0f - 100.0f * avg);    // size = [0 .. 100], the darker, the larger
+                            A = 1.0f - avg;                         //   A  = [0 .. 1.0], the darker, the higher
+                        }
+                        break;
+                }
             }
         }
 
