@@ -219,11 +219,14 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // General shader selector
         private void getShader()
         {
             string fHeader = "", fMain = "";
 
             int n = rand.Next(2);
+
+            //n = 2;
 
             switch (n)
             {
@@ -306,6 +309,12 @@ namespace my
 
                 float circle(vec2 uv, float rad)
                 {{
+                    float d = length(max(abs(uv), rad) - rad) - 0.0075;
+
+                    float res = smoothstep(0.55, 0.45, abs(d / 0.1) * 5.0);
+
+                    return res;
+
                     return 1.0 - smoothstep(0.0, 0.005, abs(rad - length(uv)));
                 }}
             ";
