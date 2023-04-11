@@ -426,8 +426,8 @@ randShape:
                     {
                         var obj = list[i] as myObj_102;
 
-                        obj.Show();
                         obj.Move();
+                        obj.Show();
                     }
                 }
 
