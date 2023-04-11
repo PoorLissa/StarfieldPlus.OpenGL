@@ -181,7 +181,7 @@ public class ScreenSaver
                 _obj = new my.myObj_101();
                 break;
 
-            // Desktop 2: - Random rectangles with a color from the underlying image (point-based or average)
+            // Desktop 2: - Random shapes with a color from the underlying image (point-based or average)
             case ids.myObj_102:
                 _obj = new my.myObj_102();
                 break;

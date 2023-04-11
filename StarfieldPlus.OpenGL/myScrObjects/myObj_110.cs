@@ -276,7 +276,9 @@ namespace my
         protected override void Move()
         {
             if (cnt > 0)
+            {
                 cnt--;
+            }
             else
             {
                 generateNew();
