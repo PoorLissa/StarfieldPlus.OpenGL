@@ -71,8 +71,8 @@ public class ScreenSaver
     // - try bezier curves: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
     // - something like myObj_101, but the pieces are moved via sine/cosine function (up-down or elliptically)
     // - randomly generate points. Every point grows its own square (with increasing or decreasing opacity).
-            // Grown squares stay a while then fade away.
-            // Example: myobj040 + moveType = 1 + shape = 0 + Show == g.FillRectangle(br, X, Y, Size, Size);
+    // Grown squares stay a while then fade away.
+    // Example: myobj040 + moveType = 1 + shape = 0 + Show == g.FillRectangle(br, X, Y, Size, Size);
     // - bouncing ball, but its trajctory is not straight line, but curved like in obj_040
     // - moving ponts generator, where the moment of generation depends on sin(time)
     // - battle ships
@@ -83,19 +83,29 @@ public class ScreenSaver
     // - number of rotating lines. the length of each line is changing over time
     // - lots of triangles, where each vertice is moving like a bouncing ball
     // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
-    // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles
-            // (maybe allow placing on the inside)
+    // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
-    // - similar to myObj_180, but there are lots of generators, each located in the intersection of a grid.
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
     // - 
-    
 
+    enum testEnum { one, two, three };
 
     public void selectObject()
     {
+/*
+        // How can I access my objects using this enum?..
+
+        var values = (testEnum[])System.Enum.GetValues(typeof(testEnum));
+
+        foreach (var val in values)
+        {
+            ;
+        }
+*/
+
+
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
