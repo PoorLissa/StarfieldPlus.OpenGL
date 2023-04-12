@@ -6,6 +6,8 @@ using System.Collections.Generic;
 
 /*
     - Random shapes with a color from the underlying image (point-based or average) -- Uses custom shader
+
+        Shadertoy: https://www.shadertoy.com/
 */
 
 
@@ -224,10 +226,10 @@ namespace my
         {
             string fHeader = "", fMain = "";
 
-            shaderNo = rand.Next(5);
+            shaderNo = rand.Next(6);
 
 #if DEBUG
-            shaderNo = 5;
+            shaderNo = 6;
 #endif
             switch (shaderNo)
             {
@@ -236,7 +238,8 @@ namespace my
                 case 2: getShader_002(ref fHeader, ref fMain); break;
                 case 3: getShader_003(ref fHeader, ref fMain); break;
                 case 4: getShader_004(ref fHeader, ref fMain); break;
-                case 5: getShader_005(ref fHeader, ref fMain); break;   // test
+                case 5: getShader_005(ref fHeader, ref fMain); break;
+                case 6: getShader_006(ref fHeader, ref fMain); break;   // test
             }
 
             shader = new myFreeShader(fHeader, fMain);
@@ -407,19 +410,16 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // ...
+        // Another 4-ray star
         private void getShader_005(ref string h, ref string m)
         {
+            float targetVal = 0.000001f + myUtils.randFloat(rand) * 0.00001f;
+
             h = $@"
 
                 float circle(vec2 uv, float rad)
                 {{
-                    float len = length(uv);
-
-                    if (len < rad)
-                        return smoothstep(0.0, 0.01, rad - len);
-
-                    return 0;
+                    return 1 - smoothstep(0, {targetVal}, abs(uv.x * uv.y));
                 }}
             ";
 
@@ -431,13 +431,36 @@ namespace my
 
                 float r = circle(uv, Pos.z);
                 result = vec4(myColor.xyz, r * myColor.w);
-
-                result = vec4(myColor.xyz, r);
             ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // ...
+        private void getShader_006(ref string h, ref string m)
+        {
+            float targetVal = 0.000001f + myUtils.randFloat(rand) * 0.00001f;
+
+            h = $@"
+
+                float circle(vec2 uv, float rad)
+                {{
+                    return 1 - smoothstep(0, {targetVal}, abs(uv.x * uv.y));
+                }}
+            ";
+
+            m = $@"
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                uv -= Pos.xy;
+                uv *= aspect;
+
+                float r = circle(uv, Pos.z);
+                result = vec4(myColor.xyz, r * myColor.w);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
 
 
