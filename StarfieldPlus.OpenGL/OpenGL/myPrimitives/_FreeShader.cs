@@ -43,7 +43,6 @@ public class myFreeShader : myPrimitive
 {
     private long tBegin;
     private uint vbo = 0, ebo = 0, shaderProgram = 0;
-    private float _angle;
     private float[] vertices = null;
 
     // Uniform ids:

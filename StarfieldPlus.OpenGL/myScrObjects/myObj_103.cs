@@ -13,10 +13,9 @@ namespace my
 {
     public class myObj_103 : myObject
     {
-        private float x, y, dx, dy;
-        private float sizex, sizey, A, R, G, B;
+        private float x, y, sizex, sizey, A, R, G, B;
 
-        private static int N = 0;
+        private static int N = 0, shaderNo = 0;
         private static int opacityMode = 0;
         private static float dimAlpha = 0.005f;
 
@@ -71,6 +70,7 @@ namespace my
 
             string str = $"Obj = myObj_103\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                            $"shaderNo = {shaderNo}\n"                  +
                             $"opacityMode = {opacityMode}\n"            +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
@@ -132,7 +132,7 @@ namespace my
 
         protected override void Show()
         {
-            shader.SetColor(R, G, B, 0.1f);
+            shader.SetColor(R, G, B, A);
 
             shader.Draw(x, y, sizex, sizey, 5);
 
@@ -224,15 +224,19 @@ namespace my
         {
             string fHeader = "", fMain = "";
 
-            int n = rand.Next(2);
+            shaderNo = rand.Next(5);
 
-            //n = 2;
-
-            switch (n)
+#if DEBUG
+            shaderNo = 5;
+#endif
+            switch (shaderNo)
             {
                 case 0: getShader_000(ref fHeader, ref fMain); break;
                 case 1: getShader_001(ref fHeader, ref fMain); break;
-                case 2: getShader_002(ref fHeader, ref fMain); break;   // test
+                case 2: getShader_002(ref fHeader, ref fMain); break;
+                case 3: getShader_003(ref fHeader, ref fMain); break;
+                case 4: getShader_004(ref fHeader, ref fMain); break;
+                case 5: getShader_005(ref fHeader, ref fMain); break;   // test
             }
 
             shader = new myFreeShader(fHeader, fMain);
@@ -295,44 +299,148 @@ namespace my
                 uv *= aspect;
 
                 float r = rect(uv, Pos.z);
-
                 result = vec4(myColor.xyz, r);
             ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // ...
+        // Circular smooth spot
         private void getShader_002(ref string h, ref string m)
         {
             h = $@"
-
                 float circle(vec2 uv, float rad)
                 {{
-                    float d = length(max(abs(uv), rad) - rad) - 0.0075;
-
-                    float res = smoothstep(0.55, 0.45, abs(d / 0.1) * 5.0);
-
-                    return res;
-
-                    return 1.0 - smoothstep(0.0, 0.005, abs(rad - length(uv)));
+                    float th = {0.02 + myUtils.randFloat(rand) * 0.3};
+                    float len = rad - length(uv);
+                    if (len > 0)
+                        return smoothstep(0.0, th, len);
+                    return 0;
                 }}
             ";
 
             m = $@"
-
                 vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
                 uv -= Pos.xy;
                 uv *= aspect;
 
                 float r = circle(uv, Pos.z);
+                result = vec4(myColor.xyz, r);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // 4-ray stars
+        private void getShader_003(ref string h, ref string m)
+        {
+            float thickness = (rand.Next(2) == 0)
+                ? myUtils.randFloat(rand) * (rand.Next(13) + 1)
+                : myUtils.randFloat(rand);
+
+            float mult = rand.Next(20) + 1;
+            string func = (rand.Next(2) == 0) ? "min" : "max";
+
+            h = $@"
+
+                {myShaderHelpers.Generic.rotationMatrix}
+
+                float circle(vec2 uv, float rad)
+                {{
+                    float len = length(uv);
+                    if (len < rad)
+                        return smoothstep(0.0, {func}(abs(sin(uv.x)), abs(sin(uv.y))) * {mult}, (rad - len) * {thickness});
+                    return 0;
+                }}
+            ";
+
+            m = $@"
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                uv -= Pos.xy;
+                uv *= aspect;
+
+                if ({rand.Next(2)} == 0)
+                    uv *= rot(uTime);
+
+                float r = circle(uv, Pos.z);
+                result = vec4(myColor.xyz, myColor.w * r);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // 4-ray star, concave
+        private void getShader_004(ref string h, ref string m)
+        {
+            float thickness = 0.002f + myUtils.randFloat(rand) * 0.1f;
+
+            float mult = rand.Next(20) + 1;
+
+            h = $@"
+
+                {myShaderHelpers.Generic.rotationMatrix}
+
+                float circle(vec2 uv, float rad)
+                {{
+                    float len = length(uv);
+                    if (len < rad)
+                        return smoothstep(0.0, abs(sin(uv.x)) * abs(sin(uv.y)) * {mult}, (rad - len) * {thickness});
+                    return 0;
+                }}
+            ";
+
+            m = $@"
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                uv -= Pos.xy;
+                uv *= aspect;
+
+                if ({rand.Next(2)} == 0)
+                    uv *= rot(uTime);
+
+                float r = circle(uv, Pos.z);
+                result = vec4(myColor.xyz, myColor.w * r);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // ...
+        private void getShader_005(ref string h, ref string m)
+        {
+            h = $@"
+
+                float circle(vec2 uv, float rad)
+                {{
+                    float len = length(uv);
+
+                    if (len < rad)
+                        return smoothstep(0.0, 0.01, rad - len);
+
+                    return 0;
+                }}
+            ";
+
+            m = $@"
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                uv -= Pos.xy;
+                uv *= aspect;
+
+                float r = circle(uv, Pos.z);
+                result = vec4(myColor.xyz, r * myColor.w);
 
                 result = vec4(myColor.xyz, r);
             ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+
+
+
 
 
 
