@@ -168,7 +168,7 @@ namespace my
             uint cnt = 0;
 
             initShapes();
-            getShader();
+
             clearScreenSetup(doClearBuffer, 0.1f, front_and_back: true);
 
 
@@ -221,6 +221,8 @@ namespace my
 
         private void initShapes()
         {
+            getShader();
+
             myPrimitive.init_ScrDimmer();
 
             return;
