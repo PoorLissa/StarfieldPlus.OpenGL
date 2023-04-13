@@ -59,7 +59,7 @@ namespace my
             opacityMode = rand.Next(3);
             sizeMode    = rand.Next(5);
 
-            dimAlpha = (rand.Next(5) + 1) * 0.001f;
+            dimAlpha = myUtils.randFloat(rand, 0.001f) * 0.005f;    // [0.001 .. 0.005]
 
             return;
         }
@@ -90,7 +90,7 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            getShader();
+            initShapes();
 
             System.Threading.Thread.Sleep(123);
 
