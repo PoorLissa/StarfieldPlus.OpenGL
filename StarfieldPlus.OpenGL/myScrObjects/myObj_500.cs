@@ -1523,11 +1523,81 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                 result = vec4(f) * myColor;
             ";
+
+            return;
+
+            // experiment - circle made of sin curve
+
+            header = $@"
+
+                {myShaderHelpers.Generic.rotationMatrix}
+
+                #define pi1x {Math.PI}
+                #define pi2x {Math.PI * 2}
+                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                uv *= rot(uTime * 0.05);
+
+                float at = atan(uv.y, uv.x);
+
+                float len = length(uv);
+                float rad = 0.35;
+
+                float nRays = 17;
+
+                float val = len - rad + sin(at * nRays) * rad/25 + cos(at * 13) * rad/33;
+
+                float color = smoothstep(0, 0.025, abs(val));   // remove abs for a solid shape
+
+                result = vec4(vec3(color), 1.0);
+            ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+#if false
+            header = $@"
 
+                {myShaderHelpers.Generic.rotationMatrix}
+
+                define pi1x {Math.PI}
+                define pi2x {Math.PI * 2}
+                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+
+            ";
+
+            main = $@"
+
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                uv *= rot(uTime * 0.05);
+
+                float at = atan(uv.y, uv.x);
+
+                //if (at < 0) at = pi2x + at;
+
+                float len = length(uv);
+                float rad = 0.35;
+
+                float color = smoothstep(-0.001, 0.025, rad - len);
+
+                float nRays = 17;
+
+                float val = len - rad + sin(uTime) * 0.1;
+
+                float f = sin(at * nRays) * 0.25;
+
+                color = smoothstep(0, 0.1, (val)*f*123.1);
+
+                result = vec4(vec3(color), 1.0);
+            ";
+#endif
 
 
 

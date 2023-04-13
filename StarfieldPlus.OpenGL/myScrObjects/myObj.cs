@@ -422,7 +422,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        protected virtual void clearScreenSetup(bool doClearBuffer, float rndFactor)
+        protected virtual void clearScreenSetup(bool doClearBuffer, float rndFactor, bool front_and_back = false)
         {
             dimScreenRGB_SetRandom(rndFactor);
 
@@ -433,7 +433,7 @@ namespace my
             }
             else
             {
-                glDrawBuffer(GL_BACK);
+                glDrawBuffer(front_and_back ? GL_FRONT_AND_BACK : GL_BACK);
             }
 
             return;

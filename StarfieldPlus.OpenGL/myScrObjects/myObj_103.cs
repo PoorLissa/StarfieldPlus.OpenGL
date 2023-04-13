@@ -15,10 +15,10 @@ namespace my
 {
     public class myObj_103 : myObject
     {
-        private float x, y, sizex, sizey, A, R, G, B;
+        private float x, y, size, A, R, G, B;
 
         private static int N = 0, shaderNo = 0;
-        private static int opacityMode = 0;
+        private static int opacityMode = 0, sizeMode = 0;
         private static float dimAlpha = 0.005f;
 
         private static myFreeShader shader = null;
@@ -56,7 +56,10 @@ namespace my
         {
             renderDelay = rand.Next(11);
 
-            opacityMode = rand.Next(2);
+            opacityMode = rand.Next(3);
+            sizeMode    = rand.Next(5);
+
+            dimAlpha = (rand.Next(5) + 1) * 0.001f;
 
             return;
         }
@@ -68,13 +71,15 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_103\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
                             $"shaderNo = {shaderNo}\n"                  +
+                            $"sizeMode = {sizeMode}\n"                  +
                             $"opacityMode = {opacityMode}\n"            +
                             $"renderDelay = {renderDelay}\n"            +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -96,13 +101,11 @@ namespace my
 
         protected override void generateNew()
         {
+            A = 0.25f;
+
             if (myUtils.randomChance(rand, 1, 5))
             {
                 A = myUtils.randFloat(rand, 0.1f) * 0.25f;
-            }
-            else
-            {
-                A = 0.25f;
             }
 
             return;
@@ -115,15 +118,32 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            sizex = rand.Next(100) + 5;
-            sizey = sizex;
+            switch (sizeMode)
+            {
+                case 0: size = rand.Next(033) + 11; break;
+                case 1: size = rand.Next(066) + 11; break;
+                case 2: size = rand.Next(066) + 33; break;
+                case 3: size = rand.Next(099) + 33; break;
+                case 4: size = rand.Next(133) + 11; break;
+            }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             switch (opacityMode)
             {
+                // Const opacity
+                case 0:
+                    break;
+
+                // Random opacity every iteration
                 case 1:
                     A = myUtils.randFloat(rand, 0.1f) * 0.5f;
+                    break;
+
+                // Opacity changes depending on the size
+                case 2:
+                    A = (1.0f + sizeMode) / size;
+                    A = A < 0.05f ? 0.05f : A;
                     break;
             }
 
@@ -136,7 +156,7 @@ namespace my
         {
             shader.SetColor(R, G, B, A);
 
-            shader.Draw(x, y, sizex, sizey, 5);
+            shader.Draw(x, y, size, size, 5);       // todo: change 5 to like 50 and check is FPS drops; if not, set it to higher value
 
             return;
         }
@@ -146,24 +166,11 @@ namespace my
         protected override void Process(Window window)
         {
             uint cnt = 0;
+
             initShapes();
-
             getShader();
+            clearScreenSetup(doClearBuffer, 0.1f, front_and_back: true);
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
-            }
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -239,7 +246,8 @@ namespace my
                 case 3: getShader_003(ref fHeader, ref fMain); break;
                 case 4: getShader_004(ref fHeader, ref fMain); break;
                 case 5: getShader_005(ref fHeader, ref fMain); break;
-                case 6: getShader_006(ref fHeader, ref fMain); break;   // test
+                case 6: getShader_006(ref fHeader, ref fMain); break;
+                case 7: getShader_007(ref fHeader, ref fMain); break;   // test
             }
 
             shader = new myFreeShader(fHeader, fMain);
@@ -436,16 +444,49 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // ...
+        // Circle-bended sin-cos-wave
         private void getShader_006(ref string h, ref string m)
         {
-            float targetVal = 0.000001f + myUtils.randFloat(rand) * 0.00001f;
+/*
+            float val = len - rad + sin(at * nRays) * rad/25 + cos(at * 13) * rad/33;
+            float color = smoothstep(0, 0.025, abs(val));   // remove abs for a solid shape
+            result = vec4(vec3(color), 1.0);
+*/
+            float nRays = 2 + (rand.Next(2) == 0 ? rand.Next(33) : rand.Next(100));
+            float thickness = 1.0f / (rand.Next(30) + 5);
+
+            float smoothVal = -0.01f * (rand.Next(10) + 1);      // [-0.01 .. -0.10] -- this affects the depth of non-black pixels inside the shape
+
+            string F = "len - rad;";
+
+            switch (rand.Next(3))
+            {
+                // No rotation
+                case 0: F = $@"len - rad + sin(at * {nRays}) * rad * {thickness};"; break;
+
+                // Random rotation
+                case 1: F = $@"len - rad + sin(at * {nRays} + rand(uTime) * 13) * rad * {thickness};"; break;
+
+                // Random cos added to make the shape irregular
+                case 2: F = F = $@"len - rad + sin(at * {nRays}) * cos(at * uTime) * rad * {thickness};"; break;
+            }
 
             h = $@"
 
-                float circle(vec2 uv, float rad)
+                {myShaderHelpers.Generic.randFunc}
+
+                float func(vec2 uv, float rad)
                 {{
-                    return 1 - smoothstep(0, {targetVal}, abs(uv.x * uv.y));
+                    float at = atan(uv.y, uv.x);    // angle
+                    float len = length(uv);
+
+                    float val = {F};
+
+                    // remove 'abs' for a solid shape
+                    if (val < 0)
+                        return smoothstep({smoothVal}, 0, val);
+
+                    return 0;
                 }}
             ";
 
@@ -455,15 +496,51 @@ namespace my
                 uv -= Pos.xy;
                 uv *= aspect;
 
-                float r = circle(uv, Pos.z);
+                float r = func(uv, Pos.z);
+
                 result = vec4(myColor.xyz, r * myColor.w);
             ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // ...
+        private void getShader_007(ref string h, ref string m)
+        {
+            float nRays = 2 + (rand.Next(2) == 0 ? rand.Next(33) : rand.Next(100));
+            float thickness = 1.0f / (rand.Next(30) + 5);
 
+            float smoothVal = -0.01f * (rand.Next(10) + 1);
 
+            h = $@"
+                float func(vec2 uv, float rad)
+                {{
+                    float at = atan(uv.y, uv.x);    // angle
+                    float len = length(uv);
+
+                    float val = len - rad + sin(at * {nRays}) * rad * {thickness};
+
+                    // remove 'abs' for a solid shape
+                    if (val < 0)
+                        return smoothstep({smoothVal}, 0, val);
+
+                    return 0;
+                }}
+            ";
+
+            m = $@"
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                uv -= Pos.xy;
+                uv *= aspect;
+
+                float r = func(uv, Pos.z);
+
+                result = vec4(myColor.xyz, r * myColor.w);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
 
 

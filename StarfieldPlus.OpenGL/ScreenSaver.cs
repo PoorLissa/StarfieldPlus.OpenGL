@@ -109,8 +109,8 @@ public class ScreenSaver
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
 #if DEBUG
-        //id = ids.myObj_500;
         id = ids.myObj_103;
+        //id = ids.myObj_500;
 #endif
 
         switch (id)
