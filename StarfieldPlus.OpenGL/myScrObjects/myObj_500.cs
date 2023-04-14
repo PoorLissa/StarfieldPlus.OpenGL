@@ -39,13 +39,10 @@ namespace my
     public class myObj_500 : myObject
     {
         private float R, G, B;
-
+        private int mode = 0;
         private string fHeader = "", fMain = "";
 
-        private myFreeShader shader = null;
         private myFreeShader_FullScreen shaderFull = null;
-
-        private int mode = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -121,12 +118,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        class zzz
-        {
-            public int x, y, w, h;
-            public float t = 0, dt = myUtils.randFloat(rand) * 0.01f;
-        };
-
         protected override void Process(Window window)
         {
             uint cnt = 0;
@@ -136,7 +127,7 @@ namespace my
             getShader(ref fHeader, ref fMain);
 
 /*
-            // How to enable depth testing:
+            // How to enable depth testing (what do I do with it?..):
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
             glDepthRange(0, 1);
