@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Free shader experiments
+    - Free full screen shader experiments
 
     https://www.shadertoy.com/
 
@@ -29,7 +29,7 @@ using System.Collections.Generic;
     cross   : https://www.cuemath.com/geometry/cross-product/
 
     // TODO:
-    - Clock where we have 2 rotating bezels, one for hours and one for minutes. 
+    - Clock where we have 3 rotating bezels, one for hours, one for minutes, one for seconds
       Something similar: http://mkweb.bcgsc.ca/fun/clock/
 */
 
@@ -46,8 +46,6 @@ namespace my
         private myFreeShader_FullScreen shaderFull = null;
 
         private int mode = 0;
-
-        private static bool doUseFullScreenShader = true;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -77,8 +75,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doUseFullScreenShader = true;
-
             renderDelay = 0;
 
             do
@@ -116,7 +112,7 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            getShader(ref fHeader, ref fMain, doUseFullScreenShader);
+            getShader(ref fHeader, ref fMain);
 
             System.Threading.Thread.Sleep(100);
 
@@ -137,29 +133,7 @@ namespace my
 
             glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
 
-            getShader(ref fHeader, ref fMain, doUseFullScreenShader);
-
-            if (!doUseFullScreenShader)
-            {
-                int n = 111;
-                List<zzz> lst = new List<zzz>();
-
-                shader.SetColor(myUtils.randFloat(rand), myUtils.randFloat(rand), myUtils.randFloat(rand), 0.85f);
-
-                for (int i = 0; i < n; i++)
-                {
-                    var z = new zzz();
-
-                    z.x = rand.Next(gl_Width);
-                    z.y = rand.Next(gl_Height);
-                    z.w = rand.Next(333) + 33;
-                    z.h = z.w / (rand.Next(5) + 1);
-
-                    z.dt = 0.01f * (rand.Next(10) + 1);
-
-                    lst.Add(z);
-                }
-            }
+            getShader(ref fHeader, ref fMain);
 
 /*
             // How to enable depth testing:
@@ -177,52 +151,9 @@ namespace my
 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                if (false)
-                {
-                    myPrimitive.init_Rectangle();
-
-                    myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.SetColor(0.25f, 0.5f, 0.15f, 0.9f);
-                    myPrimitive._Rectangle.Draw(123, 123, 222, 222, true);
-
-                    myPrimitive._Rectangle.SetAngle((float)(Math.PI / 3));
-                    myPrimitive._Rectangle.SetColor(0.5f, 0.25f, 0.33f, 0.9f);
-                    myPrimitive._Rectangle.Draw(111, 111, 333, 333, true);
-
-                    continue;
-                }
-
                 // Render Frame
-                if (doUseFullScreenShader)
                 {
                     shaderFull.Draw();
-                }
-                else
-                {
-/*
-                    for (int i = 0; i < lst.Count; i++)
-                    {
-                        var z = lst[i];
-
-                        shader.Draw(z.x, z.y, z.w + (int)(Math.Cos(z.t) * 66), z.h + (int)(Math.Sin(z.t) * 33), 33);
-                        z.t += z.dt;
-                    }*/
-/*
-                    shader.SetColor(0.25f, 0.66f, 0.33f, 1);
-                    int rad = 100 + (int)(Math.Sin(0.025 * cnt) * 50);
-
-                    shader.Draw(333, 333, 222, 222, 3);
-                    shader.Draw(333, 333, 333 + (int)(Math.Cos(cnt * 0.1) * 66), 222 + (int)(Math.Sin(cnt * 0.1) * 33), 3);
-
-                    if (false)
-                    {
-                        shader.SetColor(0.66f, 0.33f, 0.22f, 0.33f);
-
-                        for (int i = 0; i < gl_Width; i += 200)
-                            for (int j = 0; j < gl_Height; j += 200)
-                                shader.Draw(i, j, 66, 55, 3);
-                    }
-*/
                 }
 
                 cnt++;
@@ -234,62 +165,41 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Select random mode and get shader code: header + main func
-        private void getShader(ref string header, ref string main, bool fullScreen)
+        private void getShader(ref string header, ref string main)
         {
-            if (fullScreen)
-            {
-                mode = rand.Next(18);
+            mode = rand.Next(18);
+
 #if DEBUG
-                mode = 17;
+            mode = 17;
+            mode = 999;     // testing grounds
 #endif
-                switch (mode)
-                {
-                    case 00: getShader_000(ref header, ref main); break;
-                    case 01: getShader_001(ref header, ref main); break;
-                    case 02: getShader_002(ref header, ref main); break;
-                    case 03: getShader_003(ref header, ref main); break;
-                    case 04: getShader_004(ref header, ref main); break;
-                    case 05: getShader_005(ref header, ref main); break;
-                    case 06: getShader_006(ref header, ref main); break;
-                    case 07: getShader_007(ref header, ref main); break;
-                    case 08: getShader_008(ref header, ref main); break;
-                    case 09: getShader_009(ref header, ref main); break;
-                    case 10: getShader_010(ref header, ref main); break;
-                    case 11: getShader_011(ref header, ref main); break;
-                    case 12: getShader_012(ref header, ref main); break;
-                    case 13: getShader_013(ref header, ref main); break;
-                    case 14: getShader_014(ref header, ref main); break;
-                    case 15: getShader_015(ref header, ref main); break;
-                    case 16: getShader_016(ref header, ref main); break;
-                    case 17: getShader_017(ref header, ref main); break;
-                }
 
-                shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
-            }
-            else
+            switch (mode)
             {
-                shader = new myFreeShader($@"
-                        float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
-                        float Circle(vec2 uv, float rad) {{ return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv))); }}
-                    ",
+                case 00: getShader_000(ref header, ref main); break;
+                case 01: getShader_001(ref header, ref main); break;
+                case 02: getShader_002(ref header, ref main); break;
+                case 03: getShader_003(ref header, ref main); break;
+                case 04: getShader_004(ref header, ref main); break;
+                case 05: getShader_005(ref header, ref main); break;
+                case 06: getShader_006(ref header, ref main); break;
+                case 07: getShader_007(ref header, ref main); break;
+                case 08: getShader_008(ref header, ref main); break;
+                case 09: getShader_009(ref header, ref main); break;
+                case 10: getShader_010(ref header, ref main); break;
+                case 11: getShader_011(ref header, ref main); break;
+                case 12: getShader_012(ref header, ref main); break;
+                case 13: getShader_013(ref header, ref main); break;
+                case 14: getShader_014(ref header, ref main); break;
+                case 15: getShader_015(ref header, ref main); break;
+                case 16: getShader_016(ref header, ref main); break;
+                case 17: getShader_017(ref header, ref main); break;
 
-                        $@"
-                            vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
-
-                            uv -= Pos.xy;
-                            uv *= aspect;
-
-                            // Make an ellipse by changins aspect -- tried to move it into circle function, but it worked slower (needs more proof)
-                            if (Pos.w != Pos.z)
-                                uv *= vec2(1.0, Pos.z / Pos.w);
-
-                            float rad = Pos.z;
-                            float circ = Circle(uv, rad);
-
-                            result = vec4(myColor.xyz * circ, myColor.w * circ);
-                        "
-                );
+                default:
+                    getShader_999(ref header, ref main); break;
             }
+
+            shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
 
             return;
         }
@@ -1523,85 +1433,176 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                 result = vec4(f) * myColor;
             ";
-
-            return;
-
-            // experiment - circle made of sin curve
-
-            header = $@"
-
-                {myShaderHelpers.Generic.rotationMatrix}
-
-                #define pi1x {Math.PI}
-                #define pi2x {Math.PI * 2}
-                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
-
-            ";
-
-            main = $@"
-
-                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
-
-                uv *= rot(uTime * 0.05);
-
-                float at = atan(uv.y, uv.x);
-
-                float len = length(uv);
-                float rad = 0.35;
-
-                float nRays = 17;
-
-                float val = len - rad + sin(at * nRays) * rad/25 + cos(at * 13) * rad/33;
-
-                float color = smoothstep(0, 0.025, abs(val));   // remove abs for a solid shape
-
-                result = vec4(vec3(color), 1.0);
-            ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-#if false
-            header = $@"
+        // My testing grounds
+        private void getShader_999(ref string header, ref string main)
+        {
+            int experimentId = 2;
 
-                {myShaderHelpers.Generic.rotationMatrix}
+            // experiment - circle made of sin curve
+            if (experimentId == 0)
+            {
+                header = $@"
 
-                define pi1x {Math.PI}
-                define pi2x {Math.PI * 2}
-                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+                    {myShaderHelpers.Generic.rotationMatrix}
 
-            ";
+                    #define pi1x {Math.PI}
+                    #define pi2x {Math.PI * 2}
+                    vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+                ";
 
-            main = $@"
+                main = $@"
 
-                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+                    vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
 
-                uv *= rot(uTime * 0.05);
+                    uv *= rot(uTime * 0.05);
 
-                float at = atan(uv.y, uv.x);
+                    float at = atan(uv.y, uv.x);
 
-                //if (at < 0) at = pi2x + at;
+                    float len = length(uv);
+                    float rad = 0.35;
 
-                float len = length(uv);
-                float rad = 0.35;
+                    float nRays = 17;
 
-                float color = smoothstep(-0.001, 0.025, rad - len);
+                    float val = len - rad + sin(at * nRays) * rad/25 + cos(at * 13) * rad/33;
 
-                float nRays = 17;
+                    float color = smoothstep(0, 0.025, abs(val));   // remove abs for a solid shape
 
-                float val = len - rad + sin(uTime) * 0.1;
+                    result = vec4(vec3(color), 1.0);
+                ";
+            }
 
-                float f = sin(at * nRays) * 0.25;
+            // experiment - circle with solid border
+            if (experimentId == 1)
+            {
+                header = $@"
 
-                color = smoothstep(0, 0.1, (val)*f*123.1);
+                    #define pi1x {Math.PI}
+                    #define pi2x {Math.PI * 2}
+                    vec4 myColor = vec4({R}, {G}, {B}, 0.5);
 
-                result = vec4(vec3(color), 1.0);
-            ";
-#endif
+                    float F(vec2 uv, float rad)
+                    {{
+                        float at = atan(uv.y, uv.x);
+                        float len = length(uv);
 
+                        float val = len - rad;
+                        float absVal = abs(val);
 
+                        if (len < rad)
+                        {{
+                            float res = 0, off = abs(len - rad + 0.05);
 
+                            if (off < 0.0025)
+                                res = (1 - smoothstep(0, 0.001, off)) * 2;
 
+                            return res + smoothstep(0, 0.05, absVal) * 0.5;
+                        }}
 
+                        return 0;
+                    }}
+
+                    float F1(vec2 uv, float rad)
+                    {{
+                        float at = atan(uv.y, uv.x);
+                        float len = length(uv);
+
+                        float val = len - rad;
+                        float absVal = abs(val);
+
+                        if (absVal < 0.001)
+                            return (1 - smoothstep(0, 0.001, absVal)) * 2;
+
+                        if (len < rad)
+                            return smoothstep(0, 0.05, absVal);
+
+                        return 0;
+                    }}
+                ";
+
+                main = $@"
+
+                    vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                    float rad = 0.35;
+
+                    float color = F(uv, rad);
+
+                    result = vec4(myColor.xyz, color);
+                    return;
+/*
+                    if (absVal < 0.01)
+                        return (1 - smoothstep(0, 0.001, absVal)) * 3;
+
+                    if (val < 0)
+                        return smoothstep(-0.05, 0, val);
+
+                    return 0;
+
+                    result = vec4(vec3(color), 1.0);
+*/
+                ";
+            }
+
+            // 
+            if (experimentId == 2)
+            {
+                header = $@"
+
+                    {myShaderHelpers.Generic.rotationMatrix}
+
+                    #define pi1x {Math.PI}
+                    #define pi2x {Math.PI * 2}
+                    vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+
+                ";
+
+                main = $@"
+
+                    vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                    uv *= rot(uTime * 0.05);
+
+                    float at = atan(uv.y, uv.x);
+
+                    //if (at < 0) at = pi2x + at;
+
+                    float len = length(uv);
+                    float rad = 0.35;
+
+                    float color = smoothstep(-0.001, 0.025, rad - len);
+
+                    float nRays = 17;
+
+                    float val = len - rad + sin(uTime) * 0.1;
+
+                    float f = sin(at * nRays) * 0.25;
+
+                    color = smoothstep(0, 0.1, (val) * f * 123.1);
+
+                    if (len < 0.1 + sin(uTime * 0.793) * 0.09)
+                    {{
+                        color = smoothstep(0.01, 0.3, len);
+                    }}
+
+                    if (len < 0.1 + sin(uTime * 0.937) * 0.08)
+                    {{
+                        color += smoothstep(0.01, 0.3, len);
+                    }}
+
+                    if (len < 0.2 + cos(uTime * 0.317) * 0.13)
+                    {{
+                        color += smoothstep(0.01, 0.3, len) * 0.3;
+                    }}
+
+                    result = vec4(vec3(color), 1.0);
+                ";
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
     }
 };

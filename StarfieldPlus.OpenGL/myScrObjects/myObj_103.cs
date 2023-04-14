@@ -94,6 +94,8 @@ namespace my
 
             System.Threading.Thread.Sleep(123);
 
+            dimScreen(0.5f);
+
             initLocal();
         }
 
@@ -249,6 +251,7 @@ namespace my
                 case 4: getShader_004(ref fHeader, ref fMain); break;
                 case 5: getShader_005(ref fHeader, ref fMain); break;
                 case 6: getShader_006(ref fHeader, ref fMain); break;
+
                 case 7: getShader_007(ref fHeader, ref fMain); break;   // test
             }
 
@@ -454,12 +457,25 @@ namespace my
             float color = smoothstep(0, 0.025, abs(val));   // remove abs for a solid shape
             result = vec4(vec3(color), 1.0);
 */
-            float nRays = 2 + (rand.Next(2) == 0 ? rand.Next(33) : rand.Next(100));
+            float nRays = 2;
+
+            switch (rand.Next(3))
+            {
+                case 0: nRays += rand.Next(11); break;
+                case 1: nRays += rand.Next(33); break;
+                case 2: nRays += rand.Next(99); break;
+            }
+
             float thickness = 1.0f / (rand.Next(30) + 5);
+            float borderOpacityFactor = myUtils.randFloat(rand) + rand.Next(3) + 1;
 
             float smoothVal = -0.01f * (rand.Next(10) + 1);      // [-0.01 .. -0.10] -- this affects the depth of non-black pixels inside the shape
 
+            bool useBorder = myUtils.randomChance(rand, 2, 3);
+            int borderMode = rand.Next(3);
+
             string F = "len - rad;";
+            string myFunc = useBorder ? "func_border" : "func";
 
             switch (rand.Next(3))
             {
@@ -484,11 +500,39 @@ namespace my
 
                     float val = {F};
 
-                    // remove 'abs' for a solid shape
                     if (val < 0)
                         return smoothstep({smoothVal}, 0, val);
 
                     return 0;
+                }}
+
+                float func_border(vec2 uv, float rad)
+                {{
+                    float res = 0;
+                    float at = atan(uv.y, uv.x);
+                    float len = length(uv);
+
+                    float val = {F};
+
+                    if (val < 0)
+                    {{
+                        float off = abs(val + 0.0075);
+
+                        if (off < 0.0025)
+                            res = (1 - smoothstep(0, 0.001, off)) * {borderOpacityFactor};
+
+                        switch({borderMode})
+                        {{
+                            case 0: res += smoothstep(0, {-smoothVal}, -val) * 0.75; break;
+                            case 1: res += smoothstep({+smoothVal}, 0, +val) * 0.75; break;
+                            case 2:
+                                res += smoothstep(0, {-smoothVal}, -val) * 0.5;
+                                res += smoothstep({smoothVal}, 0, val) * 0.5;
+                                break;
+                        }}
+                    }}
+
+                    return res;
                 }}
             ";
 
@@ -498,7 +542,7 @@ namespace my
                 uv -= Pos.xy;
                 uv *= aspect;
 
-                float r = func(uv, Pos.z);
+                float r = {myFunc}(uv, Pos.z);
 
                 result = vec4(myColor.xyz, r * myColor.w);
             ";
@@ -515,16 +559,23 @@ namespace my
             float smoothVal = -0.01f * (rand.Next(10) + 1);
 
             h = $@"
-                float func(vec2 uv, float rad)
+                float Func(vec2 uv, float rad)
                 {{
-                    float at = atan(uv.y, uv.x);    // angle
+                    float at = atan(uv.y, uv.x);
                     float len = length(uv);
 
                     float val = len - rad + sin(at * {nRays}) * rad * {thickness};
+                    float absVal = abs(val);
 
-                    // remove 'abs' for a solid shape
                     if (val < 0)
-                        return smoothstep({smoothVal}, 0, val);
+                    {{
+                        float res = 0, off = abs(val + 0.0075);
+
+                        if (off < 0.0025)
+                            res = (1 - smoothstep(0, 0.001, off)) * 1;
+
+                        return res + smoothstep(0, 0.01, absVal) * 0.5;
+                    }}
 
                     return 0;
                 }}
@@ -536,7 +587,7 @@ namespace my
                 uv -= Pos.xy;
                 uv *= aspect;
 
-                float r = func(uv, Pos.z);
+                float r = Func(uv, Pos.z);
 
                 result = vec4(myColor.xyz, r * myColor.w);
             ";
