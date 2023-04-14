@@ -44,6 +44,10 @@ namespace my
                 doClearBuffer = false;
 
                 N = rand.Next(10) + 10;
+
+#if DEBUG
+                N = 1;
+#endif
             }
 
             initLocal();
@@ -240,7 +244,7 @@ namespace my
             shaderNo = rand.Next(6);
 
 #if DEBUG
-            shaderNo = 6;
+            //shaderNo = 4;
 #endif
             switch (shaderNo)
             {
@@ -292,7 +296,6 @@ namespace my
         private void getShader_001(ref string h, ref string m)
         {
             h = $@"
-
                 float rect(vec2 uv, float size)
                 {{
                     float f = 0.01;
@@ -308,7 +311,6 @@ namespace my
             ";
 
             m = $@"
-
                 vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
                 uv -= Pos.xy;
@@ -391,19 +393,38 @@ namespace my
         private void getShader_004(ref string h, ref string m)
         {
             float thickness = 0.002f + myUtils.randFloat(rand) * 0.1f;
-
             float mult = rand.Next(20) + 1;
+            int doRotate = rand.Next(2);
+
+            string shapeFunc = myUtils.randomChance(rand, 2, 3) ? "shape_border" : "shape";
 
             h = $@"
 
                 {myShaderHelpers.Generic.rotationMatrix}
 
-                float circle(vec2 uv, float rad)
+                float shape(vec2 uv, float rad)
                 {{
                     float len = length(uv);
+
                     if (len < rad)
                         return smoothstep(0.0, abs(sin(uv.x)) * abs(sin(uv.y)) * {mult}, (rad - len) * {thickness});
+
                     return 0;
+                }}
+
+                float shape_border(vec2 uv, float rad)
+                {{
+                    float res = 0, len = length(uv);
+
+                    float val1 = (rad - len) * {thickness};
+                    float val2 = abs(sin(uv.x)) * abs(sin(uv.y)) * {mult};
+
+                    res = smoothstep(0.0, val2, val1);
+
+                    if (abs(val1 - val2) < 0.0001)
+                        res += (1 - smoothstep(-0.01, 0.01, (val1 - val2))) * 0.5;
+
+                    return res;
                 }}
             ";
 
@@ -413,10 +434,10 @@ namespace my
                 uv -= Pos.xy;
                 uv *= aspect;
 
-                if ({rand.Next(2)} == 0)
+                if ({doRotate} == 1)
                     uv *= rot(uTime);
 
-                float r = circle(uv, Pos.z);
+                float r = {shapeFunc}(uv, Pos.z);
                 result = vec4(myColor.xyz, myColor.w * r);
             ";
         }

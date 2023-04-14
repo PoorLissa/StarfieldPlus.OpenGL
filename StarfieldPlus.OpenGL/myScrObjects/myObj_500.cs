@@ -1431,7 +1431,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
         // My testing grounds
         private void getShader_999(ref string header, ref string main)
         {
-            int experimentId = 2;
+            int experimentId = 3;
 
             // experiment - circle made of sin curve
             if (experimentId == 0)
@@ -1590,6 +1590,46 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                     }}
 
                     result = vec4(vec3(color), 1.0);
+                ";
+            }
+
+            if (experimentId == 3)
+            {
+                float thickness = 0.2f;
+                float mult = 10.0f;
+
+                header = $@"
+
+                    float shape2(vec2 uv, float rad)
+                    {{
+                        float res = 0, len = length(uv);
+
+                        float val = (rad - len) * {thickness};
+
+                        float val2 = abs(sin(uv.x)) * abs(sin(uv.y)) * {mult};
+
+                        //float val2 = abs(sin(uv.x)) * abs(sin(uv.y)) * (-10);
+
+                        res = smoothstep(0.0, val2, val) * 0.5;
+
+                        if (abs(val - val2) < 0.001)
+                        {{
+                            res += (1 - smoothstep(-0.01, 0.01, (val - val2)));
+                        }}
+
+                        return res;
+                    }}
+                ";
+
+                main = $@"
+
+                    vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                    //uv *= 50;
+
+                    float r = shape2(uv, 0.23);
+
+                    result = vec4(vec3(r), r);
                 ";
             }
         }
