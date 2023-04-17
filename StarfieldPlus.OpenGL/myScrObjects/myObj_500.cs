@@ -1635,13 +1635,20 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
             if (experimentId == 4)
             {
-                header = "";
+                header = $@"
+                    vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+
+                    {myShaderHelpers.Generic.rotationMatrix}
+                ";
 
                 main = $@"
 
-                    vec2 uv = (gl_FragCoord.xy) / iResolution.y / 16.0 + vec2(uTime / 2.0, uTime / 3.0) / 64.0;
+                    //vec2 uv = (gl_FragCoord.xy) / iResolution.y / 16.0 + vec2(uTime / 2.0, uTime / 3.0) / 64.0;
 
-                    //uv *= 10;
+                    vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y + vec2(uTime / 2.0, 1) * 0.1;
+                    uv *= 1 + sin(uTime) * 0.05;
+                    uv *= 0.25;
+                    uv *= rot(uTime * 0.01);
 
                     float col = 0;
 
@@ -1649,12 +1656,13 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                     {{
                         uv = abs(fract(uv.yx - vec2(uv.x, -uv.y) * 2.0) - 0.5);
 
-                        col = max(length(uv/2.), col);
+                        col = max(length(uv / 2.0), col);
 
                         col = max(abs(col * 2.0 - 1.0), col / 4.0);
                     }}
 
                     result = vec4(min(vec3(col * 2.0), vec3(1.0)), 1.0);
+                    result.xyz *= myColor.xyz;
                 ";
             }
         }
