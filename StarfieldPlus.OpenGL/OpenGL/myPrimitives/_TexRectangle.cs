@@ -111,19 +111,6 @@ public class myTexRectangle : myPrimitive
     // - Using negative ptw/pth, it is possible to flip/rotate/mirror the texture
     public void Draw(int x, int y, int w, int h, int ptx = 0, int pty = 0, int ptw = 0, int pth = 0)
     {
-        unsafe void __draw()
-        {
-            // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
-            glBindTexture(GL_TEXTURE_2D, tex);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-        }
-
-        // ---------------------------------------------------------------------------------------
-
         float fx = 0, fy = 0;
 
         if (_angle == 0)
@@ -179,7 +166,16 @@ public class myTexRectangle : myPrimitive
             glUniform2f(locationCenter, x + w/2, y + h/2);
         }
 
-        __draw();
+        unsafe
+        {
+            // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
+            glBindTexture(GL_TEXTURE_2D, tex);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+        }
 
         return;
     }
@@ -248,13 +244,11 @@ public class myTexRectangle : myPrimitive
                         }
                         else
                         {
-                            float X = pos.x - myCenter.x;
-                            float Y = pos.y - myCenter.y;
+                            vec2 p = pos.xy - myCenter;
+                            vec2 sc = vec2(sin(myAngle), cos(myAngle));
 
-                            gl_Position = vec4(X * cos(myAngle) - Y * sin(myAngle), Y * cos(myAngle) + X * sin(myAngle), pos.z, 1.0);
-                    
-                            gl_Position.x += myCenter.x;
-                            gl_Position.y += myCenter.y;
+                            gl_Position = vec4(p.x * sc.y - p.y * sc.x, p.y * sc.y + p.x * sc.x, pos.z, 1.0);
+                            gl_Position.xy += myCenter.xy;
 
                             gl_Position.x = 2.0f * gl_Position.x * myScrDxDy.x - 1.0f;
                             gl_Position.y = 1.0f - 2.0f * gl_Position.y * myScrDxDy.y;
@@ -272,12 +266,15 @@ public class myTexRectangle : myPrimitive
         );
 
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-            "out vec4 result;" +
-                "in vec4 fragColor;" +
-                "in vec2 fragTxCoord;" +
-                "uniform sampler2D myTexture;",
-                main: "result = texture(myTexture, fragTxCoord) * fragColor;"
-        );
+
+            header:
+                $@"out vec4 result;
+                    in vec4 fragColor;
+                    in vec2 fragTxCoord;
+                    uniform sampler2D myTexture;",
+            main:
+                $@"result = texture(myTexture, fragTxCoord) * fragColor;"
+        ); ;
 
         shaderProgram = glCreateProgram();
 
