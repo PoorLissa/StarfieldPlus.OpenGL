@@ -19,7 +19,7 @@ public class ScreenSaver
 
     private enum ids
     {
-        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_031, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_100,
+        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_031, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_071, myObj_100,
         myObj_101, myObj_102, myObj_103, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180, myObj_181,
         myObj_200, myObj_210, myObj_220, myObj_230,
         myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
@@ -112,6 +112,7 @@ public class ScreenSaver
         id = ids.myObj_500;
         id = ids.myObj_103;
         id = ids.myObj_500;
+        id = ids.myObj_071;
 #endif
 
         switch (id)
@@ -176,11 +177,10 @@ public class ScreenSaver
                 _obj = new my.myObj_070();
                 break;
 
-            // Desktop pieces falling off -- 2
-/*
-            case 11:
-                _obj = new my.myObj_072();
-                break;*/
+            // Pieces falling off the desktop, ver2
+            case ids.myObj_071:
+                _obj = new my.myObj_071();
+                break;
 
             // Big Bang
             case ids.myObj_100:
