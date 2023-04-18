@@ -236,14 +236,14 @@ public class myTexRectangle : myPrimitive
                 out vec4 fragColor; out vec2 fragTxCoord;
                 uniform vec4 myPart; uniform vec2 myScrDxDy; uniform float myOpacity; uniform float myAngle; uniform vec2 myCenter;",
 
-                main: @"fragColor = vec4(color, myOpacity);
+                main: $@"fragColor = vec4(color, myOpacity);
 
                         if (myAngle == 0)
-                        {
+                        {{
                             gl_Position = vec4(pos, 1.0);
-                        }
+                        }}
                         else
-                        {
+                        {{
                             vec2 p = pos.xy - myCenter;
                             vec2 sc = vec2(sin(myAngle), cos(myAngle));
 
@@ -252,17 +252,13 @@ public class myTexRectangle : myPrimitive
 
                             gl_Position.x = 2.0f * gl_Position.x * myScrDxDy.x - 1.0f;
                             gl_Position.y = 1.0f - 2.0f * gl_Position.y * myScrDxDy.y;
-                        }
+                        }}
 
-                        if (myPart.z == 0)
-                        {
-                            fragTxCoord = txCoord;
-                        }
-                        else
-                        {
-                            // This way, we are able to render just a part of a texture
-                            fragTxCoord = vec2(myScrDxDy.x * (myPart.x + txCoord.x * myPart.z), myScrDxDy.y * (myPart.y + txCoord.y * myPart.w));
-                        }"
+                        fragTxCoord = myPart.z == 0
+                            ? txCoord
+                            { "" /* This way, we are able to render just a part of a texture */ }
+                            : vec2(myScrDxDy.x * (myPart.x + txCoord.x * myPart.z), myScrDxDy.y * (myPart.y + txCoord.y * myPart.w));
+                "
         );
 
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
