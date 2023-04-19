@@ -17,6 +17,7 @@ namespace my
     public class myObj_132 : myObject
     {
         private static int N = 1;
+        private static int shaderNo = 0;
 
         private enum ScreenMode { Active, Start = 10, ManualSwitch = 33, Transition = 125 };
 
@@ -29,7 +30,8 @@ namespace my
         private static ScreenMode scrMode = ScreenMode.Start;
 
         private float x, y, dx, dy, size, dSize, r1, g1, b1, r2, g2, b2, time1, time2, dt1, dt2, float_B, x1, y1, x2, y2, x3, y3, x4, y4;
-        //private float a1, a2, angle = 0;
+
+        private static myFreeShader shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -64,6 +66,26 @@ namespace my
             tDefault = 33;
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // General shader selector
+        private void getShader()
+        {
+            string fHeader = "", fMain = "";
+
+            shaderNo = 0;
+
+#if DEBUG
+            //shaderNo = 4;
+#endif
+            switch (shaderNo)
+            {
+                case 0: getShader_000(ref fHeader, ref fMain); break;
+            }
+
+            shader = new myFreeShader(fHeader, fMain);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -164,13 +186,16 @@ namespace my
             t = tDefault;
             t -= isDimmableGlobal ? 13 : 0;
 
-            //mode = 91;
+#if DEBUG
+            mode = 9;
 
-#if false
-            fdLifeCnt = 0.01f;
-            mode= 1300;
-            mode= 91;
-            t = 3;
+            if (false)
+            {
+                fdLifeCnt = 0.01f;
+                mode = 1300;
+                mode = 91;
+                t = 3;
+            }
 #endif
 
             size = 1;
@@ -1463,6 +1488,22 @@ namespace my
             }
             else
             {
+                // todo: use the shader!
+                if (true)
+                {
+                    myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
+                    myPrimitive._Line.Draw(x1, y1, x2, y2);
+
+                    int size = (int)Math.Abs(10 + 50 * Math.Sin(x1));
+                    int off = 5;
+
+                    shader.SetColor(1.0f, 0.55f, 0.0f, 0.75f);
+                    shader.Draw(x1, y1, size, size, off);
+                    shader.Draw(x2, y2, size, size, off);
+
+                    return;
+                }
+
                 switch (mode)
                 {
                     case 00:
@@ -1683,6 +1724,8 @@ namespace my
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
             myPrimitive.init_Ellipse();
+
+            getShader();
 
             return;
         }
@@ -3358,5 +3401,36 @@ private void constSetup4()
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_000(ref string h, ref string m)
+        {
+            string myCircleFunc = "";
+
+            switch (rand.Next(3))
+            {
+                case 0: myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));"; break;
+                case 1: myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));"; break;
+                case 2: myCircleFunc = "float len = length(uv); if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);"; break;
+            }
+
+            myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));";
+
+            h = $@"float circle(vec2 uv, float rad) {{ {myCircleFunc} }};";
+
+            m = @"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                  uv = (uv - Pos.xy) * aspect;
+
+                  float rad = Pos.z;
+                  float circ = circle(uv, rad);
+
+                  result = vec4(myColor.xyz * circ, myColor.w * circ);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+
+
     }
 };

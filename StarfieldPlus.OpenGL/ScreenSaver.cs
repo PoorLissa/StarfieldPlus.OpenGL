@@ -12,6 +12,11 @@
     https://www.shadertoy.com/view/3tXXRn
 */
 
+
+using System.Linq;
+using System.Reflection;
+
+
 public class ScreenSaver
 {
     private my.myObject _obj = null;
@@ -90,20 +95,62 @@ public class ScreenSaver
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
     // - 
 
-    enum testEnum { one, two, three };
 
-    public void selectObject()
+    public class ottClassAttribute : System.Attribute
     {
-/*
-        // How can I access my objects using this enum?..
+        public System.Type Type { get; }
 
-        var values = (testEnum[])System.Enum.GetValues(typeof(testEnum));
+        public ottClassAttribute(System.Type t)
+        {
+            Type = t;
+        }
+    }
 
-        foreach (var val in values)
+    public class Joppa
+    {
+    };
+
+    public class A : Joppa
+    {
+        static int Priority => 1;
+    };
+
+    public class B : Joppa
+    {
+        static int Priority => 2;
+
+        public B()
         {
             ;
         }
-*/
+    };
+
+    public class C : Joppa
+    {
+        static int Priority => 3;
+    };
+
+    static System.Collections.Generic.Dictionary<int, System.Type> dic = new System.Collections.Generic.Dictionary<int, System.Type>();
+
+    public void selectObject()
+    {
+#if false
+        // This works, we can register out types and then access their static properties using getProperty function:
+
+        int getProperty(string name, System.Type t)
+        {
+            return (int)t.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+        }
+
+        dic.Add(1, typeof(A));
+        dic.Add(2, typeof(B));
+        dic.Add(3, typeof(C));
+
+        var item = dic[2];
+
+        Joppa obj = (Joppa)System.Activator.CreateInstance(item);
+#endif
+
 
 
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
@@ -112,7 +159,7 @@ public class ScreenSaver
         id = ids.myObj_500;
         id = ids.myObj_103;
         id = ids.myObj_500;
-        id = ids.myObj_071;
+        id = ids.myObj_132;
 #endif
 
         switch (id)
@@ -228,6 +275,7 @@ public class ScreenSaver
                 break;
 
             // Grid with moving rectangle lenses -- test, looks strange
+            // Make it like a lense -- but with an area. The tiles colsest to the center get larger scale factor
 /*
             case 20:
                 _obj = new my.myObj_140();
