@@ -12,6 +12,9 @@ namespace my
 {
     public class myObj_410 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         int circCount;
         private float size, dSize, A, R, G, B;
 

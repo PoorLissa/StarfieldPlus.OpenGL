@@ -12,6 +12,9 @@ namespace my
 {
     public class myObj_050 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int x, y, sizeX, sizeY, sizeDst, sizeSrc;
         private bool isVertical;
 

@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_360 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int[] others = null;
 
         private int nOthers, lineOpacity;

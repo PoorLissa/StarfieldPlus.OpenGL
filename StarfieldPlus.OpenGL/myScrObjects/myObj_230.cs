@@ -16,6 +16,9 @@ namespace my
 {
     public class myObj_230 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private enum ParticleType { One, Two, Three, Four };
 
         private float x, y, dx, dy;

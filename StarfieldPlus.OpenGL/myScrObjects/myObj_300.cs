@@ -16,6 +16,9 @@ namespace my
 {
     public class myObj_300 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private class myObj_300_Particle
         {
             public bool isFirstIteration = false;

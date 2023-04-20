@@ -19,6 +19,9 @@ namespace my
 
     public class myObj_043 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private const int N = 50;
 
         private int X, Y, oldX, oldY;

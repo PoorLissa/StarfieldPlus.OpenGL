@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_100 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private float x, y, dx, dy, angle, dAngle, size, A, R, G, B;
         private int cnt, lifeCounter, max, color;
 

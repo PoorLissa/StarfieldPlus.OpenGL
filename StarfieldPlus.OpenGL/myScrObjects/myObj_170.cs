@@ -17,6 +17,9 @@ namespace my
 {
     public class myObj_170 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int x, y, lifeCnt;
         private float size, dSize, A, R, G, B;
         bool doDraw = false, isSizeChanged = false;

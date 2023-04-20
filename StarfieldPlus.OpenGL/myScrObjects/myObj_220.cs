@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_220 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int lifeCounter = 0, type = 0;
         private float x, y, Rad, rad;
         private float time1 = 0, dt1 = 0, dt1Factor = 0, time2 = 0, dt2 = 0;

@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_011 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         private class myObj_011_Particle

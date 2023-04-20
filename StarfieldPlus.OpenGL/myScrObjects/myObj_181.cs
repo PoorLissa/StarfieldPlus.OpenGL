@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_181 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int parent_id;
         private bool isLive;
         private float x, y, dx, dy;

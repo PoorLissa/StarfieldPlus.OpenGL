@@ -16,6 +16,9 @@ namespace my
 {
     public class myObj_160 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int x, y;
         private float A, R, G, B;
 

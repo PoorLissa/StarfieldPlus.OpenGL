@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_350 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private List<myObj_350> children = null;
         private myObj_350 parent = null;
 

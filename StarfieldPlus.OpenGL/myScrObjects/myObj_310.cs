@@ -21,7 +21,8 @@ namespace my
 {
     public class myObj_310 : myObject
     {
-        // ---------------------------------------------------------------------------------------------------------------
+        // Priority
+        public static int Priority => 10;
 
         // Static parameters
         private static int N = 0;

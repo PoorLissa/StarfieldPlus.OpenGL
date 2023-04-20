@@ -13,7 +13,8 @@ namespace my
 {
     public class myObj_320 : myObject
     {
-        // ---------------------------------------------------------------------------------------------------------------
+        // Priority
+        public static int Priority => 10;
 
         private int cnt, steps, Steps;
         private float x, y, dx, dy, sizex, sizey, R, G, B, A, stepx, stepy;

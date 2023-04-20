@@ -15,6 +15,9 @@ namespace my
 {
     public class myObj_103 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private float x, y, size, A, R, G, B;
 
         private static int N = 0, shaderNo = 0;

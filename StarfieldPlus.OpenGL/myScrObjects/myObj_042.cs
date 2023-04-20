@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_042 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int x, y, dx, dy, oldx, oldy, iterCounter, staticCounter, colorCounter;
         private float size, size2x, a, A, R, G, B, dR, dG, dB, angle, dAngle;
         private bool isStatic = false;

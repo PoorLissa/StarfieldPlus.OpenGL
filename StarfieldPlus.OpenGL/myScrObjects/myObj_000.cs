@@ -15,6 +15,9 @@ namespace my
 {
     public class myObj_000 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         protected float size, dSize, A, R, G, B, angle, dAngle;
         protected float x, y, dx, dy, acceleration = 1.0f;
         protected int cnt = 0, max = 0;

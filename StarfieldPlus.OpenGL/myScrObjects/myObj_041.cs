@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_041 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int dxi, dyi, oldX, oldY;
         private float dxf = 0, dyf = 0, x = 0, y = 0, time = 0, size = 0, A = 0, dA = 0, angle, dAngle;
 

@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_110 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int x, y, w, h, size, cnt;
         private float A, R, G, B, angle = 0;
 

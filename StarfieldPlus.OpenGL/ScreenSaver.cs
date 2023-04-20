@@ -96,62 +96,74 @@ public class ScreenSaver
     // - 
 
 
-    public class ottClassAttribute : System.Attribute
-    {
-        public System.Type Type { get; }
-
-        public ottClassAttribute(System.Type t)
-        {
-            Type = t;
-        }
-    }
-
-    public class Joppa
-    {
-    };
-
-    public class A : Joppa
-    {
-        static int Priority => 1;
-    };
-
-    public class B : Joppa
-    {
-        static int Priority => 2;
-
-        public B()
-        {
-            ;
-        }
-    };
-
-    public class C : Joppa
-    {
-        static int Priority => 3;
-    };
-
-    static System.Collections.Generic.Dictionary<int, System.Type> dic = new System.Collections.Generic.Dictionary<int, System.Type>();
 
     public void selectObject()
     {
-#if false
-        // This works, we can register out types and then access their static properties using getProperty function:
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_000));   // Star Field
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_010));   // Randomly Roaming Squares (Snow Like)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011));   // Randomly Roaming Lines (based on Randomly Roaming Squares)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_020));   // Linearly Moving Shapes (Soap Bubbles Alike)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_030));   // Rain Drops (Vertical, Top-Down)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_031));   // Pseudo-3d-rain
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_040));   // Lines 1: Snake-like branches moving outwards from the center
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_041));   // Lines 2: Branches/snakes moving inwards/outwards with different set of rules
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_042));   // Lines 3: Patchwork / Micro Schematics
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_043));   // Various shapes growing out from a single starting point
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_050));   // Desktop pieces get swapped
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_070));   // Pieces falling off the desktop, ver1
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_071));   // Pieces falling off the desktop, ver2
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_100));   // Big Bang
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_101));   // Desktop 1: - Random pieces of the screen are shown at their own slightly offset locations
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_102));   // Desktop 2: - Random shapes with a color from the underlying image (point-based or average)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_103));   // Desktop 3: - Random shapes with a color from the underlying image (point-based or average) -- uses custom shader
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_110));   // Desktop 4: Puts random colored shapes all over the screen
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_120));   // Moving Lines (4 directions, straight lines or sin/cos curves)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_130));   // Growing shapes -- Rain circles alike -- no buffer clearing
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_131));   // Growing shapes -- Rain circles alike
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_132));   // Splines
 
-        int getProperty(string name, System.Type t)
-        {
-            return (int)t.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
-        }
+        // Grid with moving rectangle lenses -- test, looks strange
+        // Make it like a lense -- but with an area. The tiles colsest to the center get larger scale factor
+        // Also, as an option: display a grid, where each cell is an avg color from this position;
+        // ANd only where the active object is, display actual texture
+        //my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_140));
 
-        dic.Add(1, typeof(A));
-        dic.Add(2, typeof(B));
-        dic.Add(3, typeof(C));
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_150));   // Conway's Life
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_160));   // Desktop: Ever fading away pieces
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_170));   // Desktop: Diminishing pieces
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_180));   // Single generator of particle waves
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_181));   // Multiple generators of particle waves
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_200));   // Spiraling out shapes
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_210));   // Another spiraling shapes -- see what's the difference
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_220));   // Falling lines, Matrix-Style
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_230));   // Gravity -- unfinished
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_300));   // Small Explosions of Particles + Movement type Variations
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_310));   // Moving particles, where each particle is connected with every other particle out there
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_320));   // Spiralling doodles made of squares
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_330));   // Textures, Take 1
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_340));   // Grid consisting of hexagons
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_350));   // Moving groups of small particles. Particles within the group are connected to each other
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_360));   // Moving particles; each particle is connected to 5 other random particles
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_370));   // The image is split into big number of particles that fall down
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_380));   // Rectangular shapes made of particles moving along the rectangle's outline
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_390));   // Particles move radially from the off-center position, creating a vortex-like structure
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_400));   // Circular texture stripes
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_410));   // Concentric vibrating circles around randomly moving center point
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_420));   // System, where the center attracts and repels all the particles at the same time. vary both forces
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_430));   // Shooters move across the screen, shooting at each other
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_440));   // Bouncing ball and lots of triangles rotating to point to it
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_450));   // Get color from image and slightly offset this color. Then put the color spots on the screen
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_460));   // Point cyclically moves on a spiral, constantly leaving a trail. Trail is made of particles that move outwards from the center OR in a point's opposite direction
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_470));   // - ... skewed lines
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_480));   // - ... harmonic oscillations
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_490));   // F (x, y)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_500));   // Free Shader Experiments
 
-        var item = dic[2];
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 
-        Joppa obj = (Joppa)System.Activator.CreateInstance(item);
-#endif
+        _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);
 
-
+        return;
 
         ids id = (ids)(new System.Random()).Next((int)ids.myObj_last);
 
@@ -276,6 +288,8 @@ public class ScreenSaver
 
             // Grid with moving rectangle lenses -- test, looks strange
             // Make it like a lense -- but with an area. The tiles colsest to the center get larger scale factor
+            // Also, as an option: display a grid, where each cell is an avg color from this position;
+            // ANd only where the active object is, display actual texture
 /*
             case 20:
                 _obj = new my.myObj_140();

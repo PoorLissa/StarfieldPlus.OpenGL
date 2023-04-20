@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_430 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private myObj_430 owner = null;
 
         private int bulletSpeed, closestTarget, trailLengthFactor;

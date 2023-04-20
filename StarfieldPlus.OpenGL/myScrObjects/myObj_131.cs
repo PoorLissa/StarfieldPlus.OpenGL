@@ -12,6 +12,9 @@ namespace my
 {
     public class myObj_131 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int maxSize, sizeStep;
         private float x, y, dx, dy, size, dSize, A, R, G, B, angle, dA, dAngle;
 

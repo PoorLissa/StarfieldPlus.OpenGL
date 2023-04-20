@@ -21,6 +21,9 @@ namespace my
 {
     public class myObj_999a : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private float x, y, time = 0, dt = 0.01f;
         private float r, g, b;
         private float y1, x2, y2, x3, y3;

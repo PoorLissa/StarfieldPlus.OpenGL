@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_210 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private static bool doChangeBgrColor = false, randomDrad = false, isCenter = true;
         private static int shapeType = 0, moveType = 0, dimMode = 0, N = 1, daBase = 0;
         private static float baseDt = 1.0f, dimAlpha = 0.025f;

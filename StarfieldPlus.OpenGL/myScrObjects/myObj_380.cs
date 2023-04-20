@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_380 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private myObj_380 parent = null;
 
         private bool dir;

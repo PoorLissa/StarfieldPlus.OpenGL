@@ -21,6 +21,9 @@ namespace my
 {
     public class myObj_330 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private myObjectParams p = null;
 
         public float x, y, X, Y, dx, dy, a, da, r, g, b;

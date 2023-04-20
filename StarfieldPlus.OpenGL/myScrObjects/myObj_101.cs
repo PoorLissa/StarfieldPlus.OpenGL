@@ -13,6 +13,9 @@ namespace my
 {
     public class myObj_101 : myObject
     {
+        // Priority
+        public static int Priority => 10;
+
         private int x, y, w, h;
         private int maxOffset, offX, offY;
         private float A, angle = 0;
