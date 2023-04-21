@@ -14,6 +14,9 @@ using System.Collections.Generic;
     // Gravitational pull towards the point which is off screen
     // The one like 64, but with repulsion instead of attraction; The passive particles are returning back to their initial places
     // When pressing Space to switch mode, it crashes sometimes
+
+    Known issues:
+        - mode 30 sometimes flicker like crazy. Might that be due to rotating and showing tex pieces at the same place?..
 */
 
 
@@ -21,8 +24,8 @@ namespace my
 {
     public class myObj_330 : myObject
     {
-        // Priority
-        public static int Priority => 10;
+        // Priority: we have 70 modes, so the priority will be higher than usual:
+        public static int Priority => 50;
 
         private myObjectParams p = null;
 
@@ -68,7 +71,7 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            mode = 23;
+            //mode = 30;
 #endif
             // Reset parameter values
             {

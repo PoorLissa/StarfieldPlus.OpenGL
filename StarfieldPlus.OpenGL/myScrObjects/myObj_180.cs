@@ -14,7 +14,7 @@ namespace my
     public class myObj_180 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 20;
 
         private static bool doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,

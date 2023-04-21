@@ -17,7 +17,7 @@ namespace my
     public class myObj_300 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 35;
 
         private class myObj_300_Particle
         {
