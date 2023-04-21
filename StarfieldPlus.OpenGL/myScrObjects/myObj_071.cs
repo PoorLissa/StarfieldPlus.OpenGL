@@ -244,14 +244,34 @@ namespace my
                 // Dim the tile on the src image
                 offScrRenderer.startRendering();
                 {
-                    float r = myUtils.randFloat(rand) * 0.1f;
-                    float g = myUtils.randFloat(rand) * 0.1f;
-                    float b = myUtils.randFloat(rand) * 0.1f;
+                    if (true)
+                    {
+                        float r = myUtils.randFloat(rand) * 0.1f;
+                        float g = myUtils.randFloat(rand) * 0.1f;
+                        float b = myUtils.randFloat(rand) * 0.1f;
 
-                    myPrimitive._Rectangle.SetColor(r, g, b, A * 0.25f);
-                    myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, true);
-                    myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, false);
+                        myPrimitive._Rectangle.SetColor(r, g, b, A * 0.25f);
+                        myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, true);
+                        myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, false);
+                    }
+                    else
+                    {
+                        float r = myUtils.randFloat(rand) * 0.1f;
+                        float g = myUtils.randFloat(rand) * 0.1f;
+                        float b = myUtils.randFloat(rand) * 0.1f;
 
+                        for (int i = 0; i < (int)size2x;)
+                        {
+                            int offX = rand.Next(5);
+                            int size = rand.Next(5) + 1;
+                            i += size;
+
+                            myPrimitive._Rectangle.SetColor(r, g, b, A * 0.15f + myUtils.randFloat(rand) * 0.1f);
+                            myPrimitive._Rectangle.Draw(X + offX, gl_Height - Y - i, size2x + rand.Next(5), size, true);
+                        }
+
+                        //myPrimitive._Rectangle.Draw(X + 1, gl_Height - Y - size2x + 2, size2x - 3, size2x - 3, true);
+                    }
                 }
                 offScrRenderer.stopRendering();
             }

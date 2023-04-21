@@ -112,6 +112,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_050));   // Desktop pieces get swapped
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_070));   // Pieces falling off the desktop, ver1
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_071));   // Pieces falling off the desktop, ver2
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_072));   // Desktop pieces move from the offscreen postion into their original positions
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_100));   // Big Bang
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_101));   // Desktop 1: - Random pieces of the screen are shown at their own slightly offset locations
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_102));   // Desktop 2: - Random shapes with a color from the underlying image (point-based or average)

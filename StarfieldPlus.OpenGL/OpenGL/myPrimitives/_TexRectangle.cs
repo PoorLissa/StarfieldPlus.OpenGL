@@ -270,7 +270,7 @@ public class myTexRectangle : myPrimitive
                     uniform sampler2D myTexture;",
             main:
                 $@"result = texture(myTexture, fragTxCoord) * fragColor;"
-        ); ;
+        );
 
         shaderProgram = glCreateProgram();
 
