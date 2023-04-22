@@ -25,7 +25,9 @@ namespace my
         private static int sinRepeater = 1, sinConst1_i = 1, sinConst2 = 0, sinConstCnt = 0;
         private static float moveConst = 0.0f, dimAlpha = 0.0f, maxOpacity = 0.33f, sinConst1_f = 0, dRstatic, dGstatic, dBstatic, secondOpacityFactor = 1;
         private static bool doShowStatics = false, doReuseStatics = false, doIncrementSinConst = false, doVaryOpacity = true, doUseStrongDim = false;
-        private static bool doRotate = false, doDrawTwice = true;
+        private static bool doRotate = false, doDrawTwice = true, doUseShader = false;
+
+        private static myFreeShader shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -49,6 +51,7 @@ namespace my
                 doDrawTwice = myUtils.randomChance(rand, 1, 2);             // Draw any particle twice to smooth its appearance
                 stepsPerFrame = rand.Next(33) + 1;
                 shape = rand.Next(5);
+                doUseShader = myUtils.randomChance(rand, 1, 2);             // Use custom shader instead of standard shapes
 
                 if (rand.Next(2) == 0)
                 {
@@ -180,6 +183,7 @@ namespace my
 
             return $"Obj = myObj_042\n\n" +
                             $"N = {list.Count} of {N}\n"                                            +
+                            $"doUseShader = {doUseShader}\n"                                        +
                             $"shape = {shape} ({getShape(shape)})\n"                                +
                             $"baseSize = {baseSize}\n"                                              +
                             $"maxOpacity= {maxOpacity.ToString("0.000")}\n"                         +
@@ -690,84 +694,92 @@ namespace my
                     a = A + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.33f;
                 }
 
-                switch (shape)
+                if (doUseShader)
                 {
-                    case 0:
-                        {
-                            var rectInst = inst as myRectangleInst;
-
-                            rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                            rectInst.setInstanceColor(R, G, B, a);
-                            rectInst.setInstanceAngle(angle);
-
-                            if (doDrawTwice)
+                    shader.SetColor(R, G, B, a);
+                    shader.Draw(x, y, size, size, 13);
+                }
+                else
+                {
+                    switch (shape)
+                    {
+                        case 0:
                             {
-                                rectInst.setInstanceCoords(x - size - 1, y - size - 1, size2x + 2, size2x + 2);
-                                rectInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                var rectInst = inst as myRectangleInst;
+
+                                rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                                rectInst.setInstanceColor(R, G, B, a);
                                 rectInst.setInstanceAngle(angle);
+
+                                if (doDrawTwice)
+                                {
+                                    rectInst.setInstanceCoords(x - size - 1, y - size - 1, size2x + 2, size2x + 2);
+                                    rectInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                    rectInst.setInstanceAngle(angle);
+                                }
                             }
-                        }
-                        break;
+                            break;
 
-                    case 1:
-                        {
-                            var triangleInst = inst as myTriangleInst;
-
-                            triangleInst.setInstanceCoords(x, y, size, angle);
-                            triangleInst.setInstanceColor(R, G, B, a);
-
-                            if (doDrawTwice)
+                        case 1:
                             {
-                                triangleInst.setInstanceCoords(x, y - 1, size + 1, angle);
-                                triangleInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                var triangleInst = inst as myTriangleInst;
+
+                                triangleInst.setInstanceCoords(x, y, size, angle);
+                                triangleInst.setInstanceColor(R, G, B, a);
+
+                                if (doDrawTwice)
+                                {
+                                    triangleInst.setInstanceCoords(x, y - 1, size + 1, angle);
+                                    triangleInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                }
                             }
-                        }
-                        break;
+                            break;
 
-                    case 2:
-                        {
-                            var ellipseInst = inst as myEllipseInst;
-
-                            ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                            ellipseInst.setInstanceColor(R, G, B, a);
-
-                            if (doDrawTwice)
+                        case 2:
                             {
-                                ellipseInst.setInstanceCoords(x, y, size2x + 3, angle);
-                                ellipseInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                var ellipseInst = inst as myEllipseInst;
+
+                                ellipseInst.setInstanceCoords(x, y, size2x, angle);
+                                ellipseInst.setInstanceColor(R, G, B, a);
+
+                                if (doDrawTwice)
+                                {
+                                    ellipseInst.setInstanceCoords(x, y, size2x + 3, angle);
+                                    ellipseInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                }
                             }
-                        }
-                        break;
+                            break;
 
-                    case 3:
-                        {
-                            var pentagonInst = inst as myPentagonInst;
-
-                            pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                            pentagonInst.setInstanceColor(R, G, B, a);
-
-                            if (doDrawTwice)
+                        case 3:
                             {
-                                pentagonInst.setInstanceCoords(x, y, size2x + 2, angle);
-                                pentagonInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                var pentagonInst = inst as myPentagonInst;
+
+                                pentagonInst.setInstanceCoords(x, y, size2x, angle);
+                                pentagonInst.setInstanceColor(R, G, B, a);
+
+                                if (doDrawTwice)
+                                {
+                                    pentagonInst.setInstanceCoords(x, y, size2x + 2, angle);
+                                    pentagonInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                }
                             }
-                        }
-                        break;
+                            break;
 
-                    case 4:
-                        {
-                            var hexagonInst = inst as myHexagonInst;
-
-                            hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                            hexagonInst.setInstanceColor(R, G, B, a);
-
-                            if (doDrawTwice)
+                        case 4:
                             {
-                                hexagonInst.setInstanceCoords(x, y, size2x + 2, angle);
-                                hexagonInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                var hexagonInst = inst as myHexagonInst;
+
+                                hexagonInst.setInstanceCoords(x, y, size2x, angle);
+                                hexagonInst.setInstanceColor(R, G, B, a);
+
+                                if (doDrawTwice)
+                                {
+                                    hexagonInst.setInstanceCoords(x, y, size2x + 2, angle);
+                                    hexagonInst.setInstanceColor(R, G, B, a * secondOpacityFactor);
+                                }
                             }
-                        }
-                        break;
+                            break;
+                    }
                 }
             }
 
@@ -804,11 +816,28 @@ namespace my
 
                 dimScreen(dimAlpha, doUseStrongDim);
 
+                int Count = list.Count;
+
                 // Render frame
+                if (doUseShader)
+                {
+                    for (step = 0; step != stepsPerFrame; step++)
+                    {
+                        for (i = 0; i != Count; i++)
+                        {
+                            var obj = list[i] as myObj_042;
+
+                            if (obj.isStatic)
+                                staticsCnt++;
+
+                            obj.Show();
+                            obj.Move();
+                        }
+                    }
+                }
+                else
                 {
                     inst.ResetBuffer();
-
-                    int Count = list.Count;
 
                     for (step = 0; step != stepsPerFrame; step++)
                     {
@@ -850,9 +879,16 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-//          myPrimitive.init_LineInst(N * stepsPerFrame);
+            // myPrimitive.init_LineInst(N * stepsPerFrame);
 
-            base.initShapes(shape, N * stepsPerFrame * (doDrawTwice ? 2 : 1), 0);
+            if (doUseShader)
+            {
+                getShader();
+            }
+            else
+            {
+                base.initShapes(shape, N * stepsPerFrame * (doDrawTwice ? 2 : 1), 0);
+            }
 
             return;
         }
@@ -892,6 +928,37 @@ namespace my
                 d = (++i % 2 == 0) ? Math.Sin(d) : Math.Cos(d);
 
             return (float)d;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            string fHeader = "", fMain = "";
+
+            getShader_000(ref fHeader, ref fMain);
+
+            shader = new myFreeShader(fHeader, fMain);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_000(ref string h, ref string m)
+        {
+            string myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));";
+
+            h = $@"float circle(vec2 uv, float rad) {{ {myCircleFunc} }};";
+
+            m = @"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                  uv -= Pos.xy;
+                  uv *= aspect;
+
+                  float rad = Pos.z;
+                  float circ = circle(uv, rad);
+
+                  result = vec4(myColor.xyz * circ, myColor.w * circ);
+            ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
