@@ -17,6 +17,9 @@ using System.Linq;
 using System.Reflection;
 
 
+#pragma warning disable IDE1006
+
+
 public class ScreenSaver
 {
     private my.myObject _obj = null;
@@ -188,3 +191,6 @@ public class ScreenSaver
 
     // -------------------------------------------------------------------------------------------------------------------
 };
+
+
+#pragma warning restore IDE1006

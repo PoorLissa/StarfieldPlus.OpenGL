@@ -39,7 +39,7 @@ namespace my
     public class myObj_500 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
         private float R, G, B;
         private int mode = 0;
@@ -1434,7 +1434,7 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
         // My testing grounds
         private void getShader_999(ref string header, ref string main)
         {
-            int experimentId = 4;
+            int experimentId = 5;
 
             // experiment - circle made of sin curve
             if (experimentId == 0)
@@ -1668,6 +1668,47 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
                     result.xyz *= myColor.xyz;
                 ";
             }
+
+            if (experimentId == 5)
+            {
+                header = $@"
+                    vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+                    {myShaderHelpers.Generic.rotationMatrix}
+                ";
+
+                main = $@"
+                    float t = uTime;
+
+                    vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                    uv *= rot(t * 0.01);
+
+                    uv *= 12.5;
+
+                    float len = length(uv);
+
+                    float a = abs(uv.x + sin(1*t) * 3);
+                    float b = abs(uv.y + cos(1*t) * 3);
+
+                    float val = min(a, b) * sin(len*t) * 4;
+
+                    val *= min(a, b) * sin(len*t*0.1) * 2;
+
+                    float a2 = abs(uv.y + sin(1*t) * 3);
+                    float b2 = abs(uv.x + cos(1*t) * 3);
+
+                    val *= min(a2, b2) * sin(len) * 11;
+
+                    val *= val;
+
+                    val = smoothstep(0.0, 0.3, val);
+
+                    //result = vec4(myColor.xyz, val);
+                    result = vec4(vec3(myColor.x + abs(uv.x), myColor.y * abs(uv.y), myColor.z * abs(uv.x)), val);
+                ";
+            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
