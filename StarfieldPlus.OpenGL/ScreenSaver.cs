@@ -162,6 +162,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_480));   // - ... harmonic oscillations
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_490));   // F (x, y)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_500));   // Free Shader Experiments
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_501));   // Free Shader Experiments - 2
 
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 

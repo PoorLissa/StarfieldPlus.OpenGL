@@ -1,0 +1,466 @@
+﻿using GLFW;
+using static OpenGL.GL;
+using System;
+using System.Collections.Generic;
+
+
+/*
+    - Free full screen shader experiments - 2
+*/
+
+
+namespace my
+{
+    public class myObj_501 : myObject
+    {
+        // Priority
+        public static int Priority => 13;
+
+        private float R, G, B;
+        private int mode = 0;
+        private string fHeader = "", fMain = "", stdHeader = "";
+
+        private myFreeShader_FullScreen shaderFull = null;
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        public myObj_501()
+        {
+            if (id != uint.MaxValue)
+                generateNew();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            // Global unmutable constants
+            {
+            }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            renderDelay = 0;
+
+            do
+            {
+                R = myUtils.randFloat(rand);
+                G = myUtils.randFloat(rand);
+                B = myUtils.randFloat(rand);
+            }
+            while (R + G + B < 0.33f);
+
+            stdHeader = $@"
+                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+                {myShaderHelpers.Generic.rotationMatrix}
+                float t = uTime;
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;";
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override string CollectCurrentInfo(ref int width, ref int height)
+        {
+            height = 600;
+
+            string nStr(int n) { return n.ToString("N0"); }
+            string fStr(float f) { return f.ToString("0.000"); }
+
+            string str = $"Obj = myObj_501 -- Free Shader Experiments\n\n" +
+                            $"N = {nStr(1)}\n"                             +
+                            $"R = {fStr(R)};\n"                            +
+                            $"G = {fStr(G)};\n"                            +
+                            $"B = {fStr(B)}\n"                             +
+                            $"mode = {mode}\n"                             +
+                            $"renderDelay = {renderDelay}\n"               +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
+            return str;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // 
+        protected override void setNextMode()
+        {
+            getShader(ref fHeader, ref fMain);
+
+            System.Threading.Thread.Sleep(100);
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Process(Window window)
+        {
+            uint cnt = 0;
+
+            glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+
+            getShader(ref fHeader, ref fMain);
+
+            while (!Glfw.WindowShouldClose(window))
+            {
+                processInput(window);
+
+                // Swap fore/back framebuffers, and poll for operating system events.
+                Glfw.SwapBuffers(window);
+                Glfw.PollEvents();
+
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                // Render Frame
+                {
+                    shaderFull.Draw();
+                }
+
+                cnt++;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Select random mode and get shader code: header + main func
+        private void getShader(ref string header, ref string main)
+        {
+            mode = rand.Next(8);
+
+#if DEBUG
+            //mode = 7;
+#endif
+
+            switch (mode)
+            {
+                case 00: getShader_000(ref header, ref main); break;
+                case 01: getShader_001(ref header, ref main); break;
+                case 02: getShader_002(ref header, ref main); break;
+                case 03: getShader_003(ref header, ref main); break;
+                case 04: getShader_004(ref header, ref main); break;
+                case 05: getShader_005(ref header, ref main); break;
+                case 06: getShader_006(ref header, ref main); break;
+                case 07: getShader_007(ref header, ref main); break;
+            }
+
+            shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_000(ref string header, ref string main)
+        {
+            string getVal = "";
+            header = stdHeader;
+
+            switch (rand.Next(2))
+            {
+                case 0: getVal = "x * sin(y) + len"; break;
+                case 1: getVal = "x + sin(y) + cos(len) + y * cos(y) + len"; break;
+            }
+
+            main = $@"
+                    uv *= 12.5;
+
+                    float x = uv.x + 0;
+                    float y = uv.y + 0;
+
+                    float len = length(uv);
+                    float val = {getVal};
+
+                    for (int i = 0; i < 3; i++)
+                    {{
+                        val += sin(x + y + t) * 0.5;
+                        val += cos(x - y + t) * 0.5;
+
+                        val = min(cos(val) * len * t, val);
+
+                        myColor[i] *= smoothstep(-10, 10, val);
+
+                        val = cos(val) * len * t;
+                        val = smoothstep(0, 1, val) * 3;
+                    }}
+
+                    val *= sin(val);
+                    val = smoothstep(0, 0.5, val);
+                    result = vec4(myColor.xyz, val);
+                ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_001(ref string header, ref string main)
+        {
+            header = stdHeader;
+
+            main = $@"
+                    uv *= 12.5;
+
+                    myColor.x += abs(uv.x + t);
+                    myColor.y *= abs(uv.y + t);
+                    myColor.z *= abs(uv.x + t);
+
+                    uv *= rot(t * 0.01);
+
+                    float len = length(uv);
+
+                    float a = abs(uv.x + sin(1*t) * 3);
+                    float b = abs(uv.y + cos(1*t) * 3);
+
+                    float val = min(a, b) * sin(len*t) * 4;
+
+                    val *= max(a, b) * sin(t*0.1*uv.x) * 2;
+
+                    float a2 = abs(uv.y + sin(1*t) * 11);
+                    float b2 = abs(uv.x + cos(1*t) * 11);
+
+                    val *= min(a2, b2) * sin(len) * 11;
+                    val *= val;
+                    val = smoothstep(0, 0.3, val);
+
+                    result = vec4(myColor.xyz, val);
+                ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_002(ref string header, ref string main)
+        {
+            header = stdHeader;
+
+            main = $@"
+                    uv *= rot(t * 0.01);
+                    uv *= 12.5;
+
+                    float len = length(uv);
+
+                    float a = abs(uv.x + sin(1*t) * 3);
+                    float b = abs(uv.y + cos(1*t) * 3);
+
+                    float val = min(a, b) * sin(len*t) * 4;
+
+                    val *= min(a, b) * sin(len*t*0.1) * 2;
+
+                    float a2 = abs(uv.y + sin(1*t) * 3);
+                    float b2 = abs(uv.x + cos(1*t) * 3);
+
+                    val *= min(a2, b2) * sin(len) * 11;
+                    val *= val;
+                    val = smoothstep(0.0, 0.3, val);
+
+                    result = vec4(vec3(myColor.x + abs(uv.x), myColor.y * abs(uv.y), myColor.z * abs(uv.x)), val);
+                ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_003(ref string header, ref string main)
+        {
+            header = stdHeader;
+
+            main = $@"
+                    //uv = (gl_FragCoord.xy) / iResolution.y / 16.0 + vec2(uTime / 2.0, t / 3.0) / 64.0;
+
+                    uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y + vec2(t / 2.0, 1) * 0.1;
+                    uv *= 1 + sin(t) * 0.05;
+                    uv *= 0.25;
+                    uv *= rot(t * 0.01);
+
+                    float col = 0;
+
+                    for (int k = 0; k < 9; k++)
+                    {{
+                        uv = abs(fract(uv.yx - vec2(uv.x, -uv.y) * 2.0) - 0.5);
+
+                        col = max(length(uv / 2.0), col);
+                        col = max(abs(col * 2.0 - 1.0), col / 4.0);
+                    }}
+
+                    result = vec4(min(vec3(col * 2.0), vec3(1.0)), 1.0);
+                    result.xyz *= myColor.xyz;
+                ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_004(ref string header, ref string main)
+        {
+            float thickness = 0.2f;
+            float mult = 10.0f;
+
+            header = stdHeader;
+
+            header +=
+                $@"float shape2(vec2 uv, float rad)
+                    {{
+                        float res = 0, len = length(uv);
+
+                        float val = (rad - len) * {thickness};
+
+                        float val2 = abs(sin(uv.x)) * abs(sin(uv.y)) * {mult};
+
+                        res = smoothstep(0.0, val2, val) * 0.5;
+
+                        if (abs(val - val2) < 0.001)
+                            res += (1 - smoothstep(-0.01, 0.01, (val - val2)));
+
+                        return res;
+                    }}
+                ";
+
+            main = $@"
+                    uv *= 1 + sin(t * 1.01) * 0.5;
+                    uv *= rot(t * 0.1);
+                    float r = shape2(uv, 0.23);
+
+                    uv *= 1 + sin(t * 1.01) * 0.5;
+                    r *= shape2(uv, 0.23);
+
+                    result = vec4(myColor.xyz, r);
+                ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_005(ref string header, ref string main)
+        {
+            header = stdHeader;
+
+            header +=
+                $@"
+                    float nRays = 17;
+                    #define pi1x {Math.PI * 1}
+                    #define pi2x {Math.PI * 2}";
+
+            main = $@"
+                    uv *= rot(uTime * 0.05);
+
+                    float at = atan(uv.y, uv.x);
+                    float len = length(uv);
+                    float rad = 0.35;
+
+                    float color = smoothstep(-0.001, 0.025, rad - len);
+
+                    float val = len - rad + sin(t) * 0.1;
+
+                    float f = sin(at * nRays) * 0.25;
+
+                    color = smoothstep(0, 0.1, (val) * f * 123.1);
+
+                    if (len < 0.1 + sin(t * 0.793) * 0.09)
+                        color = smoothstep(0.01, 0.3, len);
+
+                    if (len < 0.1 + sin(t * 0.937) * 0.08)
+                        color += smoothstep(0.01, 0.3, len);
+
+                    if (len < 0.2 + cos(t * 0.317) * 0.13)
+                        color += smoothstep(0.01, 0.3, len) * 0.3;
+
+                    result = vec4(vec3(color), 1.0);
+                ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Circle with solid border
+        private void getShader_006(ref string header, ref string main)
+        {
+            header = stdHeader;
+
+            header += $@"
+                    #define pi1x {Math.PI * 1}
+                    #define pi2x {Math.PI * 2}
+
+                    float F(vec2 uv, float rad)
+                    {{
+                        float at = atan(uv.y, uv.x);
+                        float len = length(uv);
+
+                        float val = len - rad;
+                        float absVal = abs(val);
+
+                        if (len < rad)
+                        {{
+                            float res = 0, off = abs(len - rad + 0.05);
+
+                            if (off < 0.0025)
+                                res = (1 - smoothstep(0, 0.001, off)) * 2;
+
+                            return res + smoothstep(0, 0.05, absVal) * 0.5;
+                        }}
+
+                        return 0;
+                    }}
+
+                    float F1(vec2 uv, float rad)
+                    {{
+                        float at = atan(uv.y, uv.x);
+                        float len = length(uv);
+
+                        float val = len - rad;
+                        float absVal = abs(val);
+
+                        if (absVal < 0.001)
+                            return (1 - smoothstep(0, 0.001, absVal)) * 2;
+
+                        if (len < rad)
+                            return smoothstep(0, 0.05, absVal);
+
+                        return 0;
+                    }}
+                ";
+
+            main = $@"
+                    float rad = 0.35 + sin(t * 0.1) * 0.25;
+                    float color = F(uv, rad);
+                    result = vec4(myColor.xyz, color);
+                ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Circle made of sin curve
+        private void getShader_007(ref string header, ref string main)
+        {
+            header = stdHeader;
+
+            header += $@"
+                float nRays = {rand.Next(23) + 3};
+                #define pi1x {Math.PI}
+                #define pi2x {Math.PI * 2}
+            ";
+
+            main = $@"
+                uv *= rot(uTime * 0.05);
+
+                float at = atan(uv.y, uv.x);
+                float len = length(uv);
+                float rad = 0.35;
+
+                float val = len - rad + sin(at * nRays) * rad/25 + cos(at * 13) * rad/33;
+
+                float color = 1 - smoothstep(0, 0.025, abs(val));   // remove abs for a solid shape
+
+                result = vec4(vec3(color), 1.0);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+    }
+};
