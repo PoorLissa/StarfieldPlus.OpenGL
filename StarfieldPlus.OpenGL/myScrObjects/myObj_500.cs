@@ -39,7 +39,7 @@ namespace my
     public class myObj_500 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 9999910;
 
         private float R, G, B;
         private int mode = 0;
@@ -1705,6 +1705,40 @@ n = noise(uv * uTime * 3) + noise(uv * uTime * 7) + noise(uv * uTime * 11) + noi
 
                     //result = vec4(myColor.xyz, val);
                     result = vec4(vec3(myColor.x + abs(uv.x), myColor.y * abs(uv.y), myColor.z * abs(uv.x)), val);
+                ";
+
+                main = $@"
+                    float t = uTime;
+
+                    vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+
+                    uv *= 12.5;
+
+                    myColor.x += abs(uv.x + t);
+                    myColor.y *= abs(uv.y + t);
+                    myColor.z *= abs(uv.x + t);
+
+                    uv *= rot(t * 0.01);
+
+                    float len = length(uv);
+
+                    float a = abs(uv.x + sin(1*t) * 3);
+                    float b = abs(uv.y + cos(1*t) * 3);
+
+                    float val = min(a, b) * sin(len*t) * 4;
+
+                    val *= max(a, b) * sin(t*0.1*uv.x) * 2;
+
+                    float a2 = abs(uv.y + sin(1*t) * 11);
+                    float b2 = abs(uv.x + cos(1*t) * 11);
+
+                    val *= min(a2, b2) * sin(len) * 11;
+
+                    val *= val;
+
+                    val = smoothstep(0, 0.3, val);
+
+                    result = vec4(myColor.xyz, val);
                 ";
             }
 
