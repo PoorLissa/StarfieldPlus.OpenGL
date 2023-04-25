@@ -39,7 +39,7 @@ namespace my
     public class myObj_500 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
 
         private float R, G, B;
         private int mode = 0;
