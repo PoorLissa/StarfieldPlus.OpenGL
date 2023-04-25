@@ -64,7 +64,7 @@ namespace my
         {
             N = (N == 0) ? 100 + rand.Next(100) : N;
             N = 2345;
-            N = 3333;
+            //N = 3333;
 
             // As it is a very processor-consuming task, reduce the number of particles in most of the cases:
             switch (rand.Next(5))
