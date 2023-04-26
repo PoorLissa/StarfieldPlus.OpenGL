@@ -20,7 +20,7 @@ namespace my
         protected float x, y, dx, dy, tmpx, tmpy;
         protected float size, dSize, a, da, A, R, G, B, angle = 0;
 
-        protected static int N = 0, shape = 0, ballMoveMode = 0, moveMode = 0;
+        protected static int N = 0, shape = 0, ballMoveMode = 0, moveMode = 0, insertMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineTh = 1.0f;
 
@@ -71,6 +71,7 @@ namespace my
 
             moveMode = rand.Next(3);
             ballMoveMode = rand.Next(4);
+            insertMode = rand.Next(2);
             renderDelay  = rand.Next(11) + 5;
 
             dimAlpha = 0.25f;
@@ -336,9 +337,15 @@ namespace my
                     }
                 }
 
-                if (list.Count < N)
+                if (insertMode == 0)
                 {
-                    list.Add(new myObj_440());
+                    if (list.Count < N)
+                        list.Add(new myObj_440());
+                }
+                else
+                {
+                    if (list.Count < N && cnt % 100 == 0)
+                        list.Add(new myObj_440());
                 }
 
                 cnt++;
