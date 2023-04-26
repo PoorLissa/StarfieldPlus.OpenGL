@@ -14,7 +14,7 @@ namespace my
     public class myObj_440 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 9999910;
 
         private int cnt;
         protected float x, y, dx, dy, tmpx, tmpy;
@@ -70,7 +70,7 @@ namespace my
             doFillShapes  = myUtils.randomChance(rand, 1, 2);
 
             moveMode = rand.Next(3);
-            ballMoveMode = rand.Next(2);
+            ballMoveMode = rand.Next(4);
             renderDelay  = rand.Next(11) + 5;
 
             dimAlpha = 0.25f;
@@ -416,8 +416,11 @@ namespace my
 
         protected override void Move()
         {
+            ballMoveMode = 1;
+
             switch (ballMoveMode)
             {
+                // Bouncing off the walls (soft)
                 case 0:
                     {
                         x += dx;
@@ -437,7 +440,23 @@ namespace my
                     }
                     break;
 
+                // Bouncing off the walls (hard)
                 case 1:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (x < 0 - size || x > gl_Width - size)
+                            dx *= -1;
+
+                        if (y < 0 - size || y > gl_Height - size)
+                            dy *= -1;
+                    }
+                    break;
+
+                // Elliptic
+                case 2:
+                case 3:
                     {
                         x = gl_x0 + (float)Math.Sin(t) * radx;
                         y = gl_y0 + (float)Math.Cos(t) * rady;
@@ -458,8 +477,6 @@ namespace my
         {
             myPrimitive._Ellipse.SetColor(R, G, B, a);
             myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, true);
-
-            //base.Show();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
