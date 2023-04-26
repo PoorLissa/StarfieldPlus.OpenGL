@@ -14,11 +14,11 @@ namespace my
     public class myObj_501 : myObject
     {
         // Priority
-        public static int Priority => 13;
+        public static int Priority => 999913;
 
         private float R, G, B;
         private int mode = 0;
-        private string fHeader = "", fMain = "", stdHeader = "";
+        private string fHeader = "", fMain = "", stdHeader = "", shaderInfo = "";
 
         private myFreeShader_FullScreen shaderFull = null;
 
@@ -85,6 +85,7 @@ namespace my
                             $"B = {fStr(B)}\n"                             +
                             $"mode = {mode}\n"                             +
                             $"renderDelay = {renderDelay}\n"               +
+                            $"shaderInfo: {shaderInfo}\n"                  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -138,10 +139,10 @@ namespace my
         // Select random mode and get shader code: header + main func
         private void getShader(ref string header, ref string main)
         {
-            mode = rand.Next(8);
+            mode = rand.Next(10);
 
 #if DEBUG
-            //mode = 7;
+            mode = 10;
 #endif
 
             switch (mode)
@@ -154,6 +155,9 @@ namespace my
                 case 05: getShader_005(ref header, ref main); break;
                 case 06: getShader_006(ref header, ref main); break;
                 case 07: getShader_007(ref header, ref main); break;
+                case 08: getShader_008(ref header, ref main); break;
+                case 09: getShader_009(ref header, ref main); break;
+                case 10: getShader_010(ref header, ref main); break;
             }
 
             shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -461,6 +465,127 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_008(ref string header, ref string main)
+        {
+            header = stdHeader;
+
+            header += $@"
+
+                float f1(vec2 p)
+                {{
+                    return sin(p.x) * cos(p.y);
+                }}
+
+                float f2(vec2 p)
+                {{
+                    return sin(p.y) * cos(p.x);
+                }}
+            ";
+
+            main = $@"
+                uv *= t*3;
+
+                float len = length(uv);
+
+                float val1 = f1(uv) * {(rand.Next(2) == 0 ? "sin(t)" : "sin(t + len)")};
+                float val2 = f2(uv) * cos(t);
+
+                float a = 0.3;
+                float r = smoothstep(-a, +a, val1 - val2);
+
+                result = vec4(myColor.xyz, r);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_009(ref string header, ref string main)
+        {
+            string v1 = "", v2 = "";
+
+            switch (rand.Next(4))
+            {
+                case 0: v1 = "val1 + val1";     break;
+                case 1: v1 = "val1 + val1 + t"; break;
+                case 2: v1 = "val1 + val2";     break;
+                case 3: v1 = "val1 + val2 + t"; break;
+            }
+
+            switch (rand.Next(4))
+            {
+                case 0: v2 = "val2 * val2";     break;
+                case 1: v2 = "val2 * val2 + t"; break;
+                case 2: v2 = "val1 * val2";     break;
+                case 3: v2 = "val1 * val2 + t"; break;
+            }
+
+            shaderInfo += $"shader 009:\nv1 = {v1}\nv2 = {v2}";
+
+            header = stdHeader;
+            header += $@"
+
+                // x * sin(x) * cos(y)
+                float f1(vec2 p)
+                {{
+                    float x = p.x;
+                    float y = p.y;
+
+                    return abs(sin(x) * cos(y));
+                }}
+
+                float f2(vec2 p)
+                {{
+                    float x = p.x;
+                    float y = p.y;
+
+                    return (x + y) * (x + y);
+                }}
+            ";
+
+            main = $@"
+
+                uv *= rot(-3.14/4);
+                uv *= 2;
+
+                float at = atan(uv.y, uv.x);
+                float len = length(uv);
+
+                float val1 = f1(uv * t * 0.5);
+                float val2 = f2(uv);
+
+                val1 = sin({v1});
+                val2 = cos({v2});
+
+                float a = 0.3;
+                float r = smoothstep(-a, +a, val1 - val2);
+
+                r *= fract(r);
+
+                result = vec4(myColor.xyz, r);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_010(ref string header, ref string main)
+        {
+            shaderInfo += $"shader 010";
+
+            header = stdHeader;
+            header += $@"
+            ";
+
+            main = $@"
+
+                float r = uv.x + uv.y;
+
+                result = vec4(myColor.xyz, r);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
 
     }
 };
