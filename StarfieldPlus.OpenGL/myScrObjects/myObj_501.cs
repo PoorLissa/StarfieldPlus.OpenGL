@@ -139,10 +139,10 @@ namespace my
                 float t = uTime;
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;";
 
-            mode = rand.Next(10);
+            mode = rand.Next(11);
 
 #if DEBUG
-            mode = 2;
+            mode = 10;
 #endif
 
             switch (mode)
@@ -158,6 +158,7 @@ namespace my
                 case 08: getShader_008(ref header, ref main); break;
                 case 09: getShader_009(ref header, ref main); break;
                 case 10: getShader_010(ref header, ref main); break;
+                case 11: getShader_011(ref header, ref main); break;
             }
 
             shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -576,15 +577,58 @@ namespace my
             header += $@"
             ";
 
+            string rotate = "";
+
+            switch (rand.Next(4))
+            {
+                case 0: rotate = "uv *= rot(+t * 0.01);"; break;
+                case 1: rotate = "uv *= rot(-t * 0.02);"; break;
+            }
+
             main = $@"
 
-                float r = uv.x + uv.y;
+                float len = length(uv);
 
-                result = vec4(myColor.xyz, r);
+                uv *= 33 + {rand.Next(133)} + 33 * sin(t * 0.2);
+                
+                {rotate}
+
+                float R = 0, S = 0, r = 0;
+                
+                r = cos(uv.x + sin(t));
+                S = sin(uv.y + cos(t));
+
+                r = sin(r - S + t);
+
+                R = smoothstep(0, 0.5, r);
+                //R = smoothstep(0, 0.5, r*r);  // this one good
+
+                R *= 1 - len;
+
+                result = vec4(myColor.xyz, R);
             ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_011(ref string header, ref string main)
+        {
+            shaderInfo += $"shader 011";
+
+            header = stdHeader;
+            header += $@"
+            ";
+
+            main = $@"
+
+                float len = length(uv);
+                result = vec4(myColor.xyz, len);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+
 
 
     }
