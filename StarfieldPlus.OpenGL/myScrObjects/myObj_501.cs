@@ -14,7 +14,7 @@ namespace my
     public class myObj_501 : myObject
     {
         // Priority
-        public static int Priority => 13;
+        public static int Priority => 999913;
 
         private float R, G, B;
         private int mode = 0;
@@ -59,12 +59,6 @@ namespace my
                 B = myUtils.randFloat(rand);
             }
             while (R + G + B < 0.33f);
-
-            stdHeader = $@"
-                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
-                {myShaderHelpers.Generic.rotationMatrix}
-                float t = uTime;
-                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;";
 
             return;
         }
@@ -139,10 +133,16 @@ namespace my
         // Select random mode and get shader code: header + main func
         private void getShader(ref string header, ref string main)
         {
+            stdHeader = $@"
+                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+                {myShaderHelpers.Generic.rotationMatrix}
+                float t = uTime;
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;";
+
             mode = rand.Next(10);
 
 #if DEBUG
-            mode = 10;
+            mode = 2;
 #endif
 
             switch (mode)
