@@ -14,7 +14,7 @@ namespace my
     public class myObj_501 : myObject
     {
         // Priority
-        public static int Priority => 13;
+        public static int Priority { get { return getPriority(); } }
 
         private float R, G, B;
         private int mode = 0;
@@ -133,16 +133,18 @@ namespace my
         // Select random mode and get shader code: header + main func
         private void getShader(ref string header, ref string main)
         {
+            shaderInfo = string.Empty;
+
             stdHeader = $@"
                 vec4 myColor = vec4({R}, {G}, {B}, 1.0);
                 {myShaderHelpers.Generic.rotationMatrix}
                 float t = uTime;
                 vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;";
 
-            mode = rand.Next(11);
+            mode = rand.Next(13);
 
 #if DEBUG
-            mode = 10;
+            mode = 12;
 #endif
 
             switch (mode)
@@ -159,6 +161,8 @@ namespace my
                 case 09: getShader_009(ref header, ref main); break;
                 case 10: getShader_010(ref header, ref main); break;
                 case 11: getShader_011(ref header, ref main); break;
+                case 12: getShader_012(ref header, ref main); break;
+                case 13: getShader_013(ref header, ref main); break;
             }
 
             shaderFull = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
@@ -571,13 +575,11 @@ namespace my
 
         private void getShader_010(ref string header, ref string main)
         {
-            shaderInfo += $"shader 010";
+            shaderInfo += $"shader 010\n";
 
             header = stdHeader;
-            header += $@"
-            ";
 
-            string rotate = "";
+            string R = "", rotate = "", changeColor = "";
 
             switch (rand.Next(4))
             {
@@ -585,12 +587,38 @@ namespace my
                 case 1: rotate = "uv *= rot(-t * 0.02);"; break;
             }
 
+            float smooth = 0.3f + myUtils.randFloat(rand) * 0.7f;
+
+            switch(rand.Next(11))
+            {
+                case 00: R = "r";                           break;
+                case 01: R = "r * r";                       break;
+                case 02: R = "r + S";                       break;
+                case 03: R = "r * S";                       break;
+                case 04: R = "r / S";                       break;
+                case 05: R = "S * S + r";                   break;
+                case 06: R = "S * S * r";                   break;
+                case 07: R = "S * S + r * r";               break;
+                case 08: R = "(r + S) * (r + S) + r + S";   break;
+                case 09: R = "(r + S) * (r - S) + r + S";   break;
+                case 10: R = "(r + S) * (r + S) + r * S";   break;
+            }
+
+            switch (rand.Next(3))
+            {
+                case 0: changeColor = "myColor.x *= R"; break;
+                case 1: changeColor = "myColor.y *= R"; break;
+                case 2: changeColor = "myColor.z *= R"; break;
+            }
+
+            shaderInfo += $"rotate: {rotate}\nR = {R}\n";
+
             main = $@"
 
                 float len = length(uv);
 
                 uv *= 33 + {rand.Next(133)} + 33 * sin(t * 0.2);
-                
+
                 {rotate}
 
                 float R = 0, S = 0, r = 0;
@@ -600,10 +628,10 @@ namespace my
 
                 r = sin(r - S + t);
 
-                R = smoothstep(0, 0.5, r);
-                //R = smoothstep(0, 0.5, r*r);  // this one good
-
+                R = smoothstep(0, {smooth}, {R});
                 R *= 1 - len;
+
+                {changeColor};
 
                 result = vec4(myColor.xyz, R);
             ";
@@ -611,25 +639,170 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Based on getShader_010
         private void getShader_011(ref string header, ref string main)
         {
-            shaderInfo += $"shader 011";
+            shaderInfo += $"shader 011\n";
 
             header = stdHeader;
-            header += $@"
-            ";
+
+            string R = "", rotate = "", changeMyColor = "";
+
+            switch (rand.Next(2))
+            {
+                case 0: rotate = "uv *= rot(+t * 0.01);"; break;
+                case 1: rotate = "uv *= rot(-t * 0.02);"; break;
+            }
+
+            float smooth = 1f;
+
+            switch (rand.Next(7))
+            {
+                case 0: smooth = 0.05f + myUtils.randFloat(rand) * 0.25f; break;
+                case 1: smooth = 0.10f + myUtils.randFloat(rand) * 0.50f; break;
+                case 2: smooth = 0.10f + myUtils.randFloat(rand) * 0.90f; break;
+                case 3: smooth = 0.10f + myUtils.randFloat(rand) * rand.Next(3); break;
+                case 4: smooth = 0.10f + myUtils.randFloat(rand) * rand.Next(9); break;
+                case 5: smooth = 0.10f + myUtils.randFloat(rand) * rand.Next(15); break;
+                case 6: smooth = 0.10f + myUtils.randFloat(rand) * rand.Next(50); break;
+            }
+
+            switch (rand.Next(2))
+            {
+                case 0: R = $"smoothstep(0, {smooth}, abs(r*r*r + uv.y * uv.x));"; break;
+                case 1: R = $"smoothstep(0, {smooth}, abs(r*r*r + sin(uv.y * uv.x + t)))"; break;
+            }
+
+            switch (rand.Next(3))
+            {
+                case 0: changeMyColor = "myColor.x *= R"; break;
+                case 1: changeMyColor = "myColor.y *= R"; break;
+                case 2: changeMyColor = "myColor.z *= R"; break;
+            }
+
+            shaderInfo += $"rotate: {rotate}\nsmooth = {smooth}\nR = {R}";
 
             main = $@"
 
                 float len = length(uv);
-                result = vec4(myColor.xyz, len);
+
+                uv *= 20;
+
+                {rotate}
+
+                float R = 0, S = 0, r = 0;
+                
+                r = cos(uv.x + sin(t));
+                S = sin(uv.y + cos(t));
+                r = sin(r - S + t);
+
+                R = {R};
+                R *= 1 - len;
+
+                {changeMyColor};
+
+                result = vec4(myColor.xyz, R);
             ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // The same as 011, but uv = sin(uv) + variants added
 
+        private void getShader_012(ref string header, ref string main)
+        {
+            shaderInfo += $"shader 012\n";
 
+            header = stdHeader;
 
+            string R = "", rotate = "", changeMyColor = "", uvModif = "";
+
+            switch (rand.Next(2))
+            {
+                case 0: rotate = "uv *= rot(+t * 0.01);"; break;
+                case 1: rotate = "uv *= rot(-t * 0.02);"; break;
+            }
+
+            float smooth = 1f;
+
+            switch (rand.Next(7))
+            {
+                case 0: smooth = 0.05f + myUtils.randFloat(rand) * 0.25f; break;
+                case 1: smooth = 0.10f + myUtils.randFloat(rand) * 0.50f; break;
+                case 2: smooth = 0.10f + myUtils.randFloat(rand) * 0.90f; break;
+                case 3: smooth = 0.10f + myUtils.randFloat(rand) * rand.Next(3); break;
+                case 4: smooth = 0.10f + myUtils.randFloat(rand) * rand.Next(9); break;
+                case 5: smooth = 0.10f + myUtils.randFloat(rand) * rand.Next(15); break;
+                case 6: smooth = 0.10f + myUtils.randFloat(rand) * rand.Next(50); break;
+            }
+
+            switch (rand.Next(2))
+            {
+                case 0: R = $"abs(r*r*r + uv.y * uv.x)";         break;
+                case 1: R = $"abs(r*r*r + sin(uv.y * uv.x + t))"; break;
+            }
+
+            switch (rand.Next(3))
+            {
+                case 0: changeMyColor = "myColor.x *= R"; break;
+                case 1: changeMyColor = "myColor.y *= R"; break;
+                case 2: changeMyColor = "myColor.z *= R"; break;
+            }
+
+            switch (rand.Next(3))
+            {
+                case 0: uvModif = "sin(uv)"; break;
+                case 1: uvModif = "sin(uv) + cos(uv)"; break;
+                case 2: uvModif = "sin(uv.yx) + cos(uv.xy)"; break;
+            }
+
+            shaderInfo += $"rotate: {rotate}\nsmooth = {smooth}\nR = {R}\nuv = {uvModif}";
+
+            main = $@"
+
+                float len = length(uv);
+
+                uv *= 20;
+                uv = {uvModif};
+
+                {rotate}
+
+                float R = 0, S = 0, r = 0;
+                
+                r = cos(uv.x + sin(t));
+                S = sin(uv.y + cos(t));
+                r = sin(r - S + t);
+
+                R = smoothstep(0, {smooth}, {R});
+                R *= 1 - len;
+
+                {changeMyColor};
+
+                result = vec4(myColor.xyz, R);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader_013(ref string header, ref string main)
+        {
+            shaderInfo += $"shader 012\n";
+
+            header = stdHeader;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private static int getPriority()
+        {
+#if DEBUG
+            return 9999913;
+#endif
+            return 13;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
     }
 };
