@@ -14,17 +14,18 @@ namespace my
     public class myObj_430 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority { get { return getPriority(); } }
 
         private myObj_430 owner = null;
 
         private int bulletSpeed, closestTarget, trailLengthFactor;
         private bool alive;
         private float x, y, X, Y, dx, dy;
-        private float size, A, R, G, B, angle, dAngle;
+        private float size, A, R, G, B, angle, dAngle, a, r, g, b;
         private float randomSpeedFactor;
 
         private static int N = 0, n = 0, shape = 0, trailMode = 0, specialMode = 0;
+        private static int shooterSpdFactor = 1;
         private static int bulletSize = 0, shooterSize = 0;
         private static int bulletMinX = 0, bulletMaxX = 0, bulletMinY = 0, bulletMaxY = 0;
         private static bool doFillShapes = false, doUseRandomSpeed = true, doUseBulletSpread = true;
@@ -90,6 +91,10 @@ namespace my
             bulletSize = rand.Next(2) + 1;
             shooterSize = rand.Next(5) + 7;
 
+            shooterSpdFactor = myUtils.randomChance(rand, 1, 2)
+                ? rand.Next(20) + 1
+                : rand.Next(10) + 1;
+
             renderDelay = rand.Next(11) + 5;
 
             return;
@@ -133,21 +138,25 @@ namespace my
         {
             if (id != uint.MaxValue)
             {
+                bool isShooter = id < n;
                 angle = 0;
 
-                if (id < n)
+                if (isShooter)
                 {
                     alive = true;
                     closestTarget = -1;
-                    bulletSpeed = rand.Next(122) + 11;
+                    bulletSpeed = myUtils.randomChance(rand, 1, 2)
+                        ? rand.Next(066) + 11
+                        : rand.Next(122) + 11;
+
                     trailLengthFactor = rand.Next(11) + 3;
                     randomSpeedFactor = myUtils.randFloat(rand, 0.1f);
 
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
 
-                    dx = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 25;
-                    dy = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 25;
+                    dx = myUtils.randomSign(rand) * myUtils.randFloat(rand) * shooterSpdFactor;
+                    dy = myUtils.randomSign(rand) * myUtils.randFloat(rand) * shooterSpdFactor;
 
                     size = shooterSize;
 
@@ -155,6 +164,13 @@ namespace my
 
                     colorPicker.getColor(x, y, ref R, ref G, ref B);
                     A = 1;
+
+                    do {
+                        r = myUtils.randFloat(rand);
+                        g = myUtils.randFloat(rand);
+                        b = myUtils.randFloat(rand);
+                    }
+                    while (r + g + b < 0.75f);
                 }
                 else
                 {
@@ -218,9 +234,13 @@ namespace my
                         }
 
                         A = 0.750f + myUtils.randFloat(rand) * 0.2f;
-                        R = owner.R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
-                        G = owner.G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
-                        B = owner.B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        //R = owner.R + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        //G = owner.G + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+                        //B = owner.B + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
+
+                        R = owner.r + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.15f;
+                        G = owner.g + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.15f;
+                        B = owner.b + myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.15f;
                     }
                 }
             }
@@ -285,8 +305,9 @@ namespace my
         protected override void Show()
         {
             float size2x = size * 2;
+            bool isBullet = id >= n;
 
-            if (id >= n)
+            if (isBullet)
             {
                 switch (trailMode)
                 {
@@ -486,6 +507,18 @@ namespace my
             }
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private static int getPriority()
+        {
+#if DEBUG
+            return 10;
+#endif
+            return 10;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
