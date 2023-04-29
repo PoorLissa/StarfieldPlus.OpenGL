@@ -144,7 +144,7 @@ namespace my
             mode = rand.Next(13);
 
 #if DEBUG
-            mode = 12;
+            mode = 8;
 #endif
 
             switch (mode)
@@ -174,6 +174,8 @@ namespace my
 
         private void getShader_000(ref string header, ref string main)
         {
+            shaderInfo += $"shader 000\n";
+
             string getVal = "";
             header = stdHeader;
 
@@ -215,6 +217,8 @@ namespace my
 
         private void getShader_001(ref string header, ref string main)
         {
+            shaderInfo += $"shader 001\n";
+
             header = stdHeader;
 
             main = $@"
@@ -250,6 +254,8 @@ namespace my
 
         private void getShader_002(ref string header, ref string main)
         {
+            shaderInfo += $"shader 002\n";
+
             header = stdHeader;
 
             main = $@"
@@ -280,6 +286,8 @@ namespace my
 
         private void getShader_003(ref string header, ref string main)
         {
+            shaderInfo += $"shader 003\n";
+
             header = stdHeader;
 
             main = $@"
@@ -309,11 +317,12 @@ namespace my
 
         private void getShader_004(ref string header, ref string main)
         {
+            shaderInfo += $"shader 004\n";
+
             float thickness = 0.2f;
             float mult = 10.0f;
 
             header = stdHeader;
-
             header +=
                 $@"float shape2(vec2 uv, float rad)
                     {{
@@ -348,8 +357,9 @@ namespace my
 
         private void getShader_005(ref string header, ref string main)
         {
-            header = stdHeader;
+            shaderInfo += $"shader 005\n";
 
+            header = stdHeader;
             header +=
                 $@"
                     float nRays = 17;
@@ -389,8 +399,9 @@ namespace my
         // Circle with solid border
         private void getShader_006(ref string header, ref string main)
         {
-            header = stdHeader;
+            shaderInfo += $"shader 006\n";
 
+            header = stdHeader;
             header += $@"
                     #define pi1x {Math.PI * 1}
                     #define pi2x {Math.PI * 2}
@@ -446,8 +457,9 @@ namespace my
         // Circle made of sin curve
         private void getShader_007(ref string header, ref string main)
         {
-            header = stdHeader;
+            shaderInfo += $"shader 007\n";
 
+            header = stdHeader;
             header += $@"
                 float nRays = {rand.Next(23) + 3};
                 #define pi1x {Math.PI}
@@ -473,23 +485,16 @@ namespace my
 
         private void getShader_008(ref string header, ref string main)
         {
+            shaderInfo += $"shader 008\n";
+
             header = stdHeader;
-
             header += $@"
-
-                float f1(vec2 p)
-                {{
-                    return sin(p.x) * cos(p.y);
-                }}
-
-                float f2(vec2 p)
-                {{
-                    return sin(p.y) * cos(p.x);
-                }}
+                float f1(vec2 p) {{ return sin(p.x) * cos(p.y); }}
+                float f2(vec2 p) {{ return sin(p.y) * cos(p.x); }}
             ";
 
             main = $@"
-                uv *= t*3;
+                uv *= t;
 
                 float len = length(uv);
 
@@ -798,7 +803,7 @@ namespace my
         private static int getPriority()
         {
 #if DEBUG
-            return 13;
+            return 9999913;
 #endif
             return 13;
         }
