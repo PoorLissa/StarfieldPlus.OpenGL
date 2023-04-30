@@ -25,7 +25,7 @@ namespace my
     public class myObj_330 : myObject
     {
         // Priority: we have 70 modes, so the priority will be higher than usual:
-        public static int Priority => 50;
+        public static int Priority { get { return getPriority(); } }
 
         private myObjectParams p = null;
 
@@ -71,7 +71,7 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            //mode = 30;
+            //mode = 46;
 #endif
             // Reset parameter values
             {
@@ -916,6 +916,8 @@ namespace my
             {
                 glDrawBuffer(GL_BACK);
             }
+
+            specialCaseClearBuffer();
 
             return;
         }
@@ -4281,7 +4283,6 @@ namespace my
             {
                 case 00:
                 case 01:
-                    specialCaseClearBuffer();
                     tex.Draw((int)x, (int)y, width, height, (int)X, (int)Y, width, height);
                     break;
 
@@ -4324,7 +4325,6 @@ namespace my
                 case 10:
                     if (cnt == 0)
                     {
-                        specialCaseClearBuffer();
                         tex.Draw((int)X - width, (int)Y - height, 2 * width, 2 * height, (int)x - width, (int)y - height, 2 * width, 2 * height);
                     }
                     break;
@@ -4400,7 +4400,6 @@ namespace my
                     break;
 
                 case 23:
-                    specialCaseClearBuffer();
                     if (cnt == 0)
                     {
                         //tex.setOpacity(a);
@@ -5222,6 +5221,8 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
+            specialCaseClearBuffer();
+
             if (doCreateAtOnce)
                 for (int i = 0; i < N; i++)
                     list.Add(new myObj_330());
@@ -5533,12 +5534,40 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Workaround: Sets up draw buffer mode for some modes that flicker otherwise;
         private void specialCaseClearBuffer()
         {
             if (doClearBuffer == false)
             {
-                glDrawBuffer(GL_FRONT_AND_BACK);
+                switch (mode)
+                {
+                    case 00:
+                    case 01:
+                    case 09:
+                    case 10:
+                    case 23:
+                    case 46:
+                    case 50:
+                    case 52:
+                    case 55:
+                    case 56:
+                    case 57:
+                        glDrawBuffer(GL_FRONT_AND_BACK);
+                        break;
+                }
             }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private static int getPriority()
+        {
+#if DEBUG
+            return 50;
+#endif
+            return 50;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

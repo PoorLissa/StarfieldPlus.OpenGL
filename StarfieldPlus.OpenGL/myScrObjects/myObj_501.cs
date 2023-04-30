@@ -803,7 +803,7 @@ namespace my
         private static int getPriority()
         {
 #if DEBUG
-            return 9999913;
+            return 13;
 #endif
             return 13;
         }
