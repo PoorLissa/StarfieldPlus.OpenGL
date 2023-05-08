@@ -87,6 +87,19 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        public static void getRandomColor(Random r, ref float R, ref float G, ref float B, float min)
+        {
+            do
+            {
+                R = (float)r.NextDouble();
+                G = (float)r.NextDouble();
+                B = (float)r.NextDouble();
+            }
+            while (R + G + B < min);
+        }
+
+        // -------------------------------------------------------------------------
+
         public static void swap<Type>(ref Type a, ref Type b)
         {
             Type tmp = a;
