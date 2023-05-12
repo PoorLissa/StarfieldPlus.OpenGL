@@ -164,6 +164,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_500));   // Free Shader Experiments
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_501));   // Free Shader Experiments - 2
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_510));   // ...
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_520));   // ...
 
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 
