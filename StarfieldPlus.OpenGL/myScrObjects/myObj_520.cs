@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Empty object. Use as a template to create new objects
+    - Static pulsating shapes
 */
 
 
@@ -14,7 +14,7 @@ namespace my
     public class myObj_520 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
 
         private float x, y, dSize, maxSize;
         private float size, A, R, G, B, angle = 0;
@@ -326,14 +326,16 @@ namespace my
 
         private void getShader()
         {
-            string func = myUtils.randomChance(rand, 1, 2) ? "circle1" : "circle2";
+            if (shape == 5)
+            {
+                string func = myUtils.randomChance(rand, 1, 2) ? "circle1" : "circle2";
 
-            shader = new myFreeShader($@"
+                shader = new myFreeShader($@"
                         float circle1(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
                         float circle2(vec2 uv, float rad) {{ return 1.0 - smoothstep(0.0, 0.00275, abs(rad-length(uv))); }}
                     ",
 
-                    $@"
+                        $@"
                             vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
                             uv -= Pos.xy;
@@ -342,7 +344,8 @@ namespace my
                             float circ = {func}(uv, Pos.z);
                             result = vec4(myColor * circ);
                         "
-            );
+                );
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
