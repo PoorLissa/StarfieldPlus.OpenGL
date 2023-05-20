@@ -17,10 +17,10 @@ namespace my
         public static int Priority => 10;
 
         private float x, y, dSize, maxSize;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, angle = 0, dAngle = 0;
 
         private static int N = 0, shape = 0, mode = 0, s_maxSize = 0;
-        private static bool doFillShapes = false;
+        private static bool doFillShapes = false, doRotate = false;
         private static float dimAlpha = 0.05f;
 
         private static myFreeShader shader = null;
@@ -45,6 +45,8 @@ namespace my
             {
                 N = rand.Next(11111) + 111;
 
+                shape = rand.Next(6);
+
                 if (myUtils.randomChance(rand, 7, 10))
                 {
                     shape = myUtils.randomChance(rand, 5, 10) ? 2 : 5;
@@ -54,10 +56,6 @@ namespace my
                         // Custom shader is not instanced, so too much objects is a no
                         N = rand.Next(2345) + 1111;
                     }
-                }
-                else
-                {
-                    shape = rand.Next(6);
                 }
             }
 
@@ -71,6 +69,7 @@ namespace my
         {
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes  = myUtils.randomChance(rand, 1, 3);
+            doRotate = myUtils.randomChance(rand, 1, 3);
 
             s_maxSize = rand.Next(50) + 7;
             mode = rand.Next(2);
@@ -97,6 +96,7 @@ namespace my
                             $"mode = {mode}\n"                       +
                             $"shape = {shape}\n"                     +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doRotate = {doRotate}\n"               +
                             $"s_maxSize = {s_maxSize}\n"             +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -139,6 +139,11 @@ namespace my
 
             A = myUtils.randFloat(rand, 0.1f);
 
+            if (doRotate)
+            {
+                dAngle = myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.025f;
+            }
+
             return;
         }
 
@@ -147,6 +152,7 @@ namespace my
         protected override void Move()
         {
             size += dSize;
+            angle += dAngle;
 
             if (size < 0 || size > maxSize)
             {
@@ -227,6 +233,68 @@ namespace my
 
         protected override void Process(Window window)
         {
+            if (false)
+            {
+                int NN = 123;
+
+                var mfsi = new myFreeShaderInst(NN);
+
+                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+                glClearColor(0, 0, 0, 1);
+
+                while (!Glfw.WindowShouldClose(window))
+                {
+                    processInput(window);
+
+                    // Swap fore/back framebuffers, and poll for operating system events.
+                    Glfw.SwapBuffers(window);
+                    Glfw.PollEvents();
+
+                    // Dim screen
+                    glClear(GL_COLOR_BUFFER_BIT);
+
+                    // Render frame
+                    {
+                        mfsi.ResetBuffer();
+
+                        for (int i = 0; i != list.Count; i++)
+                        {
+                            var obj = list[i] as myObj_520;
+
+                            //obj.Show();
+
+                            mfsi.setInstanceCoords(obj.x - obj.size, obj.y - obj.size, obj.size * 2, obj.size * 2);
+                            mfsi.setInstanceColor(obj.R, obj.G, obj.B, obj.A);
+                            mfsi.setInstanceAngle(obj.angle);
+
+                            obj.Move();
+                        }
+
+                        if (doFillShapes)
+                        {
+                            // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                            mfsi.SetColorA(-0.5f);
+                            mfsi.Draw(true);
+                        }
+
+                        // Tell the fragment shader to do nothing with the existing instance opacity:
+                        mfsi.SetColorA(0);
+                        mfsi.Draw(false);
+                    }
+
+                    if (list.Count < NN)
+                    {
+                        list.Add(new myObj_520());
+                    }
+
+                    System.Threading.Thread.Sleep(renderDelay);
+                }
+
+                return;
+            }
+
+
+
             uint cnt = 0;
             initShapes();
 

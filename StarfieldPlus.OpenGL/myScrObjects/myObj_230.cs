@@ -90,10 +90,12 @@ namespace my
                     break;
             }
 
+            N = 666;
+
             doUseRandomMass = myUtils.randomBool(rand);
 
             //doUseRandomMass = false;
-            proc = 2;
+            proc = 1;
 
             // Determine the number of threads we need
             {

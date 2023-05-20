@@ -134,6 +134,7 @@
     <Compile Include="myUtils\__myShaderHelpers.cs" />
     <Compile Include="myUtils\__myUtils.cs" />
     <Compile Include="OpenGL\myPrimitives\_FreeShader.cs" />
+    <Compile Include="OpenGL\myPrimitives\_FreeShader_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Hexagon_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Line_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Pentagon_Instanced.cs" />
