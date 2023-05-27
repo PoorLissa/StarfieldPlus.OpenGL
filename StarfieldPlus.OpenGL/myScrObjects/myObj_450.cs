@@ -6,6 +6,8 @@ using System.Collections.Generic;
 /*
     - Get color from image and slightly offset this color;
     - Then put color spots on the screen at the same coordinates
+
+    - As an option, set color as (1 - Color)
 */
 
 
@@ -14,12 +16,12 @@ namespace my
     public class myObj_450 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
         private float x, y, w, h;
         private float A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, maxSize = 1, opacityMode = 0, angleMode = 0, offsetMode = 0;
+        private static int N = 0, shape = 0, maxSize = 1, opacityMode = 0, angleMode = 0, offsetMode = 0, mode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, maxOffset = 1;
 
@@ -77,6 +79,11 @@ namespace my
                     break;
             }
 
+            mode = 0;
+
+            if (myUtils.randomChance(rand, 1, 5))
+                mode = 1;
+
             offsetMode = rand.Next(13);
             maxSize = rand.Next(35) + 15;
             opacityMode = rand.Next(9);
@@ -98,6 +105,7 @@ namespace my
 
             string str = $"Obj = myObj_450\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"mode = {mode}\n"                       +
                             $"shape = {shape}\n"                     +
                             $"maxSize = {maxSize}\n"                 +
                             $"offsetMode = {offsetMode}\n"           +
@@ -162,41 +170,50 @@ namespace my
                     break;
             }
 
-            // Offset picked color
-            switch (offsetMode < 7 ? offsetMode : rand.Next(7))
+            if (mode == 1)
             {
-                case 0:
-                    R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    break;
+                R = 1 - R;
+                G = 1 - G;
+                B = 1 - B;
+            }
+            else
+            {
+                // Offset picked color
+                switch (offsetMode < 7 ? offsetMode : rand.Next(7))
+                {
+                    case 0:
+                        R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        break;
 
-                case 1:
-                    G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    break;
+                    case 1:
+                        G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        break;
 
-                case 2:
-                    B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    break;
+                    case 2:
+                        B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        break;
 
-                case 3:
-                    R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    break;
+                    case 3:
+                        R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        break;
 
-                case 4:
-                    R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    break;
+                    case 4:
+                        R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        break;
 
-                case 5:
-                    G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    break;
+                    case 5:
+                        G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        break;
 
-                case 6:
-                    R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
-                    break;
+                    case 6:
+                        R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        break;
+                }
             }
 
             // Set angle
