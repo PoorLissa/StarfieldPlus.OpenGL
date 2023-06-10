@@ -70,10 +70,10 @@ namespace my
                 maxY = gl_Height - offset;
             }
 
-            mode = rand.Next(14);
+            mode = rand.Next(16);
 
 #if DEBUG
-            //mode = 99;
+            mode = 15;
 #endif
 
             renderDelay = rand.Next(11) + 1;
@@ -438,24 +438,53 @@ namespace my
                     }
                     break;
 
-
-
-                // ======================================
-
-                case 099:
+                // All the particles move in the same direction + opposite direction, but the angle constantly changes;
+                // Start at a central spot
+                // Increased angle change speed
+                // Angle randomized to get triangular distribution
+                case 014:
                     {
-                        x = rand.Next(gl_Width);
-                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
+                        x = gl_x0 + rand.Next(11) * myUtils.randomSign(rand);
+                        y = gl_y0 + rand.Next(11) * myUtils.randomSign(rand);
 
                         float spd = 5;
 
-                        dx = spd * (float)Math.Sin(sAngle);
-                        dy = spd * (float)Math.Cos(sAngle);
+                        dx = spd * (float)Math.Sin(sAngle + myUtils.randFloat(rand) * 0.25f);
+                        dy = spd * (float)Math.Cos(sAngle + myUtils.randFloat(rand) * 0.25f);
 
                         if (myUtils.randomChance(rand, 1, 2))
                         {
-                            dx = spd * (float)Math.Sin(sAngle/2);
-                            dy = spd * (float)Math.Cos(sAngle/2);
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        sAngle += 0.003f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                    }
+                    break;
+
+                // All the particles move in the same direction + opposite direction, but the angle constantly changes;
+                // Start at a central spot
+                // Increased angle change speed
+                // Angle randomized to get triangular distribution
+                // Added 1/2 chance to use a negative angle
+                case 015:
+                    {
+                        x = gl_x0 + rand.Next(11) * myUtils.randomSign(rand);
+                        y = gl_y0 + rand.Next(11) * myUtils.randomSign(rand);
+
+                        float spd = 5;
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx = spd * (float)Math.Sin(sAngle + myUtils.randFloat(rand) * 0.25f);
+                            dy = spd * (float)Math.Cos(sAngle + myUtils.randFloat(rand) * 0.25f);
+                        }
+                        else
+                        {
+                            dx = spd * (float)Math.Sin(-sAngle - myUtils.randFloat(rand) * 0.25f);
+                            dy = spd * (float)Math.Cos(-sAngle - myUtils.randFloat(rand) * 0.25f);
                         }
 
                         if (myUtils.randomChance(rand, 1, 2))
@@ -464,6 +493,40 @@ namespace my
                             dy *= -1;
                         }
 
+                        sAngle += 0.003f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                    }
+                    break;
+
+                // ======================================
+
+                case 099:
+                    {
+                        x = gl_x0 + rand.Next(11) * myUtils.randomSign(rand);
+                        y = gl_y0 + rand.Next(11) * myUtils.randomSign(rand);
+
+                        float spd = 5;
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx = spd * (float)Math.Sin(sAngle + myUtils.randFloat(rand) * 0.25f);
+                            dy = spd * (float)Math.Cos(sAngle + myUtils.randFloat(rand) * 0.25f);
+                        }
+                        else
+                        {
+                            dx = spd * (float)Math.Sin(-sAngle - myUtils.randFloat(rand) * 0.25f);
+                            dy = spd * (float)Math.Cos(-sAngle - myUtils.randFloat(rand) * 0.25f);
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        sAngle += 0.001f;
+                        sAngle += 0.001f;
                         sAngle += 0.001f;
 
                         A = 0.2f + myUtils.randFloat(rand) * 0.5f;
