@@ -29,93 +29,98 @@ namespace my
 
         public myObj_010()
         {
-            if (colorPicker == null)
+            generateNew();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            moveMode = rand.Next(3);
+
+            moveMode = 3;
+
+            doClearBuffer = myUtils.randomBool(rand);
+            doFillShapes = myUtils.randomBool(rand);
+            doConnect = myUtils.randomBool(rand);
+            doUseGravityAnomaly = myUtils.randomBool(rand);
+
+            // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
+            rotationMode = rand.Next(4);
+            shapeType = rand.Next(5);
+            connectType = rand.Next(11);
+            gravityMode = rand.Next(3);
+            connectColorType = rand.Next(2);
+
+            // In case the rotation is enabled, we also may enable additional rotation option:
+            if (rotationMode < 2)
             {
-                colorPicker = new myColorPicker(gl_Width, gl_Height);
-                list = new List<myObject>();
-
-                moveMode = rand.Next(3);
-
-                doClearBuffer = myUtils.randomBool(rand);
-                doFillShapes  = myUtils.randomBool(rand);
-                doConnect     = myUtils.randomBool(rand);
-                doUseGravityAnomaly = myUtils.randomBool(rand);
-
-                // rotationMode: 0, 1 = rotation; 2 = no rotation, angle is 0; 3 = no rotation, angle is not 0
-                rotationMode = rand.Next(4);
-                shapeType    = rand.Next(5);
-                connectType  = rand.Next(11);
-                gravityMode  = rand.Next(3);
-                connectColorType = rand.Next(2);
-
-                // In case the rotation is enabled, we also may enable additional rotation option:
-                if (rotationMode < 2)
-                {
-                    rotationSubMode = rand.Next(7);
-                    rotationSubMode = rotationSubMode > 2 ? 0 : rotationSubMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
-                }
-
-                // In case the border is wider than the screen's bounds, the movement looks a bit different (no bouncing)
-                int offset = 0;
-
-                switch (rand.Next(3))
-                {
-                    case 0:
-                        offset = 0;
-                        break;
-
-                    case 1:
-                        offset = 100 + rand.Next(500);
-                        break;
-
-                    case 2:
-                        offset = -rand.Next(500);
-                        break;
-                }
-
-                minX = 0 - offset;
-                minY = 0 - offset;
-                maxX = gl_Width  + offset;
-                maxY = gl_Height + offset;
-
-                maxSize = myUtils.randomChance(rand, 1, 10) ? 33 : 11;
-
-                x0 = gl_x0;
-                y0 = gl_y0;
-
-                if (myUtils.randomBool(rand))
-                {
-                    x0 = rand.Next(gl_Width);
-                    y0 = rand.Next(gl_Height);
-                }
-
-                if (connectType == 0)
-                {
-                    N = 333;
-                }
-                else
-                {
-                    switch(rand.Next(3))
-                    {
-                        case 0: N = 500;   break;
-                        case 1: N = 5000;  break;
-                        case 2: N = 50000; break;
-                    }
-                }
-
-                renderDelay = 10;
-
-#if false
-                N = 66;
-                shapeType = 0;
-                doClearBuffer = false;
-                doConnect = false;
-                doUseGravityAnomaly = false;
-                doFillShapes = true;
-#endif
+                rotationSubMode = rand.Next(7);
+                rotationSubMode = rotationSubMode > 2 ? 0 : rotationSubMode + 1;     // [0, 1, 2] --> [1, 2, 3]; otherwise set to '0';
             }
 
-            generateNew();
+            // In case the border is wider than the screen's bounds, the movement looks a bit different (no bouncing)
+            int offset = 0;
+
+            switch (rand.Next(3))
+            {
+                case 0:
+                    offset = 0;
+                    break;
+
+                case 1:
+                    offset = 100 + rand.Next(500);
+                    break;
+
+                case 2:
+                    offset = -rand.Next(500);
+                    break;
+            }
+
+            minX = 0 - offset;
+            minY = 0 - offset;
+            maxX = gl_Width + offset;
+            maxY = gl_Height + offset;
+
+            maxSize = myUtils.randomChance(rand, 1, 10) ? 33 : 11;
+
+            x0 = gl_x0;
+            y0 = gl_y0;
+
+            if (myUtils.randomBool(rand))
+            {
+                x0 = rand.Next(gl_Width);
+                y0 = rand.Next(gl_Height);
+            }
+
+            if (connectType == 0)
+            {
+                N = 333;
+            }
+            else
+            {
+                switch (rand.Next(3))
+                {
+                    case 0: N = 500; break;
+                    case 1: N = 5000; break;
+                    case 2: N = 50000; break;
+                }
+            }
+
+            renderDelay = rand.Next(11) + 1;
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time initialization
+        private void initLocal()
+        {
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -157,20 +162,6 @@ namespace my
             dx = 0.01f * (rand.Next(maxSpeed) + 1) * myUtils.randomSign(rand);
             dy = 0.01f * (rand.Next(maxSpeed) + 1) * myUtils.randomSign(rand);
 
-            if (moveMode == 2)
-            {
-                switch (rand.Next(2))
-                {
-                    case 0:
-                        dx = 0;
-                        break;
-
-                    case 1:
-                        dy = 0;
-                        break;
-                }
-            }
-
             Size = rand.Next(maxSize) + 1;
 
             A = myUtils.randFloat(rand, 0.05f);
@@ -183,6 +174,53 @@ namespace my
             if (rotationMode == 3)
             {
                 angle = (float)rand.NextDouble() * 111;
+            }
+
+            switch (moveMode)
+            {
+                case 0:
+                case 1:
+                    break;
+
+                case 2:
+                    {
+                        switch (rand.Next(2))
+                        {
+                            case 0:
+                                dx = 0;
+                                break;
+
+                            case 1:
+                                dy = 0;
+                                break;
+                        }
+                    }
+                    break;
+
+                case 3:
+                    {
+                        switch (rand.Next(3))
+                        {
+                            case 0:
+                                dx = 0;
+                                dy = 0.1f * (rand.Next(10) + 10);
+                                A = 0.50f + 0.25f * myUtils.randFloat(rand);
+                                break;
+
+                            case 1:
+                                dy = 0;
+                                dx = 0.1f * (rand.Next(10) + 10);
+                                A = 0.35f + 0.25f * myUtils.randFloat(rand);
+                                break;
+
+                            case 2:
+                                dy = -0.1f * (rand.Next(10) + 10);
+                                dx = dy;
+                                A = 0.25f + 0.25f * myUtils.randFloat(rand);
+                                break;
+                        }
+                    }
+                    break;
             }
 
             return;
@@ -246,6 +284,7 @@ namespace my
             {
                 case 0:
                     {
+                        // todo: this can cause wrong behaviour; rewrite checking for a dx sign
                         if (x < minX || x > maxX)
                         {
                             dx *= -1;
@@ -291,6 +330,15 @@ namespace my
                             dy -= myUtils.randFloat(rand, 0.1f) * 0.1f;
                             xOld = x;
                             yOld = y;
+                        }
+                    }
+                    break;
+
+                case 3:
+                    {
+                        if (x < minX || x > maxX || y < minY || y > maxY)
+                        {
+                            generateNew();
                         }
                     }
                     break;
