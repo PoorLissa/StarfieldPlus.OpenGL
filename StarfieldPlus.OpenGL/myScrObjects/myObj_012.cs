@@ -19,10 +19,10 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, shape = 0, mode = 0, rotateMode = 0;
+        private static int N = 0, shape = 0, mode = 0, rotateMode = 0, step = 0;
         private static int minX = 0, minY = 0, maxX = 0, maxY = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, sAngle = 0;
+        private static bool doFillShapes = false, doFollowColor = false;
+        private static float dimAlpha = 0.05f, sAngle = 0, dimRate = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -59,7 +59,14 @@ namespace my
         {
             doClearBuffer = myUtils.randomChance(rand, 10, 11);
             doFillShapes  = myUtils.randomChance(rand, 1, 3);
+            doFollowColor = myUtils.randomChance(rand, 1, 2) && (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT || colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE);
+
             rotateMode = rand.Next(3);
+            step = rand.Next(333) + 1;
+
+            dimRate = myUtils.randomChance(rand, 1, 3)
+                ? myUtils.randFloat(rand) * 0.005f
+                : 0.0f;
 
             {
                 int offset = rand.Next(234);
@@ -70,10 +77,10 @@ namespace my
                 maxY = gl_Height - offset;
             }
 
-            mode = rand.Next(16);
+            mode = rand.Next(17);
 
 #if DEBUG
-            mode = 15;
+            mode = 99;
 #endif
 
             renderDelay = rand.Next(11) + 1;
@@ -88,11 +95,13 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_012\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
                             $"rotateMode = {rotateMode}\n"              +
+                            $"offset = {minX}\n"                        +
+                            $"dimRate = {fStr(dimRate)}\n"              +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -499,24 +508,24 @@ namespace my
                     }
                     break;
 
-                // ======================================
-
-                case 099:
+                // 45 degrees criss-cross movement; start position is random, but aligned to a grid
+                case 016:
                     {
-                        x = gl_x0 + rand.Next(11) * myUtils.randomSign(rand);
-                        y = gl_y0 + rand.Next(11) * myUtils.randomSign(rand);
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
 
-                        float spd = 5;
+                        x -= x % step;
+                        y -= y % step;
+
+                        dx = myUtils.randFloat(rand) + 0.1f;
+                        dy = dx;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
 
                         if (myUtils.randomChance(rand, 1, 2))
                         {
-                            dx = spd * (float)Math.Sin(sAngle + myUtils.randFloat(rand) * 0.25f);
-                            dy = spd * (float)Math.Cos(sAngle + myUtils.randFloat(rand) * 0.25f);
-                        }
-                        else
-                        {
-                            dx = spd * (float)Math.Sin(-sAngle - myUtils.randFloat(rand) * 0.25f);
-                            dy = spd * (float)Math.Cos(-sAngle - myUtils.randFloat(rand) * 0.25f);
+                            dy *= -1;
+                            A /= 2;
                         }
 
                         if (myUtils.randomChance(rand, 1, 2))
@@ -525,11 +534,44 @@ namespace my
                             dy *= -1;
                         }
 
-                        sAngle += 0.001f;
-                        sAngle += 0.001f;
-                        sAngle += 0.001f;
+                        if (myUtils.randomChance(rand, 1, 10000))
+                        {
+                            step = rand.Next(333) + 1;
+                        }
+                    }
+                    break;
+
+                // ======================================
+
+                case 099:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+
+                        x -= x % step;
+                        y -= y % step;
+
+                        dx = myUtils.randFloat(rand) + 0.1f;
+                        dy = dx;
 
                         A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dy *= -1;
+                            A /= 2;
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 10000))
+                        {
+                            step = rand.Next(333) + 1;
+                        }
                     }
                     break;
             }
@@ -548,9 +590,14 @@ namespace my
 
             angle += dAngle;
 
-            //A -= 0.001f;
+            A -= dimRate;
 
-            if (x < minX || x > maxX|| y < minY|| y > maxY)
+            if (doFollowColor)
+            {
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+            }
+
+            if (x < minX || x > maxX || y < minY || y > maxY)
             {
                 A -= 0.005f;
 
@@ -584,7 +631,7 @@ namespace my
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, size2x, angle);
+                    triangleInst.setInstanceCoords(x, y, size, angle);
                     triangleInst.setInstanceColor(R, G, B, A);
                     break;
 
