@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Snow line pattern made of different layers moving in different directions
+    - Snow-like pattern made of different layers moving in different directions
 */
 
 
@@ -22,7 +22,7 @@ namespace my
         private static int N = 0, shape = 0, mode = 0, rotateMode = 0;
         private static int minX = 0, minY = 0, maxX = 0, maxY = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.05f, sAngle = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -70,10 +70,10 @@ namespace my
                 maxY = gl_Height - offset;
             }
 
-            mode = rand.Next(8);
+            mode = rand.Next(14);
 
 #if DEBUG
-            mode = 7;
+            //mode = 99;
 #endif
 
             renderDelay = rand.Next(11) + 1;
@@ -283,6 +283,190 @@ namespace my
                                 A = 0.2f + myUtils.randFloat(rand) * 0.05f;
                                 break;
                         }
+                    }
+                    break;
+
+                // All the particles move in the same direction, but the angle constantly changes; start at a random position
+                case 008:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+
+                        float spd = 5;
+
+                        dx = spd * (float)Math.Sin(sAngle);
+                        dy = spd * (float)Math.Cos(sAngle);
+
+                        sAngle += 0.001f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                    }
+                    break;
+
+                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a random position
+                case 009:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+
+                        float spd = 5;
+
+                        dx = spd * (float)Math.Sin(sAngle);
+                        dy = spd * (float)Math.Cos(sAngle);
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        sAngle += 0.001f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                    }
+                    break;
+
+                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a central spot
+                case 010:
+                    {
+                        x = gl_x0 + rand.Next(50) * myUtils.randomSign(rand);
+                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
+
+                        float spd = 5;
+
+                        dx = spd * (float)Math.Sin(sAngle);
+                        dy = spd * (float)Math.Cos(sAngle);
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        sAngle += 0.001f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                    }
+                    break;
+
+                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a central spot
+                // Added 2 more streams with slower changing angle
+                case 011:
+                    {
+                        x = gl_x0 + rand.Next(50) * myUtils.randomSign(rand);
+                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
+
+                        float spd = 5;
+
+                        dx = spd * (float)Math.Sin(sAngle);
+                        dy = spd * (float)Math.Cos(sAngle);
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= 0.5f;
+                            dy *= 0.5f;
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        sAngle += 0.001f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                    }
+                    break;
+
+                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a central spot
+                // Added 2 more streams with half-angle
+                case 012:
+                    {
+                        x = gl_x0 + rand.Next(50) * myUtils.randomSign(rand);
+                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
+
+                        float spd = 5;
+
+                        dx = spd * (float)Math.Sin(sAngle);
+                        dy = spd * (float)Math.Cos(sAngle);
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx = spd * (float)Math.Sin(sAngle * 0.5f);
+                            dy = spd * (float)Math.Cos(sAngle * 0.5f);
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        sAngle += 0.001f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                    }
+                    break;
+
+                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a central line
+                case 013:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
+
+                        float spd = 5;
+
+                        dx = spd * (float)Math.Sin(sAngle);
+                        dy = spd * (float)Math.Cos(sAngle);
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx = spd * (float)Math.Sin(sAngle / 2);
+                            dy = spd * (float)Math.Cos(sAngle / 2);
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        sAngle += 0.001f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                    }
+                    break;
+
+
+
+                // ======================================
+
+                case 099:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
+
+                        float spd = 5;
+
+                        dx = spd * (float)Math.Sin(sAngle);
+                        dy = spd * (float)Math.Cos(sAngle);
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx = spd * (float)Math.Sin(sAngle/2);
+                            dy = spd * (float)Math.Cos(sAngle/2);
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        sAngle += 0.001f;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
                     }
                     break;
             }
