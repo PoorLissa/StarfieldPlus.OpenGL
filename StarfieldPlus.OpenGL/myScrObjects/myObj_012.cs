@@ -14,14 +14,14 @@ namespace my
     public class myObj_012 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority { get { return getPriority(); } }
 
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
         private static int N = 0, shape = 0, mode = 0, rotateMode = 0, step = 0;
         private static int minX = 0, minY = 0, maxX = 0, maxY = 0;
-        private static bool doFillShapes = false, doFollowColor = false;
+        private static bool doFillShapes = false, doTraceColor = false;
         private static float dimAlpha = 0.05f, sAngle = 0, dimRate = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -59,7 +59,10 @@ namespace my
         {
             doClearBuffer = myUtils.randomChance(rand, 10, 11);
             doFillShapes  = myUtils.randomChance(rand, 1, 3);
-            doFollowColor = myUtils.randomChance(rand, 1, 2) && (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT || colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE);
+            doTraceColor  = myUtils.randomChance(rand, 1, 2) &&
+                                        (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT ||
+                                         colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE
+            );
 
             rotateMode = rand.Next(3);
             step = rand.Next(333) + 1;
@@ -77,7 +80,7 @@ namespace my
                 maxY = gl_Height - offset;
             }
 
-            mode = rand.Next(17);
+            mode = rand.Next(19);
 
 #if DEBUG
             mode = 99;
@@ -508,8 +511,38 @@ namespace my
                     }
                     break;
 
-                // 45 degrees criss-cross movement; start position is random, but aligned to a grid
+                // 45 degrees criss-cross movement; start position is random
                 case 016:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+
+                        dx = myUtils.randFloat(rand) + 0.1f;
+                        dy = dx;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dy *= -1;
+                            A /= 2;
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 10000))
+                        {
+                            step = rand.Next(333) + 1;
+                        }
+                    }
+                    break;
+
+                // 45 degrees criss-cross movement; start position is random, but aligned to a grid
+                case 017:
                     {
                         x = rand.Next(gl_Width);
                         y = rand.Next(gl_Height);
@@ -541,6 +574,47 @@ namespace my
                     }
                     break;
 
+                // 45 degrees criss-cross movement; start position is random;
+                // The points that get into the grid receive higher opacity
+                case 018:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+
+                        dx = myUtils.randFloat(rand) + 0.1f;
+                        dy = dx;
+
+                        A = 0.1f + myUtils.randFloat(rand) * 0.25f;
+
+                        if (x == x % step)
+                        {
+                            A += 0.2f;
+                        }
+
+                        if (y == y % step)
+                        {
+                            A += 0.2f;
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dy *= -1;
+                            A /= 2;
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx *= -1;
+                            dy *= -1;
+                        }
+
+                        if (myUtils.randomChance(rand, 1, 10000))
+                        {
+                            step = rand.Next(333) + 1;
+                        }
+                    }
+                    break;
+
                 // ======================================
 
                 case 099:
@@ -548,13 +622,20 @@ namespace my
                         x = rand.Next(gl_Width);
                         y = rand.Next(gl_Height);
 
-                        x -= x % step;
-                        y -= y % step;
-
                         dx = myUtils.randFloat(rand) + 0.1f;
                         dy = dx;
 
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+                        A = 0.1f + myUtils.randFloat(rand) * 0.25f;
+
+                        if (x == x % step)
+                        {
+                            A += 0.2f;
+                        }
+
+                        if (y == y % step)
+                        {
+                            A += 0.2f;
+                        }
 
                         if (myUtils.randomChance(rand, 1, 2))
                         {
@@ -592,7 +673,7 @@ namespace my
 
             A -= dimRate;
 
-            if (doFollowColor)
+            if (doTraceColor)
             {
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
             }
@@ -736,6 +817,16 @@ namespace my
             base.initShapes(shape, N, 0);
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private static int getPriority()
+        {
+#if DEBUG
+            return 9999910;
+#endif
+            return 10;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
