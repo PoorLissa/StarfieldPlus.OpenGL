@@ -16,7 +16,7 @@ namespace my
         // Priority
         public static int Priority { get { return getPriority(); } }
 
-        private float x, y, dx, dy;
+        private float x, y, dx, dy, rad, t, dt;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
         private static int N = 0, shape = 0, mode = 0, rotateMode = 0, step = 0;
@@ -80,7 +80,7 @@ namespace my
                 maxY = gl_Height - offset;
             }
 
-            mode = rand.Next(19);
+            mode = rand.Next(22);
 
 #if DEBUG
             mode = 99;
@@ -615,44 +615,86 @@ namespace my
                     }
                     break;
 
-                // ======================================
-
-                case 099:
+                // Circular (spiral) motion
+                case 019:
                     {
                         x = rand.Next(gl_Width);
                         y = rand.Next(gl_Height);
 
-                        dx = myUtils.randFloat(rand) + 0.1f;
-                        dy = dx;
+                        rad = rand.Next(333) + 50;
+
+                        t = myUtils.randFloat(rand) * rand.Next(111);
+                        dt = myUtils.randFloat(rand) * 0.05f;
+
+                        dx = dy = 0;
 
                         A = 0.1f + myUtils.randFloat(rand) * 0.25f;
+                    }
+                    break;
 
-                        if (x == x % step)
-                        {
-                            A += 0.2f;
-                        }
+                // Horizontal, vertical and diagonal movement at a fixed speed, ver1
+                case 020:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
 
-                        if (y == y % step)
-                        {
-                            A += 0.2f;
-                        }
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
 
-                        if (myUtils.randomChance(rand, 1, 2))
+                        switch (rand.Next(3))
                         {
-                            dy *= -1;
-                            A /= 2;
-                        }
+                            case 0:
+                                dx = 0;
+                                dy = 0.5f;
+                                break;
 
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
+                            case 1:
+                                dy = 0;
+                                dx = 0.5f;
+                                break;
 
-                        if (myUtils.randomChance(rand, 1, 10000))
-                        {
-                            step = rand.Next(333) + 1;
+                            case 2:
+                                dx = -0.33f;
+                                dy = -0.33f;
+                                break;
                         }
+                    }
+                    break;
+
+                // Horizontal, vertical and diagonal movement at a fixed speed, ver2
+                case 021:
+                    {
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+
+                        x -= x % step;
+                        y -= y % step;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+
+                        switch (rand.Next(3))
+                        {
+                            case 0:
+                                dx = 0;
+                                dy = 0.5f;
+                                break;
+
+                            case 1:
+                                dy = 0;
+                                dx = 0.5f;
+                                break;
+
+                            case 2:
+                                dx = -0.33f;
+                                dy = -0.33f;
+                                break;
+                        }
+                    }
+                    break;
+
+                // ======================================
+
+                case 099:
+                    {
                     }
                     break;
             }
@@ -666,6 +708,12 @@ namespace my
 
         protected override void Move()
         {
+            // Special cases
+            {
+                if (mode == 019)
+                    move_019();
+            }
+
             x += dx;
             y += dy;
 
@@ -689,6 +737,21 @@ namespace my
             }
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move_019()
+        {
+            x += (float)Math.Sin(t) * rad * 0.01f;
+            y += (float)Math.Cos(t) * rad * 0.01f;
+
+            t += dt;
+
+            rad -= 1;
+
+            if (rad <= 0)
+                generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
