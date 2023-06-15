@@ -21,7 +21,7 @@ namespace my
 
         private static int N = 0, shape = 0, mode = 0, rotateMode = 0, step = 0;
         private static int minX = 0, minY = 0, maxX = 0, maxY = 0;
-        private static bool doFillShapes = false, doTraceColor = false;
+        private static bool doFillShapes = false, doTraceColor = false, doUseBaseMove = true;
         private static float dimAlpha = 0.05f, sAngle = 0, dimRate = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doUseBaseMove = true;
             doClearBuffer = myUtils.randomChance(rand, 10, 11);
             doFillShapes  = myUtils.randomChance(rand, 1, 3);
             doTraceColor  = myUtils.randomChance(rand, 1, 2) &&
@@ -80,10 +81,10 @@ namespace my
                 maxY = gl_Height - offset;
             }
 
-            mode = rand.Next(22);
+            mode = rand.Next(24);
 
 #if DEBUG
-            mode = 99;
+            mode = 22;
 #endif
 
             renderDelay = rand.Next(11) + 1;
@@ -691,6 +692,44 @@ namespace my
                     }
                     break;
 
+                // Oscillating movement along random line
+                case 022:
+                    {
+                        doUseBaseMove = false;
+
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+
+                        dx = (myUtils.randFloat(rand) + 0.1f) * myUtils.randomSign(rand);
+                        dy = (myUtils.randFloat(rand) + 0.1f) * myUtils.randomSign(rand);
+
+                        dt = myUtils.randFloat(rand) * 0.05f;
+                    }
+                    break;
+
+                // Oscillating movement along random line;
+                // Attached to grid
+                case 023:
+                    {
+                        doUseBaseMove = false;
+
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+
+                        x -= x % step;
+                        y -= y % step;
+
+                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
+
+                        dx = (myUtils.randFloat(rand) + 0.1f) * myUtils.randomSign(rand);
+                        dy = (myUtils.randFloat(rand) + 0.1f) * myUtils.randomSign(rand);
+
+                        dt = myUtils.randFloat(rand) * 0.05f;
+                    }
+                    break;
+
                 // ======================================
 
                 case 099:
@@ -712,10 +751,16 @@ namespace my
             {
                 if (mode == 019)
                     move_019();
+
+                if (mode == 022 || mode == 023)
+                    move_022();
             }
 
-            x += dx;
-            y += dy;
+            if (doUseBaseMove)
+            {
+                x += dx;
+                y += dy;
+            }
 
             angle += dAngle;
 
@@ -752,6 +797,16 @@ namespace my
 
             if (rad <= 0)
                 generateNew();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move_022()
+        {
+            x += dx * (float)Math.Sin(t);
+            y += dy * (float)Math.Sin(t);
+
+            t += dt;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -887,7 +942,7 @@ namespace my
         private static int getPriority()
         {
 #if DEBUG
-            return 9999910;
+            return 10;
 #endif
             return 10;
         }
