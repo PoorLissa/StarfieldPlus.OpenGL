@@ -14,11 +14,11 @@ namespace my
     public class myObj_530 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
 
         private int cnt;
         private float x, y, dx, dy;
-        private float size, A, dA, R, G, B, angle = 0, dAngle, r;
+        private float size, A, dA, R, G, B, angle = 0, dAngle, alpha, dAlpha, r, spd;
 
         private static int N = 0, shape = 0, Rad = 0, Thickness = 0, maxCnt = 0, rotationMode = 0;
         private static bool doFillShapes = false, doTraceColor = false, doMoveWhileWaiting = false;
@@ -114,16 +114,14 @@ namespace my
 
             r = Rad + rand.Next(Thickness);
 
-            float alpha = myUtils.randFloat(rand) * rand.Next(123);
+            alpha = (float)Math.PI * myUtils.randFloat(rand) * rand.Next(101);
+            dAlpha = myUtils.randFloat(rand);
+            dAlpha = myUtils.randomChance(rand, 1, 2) ? 0.01f : -0.01f;
 
             x = r * (float)Math.Sin(alpha);
             y = r * (float)Math.Cos(alpha);
 
-            float dist = (float)Math.Sqrt(x * x + y * y);
-            float spd = 2.5f;
-
-            dx = x * spd / dist;
-            dy = y * spd / dist;
+            spd = 0.5f;
 
             x += gl_x0;
             y += gl_y0;
@@ -132,16 +130,21 @@ namespace my
 
             if (myUtils.randomChance(rand, 1, 2))
             {
-                dx *= -1;
-                dy *= -1;
-
+                spd *= -1;
                 size -= 1;
+            }
+
+            if (spd > 0)
+            {
+                dAlpha = dAlpha < 0 ? -dAlpha : dAlpha;
             }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             A = myUtils.randFloat(rand) * 0.5f;
             dA = myUtils.randomChance(rand, 1, 1111) ? maxDa / 2 : maxDa;
+
+R = 1; G = B = 0; A = 0.66f;
 
             switch (rotationMode)
             {
@@ -176,46 +179,37 @@ namespace my
         protected override void Move()
         {
             angle += dAngle;
+            alpha += dAlpha;
 
             if (cnt > 0)
             {
                 cnt--;
-/*
+
                 if (doMoveWhileWaiting)
                 {
-                    x += dx * 0.1f;
-                    y += dy * 0.1f;
+                    //x += dx * 0.1f;
+                    //y += dy * 0.1f;
                 }
-*/
-                x = gl_x0 + r * (float)Math.Sin(angle);
-                y = gl_y0 + r * (float)Math.Cos(angle);
+
+                //x = gl_x0 + r * (float)Math.Sin(alpha);
+                //y = gl_y0 + r * (float)Math.Cos(alpha);
 
                 if (cnt == 1)
                 {
-                    float X = x - gl_x0;
-                    float Y = y - gl_y0;
-
-                    float dist = (float)Math.Sqrt(X * X + Y * Y);
-                    float spd = 2.5f;
-
-                    dx = X * spd / dist;
-                    dy = Y * spd / dist;
-
-                    if (myUtils.randomChance(rand, 1, 2))
-                    {
-                        dx *= -1;
-                        dy *= -1;
-                    }
+                    dAlpha *= 0.2f;
+                    //dAlpha = 0;
                 }
             }
             else
             {
-                x += dx;
-                y += dy;
+                r += spd;
+
+                x = gl_x0 + r * (float)Math.Sin(alpha);
+                y = gl_y0 + r * (float)Math.Cos(alpha);
 
                 A -= dA;
 
-                if (A <= 0)
+                if (A < 0 || r < 0)
                 {
                     generateNew();
                 }

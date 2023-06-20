@@ -71,7 +71,7 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            //mode = 46;
+            mode = 68;
 #endif
             // Reset parameter values
             {
@@ -803,7 +803,7 @@ namespace my
                     prm_f[1] = 2500.0f;                                                     // Interaction (attraction/repulsion) factor
                     break;
 
-                // ...
+                // Repulsive particles generating at the center of screen
                 case 65:
                     N = 3999;
                     doCreateAtOnce = false;
@@ -908,14 +908,7 @@ namespace my
 
             initLocal();
 
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-            }
-            else
-            {
-                glDrawBuffer(GL_BACK);
-            }
+            clearScreenSetup(doClearBuffer, 0.1f);
 
             specialCaseClearBuffer();
 
@@ -5543,16 +5536,67 @@ namespace my
                 {
                     case 00:
                     case 01:
+                    case 02:
+                    case 03:
+                    case 04:
+                    case 05:
+                    case 06:
                     case 09:
                     case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 18:
+                    case 19:
+                    case 20:
+                    case 21:
+                    case 22:
                     case 23:
+                    case 24:
+                    case 25:
+                    case 26:
+                    case 27:
+                    case 28:
+                    case 32:
+                    case 33:
+                    case 35:
+                    case 37:
+                    case 38:
+                    case 39:
+                    case 40:
+                    case 42:
+                    case 43:
+                    case 44:
+                    case 45:
                     case 46:
+                    case 47:
+                    case 48:
+                    case 49:
                     case 50:
                     case 52:
+                    case 54:
                     case 55:
                     case 56:
                     case 57:
+                    case 58:
+                    case 59:
+                    case 61:
+                    case 62:
+                    case 63:
+                    case 66:
                         glDrawBuffer(GL_FRONT_AND_BACK);
+                        break;
+                }
+            }
+            else
+            {
+                switch (mode)
+                {
+                    case 04:
+                    case 05:
+                    case 06:
+                        glDrawBuffer(GL_BACK);
                         break;
                 }
             }
@@ -5565,7 +5609,7 @@ namespace my
         private static int getPriority()
         {
 #if DEBUG
-            return 50;
+            return 999950;
 #endif
             return 50;
         }
