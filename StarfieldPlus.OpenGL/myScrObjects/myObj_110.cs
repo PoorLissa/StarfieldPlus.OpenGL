@@ -104,10 +104,19 @@ namespace my
             renderDelay = rand.Next(20);
 
 #if false
-            shape = 1;
-            maxSize = 66;
+            shape = 0;
+            maxSize = 127;
             angleMode = 0;
             doUseRandomSize = false;
+
+            borderMode = 0;
+            borderOpacityMode = 1;
+            shapeOpacityMode = 6;
+            angleMode = 6;
+            dimAlpha = 0.006f;
+            lineWidth = 2.224f;
+            renderDelay = 5;
+            maxCnt = 3;
 #endif
 
             return;
@@ -128,7 +137,7 @@ namespace my
                             $"shape = {shape}\n"                         +
                             $"maxSize = {maxSize}\n"                     +
                             $"doUseRandomSize = {doUseRandomSize}\n"     +
-                            $"borderMode= {borderMode}\n"                +
+                            $"borderMode = {borderMode}\n"               +
                             $"borderOpacityMode = {borderOpacityMode}\n" +
                             $"shapeOpacityMode = {shapeOpacityMode}\n"   +
                             $"angleMode = {angleMode}\n"                 +
