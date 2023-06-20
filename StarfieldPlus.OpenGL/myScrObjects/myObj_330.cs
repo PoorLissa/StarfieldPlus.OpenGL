@@ -5609,7 +5609,7 @@ namespace my
         private static int getPriority()
         {
 #if DEBUG
-            return 999950;
+            return 50;
 #endif
             return 50;
         }
