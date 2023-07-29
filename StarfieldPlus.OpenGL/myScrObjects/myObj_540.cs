@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
+
 /*
     - Falling alphabet letters (Matrix style)
 */
@@ -15,22 +16,45 @@ namespace my
 {
     public class myObj_540 : myObject
     {
+        public class generator
+        {
+            public int x, y, cnt;
+            public float spd, opacity;
+
+            public void getNew()
+            {
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height/2) - 333;
+                y = -111;
+
+                cnt = rand.Next(33) + 11;
+
+                spd = myUtils.randomChance(rand, 1, 2)
+                    ? myUtils.randFloat(rand, 0.1f) * (rand.Next(maxSpeed) + 1)
+                    : -1;
+
+                opacity = myUtils.randomChance(rand, 1, 2)
+                    ? myUtils.randFloat(rand) * 0.9f
+                    : -1;
+            }
+        };
+
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 9999910;
 
         private float x, y, dy, angle, dAngle;
         private float A, R, G, B;
-        private int   size, index;
+        private int   index;
 
-        private static int N = 0;
+        private static int N = 0, nGenerators = 0;
         private static float dimAlpha = 0.05f;
 
+        private static int texWidth = 0, texHeight = 0, maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0, size = 33;
+
         private static myTexRectangle tex = null;
-        private static int texWidth = 0, texHeight = 0;
+        private static string str, fontFamily = "Tahoma";
 
-        private static string str;
-
-        private static int maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0;
+        private static List<generator> Generators = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -47,10 +71,19 @@ namespace my
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT);
             list = new List<myObject>();
+            Generators = new List<generator>();
 
             // Global unmutable constants
             {
                 N = 10000;
+
+                size = rand.Next(60) + 20;
+
+                getFont(ref fontFamily);
+
+                nGenerators = myUtils.randomChance(rand, 1, 2)
+                    ? 0
+                    : rand.Next(111) + 33;
             }
 
             initLocal();
@@ -61,8 +94,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 4, 5);
 
             maxSpeed = 3 + rand.Next(13);               // max falling speed
             posXGenMode = rand.Next(3);                 // where the particles are generated along the X-axis
@@ -72,6 +104,19 @@ namespace my
             renderDelay = rand.Next(11) + 1;
 
             modX = rand.Next(333) + 11;
+
+            // Set up Generators:
+            {
+                Generators.Clear();
+
+                for (int i = 0; i < nGenerators; i++)
+                {
+                    var gen = new generator();
+
+                    gen.getNew();
+                    Generators.Add(gen);
+                }
+            }
 
             return;
         }
@@ -89,6 +134,9 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"      +
                             $"doClearBuffer = {doClearBuffer}\n"          +
                             $"renderDelay = {renderDelay}\n"              +
+                            $"generators = {nGenerators}\n"               +
+                            $"font = '{fontFamily}'\n"                    +
+                            $"size = {size}\n"                            +
                             $"maxSpeed = {maxSpeed}\n"                    +
                             $"xGenMode = {posXGenMode} (modX = {modX})\n" +
                             $"yGenMode = {posYGenMode}\n"                 +
@@ -116,6 +164,39 @@ namespace my
 
             colorPicker.getColor(rand.Next(gl_Width), rand.Next(gl_Height), ref R, ref G, ref B);
 
+            dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(maxSpeed) + 1);
+
+            if (nGenerators > 0)
+            {
+                generateNew_2();
+
+                if (dy < 0)
+                    dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(maxSpeed) + 1);
+            }
+            else
+            {
+                generateNew_1();
+            }
+
+            // Set up letter rotation
+            {
+                angle = 0;
+                dAngle = myUtils.randFloat(rand) * 0.001f * myUtils.randomSign(rand);
+
+                if (angleMode == 2)
+                    dAngle *= rand.Next(5) + 1;
+            }
+
+            index = rand.Next(str.Length);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // No Generators
+        private void generateNew_1()
+        {
             x = rand.Next(gl_Width);
 
             // Set position X
@@ -156,24 +237,35 @@ namespace my
                     break;
             }
 
-            dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(maxSpeed) + 1);
-
-            // Set up letter rotation
-            {
-                angle = 0;
-                dAngle = myUtils.randFloat(rand) * 0.001f * myUtils.randomSign(rand);
-
-                if (angleMode == 2)
-                    dAngle *= rand.Next(5) + 1;
-            }
-
-            size = 33;
-            index = rand.Next(str.Length);
-
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // Use Generators
+        private void generateNew_2()
+        {
+            int n = rand.Next(nGenerators);
+
+            x = Generators[n].x;
+            y = Generators[n].y;
+
+            if (Generators[n].spd > 0)
+                dy = Generators[n].spd;
+
+            if (Generators[n].opacity > 0)
+                A = Generators[n].opacity;
+
+            Generators[n].cnt--;
+
+            if (Generators[n].cnt < 0)
+            {
+                Generators[n].getNew();
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
 
         protected override void Move()
         {
@@ -208,7 +300,7 @@ namespace my
 
         protected override void Show()
         {
-            int offset = size * index;
+            int offset = (size) * index;
 
             tex.setOpacity(A);
             tex.setAngle(angle);
@@ -224,9 +316,17 @@ namespace my
 
         protected override void Process(Window window)
         {
-            str = "abcdefghijklmnopqrstuvwxyz";
+            getAlphabet(ref str);
 
-            tex = getFontTexture("Tahoma", 33, ref texWidth, ref texHeight, str);
+            try
+            {
+                tex = getFontTexture(fontFamily, size, ref texWidth, ref texHeight, str);
+            }
+            catch (System.Exception ex)
+            {
+                // Some fonts will cause this exception (for example, "Vivaldi")
+                tex = getFontTexture("Tahoma", size, ref texWidth, ref texHeight, str);
+            }
 
             uint cnt = 0;
             initShapes();
@@ -241,7 +341,7 @@ namespace my
             {
                 dimScreenRGB_SetRandom(0.1f);
                 glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
+                glDrawBuffer(GL_BACK);
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -304,7 +404,10 @@ namespace my
         // Create a texture with symbols on it
         private myTexRectangle getFontTexture(string fontName, int fontSize, ref int Width, ref int Height, string str)
         {
-            Width  = fontSize * str.Length;
+            //int www = maxCharWidth(str, fontSize, fontName);
+            //extraSpace = www - fontSize;
+
+            Width  = (fontSize) * str.Length;
             Height = fontSize * 2;
 
             var bmp = new Bitmap(Width, Height);
@@ -315,9 +418,9 @@ namespace my
             using (var br = new SolidBrush(Color.FromArgb(255, rand.Next(255), rand.Next(255), rand.Next(255))))
             using (var font = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
             {
-                gr.SmoothingMode = SmoothingMode.AntiAlias;
+                gr.SmoothingMode     = SmoothingMode.AntiAlias;
                 gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                gr.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                gr.PixelOffsetMode   = PixelOffsetMode.HighQuality;
 
                 for (int i = 0; i < str.Length; i++)
                 {
@@ -327,6 +430,91 @@ namespace my
             }
 
             return new myTexRectangle(bmp);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Return random set of characters
+        private void getAlphabet(ref string str)
+        {
+            string[] arr = new string[6] {
+                "абвгдеёжзийклмнопрстуфхцчшщъыьэюя",
+                "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
+                "abcdefghijklmnopqrstuvwxyz",
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                "0123456789",
+                "!@#$%^&*()-+=/?~<>;"
+            };
+
+            uint n = (uint)rand.Next((int)Math.Pow(2, 6)) + 1;
+
+            str = "";
+
+            for (int i = 0; i < 4; i++)
+            {
+                uint pos = (uint)1 << i;
+
+                if ((pos & n) != 0)
+                {
+                    str += arr[i];
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Return random font family name
+        private void getFont(ref string font)
+        {
+            switch (rand.Next(5))
+            {
+                case 0: font = "Tahoma";    break;
+                case 1: font = "Arial";     break;
+                case 2: font = "Consolas";  break;
+                case 3: font = "Calibri";   break;
+
+                case 4:
+                    {
+                        using (System.Drawing.Text.InstalledFontCollection col = new System.Drawing.Text.InstalledFontCollection())
+                        {
+                            int n = rand.Next(col.Families.Length);
+                            font = col.Families[n].Name;
+                        }
+                    }
+                    break;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private int maxCharWidth(string text, int size, string fontName)
+        {
+            int res = 0;
+
+            var bmp = new Bitmap(100, 100);
+
+            using (var gr = Graphics.FromImage(bmp))
+            using (var br = new SolidBrush(Color.FromArgb(255, rand.Next(255), rand.Next(255), rand.Next(255))))
+            using (var font = new Font(fontName, size, FontStyle.Regular, GraphicsUnit.Pixel))
+            {
+                gr.SmoothingMode = SmoothingMode.AntiAlias;
+                gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                gr.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                for (int i = 0; i < str.Length; i++)
+                {
+                    var n = gr.MeasureString(str[i].ToString(), font);
+
+                    if (res < n.Width)
+                        res = (int)n.Width;
+                }
+            }
+
+            return res;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
