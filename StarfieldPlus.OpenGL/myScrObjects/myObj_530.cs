@@ -14,13 +14,13 @@ namespace my
     public class myObj_530 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
         private int cnt;
         private float x, y, dx, dy;
         private float size, A, dA, R, G, B, angle = 0, dAngle, alpha, dAlpha, r, spd;
 
-        private static int N = 0, shape = 0, Rad = 0, Thickness = 0, maxCnt = 0, rotationMode = 0;
+        private static int N = 0, shape = 0, Rad = 0, Thickness = 0, maxCnt = 0, rotationMode = 0, colorMode = 0;
         private static bool doFillShapes = false, doTraceColor = false, doMoveWhileWaiting = false;
         private static float dimAlpha = 0.05f, maxDa = 0;
 
@@ -63,6 +63,7 @@ namespace my
             doMoveWhileWaiting = myUtils.randomChance(rand, 1, 2);
 
             rotationMode = rand.Next(6);
+            colorMode = rand.Next(2);
 
             Rad = 333 + rand.Next(333);
             Thickness = rand.Next(111) + 1;
@@ -139,13 +140,24 @@ namespace my
                 dAlpha = dAlpha < 0 ? -dAlpha : dAlpha;
             }
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
-
             A = myUtils.randFloat(rand) * 0.5f;
             dA = myUtils.randomChance(rand, 1, 1111) ? maxDa / 2 : maxDa;
 
-R = 1; G = B = 0; A = 0.66f;
 
+            // Particle color
+            switch (colorMode)
+            {
+                case 0:
+                    colorPicker.getColor(x, y, ref R, ref G, ref B);
+                    break;
+
+                case 1:
+                    R = 1; G = B = 0; A = 0.66f;
+                    break;
+            }
+
+
+            // Particle rotation
             switch (rotationMode)
             {
                 case 0:
