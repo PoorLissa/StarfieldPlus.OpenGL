@@ -257,6 +257,8 @@ public class myTexRectangle : myPrimitive
                         fragTxCoord = myPart.z == 0
                             ? txCoord
                             { "" /* This way, we are able to render just a part of a texture */ }
+                            { "" /* There's a problem, however: this does not really work if the texture's size is less than the screen size */ }
+                            { "" /* In this case, we can do it like that: tex.Draw(0, 0, 33, bmpHeight, 0, 0, 33 * gl_Width / bmpWidth, bmpHeight * gl_Height / bmpHeight); */ }
                             : vec2(myScrDxDy.x * (myPart.x + txCoord.x * myPart.z), myScrDxDy.y * (myPart.y + txCoord.y * myPart.w));
                 "
         );

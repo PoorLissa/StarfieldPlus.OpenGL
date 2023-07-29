@@ -96,7 +96,7 @@ public class ScreenSaver
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
-    // - 
+    // - circles of different size on a plane, some of them intersecting; along each circle, small planet is moving orbit-like
 
 
 
@@ -162,11 +162,12 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_470));   // - ... skewed lines
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_480));   // - ... harmonic oscillations
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_490));   // F (x, y)
-        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_500));   // Free Shader Experiments
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_500));   // Free Shader Experiments - 1
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_501));   // Free Shader Experiments - 2
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_510));   // ...
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_520));   // Static pulsating shapes
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_530));   // ...
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_540));   // Falling alphabet letters (Matrix style)
 
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 

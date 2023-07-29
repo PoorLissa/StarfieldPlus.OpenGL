@@ -12,6 +12,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -24,7 +25,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -117,6 +117,7 @@
     <Compile Include="myScrObjects\myObj_520.cs" />
     <Compile Include="myScrObjects\myObj_012.cs" />
     <Compile Include="myScrObjects\myObj_530.cs" />
+    <Compile Include="myScrObjects\myObj_540.cs" />
     <Compile Include="myScrObjects\myObj__empty.cs" />
     <Compile Include="myScrObjects\myObj_131.cs" />
     <Compile Include="myScrObjects\myObj_220.cs" />
