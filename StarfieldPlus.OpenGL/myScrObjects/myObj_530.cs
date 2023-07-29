@@ -14,7 +14,7 @@ namespace my
     public class myObj_530 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority { get { return getPriority(); } }
 
         private int cnt;
         private float x, y, dx, dy;
@@ -379,5 +379,13 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private static int getPriority()
+        {
+#if DEBUG
+            return 999910;
+#endif
+            return 10;
+        }
     }
 };
