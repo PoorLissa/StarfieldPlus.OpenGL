@@ -34,7 +34,7 @@ namespace my
                     : -1;
 
                 opacity = myUtils.randomChance(rand, 1, 2)
-                    ? myUtils.randFloat(rand) * 0.9f
+                    ? myObj_540.getOpacity(0.5f, 13)
                     : -1;
             }
         };
@@ -52,9 +52,9 @@ namespace my
         private static int texWidth = 0, texHeight = 0, maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0, size = 33;
 
         private static myTexRectangle tex = null;
-        private static string str, fontFamily = "Tahoma";
-
         private static List<generator> Generators = null;
+
+        private static string str, fontFamily = "Tahoma";
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -101,6 +101,8 @@ namespace my
 
             modX = rand.Next(333) + 11;
 
+            dimAlpha = 0.2f + myUtils.randFloat(rand) * 0.05f;
+
             // Set up Generators:
             {
                 Generators.Clear();
@@ -127,7 +129,7 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_540\n\n"                           +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"      +
@@ -140,6 +142,7 @@ namespace my
                             $"xGenMode = {posXGenMode} (modX = {modX})\n" +
                             $"yGenMode = {posYGenMode}\n"                 +
                             $"angleMode = {angleMode}\n"                  +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"              +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -159,7 +162,7 @@ namespace my
 
         protected override void generateNew()
         {
-            A = myUtils.randFloat(rand) * 0.9f;
+            A = getOpacity(0.5f, 13);
 
             colorPicker.getColor(rand.Next(gl_Width), rand.Next(gl_Height), ref R, ref G, ref B);
 
@@ -330,8 +333,6 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            dimAlpha = 0.25f;
-
             if (doClearBuffer)
             {
                 clearScreenSetup(doClearBuffer, 0.2f);
@@ -396,6 +397,20 @@ namespace my
             myPrimitive.init_Line();
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        public static float getOpacity(float Base, int Chance)
+        {
+            // Base opacity is 0.5f at most;
+            float op = myUtils.randFloat(rand) * Base;
+
+            // Then, for some particles we increase it
+            if (myUtils.randomChance(rand, 1, Chance))
+                op += myUtils.randFloat(rand) * (1.0f - Base);
+
+            return op;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
