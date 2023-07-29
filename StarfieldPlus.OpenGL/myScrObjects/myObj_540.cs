@@ -80,10 +80,6 @@ namespace my
                 size = rand.Next(60) + 20;
 
                 getFont(ref fontFamily);
-
-                nGenerators = myUtils.randomChance(rand, 1, 2)
-                    ? 0
-                    : rand.Next(111) + 33;
             }
 
             initLocal();
@@ -109,10 +105,13 @@ namespace my
             {
                 Generators.Clear();
 
+                nGenerators = myUtils.randomChance(rand, 1, 2)
+                    ? 0
+                    : rand.Next(111) + 33;
+
                 for (int i = 0; i < nGenerators; i++)
                 {
                     var gen = new generator();
-
                     gen.getNew();
                     Generators.Add(gen);
                 }
