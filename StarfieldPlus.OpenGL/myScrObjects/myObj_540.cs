@@ -403,29 +403,57 @@ namespace my
         // Create a texture with symbols on it
         private myTexRectangle getFontTexture(string fontName, int fontSize, ref int Width, ref int Height, string str)
         {
+            Bitmap bmp = null;
+
             //int www = maxCharWidth(str, fontSize, fontName);
             //extraSpace = www - fontSize;
 
             Width  = (fontSize) * str.Length;
             Height = fontSize * 2;
 
-            var bmp = new Bitmap(Width, Height);
+            int aaa = 0;
 
-            RectangleF rectf = new RectangleF(0, 0, fontSize, Height);
-
-            using (var gr = Graphics.FromImage(bmp))
-            using (var br = new SolidBrush(Color.FromArgb(255, rand.Next(255), rand.Next(255), rand.Next(255))))
-            using (var font = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
+            try
             {
-                gr.SmoothingMode     = SmoothingMode.AntiAlias;
-                gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                gr.PixelOffsetMode   = PixelOffsetMode.HighQuality;
+                bmp = new Bitmap(Width, Height);
 
-                for (int i = 0; i < str.Length; i++)
+                aaa = 1;
+
+                RectangleF rectf = new RectangleF(0, 0, fontSize, Height);
+
+                aaa = 2;
+
+                using (var gr = Graphics.FromImage(bmp))
                 {
-                    gr.DrawString(str[i].ToString(), font, br, rectf);
-                    rectf.X += fontSize;
+                    aaa = 3;
+
+                    using (var br = new SolidBrush(Color.FromArgb(255, rand.Next(255), rand.Next(255), rand.Next(255))))
+                    {
+                        aaa = 4;
+
+                        using (var font = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
+                        {
+                            aaa = 5;
+
+                            gr.SmoothingMode = SmoothingMode.AntiAlias;
+                            gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                            gr.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                            for (int i = 0; i < str.Length; i++)
+                            {
+                                gr.DrawString(str[i].ToString(), font, br, rectf);
+                                rectf.X += fontSize;
+                            }
+
+                            aaa = 6;
+                        }
+                    }
                 }
+
+            }
+            catch (System.Exception ex)
+            {
+                throw ex;
             }
 
             return new myTexRectangle(bmp);
@@ -433,27 +461,27 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // Return random set of characters
+        // Return random set of characters made of a random sum of defined sets
         private void getAlphabet(ref string str)
         {
-            string[] arr = new string[6] {
+            const int N = 6;
+            str = "";
+
+            string[] arr = new string[N] {
                 "абвгдеёжзийклмнопрстуфхцчшщъыьэюя",
                 "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
                 "abcdefghijklmnopqrstuvwxyz",
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                 "0123456789",
-                "!@#$%^&*()-+=/?~<>;"
+                "!@#$%^&*()[]{}<>-+=/?~;:"
             };
 
-            uint n = (uint)rand.Next((int)Math.Pow(2, 6)) + 1;
+            // Get random number from [1 .. (2^N)-1]
+            uint n = (uint)rand.Next((int)Math.Pow(2, N) - 1) + 1;
 
-            str = "";
-
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < N; i++)
             {
-                uint pos = (uint)1 << i;
-
-                if ((pos & n) != 0)
+                if (((uint)(1 << i) & n) != 0)
                 {
                     str += arr[i];
                 }
@@ -467,20 +495,18 @@ namespace my
         // Return random font family name
         private void getFont(ref string font)
         {
-            switch (rand.Next(5))
+            switch (rand.Next(7))
             {
-                case 0: font = "Tahoma";    break;
-                case 1: font = "Arial";     break;
-                case 2: font = "Consolas";  break;
-                case 3: font = "Calibri";   break;
+                case 0: font = "Tahoma";   break;
+                case 1: font = "Arial";    break;
+                case 2: font = "Consolas"; break;
+                case 3: font = "Calibri";  break;
 
-                case 4:
+                default:
+                    using (System.Drawing.Text.InstalledFontCollection col = new System.Drawing.Text.InstalledFontCollection())
                     {
-                        using (System.Drawing.Text.InstalledFontCollection col = new System.Drawing.Text.InstalledFontCollection())
-                        {
-                            int n = rand.Next(col.Families.Length);
-                            font = col.Families[n].Name;
-                        }
+                        int n = rand.Next(col.Families.Length);
+                        font = col.Families[n].Name;
                     }
                     break;
             }
