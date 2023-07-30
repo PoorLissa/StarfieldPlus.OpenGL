@@ -16,6 +16,11 @@ namespace my
 {
     public class myObj_540 : myObject
     {
+        // --------------------------------------------------------------------------
+
+        // Generator class, used to instanciate several generators
+        // Each generator will create several particles in the same place, until its counter is above zero;
+        // Then it will move to some other position
         public class generator
         {
             public int x, y, cnt;
@@ -39,6 +44,8 @@ namespace my
             }
         };
 
+        // --------------------------------------------------------------------------
+
         // Priority
         public static int Priority => 10;
 
@@ -48,6 +55,7 @@ namespace my
 
         private static int N = 0, nGenerators = 0;
         private static float dimAlpha = 0.05f;
+        private static bool doUseRGB = false;
 
         private static int texWidth = 0, texHeight = 0, maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0, size = 33;
 
@@ -76,6 +84,8 @@ namespace my
             // Global unmutable constants
             {
                 N = 10000;
+
+                doUseRGB = myUtils.randomChance(rand, 1, 5);            // If true, paint alphabet in white and then setcustom color for each particle
 
                 size = rand.Next(60) + 20;
 
@@ -138,6 +148,7 @@ namespace my
                             $"generators = {nGenerators}\n"               +
                             $"font = '{fontFamily}'\n"                    +
                             $"size = {size}\n"                            +
+                            $"doUseRGB = {doUseRGB}\n"                    +
                             $"maxSpeed = {maxSpeed}\n"                    +
                             $"xGenMode = {posXGenMode} (modX = {modX})\n" +
                             $"yGenMode = {posYGenMode}\n"                 +
@@ -307,7 +318,8 @@ namespace my
             tex.setOpacity(A);
             tex.setAngle(angle);
 
-            //tex.setColor(R, G, B);
+            if (doUseRGB)
+                tex.setColor(R, G, B);
 
             tex.Draw((int)x, (int)y, size, texHeight, offset * gl_Width / texWidth, 0, size * gl_Width / texWidth, texHeight * gl_Height / texHeight);
 
@@ -440,9 +452,20 @@ namespace my
 
                 using (var gr = Graphics.FromImage(bmp))
                 {
+                    // In case doUseRGB is True, we paint out alphabet in white, then set the custom color for each particle in Draw()
+                    int r = 255, g = 255, b = 255;
+
+                    // Otherwise, select color now, and never change it later on
+                    if (doUseRGB == false)
+                    {
+                        r = rand.Next(255);
+                        g = rand.Next(255);
+                        b = rand.Next(255);
+                    }
+
                     aaa = 3;
 
-                    using (var br = new SolidBrush(Color.FromArgb(255, rand.Next(255), rand.Next(255), rand.Next(255))))
+                    using (var br = new SolidBrush(Color.FromArgb(255, r, g, b)))
                     {
                         aaa = 4;
 

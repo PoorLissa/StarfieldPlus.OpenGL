@@ -383,7 +383,7 @@ namespace my
         private static int getPriority()
         {
 #if DEBUG
-            return 999910;
+            return 10;
 #endif
             return 10;
         }
