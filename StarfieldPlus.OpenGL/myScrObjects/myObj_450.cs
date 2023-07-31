@@ -23,7 +23,7 @@ namespace my
 
         private static int N = 0, shape = 0, maxSize = 1, opacityMode = 0, angleMode = 0, offsetMode = 0, mode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, maxOffset = 1;
+        private static float dimAlpha = 0.05f, maxOffset = 1, lineWidth = 1.0f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -113,6 +113,7 @@ namespace my
                             $"angleMode = {angleMode}\n"             +
                             $"dimAlpha = {fStr(dimAlpha)}\n"         +
                             $"maxOffset = {fStr(maxOffset)}\n"       +
+                            $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -121,10 +122,12 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // 
+        // Press 'Space' to change mode
         protected override void setNextMode()
         {
             initLocal();
+
+            setLineWidth();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -328,6 +331,8 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
 
+            setLineWidth();
+
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
@@ -352,7 +357,9 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    int Count = list.Count;
+
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_450;
 
@@ -392,9 +399,26 @@ namespace my
 
             base.initShapes(shape < 5 ? shape : 0, N, 0);
 
+            if (shape == 5)
+            {
+                // Change pixel density, so the rectangle's outline is displayed correctly
+                inst.setPixelDensityOffset(1);
+            }
+
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // Randomly change shape's border width
+        private void setLineWidth()
+        {
+            lineWidth = 0.5f + myUtils.randFloat(rand) * rand.Next(4);
+
+            glLineWidth(lineWidth);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     }
 };

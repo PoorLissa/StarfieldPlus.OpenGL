@@ -79,4 +79,17 @@ public class myInstancedPrimitive : myPrimitive
     }
 
     // ---------------------------------------------------------------------------------------
+
+    // Sometimes shapes are drawn incorrectly (parts of the outline are missing)
+    // One way to fix this is to change the pixel density
+    public void setPixelDensityOffset(int offset)
+    {
+        if (offset > 0)
+        {
+            pixelX = 1.0f / (Width  + offset);
+            pixelY = 1.0f / (Height + offset);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
 };
