@@ -416,7 +416,8 @@ namespace my
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Line();
 
-            tTex = new TexText(size, gl_Width, gl_Height, doUseRGB);
+            TexText.setScrDimensions(gl_Width, gl_Height);
+            tTex = new TexText(size, doUseRGB);
 
             return;
         }

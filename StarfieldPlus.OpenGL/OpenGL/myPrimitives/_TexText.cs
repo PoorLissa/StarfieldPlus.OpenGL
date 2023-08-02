@@ -8,13 +8,11 @@ using System.Drawing.Drawing2D;
 
 /*
     This class creates and maintains a custom texture with a set of symbols printed to it;
+    Additionally, it stores a map of <index, character_field_info> to access every single character position;
     These symbols then can be viewed on the screen;
     This way, we can output text in OpenGL
 
     https://learnopengl.com/In-Practice/Text-Rendering
-
-    known problems:
-      - in case the font is small, but the sizeFactor is large, the symbols will look bad
 */
 
 
@@ -42,10 +40,9 @@ class TexText
     // -------------------------------------------------------------------------------------------------------------------
 
     // Use a random set of characters
-    public TexText(int size, int gl_Width, int gl_Height, bool customColor)
+    public TexText(int size, bool customColor)
     {
-        _scrWidth = gl_Width;
-        _scrHeight = gl_Height;
+        System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
 
         doUseCustomColor = customColor;
 
@@ -62,10 +59,9 @@ class TexText
     // -------------------------------------------------------------------------------------------------------------------
 
     // Use a user-defined set of characters
-    public TexText(int size, string text, int gl_Width, int gl_Height, bool customColor)
+    public TexText(int size, string text, bool customColor)
     {
-        _scrWidth = gl_Width;
-        _scrHeight = gl_Height;
+        System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
 
         doUseCustomColor = customColor;
 
@@ -74,6 +70,15 @@ class TexText
         getFont(ref _fontFamily);
 
         getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, text);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Set scren dimensions
+    public static void setScrDimensions(int width, int height)
+    {
+        _scrWidth = width;
+        _scrHeight = height;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
