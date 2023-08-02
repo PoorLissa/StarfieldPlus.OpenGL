@@ -50,7 +50,7 @@ namespace my
         // --------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
 
         private float x, y, dy, angle, dAngle, sizeFactor;
         private float A, R, G, B;
