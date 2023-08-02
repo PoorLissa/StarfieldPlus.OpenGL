@@ -79,10 +79,9 @@ namespace my
                     break;
             }
 
-            mode = 0;
-
-            if (myUtils.randomChance(rand, 1, 5))
-                mode = 1;
+            mode = myUtils.randomChance(rand, 1, 5)
+                ? 1
+                : 0;
 
             offsetMode = rand.Next(13);
             maxSize = rand.Next(35) + 15;

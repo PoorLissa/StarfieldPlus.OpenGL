@@ -50,22 +50,21 @@ namespace my
         // --------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 9999910;
 
-        private float x, y, dy, angle, dAngle;
+        private float x, y, dy, angle, dAngle, sizeFactor;
         private float A, R, G, B;
         private int   index;
 
         private static int N = 0, nGenerators = 0;
         private static float dimAlpha = 0.05f;
-        private static bool doUseRGB = false;
+        private static bool doUseRGB = false, doUseSizeFactor = false;
 
-        private static int texWidth = 0, texHeight = 0, maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0, size = 33;
+        private static int maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0, size = 20;
 
-        private static myTexRectangle tex = null;
         private static List<generator> Generators = null;
 
-        private static string str, fontFamily = "Tahoma";
+        private static TexText tTex = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -80,7 +79,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT);
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
             Generators = new List<generator>();
 
@@ -90,9 +89,14 @@ namespace my
 
                 doUseRGB = myUtils.randomChance(rand, 1, 5);            // If true, paint alphabet in white and then setcustom color for each particle
 
-                size = rand.Next(60) + 20;
-
-                getFont(ref fontFamily);
+                // Size
+                switch (rand.Next(4))
+                {
+                    case 0: size = rand.Next(40) + 20; break;
+                    case 1: size = rand.Next(60) + 20; break;
+                    case 2: size = rand.Next(80) + 20; break;
+                    case 3: size = rand.Next(99) + 20; break;
+                }
             }
 
             initLocal();
@@ -104,11 +108,12 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 4, 5);
+            doUseSizeFactor = myUtils.randomChance(rand, 1, 2);
 
             maxSpeed = 3 + rand.Next(13);               // max falling speed
             posXGenMode = rand.Next(3);                 // where the particles are generated along the X-axis
             posYGenMode = rand.Next(3);                 // where the particles are generated along the Y-axis
-            angleMode = rand.Next(3);                   // letter rotation mode
+            angleMode = rand.Next(4);                   // letter rotation mode
 
             renderDelay = rand.Next(11) + 1;
 
@@ -147,9 +152,10 @@ namespace my
             string str = $"Obj = myObj_540\n\n"                           +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"      +
                             $"doClearBuffer = {doClearBuffer}\n"          +
+                            $"doUseSizeFactor = {doUseSizeFactor}\n"      +
                             $"renderDelay = {renderDelay}\n"              +
                             $"generators = {nGenerators}\n"               +
-                            $"font = '{fontFamily}'\n"                    +
+                            $"font = '{tTex.FontFamily()}'\n"             +
                             $"size = {size}\n"                            +
                             $"doUseRGB = {doUseRGB}\n"                    +
                             $"maxSpeed = {maxSpeed}\n"                    +
@@ -178,6 +184,11 @@ namespace my
         {
             A = getOpacity(0.5f, 13);
 
+            // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
+            sizeFactor = doUseSizeFactor && size > 21
+                ? 0.5f + myUtils.randFloat(rand) * 20 / (float)size
+                : 1.0f;
+
             colorPicker.getColor(rand.Next(gl_Width), rand.Next(gl_Height), ref R, ref G, ref B);
 
             dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(maxSpeed) + 1);
@@ -201,9 +212,13 @@ namespace my
 
                 if (angleMode == 2)
                     dAngle *= rand.Next(5) + 1;
+
+                if (angleMode == 3)
+                    dAngle *= rand.Next(13) + 10;
+
             }
 
-            index = rand.Next(str.Length);
+            index = rand.Next(tTex.Lengh());
 
             return;
         }
@@ -282,7 +297,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-
         protected override void Move()
         {
             y += dy;
@@ -302,6 +316,10 @@ namespace my
                             dAngle *= -1;
                     }
                     break;
+
+                case 3:
+                    angle += dAngle;
+                    break;
             }
 
             if (y > gl_Height)
@@ -316,15 +334,14 @@ namespace my
 
         protected override void Show()
         {
-            int offset = (size) * index;
-
-            tex.setOpacity(A);
-            tex.setAngle(angle);
-
             if (doUseRGB)
-                tex.setColor(R, G, B);
-
-            tex.Draw((int)x, (int)y, size, texHeight, offset * gl_Width / texWidth, 0, size * gl_Width / texWidth, texHeight * gl_Height / texHeight);
+            {
+                tTex.Draw(x, y, index, A, angle, sizeFactor, R, B, G);
+            }
+            else
+            {
+                tTex.Draw(x, y, index, A, angle, sizeFactor);
+            }
 
             return;
         }
@@ -333,18 +350,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            getAlphabet(ref str);
-
-            try
-            {
-                tex = getFontTexture(fontFamily, size, ref texWidth, ref texHeight, str);
-            }
-            catch (System.Exception ex)
-            {
-                // Some fonts will cause this exception (for example, "Vivaldi")
-                tex = getFontTexture("Tahoma", size, ref texWidth, ref texHeight, str);
-            }
-
             uint cnt = 0;
             initShapes();
 
@@ -411,6 +416,8 @@ namespace my
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Line();
 
+            tTex = new TexText(size, gl_Width, gl_Height, doUseRGB);
+
             return;
         }
 
@@ -426,161 +433,6 @@ namespace my
                 op += myUtils.randFloat(rand) * (1.0f - Base);
 
             return op;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Create a texture with symbols on it
-        private myTexRectangle getFontTexture(string fontName, int fontSize, ref int Width, ref int Height, string str)
-        {
-            Bitmap bmp = null;
-
-            //int www = maxCharWidth(str, fontSize, fontName);
-            //extraSpace = www - fontSize;
-
-            Width  = (fontSize) * str.Length;
-            Height = fontSize * 2;
-
-            int aaa = 0;
-
-            try
-            {
-                bmp = new Bitmap(Width, Height);
-
-                aaa = 1;
-
-                RectangleF rectf = new RectangleF(0, 0, fontSize, Height);
-
-                aaa = 2;
-
-                using (var gr = Graphics.FromImage(bmp))
-                {
-                    // In case doUseRGB is True, we paint out alphabet in white, then set the custom color for each particle in Draw()
-                    int r = 255, g = 255, b = 255;
-
-                    // Otherwise, select color now, and never change it later on
-                    if (doUseRGB == false)
-                    {
-                        r = rand.Next(255);
-                        g = rand.Next(255);
-                        b = rand.Next(255);
-                    }
-
-                    aaa = 3;
-
-                    using (var br = new SolidBrush(Color.FromArgb(255, r, g, b)))
-                    {
-                        aaa = 4;
-
-                        using (var font = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
-                        {
-                            aaa = 5;
-
-                            gr.SmoothingMode = SmoothingMode.AntiAlias;
-                            gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            gr.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                            for (int i = 0; i < str.Length; i++)
-                            {
-                                gr.DrawString(str[i].ToString(), font, br, rectf);
-                                rectf.X += fontSize;
-                            }
-
-                            aaa = 6;
-                        }
-                    }
-                }
-
-            }
-            catch (System.Exception ex)
-            {
-                throw ex;
-            }
-
-            return new myTexRectangle(bmp);
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Return random set of characters made of a random sum of defined sets
-        private void getAlphabet(ref string str)
-        {
-            const int N = 6;
-            str = "";
-
-            string[] arr = new string[N] {
-                "абвгдеёжзийклмнопрстуфхцчшщъыьэюя",
-                "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
-                "abcdefghijklmnopqrstuvwxyz",
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                "0123456789",
-                "!@#$%^&*()[]{}<>-+=/?~;:"
-            };
-
-            // Get random number from [1 .. (2^N)-1]
-            uint n = (uint)rand.Next((int)Math.Pow(2, N) - 1) + 1;
-
-            for (int i = 0; i < N; i++)
-            {
-                if (((uint)(1 << i) & n) != 0)
-                {
-                    str += arr[i];
-                }
-            }
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Return random font family name
-        private void getFont(ref string font)
-        {
-            switch (rand.Next(7))
-            {
-                case 0: font = "Tahoma";   break;
-                case 1: font = "Arial";    break;
-                case 2: font = "Consolas"; break;
-                case 3: font = "Calibri";  break;
-
-                default:
-                    using (System.Drawing.Text.InstalledFontCollection col = new System.Drawing.Text.InstalledFontCollection())
-                    {
-                        int n = rand.Next(col.Families.Length);
-                        font = col.Families[n].Name;
-                    }
-                    break;
-            }
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        private int maxCharWidth(string text, int size, string fontName)
-        {
-            int res = 0;
-
-            var bmp = new Bitmap(100, 100);
-
-            using (var gr = Graphics.FromImage(bmp))
-            using (var br = new SolidBrush(Color.FromArgb(255, rand.Next(255), rand.Next(255), rand.Next(255))))
-            using (var font = new Font(fontName, size, FontStyle.Regular, GraphicsUnit.Pixel))
-            {
-                gr.SmoothingMode = SmoothingMode.AntiAlias;
-                gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                gr.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                for (int i = 0; i < str.Length; i++)
-                {
-                    var n = gr.MeasureString(str[i].ToString(), font);
-
-                    if (res < n.Width)
-                        res = (int)n.Width;
-                }
-            }
-
-            return res;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

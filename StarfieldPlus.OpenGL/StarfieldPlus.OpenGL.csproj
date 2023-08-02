@@ -148,6 +148,7 @@
     <Compile Include="OpenGL\myPrimitives\_Rectangle_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_TexRectangle_Renderer.cs" />
     <Compile Include="OpenGL\myPrimitives\_TexRectangle.cs" />
+    <Compile Include="OpenGL\myPrimitives\_TexText.cs" />
     <Compile Include="OpenGL\myPrimitives\_Triangle_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\__myPrimitiveInst.cs" />
     <Compile Include="Program.cs" />
