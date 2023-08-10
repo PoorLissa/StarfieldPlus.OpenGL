@@ -88,8 +88,15 @@ namespace my
 
             if (false)
             {
-                shape = 2;
-                rotationMode = 0;
+                doClearBuffer = false;
+                doFillShapes = true;
+                doShake = false;
+                moveMode = 0;
+                rotationMode = 3;
+                daMode = 0;
+                dxdyMode = 2;
+                dxdyFactor = 3;
+                renderDelay = 16;
             }
 
             return;
@@ -368,7 +375,8 @@ namespace my
             }
             else
             {
-                glDrawBuffer(GL_FRONT_AND_BACK);
+                //glDrawBuffer(GL_FRONT_AND_BACK);
+                glDrawBuffer(GL_BACK);
                 dimScreenRGB_SetRandom(0.1f);
             }
 

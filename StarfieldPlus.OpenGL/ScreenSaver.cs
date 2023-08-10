@@ -107,6 +107,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011));   // Randomly Roaming Lines (based on Randomly Roaming Squares)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_012));   // Snow-like pattern made of different layers moving in different directions
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_020));   // Linearly Moving Shapes (Soap Bubbles Alike)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_021));   // Ever Growing Shapes located at the center of the screen + small offset
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_030));   // Rain Drops (Vertical, Top-Down)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_031));   // Pseudo-3d-rain
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_040));   // Lines 1: Snake-like branches moving outwards from the center

@@ -398,7 +398,7 @@ namespace my
 
             base.initShapes(shape < 5 ? shape : 0, N, 0);
 
-            if (shape == 5)
+            if (shape == 0 || shape == 5)
             {
                 // Change pixel density, so the rectangle's outline is displayed correctly
                 inst.setPixelDensityOffset(1);

@@ -15,6 +15,7 @@ public class myEllipseInst : myInstancedPrimitive
 
     private static uint ebo_fill = 0, shaderProgram = 0, instVbo = 0, quadVbo = 0;
     private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0, locationDoFill = 0;
+    private static int verticesLength = 12;
 
     private int rotationMode;
 
@@ -31,7 +32,7 @@ public class myEllipseInst : myInstancedPrimitive
         {
             N = 0;
 
-            vertices = new float[12];
+            vertices = new float[verticesLength];
             instanceArray = new float[maxInstCount * n];
 
             CreateProgram();
@@ -55,16 +56,6 @@ public class myEllipseInst : myInstancedPrimitive
 
     public override void Draw(bool doFill = false)
     {
-        // todo: make parent method unsafe and remove this call: see if this is faster
-        unsafe void __draw(bool fill)
-        {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
-            glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, N);
-        }
-
-        // ---------------------------------------------------------------------------------------
-
         // Our initial square is located at the center of coordinates: [x = -pixel/2, y = pixel/2, w = 1*pixel, h = 1*pixel];
         // It will be scaled and moved into position by the shader
 
@@ -88,7 +79,12 @@ public class myEllipseInst : myInstancedPrimitive
         glUniform1i(locationDoFill, doFill ? 0 : 1);
         glUniform1i(locationRotateMode, rotationMode);
 
-        __draw(doFill);
+        unsafe
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
+            glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, N);
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -148,16 +144,9 @@ public class myEllipseInst : myInstancedPrimitive
 
                 main: @"float xySqd = zzz.x * zzz.x + zzz.y * zzz.y;
 
-                        if (doFill == 0)
-                        {
-                            if (xySqd <= zzz.z)
-                                result = rgbaColor;
-                        }
-                        else
-                        {
-                            if (xySqd <= zzz.z && xySqd > zzz.w)
-                                result = rgbaColor;
-                        }
+                        result = (doFill == 0)
+                            ? (xySqd <= zzz.z) ? rgbaColor : vec4(0)
+                            : (xySqd <= zzz.z && xySqd > zzz.w) ? rgbaColor : vec4(0);
 
                         if (myColor.w < 0)
                             result.w *= -myColor.w;"
@@ -185,7 +174,7 @@ public class myEllipseInst : myInstancedPrimitive
         glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
         {
             fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * verticesLength, v, GL_DYNAMIC_DRAW);
 
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
             glEnableVertexAttribArray(0);
