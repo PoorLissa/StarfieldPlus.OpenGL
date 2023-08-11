@@ -14,7 +14,7 @@ namespace my
     public class myObj_021 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
         private float x, y, size, dSize, angle, A = 0, R = 0, G = 0, B = 0;
         int lifeCounter = 0;
@@ -22,6 +22,7 @@ namespace my
         private static int shape = 0, N = 0, angleMode = 0, opacityMode = 0, colorMode = 0, xyGenerateMode = 0, offset = 0, offsetMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.1f, dSizeBase = 0, dA = 0, Angle = 0;
+        private static uint cnt = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -109,6 +110,7 @@ namespace my
                             $"opacityMode = {opacityMode}\n"            +
                             $"angleMode = {angleMode}\n"                +
                             $"renderDelay = {renderDelay}\n"            +
+                            $"cnt = {cnt}\n"                            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -119,7 +121,13 @@ namespace my
         // Press 'Space' to change mode
         protected override void setNextMode()
         {
+            getNewCounter(5000, 30000);
+
             initLocal();
+
+            System.Threading.Thread.Sleep(123);
+
+            clearScreenSetup(doClearBuffer, 0.2f);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -247,7 +255,9 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
+            int Count = 0;
+
+            getNewCounter(10000, 5000);
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.2f);
@@ -268,11 +278,13 @@ namespace my
                     Glfw.SwapBuffers(window);
                 }
 
+                Count = list.Count;
+
                 // Render Frame
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_021;
 
@@ -292,13 +304,18 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_021());
                 }
 
                 System.Threading.Thread.Sleep(renderDelay);
-                cnt++;
+
+                // Switch the mode occasionally
+                if (--cnt == 0)
+                {
+                    setNextMode();
+                }
             }
 
             return;
@@ -313,6 +330,13 @@ namespace my
             base.initShapes(shape, N, 0);
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        void getNewCounter(uint min, int rnd)
+        {
+            cnt = min + (uint)rand.Next(rnd);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
