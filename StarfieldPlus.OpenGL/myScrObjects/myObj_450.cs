@@ -8,6 +8,7 @@ using System.Collections.Generic;
     - Then put color spots on the screen at the same coordinates
 
     - As an option, set color as (1 - Color)
+    - As an option, set 1 or 2 colors as averages
 */
 
 
@@ -24,6 +25,9 @@ namespace my
         private static int N = 0, shape = 0, maxSize = 1, opacityMode = 0, angleMode = 0, offsetMode = 0, mode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, maxOffset = 1, lineWidth = 1.0f;
+
+        private static float rAvg = 0, gAvg = 0, bAvg = 0;
+        private static int avgCnt = 0, mode2mode = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -79,14 +83,20 @@ namespace my
                     break;
             }
 
-            mode = myUtils.randomChance(rand, 1, 5)
-                ? 1
-                : 0;
+            mode = 0;
+
+            switch (rand.Next(8))
+            {
+                case 0: mode = 1; break;
+                case 1: mode = 2; break;
+                case 2: mode = 2; break;
+            }
 
             offsetMode = rand.Next(13);
             maxSize = rand.Next(35) + 15;
             opacityMode = rand.Next(9);
             angleMode = rand.Next(4);
+            mode2mode = rand.Next(6);
 
             renderDelay = rand.Next(11) + 3;
 
@@ -105,6 +115,7 @@ namespace my
             string str = $"Obj = myObj_450\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"mode = {mode}\n"                       +
+                            $"mode2mode = {mode2mode}\n"             +
                             $"shape = {shape}\n"                     +
                             $"maxSize = {maxSize}\n"                 +
                             $"offsetMode = {offsetMode}\n"           +
@@ -172,13 +183,8 @@ namespace my
                     break;
             }
 
-            if (mode == 1)
-            {
-                R = 1 - R;
-                G = 1 - G;
-                B = 1 - B;
-            }
-            else
+            // Offset colors
+            if (mode == 0)
             {
                 // Offset picked color
                 switch (offsetMode < 7 ? offsetMode : rand.Next(7))
@@ -214,6 +220,56 @@ namespace my
                         R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
                         G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
                         B += myUtils.randomSign(rand) * myUtils.randFloat(rand) * maxOffset;
+                        break;
+                }
+            }
+
+            // Inverted colors
+            if (mode == 1)
+            {
+                R = 1 - R;
+                G = 1 - G;
+                B = 1 - B;
+            }
+
+            // 1 or 2 colors stay the same, the other color components are averaged
+            if (mode == 2)
+            {
+                if (avgCnt < 10000)
+                {
+                    rAvg += R;
+                    gAvg += G;
+                    bAvg += B;
+                    avgCnt++;
+                }
+
+                switch (mode2mode)
+                {
+                    case 0:
+                        R = rAvg / avgCnt;
+                        break;
+
+                    case 1:
+                        G = gAvg / avgCnt;
+                        break;
+
+                    case 2:
+                        B = bAvg / avgCnt;
+                        break;
+
+                    case 3:
+                        G = gAvg / avgCnt;
+                        B = bAvg / avgCnt;
+                        break;
+
+                    case 4:
+                        R = rAvg / avgCnt;
+                        B = bAvg / avgCnt;
+                        break;
+
+                    case 5:
+                        R = rAvg / avgCnt;
+                        G = gAvg / avgCnt;
                         break;
                 }
             }
