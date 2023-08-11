@@ -16,12 +16,12 @@ namespace my
         // Priority
         public static int Priority => 10;
 
-        private float x, y, size, dSize, angle, dAngle, A = 0, R = 0, G = 0, B = 0;
+        private float x, y, size, dSize, angle, A = 0, R = 0, G = 0, B = 0;
         int lifeCounter = 0;
 
-        private static int shape = 0, N = 0, opacityMode = 0, colorMode = 0, offset = 0, offsetMode = 0;
+        private static int shape = 0, N = 0, angleMode = 0, opacityMode = 0, colorMode = 0, xyGenerateMode = 0, offset = 0, offsetMode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.1f, dSizeBase = 0, dA = 0;
+        private static float dimAlpha = 0.1f, dSizeBase = 0, dA = 0, Angle = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -38,7 +38,12 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
-            N = 333;
+            switch (rand.Next(3))
+            {
+                case 0: N = 333 + rand.Next(0111); break;
+                case 1: N = 333 + rand.Next(1111); break;
+                case 2: N = 333 + rand.Next(3333); break;
+            }
 
             shape = rand.Next(5);
 
@@ -54,11 +59,13 @@ namespace my
 
             doFillShapes = myUtils.randomBool(rand);
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
-            dimAlpha = myUtils.randFloat(rand, 0.1f);
+            dimAlpha = myUtils.randFloat(rand) * 0.7f + 0.05f;      // 0.75f at max, otherwise with doClearBuffer == true we won't see anything
 
             colorMode = rand.Next(2);
             opacityMode = rand.Next(2);
             offsetMode = rand.Next(2);
+            angleMode = rand.Next(3);
+            xyGenerateMode = rand.Next(6);
 
             switch (offsetMode)
             {
@@ -97,8 +104,10 @@ namespace my
                             $"dSizeBase = {fStr(dSizeBase)}\n"          +
                             $"dA = {fStr(dA)}\n"                        +
                             $"offset = {offset}\n"                      +
+                            $"xyGenerateMode = {xyGenerateMode}\n"      +
                             $"colorMode = {colorMode}\n"                +
                             $"opacityMode = {opacityMode}\n"            +
+                            $"angleMode = {angleMode}\n"                +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -119,14 +128,25 @@ namespace my
         {
             lifeCounter = rand.Next(100) + 100;
 
-            x = gl_x0 + rand.Next(offset * 2) - offset;
-            y = gl_y0 + rand.Next(offset * 2) - offset;
+            getXY();
+
+            switch (angleMode)
+            {
+                case 0:
+                    angle = 0;
+                    break;
+
+                case 1:
+                    angle = myUtils.randFloat(rand);
+                    break;
+
+                case 2:
+                    angle = Angle;
+                    Angle += 0.005f;
+                    break;
+            }
 
             size = 1.0f;
-            dSize = 0.0005f * (rand.Next(1000) + 1);
-
-            //dSize = 0.001f * (rand.Next(1000) + 1);
-
             dSize = dSizeBase * (rand.Next(1000) + 1);
 
             A = myUtils.randFloat(rand);
@@ -187,34 +207,34 @@ namespace my
 
                         rectInst.setInstanceCoords(x - size, y - size, sizeX2, sizeX2);
                         rectInst.setInstanceColor(R, G, B, A);
-                        rectInst.setInstanceAngle(0);
+                        rectInst.setInstanceAngle(angle);
                         break;
 
                     case 1:
                         var triangleInst = inst as myTriangleInst;
 
-                        triangleInst.setInstanceCoords(x, y, size, 0);
+                        triangleInst.setInstanceCoords(x, y, size, angle);
                         triangleInst.setInstanceColor(R, G, B, A);
                         break;
 
                     case 2:
                         var ellipseInst = inst as myEllipseInst;
 
-                        ellipseInst.setInstanceCoords(x, y, sizeX2, 0);
+                        ellipseInst.setInstanceCoords(x, y, sizeX2, angle);
                         ellipseInst.setInstanceColor(R, G, B, A);
                         break;
 
                     case 3:
                         var pentagonInst = inst as myPentagonInst;
 
-                        pentagonInst.setInstanceCoords(x, y, sizeX2, 0);
+                        pentagonInst.setInstanceCoords(x, y, sizeX2, angle);
                         pentagonInst.setInstanceColor(R, G, B, A);
                         break;
 
                     case 4:
                         var hexagonInst = inst as myHexagonInst;
 
-                        hexagonInst.setInstanceCoords(x, y, sizeX2, 0);
+                        hexagonInst.setInstanceCoords(x, y, sizeX2, angle);
                         hexagonInst.setInstanceColor(R, G, B, A);
                         break;
                 }
@@ -296,5 +316,111 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // Generate initial coordinates of a particle
+        void getXY()
+        {
+            switch (xyGenerateMode)
+            {
+                // Central spot
+                case 0:
+                    x = gl_x0 + rand.Next(offset * 2) - offset;
+                    y = gl_y0 + rand.Next(offset * 2) - offset;
+                    break;
+
+                // Horizontal line
+                case 1:
+                    y = gl_y0;
+                    x = gl_x0 + rand.Next(offset * 6) - offset*3;
+                    break;
+
+                // Vertical line
+                case 2:
+                    x = gl_x0;
+                    y = gl_y0 + rand.Next(offset * 4) - offset * 2;
+                    break;
+
+                // Rectangle
+                case 3:
+                    switch (rand.Next(4))
+                    {
+                        case 0:
+                            x = offset;
+                            y = rand.Next(gl_Height);
+                            break;
+
+                        case 1:
+                            x = gl_Width - offset;
+                            y = rand.Next(gl_Height);
+                            break;
+
+                        case 2:
+                            x = rand.Next(gl_Width);
+                            y = offset;
+                            break;
+
+                        case 3:
+                            x = rand.Next(gl_Width);
+                            y = gl_Height - offset;
+                            break;
+                    }
+                    break;
+
+                // Generate outside of the screen
+                case 4:
+                    switch (rand.Next(4))
+                    {
+                        case 0:
+                            x = -100;
+                            y = rand.Next(gl_Height);
+                            break;
+
+                        case 1:
+                            x = gl_Width + 100;
+                            y = rand.Next(gl_Height);
+                            break;
+
+                        case 2:
+                            x = rand.Next(gl_Width);
+                            y = -100;
+                            break;
+
+                        case 3:
+                            x = rand.Next(gl_Width);
+                            y = gl_Height + 100;
+                            break;
+                    }
+                    break;
+
+                // 4 corners
+                case 5:
+                    switch (rand.Next(4))
+                    {
+                        case 0:
+                            x = offset;
+                            y = offset;
+                            break;
+
+                        case 1:
+                            x = gl_Width - offset;
+                            y = offset;
+                            break;
+
+                        case 2:
+                            x = offset;
+                            y = gl_Height - offset;
+                            break;
+
+                        case 3:
+                            x = gl_Width - offset;
+                            y = gl_Height - offset;
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     };
 };
