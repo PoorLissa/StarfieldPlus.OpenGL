@@ -159,8 +159,8 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_440));   // Bouncing ball and lots of triangles rotating to point to it
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_450));   // Get color from image and slightly offset this color. Then put the color spots on the screen
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_460));   // Point cyclically moves on a spiral, constantly leaving a trail. Trail is made of particles that move outwards from the center OR in a point's opposite direction
-        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_470));   // - Angled rays
-        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_480));   // - Oscilloscope
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_470));   // Angled rays
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_480));   // Oscilloscope
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_490));   // F (x, y)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_500));   // Free Shader Experiments - 1
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_501));   // Free Shader Experiments - 2
@@ -168,7 +168,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_520));   // Static pulsating shapes
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_530));   // ...
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_540));   // Falling alphabet letters (Matrix style)
-        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_550));   // Orbits of different size, a small planet is moving along each orbit
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_550));   // Orbits of different size + a small planet is moving along each orbit
 
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 

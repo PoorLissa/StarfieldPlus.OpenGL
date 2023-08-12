@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Orbits of different size, a small planet is moving along each orbit
+    - Orbits of different size + a small planet is moving along each orbit
 */
 
 
@@ -19,8 +19,8 @@ namespace my
         private float x, y, X, Y, rad1, rad2, angle, dAngle, lineThickness;
         private float A, R, G, B, a, r, g, b;
 
-        private static int N = 0, mode = 0, dirMode = 0, spdMode = 0, maxRad = 1;
-        private static float dimAlpha = 0.1f;
+        private static int N = 0, mode = 0, dirMode = 0, spdMode = 0, radMode = 0, maxRad = 1;
+        private static float dimAlpha = 0.1f, radFactor = 0;
 
         private static myFreeShader shader1 = null;
         private static myFreeShader shader2 = null;
@@ -61,7 +61,7 @@ namespace my
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
 
-            mode = rand.Next(2);
+            mode = rand.Next(10);
 
             spdMode = rand.Next(4);
 
@@ -70,6 +70,10 @@ namespace my
             renderDelay = rand.Next(11) + 3;
 
             dirMode = rand.Next(4);
+
+            radMode = rand.Next(5);
+
+            radFactor = myUtils.randFloat(rand) * 0.5f;
 
             dimAlpha = 0.1f + myUtils.randFloat(rand) * 0.2f;
 
@@ -92,6 +96,8 @@ namespace my
                             $"mode = {mode}\n"                       +
                             $"spdMode = {spdMode}\n"                 +
                             $"dirMode = {dirMode}\n"                 +
+                            $"radMode = {radMode}\n"                 +
+                            $"radFactor = {fStr(radFactor)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"dimAlpha = {fStr(dimAlpha)}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -151,12 +157,36 @@ namespace my
 
             switch (mode)
             {
+                // Center
                 case 0:
+                case 1:
+                case 2:
                     X = gl_x0;
                     Y = gl_y0;
                     break;
 
-                case 1:
+                // Center + x offset
+                case 3:
+                    X = gl_x0 + rand.Next(222) - 111;
+                    Y = gl_y0;
+                    break;
+
+                // Center + y offset
+                case 4:
+                    X = gl_x0;
+                    Y = gl_y0 + rand.Next(222) - 111;
+                    break;
+
+                // Center + x offset + y offset
+                case 5:
+                    X = gl_x0 + rand.Next(222) - 111;
+                    Y = gl_y0 + rand.Next(222) - 111;
+                    break;
+
+                case 6:
+                case 7:
+                case 8:
+                case 9:
                     X = rand.Next(gl_Width);
                     Y = rand.Next(gl_Height);
                     break;
@@ -186,6 +216,18 @@ namespace my
 
             x = X + rad1 * (float)Math.Sin(angle);
             y = Y + rad1 * (float)Math.Cos(angle);
+
+            switch (radMode)
+            {
+                case 0:
+                case 1:
+                    rad1 += (float)Math.Sin(angle * radFactor);
+                    break;
+
+                default:
+                    // rad1 is const
+                    break;
+            }
 
             return;
         }
@@ -242,8 +284,10 @@ namespace my
                 }
 
                 if (list.Count < N)
+                //if (list.Count < N && cnt == 100)
                 {
                     list.Add(new myObj_550());
+                    cnt = 0;
                 }
 
                 cnt++;
