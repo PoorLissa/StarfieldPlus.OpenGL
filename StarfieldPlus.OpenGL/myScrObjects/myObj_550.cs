@@ -16,10 +16,10 @@ namespace my
         // Priority
         public static int Priority => 10;
 
-        private float x, y, rad1, rad2, angle, dAngle, lineThickness;
-        private float A, R, G, B;
+        private float x, y, X, Y, rad1, rad2, angle, dAngle, lineThickness;
+        private float A, R, G, B, a, r, g, b;
 
-        private static int N = 0, mode = 0, dirMode = 0, maxRad = 1;
+        private static int N = 0, mode = 0, dirMode = 0, spdMode = 0, maxRad = 1;
         private static float dimAlpha = 0.1f;
 
         private static myFreeShader shader1 = null;
@@ -43,7 +43,12 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(33) + 11;
+                switch (rand.Next(3))
+                {
+                    case 0: N = rand.Next(33) + 11; break;
+                    case 1: N = rand.Next(66) + 22; break;
+                    case 2: N = rand.Next(99) + 33; break;
+                }
             }
 
             initLocal();
@@ -57,6 +62,8 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
 
             mode = rand.Next(2);
+
+            spdMode = rand.Next(4);
 
             maxRad = 111 + rand.Next(gl_Width);
 
@@ -83,6 +90,7 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"maxRad = {maxRad}\n"                   +
                             $"mode = {mode}\n"                       +
+                            $"spdMode = {spdMode}\n"                 +
                             $"dirMode = {dirMode}\n"                 +
                             $"renderDelay = {renderDelay}\n"         +
                             $"dimAlpha = {fStr(dimAlpha)}\n"         +
@@ -93,10 +101,19 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // 
+        // Press 'Space' to change mode
         protected override void setNextMode()
         {
             initLocal();
+
+            System.Threading.Thread.Sleep(123);
+
+            clearScreenSetup(doClearBuffer, 0.15f);
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                (list[i] as myObj_550).generateNew();
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -105,6 +122,14 @@ namespace my
         {
             angle = myUtils.randFloat(rand);
             dAngle = 0.0005f + myUtils.randFloat(rand) * 0.025f;
+
+            switch (spdMode)
+            {
+                case 0: dAngle *= 1.00f; break;
+                case 1: dAngle *= 0.75f; break;
+                case 2: dAngle *= 0.50f; break;
+                case 3: dAngle *= 0.25f; break;
+            }
 
             switch (dirMode)
             {
@@ -127,13 +152,13 @@ namespace my
             switch (mode)
             {
                 case 0:
-                    x = gl_x0;
-                    y = gl_y0;
+                    X = gl_x0;
+                    Y = gl_y0;
                     break;
 
                 case 1:
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
+                    X = rand.Next(gl_Width);
+                    Y = rand.Next(gl_Height);
                     break;
             }
 
@@ -141,7 +166,14 @@ namespace my
             rad2 =  10 + rand.Next(10);
 
             A = 0.1f + myUtils.randFloat(rand) * 0.85f;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            colorPicker.getColor(X, Y, ref R, ref G, ref B);
+
+            a = A;
+            r = R;
+            g = G;
+            b = B;
+
+            A = A / N * 10;
 
             return;
         }
@@ -152,6 +184,9 @@ namespace my
         {
             angle += dAngle;
 
+            x = X + rad1 * (float)Math.Sin(angle);
+            y = Y + rad1 * (float)Math.Cos(angle);
+
             return;
         }
 
@@ -159,16 +194,11 @@ namespace my
 
         protected override void Show()
         {
-            float orbitOpacity = A / N * 10;
+            shader1.SetColor(R, G, B, A);
+            shader1.Draw(X, Y, rad1, rad1, 10);
 
-            shader1.SetColor(R, G, B, orbitOpacity);
-            shader1.Draw(x, y, rad1, rad1, 10);
-
-            float xx = x + rad1 * (float)Math.Sin(angle);
-            float yy = y + rad1 * (float)Math.Cos(angle);
-
-            shader2.SetColor(R, G, B, A);
-            shader2.Draw(xx, yy, rad2, rad2, 10);
+            shader2.SetColor(r, g, b, a);
+            shader2.Draw(x, y, rad2, rad2, 10);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -178,22 +208,7 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            getShader();
-
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
-            }
+            clearScreenSetup(doClearBuffer, 0.15f);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -243,6 +258,8 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
+
+            getShader();
 
             return;
         }
