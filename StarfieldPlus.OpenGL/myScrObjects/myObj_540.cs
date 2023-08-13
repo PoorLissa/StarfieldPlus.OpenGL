@@ -372,6 +372,8 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
+                int Count = list.Count;
+
                 // Dim screen
                 {
                     if (doClearBuffer)
@@ -386,8 +388,6 @@ namespace my
 
                 // Render Frame
                 {
-                    int Count = list.Count;
-
                     for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_540;
@@ -397,7 +397,7 @@ namespace my
                     }
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_540());
                 }

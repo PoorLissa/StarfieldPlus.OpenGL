@@ -161,7 +161,7 @@ class TexText
         }
         else
         {
-            const int N = 6;
+            const int N = 7;
             str = "";
 
             string[] arr = new string[N] {
@@ -170,11 +170,14 @@ class TexText
                 "abcdefghijklmnopqrstuvwxyz",
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                 "0123456789",
+                "01",
                 "!@#$%^&*()[]{}<>-+=/?~;:'"
             };
 
             // Get random number from [1 .. (2^N)-1]
-            uint n = (uint)rand.Next((int)Math.Pow(2, N) - 1) + 1;
+            uint n = (uint)Math.Pow(2, N) - 1;
+
+            n = (uint)rand.Next((int)n) + 1;
 
             for (int i = 0; i < N; i++)
             {
