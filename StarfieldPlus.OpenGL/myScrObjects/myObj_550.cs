@@ -14,12 +14,12 @@ namespace my
     public class myObj_550 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
         private float x, y, X, Y, rad1, rad2, angle, dAngle, lineThickness;
         private float A, R, G, B, a, r, g, b;
 
-        private static int N = 0, mode = 0, dirMode = 0, spdMode = 0, radMode = 0, maxRad = 1;
+        private static int N = 0, mode = 0, dirMode = 0, spdMode = 0, radMode = 0, colorMode = 0, maxRad = 1;
         private static float dimAlpha = 0.1f, radFactor = 0;
 
         private static myFreeShader shader1 = null;
@@ -65,6 +65,8 @@ namespace my
 
             spdMode = rand.Next(4);
 
+            colorMode = rand.Next(2);
+
             maxRad = 111 + rand.Next(gl_Width);
 
             renderDelay = rand.Next(11) + 3;
@@ -96,6 +98,7 @@ namespace my
                             $"mode = {mode}\n"                       +
                             $"spdMode = {spdMode}\n"                 +
                             $"dirMode = {dirMode}\n"                 +
+                            $"colorMode = {colorMode}\n"             +
                             $"radMode = {radMode}\n"                 +
                             $"radFactor = {fStr(radFactor)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
@@ -196,7 +199,17 @@ namespace my
             rad2 =  10 + rand.Next(10);
 
             A = 0.1f + myUtils.randFloat(rand) * 0.85f;
-            colorPicker.getColor(X, Y, ref R, ref G, ref B);
+
+            switch (colorMode)
+            {
+                case 0:
+                    colorPicker.getColor(X, Y, ref R, ref G, ref B);
+                    break;
+
+                case 1:
+                    colorPicker.getColorRand(ref R, ref G, ref B);
+                    break;
+            }
 
             a = A;
             r = R;
@@ -236,11 +249,14 @@ namespace my
 
         protected override void Show()
         {
-            shader1.SetColor(R, G, B, A);
-            shader1.Draw(X, Y, rad1, rad1, 10);
+            if (rad1 >= 0)
+            {
+                shader1.SetColor(R, G, B, A);
+                shader1.Draw(X, Y, rad1, rad1, 10);
 
-            shader2.SetColor(r, g, b, a);
-            shader2.Draw(x, y, rad2, rad2, 10);
+                shader2.SetColor(r, g, b, a);
+                shader2.Draw(x, y, rad2, rad2, 10);
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -336,7 +352,7 @@ namespace my
                         uv -= Pos.xy;
                         uv *= aspect;
 
-                        result = vec4(myColor * circle(uv, Pos.z));
+                        result = vec4(myColor * (circle(uv, Pos.z) + 0.75 * circle(uv, Pos.z * 0.75)));
                     "
             );
         }
