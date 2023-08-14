@@ -21,7 +21,7 @@ namespace my
     {
         // --------------------------------------------------------------------------
 
-        // Generator class, used to instanciate several generators
+        // Generator class, used to instantiate several generators
         // Each generator will create several particles in the same place, until its counter is above zero;
         // Then it will move to some other position
         public class generator
@@ -87,7 +87,7 @@ namespace my
             {
                 N = 10000;
 
-                doUseRGB = myUtils.randomChance(rand, 1, 5);            // If true, paint alphabet in white and then setcustom color for each particle
+                doUseRGB = myUtils.randomChance(rand, 1, 5);            // If true, paint alphabet in white and then set custom color for each particle
 
                 // Size
                 switch (rand.Next(4))
