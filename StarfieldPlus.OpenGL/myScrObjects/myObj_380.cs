@@ -30,6 +30,13 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Default constructor; we need it because myObj_Prioritizer won't work with the parametrized one
+        public myObj_380()
+        {
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         public myObj_380(myObj_380 p = null)
         {
             parent = p;

@@ -31,6 +31,13 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Default constructor; we need it because myObj_Prioritizer won't work with the parametrized one
+        public myObj_150()
+        {
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         public myObj_150(int i = 0, int j = 0)
         {
             alive = false;

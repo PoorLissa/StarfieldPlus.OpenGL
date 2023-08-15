@@ -21,6 +21,7 @@ namespace my
 
         private static int N = 0, size = 0, offset = 0, offset2x = 0, genMode = 0, getColorMode = 0, mode1Divider = 0;
         private static float dimAlpha = 0.05f, maxA = 0;
+        private static bool doFill = true;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -52,6 +53,8 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = false;
+
+            doFill = myUtils.randomChance(rand, 5, 7);
 
             genMode = rand.Next(3);
             getColorMode = rand.Next(2);
@@ -109,6 +112,8 @@ namespace my
             System.Threading.Thread.Sleep(123);
 
             initLocal();
+
+            clearScreenSetup(doClearBuffer, 0.15f, true);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -161,7 +166,7 @@ namespace my
         protected override void Show()
         {
             myPrimitive._Rectangle.SetColor(R, G, B, A);
-            myPrimitive._Rectangle.Draw(x - offset, y - offset, size + offset2x, size + offset2x, true);
+            myPrimitive._Rectangle.Draw(x - offset, y - offset, size + offset2x, size + offset2x, doFill);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -171,9 +176,7 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.15f);
-
-            glDrawBuffer(GL_FRONT_AND_BACK);
+            clearScreenSetup(doClearBuffer, 0.15f, true);
 
             while (!Glfw.WindowShouldClose(window))
             {
