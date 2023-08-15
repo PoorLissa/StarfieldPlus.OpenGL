@@ -173,7 +173,9 @@ public class ScreenSaver
 
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 
+
         _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);
+
 
         return;
     }
