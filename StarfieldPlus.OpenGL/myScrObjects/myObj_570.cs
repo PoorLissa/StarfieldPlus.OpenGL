@@ -14,7 +14,7 @@ namespace my
     public class myObj_570 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
 
         private int cnt;
         private float x, y;
