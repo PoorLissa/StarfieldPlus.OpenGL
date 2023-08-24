@@ -19,9 +19,9 @@ namespace my
         private float x, y, dSize, maxSize;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, shape = 0, mode = 0, s_maxSize = 0;
+        private static int N = 0, shape = 0, mode = 0, dSizeMode = 0, s_maxSize = 0;
         private static bool doFillShapes = false, doRotate = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.05f, dSizeStatic = 0;
 
         private static myFreeShader shader = null;
 
@@ -53,7 +53,7 @@ namespace my
 
                     if (shape == 5)
                     {
-                        // Custom shader is not instanced, so too much objects is a no
+                        // Custom shader is not instanced, so too much objects is a no-go
                         N = rand.Next(2345) + 1111;
                     }
                 }
@@ -73,6 +73,9 @@ namespace my
 
             s_maxSize = rand.Next(50) + 7;
             mode = rand.Next(2);
+            dSizeMode = rand.Next(3);
+
+            dSizeStatic = myUtils.randFloat(rand, 0.1f) * 0.25f;
 
             if (doFillShapes)
                 doClearBuffer = true;
@@ -89,11 +92,13 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_520\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"mode = {mode}\n"                       +
+                            $"dSizeMode = {dSizeMode}\n"             +
+                            $"dSizeStatic = {fStr(dSizeStatic)}\n"   +
                             $"shape = {shape}\n"                     +
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"doRotate = {doRotate}\n"               +
@@ -133,7 +138,21 @@ namespace my
             }
 
             size = 0;
-            dSize = myUtils.randFloat(rand, 0.1f) * 0.1f;
+
+            switch (dSizeMode)
+            {
+                case 0:
+                    dSize = myUtils.randFloat(rand, 0.1f) * 0.1f;
+                    break;
+
+                case 1:
+                    dSize = dSizeStatic;
+                    break;
+
+                case 2:
+                    dSize = dSizeStatic * 0.5f + myUtils.randFloat(rand, 0.1f) * 0.05f;
+                    break;
+            }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -222,7 +241,8 @@ namespace my
                 // Custom shader
                 case 5:
                     shader.SetColor(R + 0.1f, G + 0.1f, B + 0.1f, A);
-                    shader.Draw((int)x, (int)y, size, size, 10);
+                    //shader.Draw((int)x, (int)y, size, size, 10);
+                    shader.Draw((int)x, (int)y, size2x, size2x, 10);
                     break;
             }
 
@@ -313,6 +333,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -335,7 +357,7 @@ namespace my
                 {
                     if (shape == 5)
                     {
-                        for (int i = 0; i != list.Count; i++)
+                        for (int i = 0; i != Count; i++)
                         {
                             var obj = list[i] as myObj_520;
 
@@ -347,7 +369,7 @@ namespace my
                     {
                         inst.ResetBuffer();
 
-                        for (int i = 0; i != list.Count; i++)
+                        for (int i = 0; i != Count; i++)
                         {
                             var obj = list[i] as myObj_520;
 
@@ -368,7 +390,7 @@ namespace my
                     }
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_520());
                 }
@@ -396,11 +418,19 @@ namespace my
         {
             if (shape == 5)
             {
-                string func = myUtils.randomChance(rand, 1, 2) ? "circle1" : "circle2";
+                string func = "";
+
+                switch (rand.Next(3))
+                {
+                    case 0: func = "circle1"; break;
+                    case 1: func = "circle2"; break;
+                    case 2: func = "circle3"; break;
+                }
 
                 shader = new myFreeShader($@"
                         float circle1(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
                         float circle2(vec2 uv, float rad) {{ return 1.0 - smoothstep(0.0, 0.00275, abs(rad-length(uv))); }}
+                        float circle3(vec2 uv, float rad) {{ return 0.25 * circle1(uv, Pos.z) + circle2(uv, Pos.z); }}
                     ",
 
                         $@"

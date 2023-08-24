@@ -271,6 +271,20 @@ public class myRectangle : myPrimitive
     }
 
     // -------------------------------------------------------------------------------------------------------------------
+
+    // Sometimes shapes are drawn incorrectly (parts of the outline are missing)
+    // One way to fix this is to change the pixel density
+    public void setPixelDensityOffset(int offset)
+    {
+        if (offset > 0)
+        {
+            invW = 2.0f / (Width  + offset);
+            invH = 2.0f / (Height + offset);
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
 };
 
 #else
