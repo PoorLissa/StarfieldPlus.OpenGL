@@ -46,8 +46,6 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(111) + 111;
-
-                N = 11;
             }
 
             initLocal();
