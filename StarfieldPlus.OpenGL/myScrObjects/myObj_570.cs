@@ -70,7 +70,7 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
+            //string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_570\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +

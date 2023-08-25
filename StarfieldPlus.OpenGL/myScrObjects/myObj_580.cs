@@ -16,13 +16,14 @@ namespace my
         // Priority
         public static int Priority => 10;
 
-        private float x, y, dx, dy;
+        private int gravId;
+        private float x, y, dx, dy, X, Y;
         private float size, A, R, G, B, mass, angle = 0;
         private bool isFirst;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, shape = 0, gravMode = 0;
+        private static bool doFillShapes = false, doUseInitSpeed = false;
+        private static float dimAlpha = 0.05f, gMode2_factor = 0;
 
         private static int n = 5;
 
@@ -39,7 +40,7 @@ namespace my
                 mass = id < n ? 10000 : (rand.Next(25) + 1);
 
                 if (id == 1)
-                    mass = 100000;
+                    mass = 100000 * (rand.Next(7) + 1);
 
                 generateNew();
             }
@@ -60,6 +61,12 @@ namespace my
                 N = rand.Next(1000) + 10000;
                 shape = 2;
 
+                gravMode = rand.Next(3);
+
+                // gravMode = 3;
+
+                gMode2_factor = myUtils.randFloat(rand) * 0.5f;
+
                 dimAlpha = 0.25f;
             }
 
@@ -72,6 +79,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
+            doUseInitSpeed = myUtils.randomBool(rand);
 
             renderDelay = rand.Next(11) + 3;
 
@@ -85,12 +93,15 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_580\n\n"                       +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"  +
-                            $"doClearBuffer = {doClearBuffer}\n"      +
-                            $"renderDelay = {renderDelay}\n"          +
+            string str = $"Obj = myObj_580\n\n"                        +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
+                            $"doClearBuffer = {doClearBuffer}\n"       +
+                            $"doUseInitSpeed = {doUseInitSpeed}\n"     +
+                            $"gravMode = {gravMode}\n"                 +
+                            $"gMode2_factor = {fStr(gMode2_factor)}\n" +
+                            $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -110,6 +121,12 @@ namespace my
         {
             dx = dy = 0;
 
+            if (doUseInitSpeed && id != 1)
+            {
+                dx = myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                dy = myUtils.randFloat(rand) * myUtils.randomSign(rand);
+            }
+
             if (id < n)
             {
                 x = gl_x0 + rand.Next(gl_Width /4) * myUtils.randomSign(rand);
@@ -122,6 +139,9 @@ namespace my
                 y -= (gl_Width - gl_Height) / 2;
             }
 
+            X = x;
+            Y = y;
+
             if (isFirst)
             {
                 isFirst = false;
@@ -130,6 +150,8 @@ namespace my
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
                 A = mass < 100 ? 0.25f : 1.0f;
             }
+
+            gravId = rand.Next(n);
 
             return;
         }
@@ -147,23 +169,112 @@ namespace my
 
                 if (id != obj.id)
                 {
-                    float dX = obj.x - x;
-                    float dY = obj.y - y;
+                    switch (gravMode)
+                    {
+                        // Large stars are attracted to each other;
+                        // Small stars are attracted to each of large stars
+                        case 0:
+                            {
+                                float dX = obj.x - x;
+                                float dY = obj.y - y;
 
-                    float dist = 1.0f / (float)Math.Sqrt(dX * dX + dY * dY);
+                                float dist = 1.0f / (float)Math.Sqrt(dX * dX + dY * dY);
 
-#if false
-                    float factor = mass > 100
-                        ? mass * obj.mass * 0.0000000005f
-                        : mass * obj.mass * 0.0000001f;
-#else
-                    float factor = mass > 100
-                        ? obj.mass * 0.000001f
-                        : obj.mass * 0.0000001f;
-#endif
+                                float factor = mass > 100
+                                    ? obj.mass * 0.000001f
+                                    : obj.mass * 0.0000001f;
 
-                    dx += factor * dX * dist;
-                    dy += factor * dY * dist;
+                                dx += factor * dX * dist;
+                                dy += factor * dY * dist;
+                            }
+                            break;
+
+                        // Large stars are attracted to each other;
+                        // Small stars are attracted to only one of the large stars
+                        case 1:
+                            {
+                                if ((mass > 100) || (mass < 100 && gravId == obj.id))
+                                {
+                                    float dX = obj.x - x;
+                                    float dY = obj.y - y;
+
+                                    float dist = 1.0f / (float)Math.Sqrt(dX * dX + dY * dY);
+
+                                    float factor = mass > 100
+                                        ? obj.mass * 0.0000001f
+                                        : 0.00000015f;
+
+                                    dx += factor * dX * dist;
+                                    dy += factor * dY * dist;
+                                }
+                            }
+                            break;
+
+                        // Large stars are attracted to each other;
+                        // Small stars are attracted to only one of the large stars (dx/dy are not added, but just set at each iteration)
+                        case 2:
+                            {
+                                if ((mass > 100) || (mass < 100 && gravId == obj.id))
+                                {
+                                    float dX = obj.x - x;
+                                    float dY = obj.y - y;
+
+                                    float dist = 1.0f / (float)Math.Sqrt(dX * dX + dY * dY);
+
+                                    float factor = mass > 100
+                                        ? obj.mass * 0.0000001f
+                                        : 1.00000015f;
+
+                                    if (mass > 100)
+                                    {
+                                        dx += factor * dX * dist;
+                                        dy += factor * dY * dist;
+                                    }
+                                    else
+                                    {
+                                        dx = factor * dX * dist + dx * gMode2_factor;
+                                        dy = factor * dY * dist + dy * gMode2_factor;
+                                    }
+                                }
+                            }
+                            break;
+
+                        // Large stars are attracted to each other;
+                        // Small stars are attracted to each of large stars (but also are attracted to original location)
+
+                        // needs fixing
+
+                        case 3:
+                            {
+                                {
+                                    float dX = obj.x - x;
+                                    float dY = obj.y - y;
+
+                                    float dist = 1.0f / (float)Math.Sqrt(dX * dX + dY * dY);
+
+                                    float factor = mass > 100
+                                        ? obj.mass * 0.0000001f
+                                        : dist > 0.005f ? -0.2f : 0;
+
+                                    dx += factor * dX * dist;
+                                    dy += factor * dY * dist;
+
+                                    if (mass < 100)
+                                    {
+                                        dX = X - x;
+                                        dY = Y - y;
+
+                                        dist = (float)Math.Sqrt(dX * dX + dY * dY);
+
+                                        factor = 0.0001f;
+
+                                        dx += factor * dX * dist;
+                                        dy += factor * dY * dist;
+                                    }
+                                }
+                            }
+                            break;
+                    }
                 }
             }
 
@@ -181,51 +292,10 @@ namespace my
             }
             else
             {
-                float size2x = size * 2;
+                var ellipseInst = inst as myEllipseInst;
 
-                switch (shape)
-                {
-                    // Instanced squares
-                    case 0:
-                        var rectInst = inst as myRectangleInst;
-
-                        rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                        rectInst.setInstanceColor(R, G, B, A);
-                        rectInst.setInstanceAngle(angle);
-                        break;
-
-                    // Instanced triangles
-                    case 1:
-                        var triangleInst = inst as myTriangleInst;
-
-                        triangleInst.setInstanceCoords(x, y, size2x, angle);
-                        triangleInst.setInstanceColor(R, G, B, A);
-                        break;
-
-                    // Instanced circles
-                    case 2:
-                        var ellipseInst = inst as myEllipseInst;
-
-                        ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                        ellipseInst.setInstanceColor(R, G, B, A);
-                        break;
-
-                    // Instanced pentagons
-                    case 3:
-                        var pentagonInst = inst as myPentagonInst;
-
-                        pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                        pentagonInst.setInstanceColor(R, G, B, A);
-                        break;
-
-                    // Instanced hexagons
-                    case 4:
-                        var hexagonInst = inst as myHexagonInst;
-
-                        hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                        hexagonInst.setInstanceColor(R, G, B, A);
-                        break;
-                }
+                ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                ellipseInst.setInstanceColor(R, G, B, A);
             }
 
             return;
@@ -333,6 +403,5 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
     }
 };

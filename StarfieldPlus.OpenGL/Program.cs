@@ -114,7 +114,7 @@ namespace StarfieldPlus.OpenGL
                 scr.selectObject();
                 scr.Show();
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
                 ;
             }

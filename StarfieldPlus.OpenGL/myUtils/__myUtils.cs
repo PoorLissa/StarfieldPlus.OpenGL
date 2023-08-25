@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 
 
 
@@ -107,6 +109,36 @@ namespace my
             b = tmp;
 
             return;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Get gradiend background
+        private Bitmap getGradientBgr(int width, int height)
+        {
+            Bitmap bmp = null;
+
+            bmp = new Bitmap(width, height);
+
+            using (var gr = Graphics.FromImage(bmp))
+            {
+                RectangleF rect = new RectangleF(0, 0, width, height);
+                gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                gr.SmoothingMode = SmoothingMode.AntiAlias;
+
+                Color color1 = Color.FromArgb(255, _rand.Next( 33), _rand.Next( 33), _rand.Next(33));
+                Color color2 = Color.FromArgb(255, _rand.Next(111), _rand.Next(111), _rand.Next(111));
+
+                //color1 = (Color.Black);
+                //color2 = (Color.AliceBlue);
+
+                LinearGradientBrush grad = new LinearGradientBrush(rect, color1, color2, LinearGradientMode.Vertical);
+
+                gr.FillRectangle(grad, rect);
+                grad.Dispose();
+            }
+
+            return bmp;
         }
 
         // -------------------------------------------------------------------------
