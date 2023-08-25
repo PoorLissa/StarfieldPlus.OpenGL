@@ -44,6 +44,8 @@ namespace my
         private float x, y, dx, dy, size, r, g, b, a, pt, pdt;
         private int offset1 = 0, offset2 = 0;
 
+        private static myFreeShader shader = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_310()
@@ -82,6 +84,7 @@ namespace my
             max = rand.Next(11) + 3;                                                // Particle size
             shape = rand.Next(5);
             lineMaxOpacity = 500 + rand.Next(20000);                                // Max opacity of the lines in lineMode == 1
+            renderDelay = rand.Next(11) + 3;
 
             isAggregateOpacity = myUtils.randomChance(rand, 1, 02);                 // Const opacity vs a sum of all particle's connecting line opacities
             isVerticalLine     = myUtils.randomChance(rand, 1, 15);                 // Draw vertical lines
@@ -228,26 +231,26 @@ namespace my
                 str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
             }
 
-            string str = $"Obj = myObj_310\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"mode = {mode}\n" +
-                            $"max = {max}\n" +
-                            $"dimAlpha = {dimAlpha}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n" +
+            string str = $"Obj = myObj_310\n\n"                            +
+                            $"N = {list.Count} of {N}\n"                   +
+                            $"mode = {mode}\n"                             +
+                            $"max = {max}\n"                               +
+                            $"dimAlpha = {dimAlpha}\n"                     +
+                            $"doClearBuffer = {doClearBuffer}\n"           +
                             $"isAggregateOpacity = {isAggregateOpacity}\n" +
-                            $"isVerticalLine = {isVerticalLine}\n" +
-                            $"isFastMoving = {isFastMoving}\n" +
-                            $"isRandomSize = {isRandomSize}\n" +
-                            $"colorMode = {colorMode}\n" +
-                            $"lineMode = {lineMode}\n" +
-                            $"lineStyle = {lineStyle}\n" +
-                            $"lineMaxOpacity = {lineMaxOpacity}\n" +
-                            $"slowFactor = {slowFactor}\n" +
-                            $"axisMode = {axisMode}\n" +
-                            $"param: [{str_params}]\n\n" +
-                            $"file: {colorPicker.GetFileName()}" + 
-                            $""
-            ;
+                            $"isVerticalLine = {isVerticalLine}\n"         +
+                            $"isFastMoving = {isFastMoving}\n"             +
+                            $"isRandomSize = {isRandomSize}\n"             +
+                            $"colorMode = {colorMode}\n"                   +
+                            $"lineMode = {lineMode}\n"                     +
+                            $"lineStyle = {lineStyle}\n"                   +
+                            $"lineMaxOpacity = {lineMaxOpacity}\n"         +
+                            $"slowFactor = {slowFactor}\n"                 +
+                            $"axisMode = {axisMode}\n"                     +
+                            $"param: [{str_params}]\n\n"                   +
+                            $"renderDelay = [{renderDelay}]\n"             +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
             return str;
         }
 
@@ -1255,6 +1258,9 @@ namespace my
 
             if (doShowParticles)
             {
+                shader.SetColor(r, g, b, a);
+                shader.Draw(x, y, size * 2, size * 2, 10);
+/*
                 switch (shape)
                 {
                     // Instanced squares
@@ -1320,6 +1326,7 @@ namespace my
                         }
                         break;
                 }
+*/
             }
 
             return;
@@ -1446,6 +1453,8 @@ namespace my
             myPrimitive.init_Rectangle();
             myPrimitive.init_LineInst(N * (N-1) + N * 2);
 
+            getShader();
+
             base.initShapes(shape, 2*N, 0);
 
             return;
@@ -1476,5 +1485,17 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            string header = "", main = "";
+
+            my.myShaderHelpers.Shapes.getShader_000_circle(ref rand, ref header, ref main);
+
+            shader = new myFreeShader(header, main);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     }
 };

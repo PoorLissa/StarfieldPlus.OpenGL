@@ -319,5 +319,204 @@ namespace my
             }
 #endif
         }
+
+        public class Shapes
+        {
+            // Simple Circle
+            public static void getShader_000_circle(ref Random rand, ref string h, ref string m)
+            {
+                h = $@"float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}";
+
+                m = $@"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                        uv -= Pos.xy;
+                        uv *= aspect;
+
+                        result = vec4(myColor * (circle(uv, Pos.z) + 0.75 * circle(uv, Pos.z * 0.75)));";
+            }
+
+            // ---------------------------------------------------------------------------------------------------------------
+
+            // Circle (3 random types)
+            public static void getShader_000(ref Random rand, ref string h, ref string m)
+            {
+                string myCircleFunc = "";
+
+                switch (rand.Next(3))
+                {
+                    case 0: myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));"; break;
+                    case 1: myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));"; break;
+                    case 2: myCircleFunc = "float len = length(uv); if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);"; break;
+                }
+
+                h = $@"float circle(vec2 uv, float rad) {{ {myCircleFunc} }};";
+
+                m = @"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                    uv -= Pos.xy;
+                    uv *= aspect;
+
+                    float rad = Pos.z;
+                    float circ = circle(uv, rad);
+
+                    result = vec4(myColor * circ);
+                ";
+            }
+
+            // ---------------------------------------------------------------------------------------------------------------
+
+            // Rectangle (Square, actually)
+            public static void getShader_001(ref Random rand, ref string h, ref string m)
+            {
+                h = $@"
+                    float rect(vec2 uv, float size)
+                    {{
+                        float f = 0.01;
+
+                        if (abs(uv.x) > size)
+                            return smoothstep(size - f, size + f, abs(uv.x)) * 0.5;
+
+                        if (abs(uv.y) > size)
+                            return smoothstep(size - f, size + f, abs(uv.y)) * 0.5;
+
+                        return { 0.125f + myUtils.randFloat(rand) * 0.1 };
+                    }}
+            ";
+
+                m = $@"
+                    vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                    uv -= Pos.xy;
+                    uv *= aspect;
+
+                    float r = rect(uv, Pos.z);
+                    result = vec4(myColor.xyz, r);
+                ";
+            }
+
+            // ---------------------------------------------------------------------------------------------------------------
+
+            // Circular smooth spot
+            public static void getShader_002(ref Random rand, ref string h, ref string m)
+            {
+                h = $@"
+                    float circle(vec2 uv, float rad)
+                    {{
+                        float th = {0.02 + myUtils.randFloat(rand) * 0.3};
+                        float len = rad - length(uv);
+                        if (len > 0)
+                            return smoothstep(0.0, th, len);
+                        return 0;
+                    }}
+                ";
+
+                m = $@"
+                    vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                    uv -= Pos.xy;
+                    uv *= aspect;
+
+                    float r = circle(uv, Pos.z);
+                    result = vec4(myColor.xyz, r);
+                ";
+            }
+
+            // ---------------------------------------------------------------------------------------------------------------
+
+            // 4-ray stars
+            public static void getShader_003(ref Random rand, ref string h, ref string m)
+            {
+                float thickness = (rand.Next(2) == 0)
+                    ? myUtils.randFloat(rand) * (rand.Next(13) + 1)
+                    : myUtils.randFloat(rand);
+
+                float mult = rand.Next(20) + 1;
+                string func = (rand.Next(2) == 0) ? "min" : "max";
+
+                h = $@"
+
+                    {myShaderHelpers.Generic.rotationMatrix}
+
+                    float circle(vec2 uv, float rad)
+                    {{
+                        float len = length(uv);
+                        if (len < rad)
+                            return smoothstep(0.0, {func}(abs(sin(uv.x)), abs(sin(uv.y))) * {mult}, (rad - len) * {thickness});
+                        return 0;
+                    }}
+                ";
+
+                m = $@"
+                    vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                    uv -= Pos.xy;
+                    uv *= aspect;
+
+                    if ({rand.Next(2)} == 0)
+                        uv *= rot(uTime);
+
+                    float r = circle(uv, Pos.z);
+                    result = vec4(myColor.xyz, myColor.w * r);
+                ";
+            }
+
+            // ---------------------------------------------------------------------------------------------------------------
+
+            // 4-ray star, concave
+            public static void getShader_004(ref Random rand, ref string h, ref string m)
+            {
+                float thickness = 0.002f + myUtils.randFloat(rand) * 0.1f;
+                float mult = rand.Next(20) + 1;
+                int doRotate = rand.Next(2);
+
+                string shapeFunc = myUtils.randomChance(rand, 2, 3) ? "shape_border" : "shape";
+
+                h = $@"
+
+                    {myShaderHelpers.Generic.rotationMatrix}
+
+                    float shape(vec2 uv, float rad)
+                    {{
+                        float len = length(uv);
+
+                        if (len < rad)
+                            return smoothstep(0.0, abs(sin(uv.x)) * abs(sin(uv.y)) * {mult}, (rad - len) * {thickness});
+
+                        return 0;
+                    }}
+
+                    float shape_border(vec2 uv, float rad)
+                    {{
+                        float res = 0, len = length(uv);
+
+                        float val1 = (rad - len) * {thickness};
+                        float val2 = abs(sin(uv.x)) * abs(sin(uv.y)) * {mult};
+
+                        res = smoothstep(0.0, val2, val1);
+
+                        if (abs(val1 - val2) < 0.0001)
+                            res += (1 - smoothstep(-0.01, 0.01, (val1 - val2))) * 0.5;
+
+                        return res;
+                    }}
+                ";
+
+                m = $@"
+                    vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                    uv -= Pos.xy;
+                    uv *= aspect;
+
+                    if ({doRotate} == 1)
+                        uv *= rot(uTime);
+
+                    float r = {shapeFunc}(uv, Pos.z);
+                    result = vec4(myColor.xyz, myColor.w * r);
+                ";
+            }
+
+            // ---------------------------------------------------------------------------------------------------------------
+
+        }
     };
 };
