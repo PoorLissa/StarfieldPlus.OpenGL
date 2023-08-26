@@ -19,8 +19,9 @@ namespace my
         private float x, y, X, Y, rad1, rad2, angle, dAngle, lineThickness;
         private float A, R, G, B, a, r, g, b;
 
-        private static int N = 0, mode = 0, dirMode = 0, spdMode = 0, radMode = 0, colorMode = 0, maxRad = 1;
+        private static int N = 0, mode = 0, dirMode = 0, spdMode = 0, radMode = 0, colorMode = 0, maxRad = 1, maxDist = 0;
         private static float dimAlpha = 0.1f, radFactor = 0;
+        private static bool doShowLines = true, doUseGradient = true;
 
         private static myFreeShader shader1 = null;
         private static myFreeShader shader2 = null;
@@ -60,6 +61,10 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
+            doShowLines   = myUtils.randomChance(rand, 1, 2);
+            doUseGradient = myUtils.randomChance(rand, 1, 2);
+
+            maxDist = 10000 + rand.Next(80001);
 
             mode = rand.Next(10);
 
@@ -94,7 +99,10 @@ namespace my
             string str = $"Obj = myObj_550\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doShowLines = {doShowLines}\n"         +
+                            $"doUseGradient = {doUseGradient}\n"     +
                             $"maxRad = {maxRad}\n"                   +
+                            $"maxDist = {maxDist}\n"                 +
                             $"mode = {mode}\n"                       +
                             $"spdMode = {spdMode}\n"                 +
                             $"dirMode = {dirMode}\n"                 +
@@ -256,6 +264,30 @@ namespace my
 
                 shader2.SetColor(r, g, b, a);
                 shader2.Draw(x, y, rad2, rad2, 10);
+
+                if (doShowLines)
+                {
+                    int Count = list.Count;
+
+                    for (int i = 0; i != Count; i++)
+                    {
+                        var obj = list[i] as myObj_550;
+
+                        if (obj != this)
+                        {
+                            float lineOpacity = 0.1f;
+                            float xx = obj.x - x;
+                            float yy = obj.y - y;
+                            float dist2 = xx * xx + yy * yy;
+
+                            if (dist2 < maxDist && obj.rad1 > 0)
+                            {
+                                myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
+                                myPrimitive._LineInst.setInstanceColor(1, 1, 1, lineOpacity);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -263,6 +295,8 @@ namespace my
 
         protected override void Process(Window window)
         {
+            var tex = new myTexRectangle(myUtils.getGradientBgr(ref rand, gl_Width, gl_Height));
+
             uint cnt = 0;
             initShapes();
 
@@ -286,10 +320,17 @@ namespace my
                     {
                         dimScreen(dimAlpha);
                     }
+
+                    if (doUseGradient)
+                    {
+                        tex.Draw(0, 0, gl_Width, gl_Height);
+                    }
                 }
 
                 // Render Frame
                 {
+                    myPrimitive._LineInst.ResetBuffer();
+
                     for (int i = 0; i != list.Count; i++)
                     {
                         var obj = list[i] as myObj_550;
@@ -297,6 +338,8 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
+
+                    myPrimitive._LineInst.Draw();
                 }
 
                 if (list.Count < N)
@@ -318,6 +361,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
+            myPrimitive.init_LineInst(N * N);
 
             getShader();
 

@@ -61,6 +61,8 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
+            N = rand.Next(500) + 25;
+
             initLocal();
         }
 
@@ -69,7 +71,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            N = rand.Next(500) + 25;
             mode = rand.Next(20);
 
             doClearBuffer  = myUtils.randomChance(rand, 4, 5);
@@ -1008,6 +1009,8 @@ namespace my
 
         protected override void Show()
         {
+            int Count = list.Count;
+
             if (doShowAuxParticles)
             {
                 myPrimitive._Rectangle.SetColor(1.0f, 0.33f, 0.33f, 0.85f);
@@ -1019,7 +1022,6 @@ namespace my
                 a = 0;
 
             // Render connecting lines
-            int Count = list.Count;
             for (int i = 0; i != Count; i++)
             {
                 var obj = list[i] as myObj_310;

@@ -114,7 +114,7 @@ namespace my
         // -------------------------------------------------------------------------
 
         // Get gradiend background
-        private Bitmap getGradientBgr(int width, int height)
+        public static Bitmap getGradientBgr(ref Random rand, int width, int height)
         {
             Bitmap bmp = null;
 
@@ -126,11 +126,22 @@ namespace my
                 gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 gr.SmoothingMode = SmoothingMode.AntiAlias;
 
-                Color color1 = Color.FromArgb(255, _rand.Next( 33), _rand.Next( 33), _rand.Next(33));
-                Color color2 = Color.FromArgb(255, _rand.Next(111), _rand.Next(111), _rand.Next(111));
+                Color color1 = Color.Black;
+                Color color2 = Color.Black;
 
-                //color1 = (Color.Black);
-                //color2 = (Color.AliceBlue);
+                if (myUtils.randomChance(rand, 1, 2))
+                {
+                    color1 = Color.FromArgb(255, rand.Next(33), rand.Next(33), rand.Next(33));
+                    color2 = Color.FromArgb(255, rand.Next(66), rand.Next(66), rand.Next(66));
+                }
+                else
+                {
+                    color1 = Color.FromArgb(255, rand.Next(66), rand.Next(66), rand.Next(66));
+                    color2 = Color.FromArgb(255, rand.Next(33), rand.Next(33), rand.Next(33));
+                }
+
+                //color1 = Color.DarkOrange;
+                //color2 = Color.DarkBlue;
 
                 LinearGradientBrush grad = new LinearGradientBrush(rect, color1, color2, LinearGradientMode.Vertical);
 
