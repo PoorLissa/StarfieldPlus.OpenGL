@@ -172,6 +172,8 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_560));   // Pixelating an image with average colors
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_570));   // ...
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_580));   // Gravity n-body
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_590));   // Particle's move as an average of n other particles' move
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_600));   // Pendulum
 
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 

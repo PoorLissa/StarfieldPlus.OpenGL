@@ -126,8 +126,8 @@ namespace my
                 gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 gr.SmoothingMode = SmoothingMode.AntiAlias;
 
-                Color color1 = Color.Black;
-                Color color2 = Color.Black;
+                Color color1 = Color.DarkMagenta;
+                Color color2 = Color.Yellow;
 
                 if (myUtils.randomChance(rand, 1, 2))
                 {
@@ -140,8 +140,11 @@ namespace my
                     color2 = Color.FromArgb(255, rand.Next(33), rand.Next(33), rand.Next(33));
                 }
 
-                //color1 = Color.DarkOrange;
-                //color2 = Color.DarkBlue;
+                color1 = Color.DarkMagenta;
+                color2 = Color.Yellow;
+
+                color1 = Color.FromArgb(255, 39, 0, 39);
+                color2 = Color.FromArgb(255, 55, 55, 0);
 
                 LinearGradientBrush grad = new LinearGradientBrush(rect, color1, color2, LinearGradientMode.Vertical);
 

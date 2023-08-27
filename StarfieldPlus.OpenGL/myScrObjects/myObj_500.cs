@@ -164,7 +164,7 @@ namespace my
             mode = rand.Next(18);
 
 #if DEBUG
-            mode = 2;
+            mode = 11;
             //mode = 999;     // testing grounds
 #endif
 
