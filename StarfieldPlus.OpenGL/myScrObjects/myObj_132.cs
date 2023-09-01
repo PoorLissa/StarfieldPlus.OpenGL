@@ -24,12 +24,13 @@ namespace my
 
         private enum ScreenMode { Active, Start = 10, ManualSwitch = 33, Transition = 125 };
 
-        private static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, si1 = 0, si2 = 0;
+        private static int max_dSize = 0, t = 0, tDefault = 0, mode = 0, sizeMode = 0, si1 = 0, si2 = 0;
         private static int [] prm_i = new int[5];
         private static bool isDimmableGlobal = true;
         private static float sf1 = 0, sf2 = 0, sf3 = 0, sf4 = 0, sf5 = 0, sf6 = 0, sf7 = 0, sf8 = 0, fLifeCnt = 0, fdLifeCnt = 0;
         private static float a = 0, b = 0, c = 0;
         private static float dimAlpha = 0.05f;
+        private static float R1, G1, B1, R2, G2, B2;
         private static ScreenMode scrMode = ScreenMode.Start;
 
         private float x, y, dx, dy, size, dSize, r1, g1, b1, r2, g2, b2, time1, time2, dt1, dt2, float_B, x1, y1, x2, y2, x3, y3, x4, y4;
@@ -68,6 +69,23 @@ namespace my
             isDimmableGlobal = rand.Next(2) == 0;
             tDefault = 33;
 
+            R1 = myUtils.randFloat(rand);
+            G1 = myUtils.randFloat(rand);
+            B1 = myUtils.randFloat(rand);
+
+            R2 = myUtils.randFloat(rand);
+            G2 = myUtils.randFloat(rand);
+            B2 = myUtils.randFloat(rand);
+
+            // Original colors
+            if (myUtils.randomChance(rand, 1, 10))
+            {
+                R1 = 0.5451f; G1 = 0.0f; B1 = 0.0f;
+                R2 = 1.0f; G2 = 0.55f; B2 = 0.0f;
+            }
+
+            sizeMode = rand.Next(2);
+
             return;
         }
 
@@ -80,9 +98,6 @@ namespace my
 
             shaderNo = 0;
 
-#if DEBUG
-            //shaderNo = 4;
-#endif
             switch (shaderNo)
             {
                 case 0: getShader_000(ref fHeader, ref fMain); break;
@@ -190,7 +205,7 @@ namespace my
             t -= isDimmableGlobal ? 13 : 0;
 
 #if DEBUG
-            mode = 9;
+            //mode = 9;
 
             if (false)
             {
@@ -1479,6 +1494,23 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private void show(float x, float y, float r, float g, float b)
+        {
+            int size = 8;
+
+            switch (sizeMode)
+            {
+                case 1:
+                    size = (int)Math.Abs(10 + 50 * Math.Sin(x));
+                    break;
+            }
+
+            shader.SetColor(r, g, b, 0.75f);
+            shader.Draw(x, y, size, size, 10);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         protected override void Show()
         {
             if (scrMode != ScreenMode.Active)
@@ -1492,17 +1524,13 @@ namespace my
             else
             {
                 // todo: use the shader!
-                if (true)
+                if (false)
                 {
                     myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
                     myPrimitive._Line.Draw(x1, y1, x2, y2);
 
-                    int size = (int)Math.Abs(10 + 50 * Math.Sin(x1));
-                    int off = 5;
-
-                    shader.SetColor(1.0f, 0.55f, 0.0f, 0.75f);
-                    shader.Draw(x1, y1, size, size, off);
-                    shader.Draw(x2, y2, size, size, off);
+                    show(x1, y1, R2, G2, B2);
+                    show(x2, y2, R2, G2, B2);
 
                     return;
                 }
@@ -1516,11 +1544,10 @@ namespace my
                         myPrimitive._Line.Draw(x, y, x2, y2);
                         break;
 
-                    case 01:case 02:
+                    case 01: case 02:
                         myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
                         myPrimitive._Line.Draw(x2, y2, x1, y1);
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
+                        show(x1, y1, R2, G2, B2);
                         break;
 
                     case 03:case 04:
@@ -1528,11 +1555,10 @@ namespace my
                         myPrimitive._Line.Draw(x1, y1, x2, y2);
                         myPrimitive._Line.Draw(x3, y3, x4, y4);
 
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-                        myPrimitive._Rectangle.Draw(x3, y3, 3, 3, false);
-                        myPrimitive._Rectangle.Draw(x4, y4, 3, 3, false);
+                        show(x1, y1, R2, G2, B2);
+                        show(x2, y2, R2, G2, B2);
+                        show(x3, y3, R2, G2, B2);
+                        show(x4, y4, R2, G2, B2);
                         break;
 
                     case 05:case 06:case 07:case 08:case 09:case 10:case 11:case 12:case 13:case 14:case 15:case 16:
@@ -1540,9 +1566,8 @@ namespace my
                         myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
                         myPrimitive._Line.Draw(x1, y1, x2, y2);
 
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        show(x1, y1, R2, G2, B2);
+                        show(x2, y2, R2, G2, B2);
                         break;
 
                     case 29:case 30:case 31:case 32:case 33:case 34:case 35:case 36:case 37:
@@ -1550,8 +1575,7 @@ namespace my
                         myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
                         myPrimitive._Line.Draw(x1, y1, x2, y2);
 
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        show(x2, y2, R2, G2, B2);
                         break;
 
                     case 40:case 41:case 42:case 43:case 44:case 45:case 46:case 47:case 48:case 49:case 50:case 51:
@@ -1561,11 +1585,8 @@ namespace my
                         myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
                         myPrimitive._Line.Draw(x1, y1, x2, y2);
 
-                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        show(x1, y1, R1, G1, B1);
+                        show(x2, y2, R2, G2, B2);
                         break;
 
                     case 84:
@@ -1573,28 +1594,18 @@ namespace my
                         myPrimitive._Line.Draw(x1, y1, x3, y3);
                         myPrimitive._Line.Draw(x2, y2, x3, y3);
 
-                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        show(x1, y1, R1, G1, B1);
+                        show(x2, y2, R2, G2, B2);
                         break;
 
                     case 89:
                         myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
                         myPrimitive._Line.Draw(x1, y1, x2, y2 + 500);
 
-                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x1, y1, 3, 3, false);
-
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
-
-                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.5451f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x3, y3, 3, 3, false);
-
-                        myPrimitive._Rectangle.SetColor(0.58f, 0.0f, 0.827f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x4, y4, 3, 3, false);
+                        show(x1, y1, 0.5451f, 0.0f, 0.0f);
+                        show(x2, y2, 1.0f, 0.55f, 0.0f);
+                        show(x3, y3, 0.5451f, 0.0f, 0.5451f);
+                        show(x4, y4, 0.58f, 0.0f, 0.827f);
                         break;
 
                     case 90:
@@ -1606,11 +1617,8 @@ namespace my
                         myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
                         myPrimitive._Line.Draw(x1, y1, x2, y2);
 
-                        myPrimitive._Rectangle.SetColor(0.5451f, 0.0f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x1-1, y1-1, 3, 3, false);
-
-                        myPrimitive._Rectangle.SetColor(1.0f, 0.55f, 0.0f, 1.0f);
-                        myPrimitive._Rectangle.Draw(x2, y2, 3, 3, false);
+                        show(x1 - 1, y1 - 1, R1, G1, B1);
+                        show(x2, y2, R2, G2, B2);
 
                         if (x4 > 0)
                         {
@@ -1629,8 +1637,8 @@ namespace my
                         myPrimitive._Line.SetColor(r2, g2, b2, 0.5f);
                         myPrimitive._Line.Draw(x1, y1, x2, y2);
 
-                        drawRect(0.5451f, 0.00f, 0.0f, 1.0f, x1, y1, 3);
-                        drawRect(1.0f,    0.55f, 0.0f, 1.0f, x2, y2, 3);
+                        show(x1, y1, R1, G1, B1);
+                        show(x2, y2, R2, G2, B2);
                         break;
 
                     case 1300:
@@ -1666,16 +1674,7 @@ namespace my
             // Disable VSYNC if needed
             // Glfw.SwapInterval(0);
 
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-            }
+            clearScreenSetup(doClearBuffer, 0.3f, true);
 
             while (!Glfw.WindowShouldClose(window))
             {
