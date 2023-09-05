@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - A ring of moving particles
 */
 
 
@@ -17,12 +17,14 @@ namespace my
         public static int Priority { get { return getPriority(); } }
 
         private int cnt;
-        private float x, y, dx, dy;
+        private float x, y;
         private float size, A, dA, R, G, B, angle = 0, dAngle, alpha, dAlpha, r, spd;
 
-        private static int N = 0, shape = 0, Rad = 0, Thickness = 0, maxCnt = 0, rotationMode = 0, colorMode = 0;
+        private static int N = 0, n = 0, shape = 0, dAlphaMode = 0, Thickness = 0, maxCnt = 0, rotationMode = 0, colorMode = 0;
         private static bool doFillShapes = false, doTraceColor = false, doMoveWhileWaiting = false;
         private static float dimAlpha = 0.05f, maxDa = 0;
+
+        private static int[] Rads;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -43,8 +45,12 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10000) + 3000;
-
                 N = 33333;
+
+                n = rand.Next(2) + 1;
+                n = 1;
+
+                Rads = new int[n];
 
                 shape = rand.Next(5);
             }
@@ -62,10 +68,15 @@ namespace my
             doFillShapes = myUtils.randomChance(rand, 1, 3);
             doMoveWhileWaiting = myUtils.randomChance(rand, 1, 2);
 
+            dAlphaMode = rand.Next(5);
             rotationMode = rand.Next(6);
             colorMode = rand.Next(2);
 
-            Rad = 333 + rand.Next(333);
+            for (int i = 0; i < n; i++)
+            {
+                Rads[i] = 333 + rand.Next(333);
+            }
+
             Thickness = rand.Next(111) + 1;
             maxCnt = rand.Next(50) + 10;
 
@@ -85,15 +96,16 @@ namespace my
             string nStr(int n) { return n.ToString("N0"); }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_530\n\n" +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"Rad = {Rad}\n" +
-                            $"Thickness = {Thickness}\n" +
-                            $"maxDa = {fStr(maxDa)}\n" +
-                            $"maxCnt = {maxCnt}\n" +
-                            $"rotationMode = {rotationMode}\n" +
+            string str = $"Obj = myObj_530\n\n"                            +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"       +
+                            $"doClearBuffer = {doClearBuffer}\n"           +
+                            $"dAlphaMode = {dAlphaMode}\n"                 +
+                            $"Thickness = {Thickness}\n"                   +
+                            $"maxDa = {fStr(maxDa)}\n"                     +
+                            $"maxCnt = {maxCnt}\n"                         +
+                            $"rotationMode = {rotationMode}\n"             +
                             $"doMoveWhileWaiting = {doMoveWhileWaiting}\n" +
-                            $"renderDelay = {renderDelay}\n" +
+                            $"renderDelay = {renderDelay}\n"               +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -113,20 +125,38 @@ namespace my
         {
             cnt = maxCnt;
 
-            r = Rad + rand.Next(Thickness);
+            r = Rads[rand.Next(n)] + rand.Next(Thickness);
 
             alpha = (float)Math.PI * myUtils.randFloat(rand) * rand.Next(101);
-            dAlpha = myUtils.randFloat(rand);
-            dAlpha = myUtils.randomChance(rand, 1, 2) ? 0.01f : -0.01f;
 
-            x = r * (float)Math.Sin(alpha);
-            y = r * (float)Math.Cos(alpha);
+            switch (dAlphaMode)
+            {
+                case 0:
+                    dAlpha = 0;
+                    break;
+
+                case 1:
+                    dAlpha = myUtils.randFloat(rand) * 0.2f;
+                    break;
+
+                case 2:
+                    dAlpha = myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.2f;
+                    break;
+
+                case 3:
+                    dAlpha = myUtils.randomChance(rand, 1, 2) ? 0.01f : -0.01f;
+                    break;
+
+                case 4:
+                    dAlpha = myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.01f;
+                    break;
+
+            }
+
+            x = gl_x0 + r * (float)Math.Sin(alpha);
+            y = gl_y0 + r * (float)Math.Cos(alpha);
 
             spd = 0.5f;
-
-            x += gl_x0;
-            y += gl_y0;
-
             size = rand.Next(5) + 2;
 
             if (myUtils.randomChance(rand, 1, 2))
@@ -300,20 +330,13 @@ namespace my
             // Disable VSYNC if needed
             // Glfw.SwapInterval(0);
 
-            if (doClearBuffer)
-            {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0, 0, 0, 1);
-            }
-            else
-            {
-                dimScreenRGB_SetRandom(0.1f);
-                glDrawBuffer(GL_FRONT_AND_BACK);
-                //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
-            }
+            clearScreenSetup(doClearBuffer, 0.11f, true);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -336,7 +359,7 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_530;
 
@@ -356,7 +379,7 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_530());
                 }

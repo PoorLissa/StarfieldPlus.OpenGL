@@ -166,7 +166,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_501));   // Free Shader Experiments - 2
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_510));   // ...
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_520));   // Static pulsating shapes
-        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_530));   // ...
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_530));   // A ring of moving particles
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_540));   // Falling alphabet letters (Matrix style)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_550));   // Orbits of different size + a small planet is moving along each orbit
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_560));   // Pixelating an image with average colors
