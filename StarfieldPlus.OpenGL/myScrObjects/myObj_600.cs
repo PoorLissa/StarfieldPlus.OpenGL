@@ -18,7 +18,7 @@ namespace my
 
         private float x, y, rad, A, R, G, B, angle, dAngle;
 
-        private static int N = 0, mode = 0, dAngleMode = 0;
+        private static int N = 0, mode = 0, subMode = 0, radMode = 0, dAngleMode = 0;
         private static float dimAlpha = 0.05f;
 
         private static float dRad = 0, dAngleStep = 0;
@@ -52,8 +52,10 @@ namespace my
                     case 4: N = 333 + rand.Next(3333); break;
                 }
 
-                mode = rand.Next(3);
+                mode = 0;
+                subMode = rand.Next(3);
                 dAngleMode = rand.Next(5);
+                radMode = rand.Next(3);
                 dAngleStep = 0.001f;
 
                 switch (rand.Next(2))
@@ -94,6 +96,7 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"mode = {mode}\n"                       +
                             $"dAngleMode = {dAngleMode}\n"           +
+                            $"radMode = {radMode}\n"                 +
                             $"dAngleStep = {fStr(dAngleStep)}\n"     +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -143,7 +146,7 @@ namespace my
                     break;
             }
 
-            switch (mode)
+            switch (subMode)
             {
                 case 0:
                     break;
@@ -164,6 +167,11 @@ namespace my
             x = gl_x0;
             y = gl_x0 + gl_y0 - rad;
 
+            if (mode == 1)
+            {
+                y = rad;
+            }
+
             A = 1;
             colorPicker.getColorRand(ref R, ref G, ref B);
 
@@ -176,8 +184,33 @@ namespace my
         {
             angle += dAngle;
 
-            x = gl_x0 + rad * (float)Math.Sin(angle);
-            y = gl_y0 + rad * (float)Math.Cos(angle);
+            switch (mode)
+            {
+                case 0:
+                    {
+                        x = gl_x0 + rad * (float)Math.Sin(angle);
+                        y = gl_y0 + rad * (float)Math.Cos(angle);
+
+                        // Change radius as well
+                        switch (radMode)
+                        {
+                            case 1:
+                                rad += (float)Math.Sin(angle) * 3;
+                                break;
+
+                            case 2:
+                                rad += (float)Math.Sin(x + y) * 3;
+                                break;
+                        }
+                    }
+                    break;
+
+                case 1:
+                    {
+                        x = gl_x0 + rad * (float)Math.Sin(angle);
+                    }
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
