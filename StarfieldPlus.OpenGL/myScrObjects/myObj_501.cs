@@ -144,7 +144,7 @@ namespace my
             mode = rand.Next(13);
 
 #if DEBUG
-            mode = 8;
+            //mode = 13;
 #endif
 
             switch (mode)
