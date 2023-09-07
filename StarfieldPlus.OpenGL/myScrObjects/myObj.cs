@@ -290,6 +290,13 @@ namespace my
             var form = new Form();
             var rich = new RichTextBox();
 
+            // 
+            void func(object sender, PreviewKeyDownEventArgs e)
+            {
+                if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
+                    form.Close();
+            }
+
             form.Width = width;
             form.Height = height;
             form.StartPosition = FormStartPosition.CenterScreen;
@@ -320,18 +327,16 @@ namespace my
             if (form.Height != height)
                 form.Height = height;
 
-            rich.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
-                if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
-                    form.Close();
-            };
+            rich.PreviewKeyDown += func;
+            form.PreviewKeyDown += func;
 
-            form.PreviewKeyDown += (object sender, PreviewKeyDownEventArgs e) => {
-                if (e.KeyCode == System.Windows.Forms.Keys.Escape || e.KeyCode == System.Windows.Forms.Keys.Tab)
-                    form.Close();
-            };
+            // Display the modal form
+            {
+                form.ShowDialog();
+            }
 
-            // Display modal form
-            form.ShowDialog();
+            rich.PreviewKeyDown -= func;
+            form.PreviewKeyDown -= func;
 
             rich.Dispose();
             form.Dispose();
