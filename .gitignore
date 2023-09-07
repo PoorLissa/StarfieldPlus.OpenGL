@@ -2,6 +2,8 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+.vs/
+/StarfieldPlus.OpenGL/.vs/
 /.vs/StarfieldPlus.OpenGL/v16/.suo
 /StarfieldPlus.OpenGL/bin/Debug/StarfieldPlus.OpenGL.exe
 /StarfieldPlus.OpenGL/bin/Debug/StarfieldPlus.OpenGL.exe.config
@@ -36,4 +38,4 @@
 /StarfieldPlus.OpenGL/bin/Release/__ini.ini
 /StarfieldPlus.OpenGL/bin/Debug/StarfieldPlus.OpenGL.scr
 /glfw-3.3.8.bin.WIN64.zip
-/.vs/StarfieldPlus.OpenGL
+/StarfieldPlus.OpenGL/OpenGL/GLFW/obj
