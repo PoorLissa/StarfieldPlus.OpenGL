@@ -5,16 +5,19 @@ using System.Collections.Generic;
 
 
 /*
-    - Bouncing ball and lots of triangles rotating to point to it
+    - Bouncing ball + lots of shapes rotating to always point towards it
 */
 
 
 namespace my
 {
+    // This class is used as a bouncing ball
+    public partial class myObj_440_Ball : myObj_440 { };
+
     public class myObj_440 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
         private int cnt;
         protected float x, y, dx, dy, tmpx, tmpy;
@@ -28,6 +31,8 @@ namespace my
 
         protected static double _1pi2 = 1.0 * Math.PI/2;
         protected static double _3pi2 = 3.0 * Math.PI/2;
+
+        protected static myFreeShader shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +75,7 @@ namespace my
             doFillShapes  = myUtils.randomChance(rand, 1, 2);
 
             moveMode = rand.Next(3);
-            ballMoveMode = rand.Next(4);
+            ballMoveMode = rand.Next(5);
             insertMode = rand.Next(2);
             renderDelay  = rand.Next(11) + 5;
 
@@ -90,13 +95,17 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
+            float ballSize = (list[0] as myObj_440_Ball).size;
+
             string str = $"Obj = myObj_440\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
                             $"shape = {shape}\n"                     +
                             $"moveMode = {moveMode}\n"               +
+                            $"insertMode = {insertMode}\n"           +
                             $"ballMoveMode = {ballMoveMode}\n"       +
+                            $"ball.size = {fStr(ballSize)}\n"        +
                             $"lineTh = {fStr(lineTh)}\n"             +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -158,6 +167,7 @@ namespace my
 
                 float distSquared = tmpx * tmpx + tmpy * tmpy;
 
+                // Depending on cnt, we'll calculate the angle more or less frequently
                 if (distSquared < 110000)
                 {
                     cnt = 0;
@@ -367,7 +377,20 @@ namespace my
                 base.initShapes(shape, N, 0);
             }
 
+            getShader();
+
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            string header = "";
+            string main = "";
+
+            my.myShaderHelpers.Shapes.getShader_000(ref rand, ref header, ref main);
+            shader = new myFreeShader(header, main);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -378,15 +401,31 @@ namespace my
     // =============================================================================================================================
 
 
-    public class myObj_440_Ball : myObj_440
+    public partial class myObj_440_Ball : myObj_440
     {
-        private int radx, rady;
+        private int radx, rady, n;
         private float t, dt;
+        private float[] arr = null;
+
+        public myObj_440_Ball()
+        {
+            // Set up the average moving mode
+            {
+                n = rand.Next(2) + 2;
+                arr = new float[n * 4];
+
+                for (int i = 0; i < n * 4; i += 4)
+                {
+                    arr[i + 0] = rand.Next(gl_Width);                                   // x
+                    arr[i + 1] = rand.Next(gl_Height);                                  // y
+                    arr[i + 2] = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 5);    // dx
+                    arr[i + 3] = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 5);    // dy
+                }
+            }
+        }
 
         protected override void generateNew()
         {
-            myPrimitive.init_Ellipse();
-
             t = myUtils.randFloat(rand);
             dt = (0.005f + myUtils.randFloat(rand) * 0.025f) * myUtils.randomSign(rand);
             radx = 666 + rand.Next(1234);
@@ -423,8 +462,6 @@ namespace my
 
         protected override void Move()
         {
-            ballMoveMode = 1;
-
             switch (ballMoveMode)
             {
                 // Bouncing off the walls (soft)
@@ -461,14 +498,22 @@ namespace my
                     }
                     break;
 
-                // Elliptic
+                // Elliptic 1
                 case 2:
                 case 3:
                     {
                         x = gl_x0 + (float)Math.Sin(t) * radx;
                         y = gl_y0 + (float)Math.Cos(t) * rady;
-                        t += dt;
+                        t += (ballMoveMode == 2) ? dt : -dt;
+
+                        radx += (int)(3 * Math.Sin(2*t));
+                        rady += (int)(3 * Math.Cos(3*t));
                     }
+                    break;
+
+                // Average motion mode
+                case 4:
+                    ballSpecialMove();
                     break;
             }
 
@@ -482,8 +527,50 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._Ellipse.SetColor(R, G, B, a);
-            myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size, true);
+            shader.SetColor(R, G, B, a);
+            shader.Draw(x, y, size, size, 25);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void ballSpecialMove()
+        {
+            float X = 0;
+            float Y = 0;
+
+            for (int i = 0; i < n; i++)
+            {
+                int  ix = i * 4 + 0;
+                int  iy = i * 4 + 1;
+                int idx = i * 4 + 2;
+                int idy = i * 4 + 3;
+
+                arr[ix] += arr[idx];
+                arr[iy] += arr[idy];
+
+                X += arr[ix];
+                Y += arr[iy];
+
+                // x < 0
+                if (arr[ix] < 0)
+                    arr[idx] += 0.1f;
+
+                // x > gl_Width
+                if (arr[ix] > gl_Width)
+                    arr[idx] -= 0.1f;
+
+                // y < 0
+                if (arr[iy] < 0)
+                    arr[idy] += 0.1f;
+
+                // y > gl_Height
+                if (arr[iy] > gl_Height)
+                    arr[idy] -= 0.1f;
+            }
+
+            // Get average
+            x = X / n;
+            y = Y / n;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

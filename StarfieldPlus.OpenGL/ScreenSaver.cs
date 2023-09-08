@@ -156,7 +156,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_410));   // Concentric vibrating circles around randomly moving center point
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_420));   // System, where the center attracts and repels all the particles at the same time. vary both forces
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_430));   // Shooters move across the screen, shooting at each other
-        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_440));   // Bouncing ball and lots of triangles rotating to point to it
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_440));   // Bouncing ball + lots of shapes rotating to always point towards it
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_450));   // Get color from image and slightly offset this color. Then put the color spots on the screen
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_460));   // Point cyclically moves on a spiral, constantly leaving a trail. Trail is made of particles that move outwards from the center OR in a point's opposite direction
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_470));   // Angled rays
