@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Oscilloscope
+    - Oscilloscope (running harmonics)
 */
 
 
@@ -24,6 +24,8 @@ namespace my
         private static float dimAlpha = 0.05f, t = 0, dt = 0, ddt = 0, lineTh = 1;
 
         private static int[] prm_i = new int[5];
+
+        private static myFreeShader_FullScreen shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -388,34 +390,42 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                // Dim screen
+                if (false)
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+                    glDrawBuffer(GL_BACK);
+                    shader.Draw();
                 }
-
-                // Render Frame
+                else
                 {
-                    glLineWidth(lineTh);
-
-                    for (int i = 0; i != list.Count; i++)
+                    // Dim screen
                     {
-                        var obj = list[i] as myObj_480;
-
-                        obj.Show();
-                        obj.Move();
+                        if (doClearBuffer)
+                        {
+                            glClear(GL_COLOR_BUFFER_BIT);
+                        }
+                        else
+                        {
+                            dimScreen(dimAlpha);
+                        }
                     }
-                }
 
-                if (list.Count < N)
-                {
-                    list.Add(new myObj_480());
+                    // Render Frame
+                    {
+                        glLineWidth(lineTh);
+
+                        for (int i = 0; i != list.Count; i++)
+                        {
+                            var obj = list[i] as myObj_480;
+
+                            obj.Show();
+                            obj.Move();
+                        }
+                    }
+
+                    if (list.Count < N)
+                    {
+                        list.Add(new myObj_480());
+                    }
                 }
 
                 cnt++;
@@ -438,7 +448,42 @@ namespace my
                 base.initShapes(shape, gl_Width + 1, 0);
             }
 
+            if (false)
+            {
+                string fHeader = "", fMain = "";
+
+                getShader(ref fHeader, ref fMain);
+
+                shader = new myFreeShader_FullScreen(fHeader: fHeader, fMain: fMain);
+            }
+
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader(ref string header, ref string main)
+        {
+            header = $@"
+                vec4 myColor = vec4({R}, {G}, {B}, 1.0);
+                float t = uTime;
+                vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+            ";
+
+            main = $@"
+                    float len = length(uv);
+
+                    float s1 = sin(uv.x + t * 1.0) * 0.25;
+                    float s2 = cos(uv.x + t * 0.5) * 0.25;
+
+                    float color = 0;
+
+                    color = sin(uv.x * 15);
+
+                    //color = 1 - smoothstep(0, 0.5, abs(color));
+
+                    result = vec4(myColor.xyz * color, 1);
+                ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
