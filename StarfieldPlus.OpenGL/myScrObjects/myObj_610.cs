@@ -93,12 +93,13 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            dx = myUtils.randFloat(rand) * (rand.Next(13) + 1) * myUtils.randomSign(rand);
-            dy = myUtils.randFloat(rand) * (rand.Next(13) + 1) * myUtils.randomSign(rand);
+            dx = myUtils.randFloat(rand) * (rand.Next(5) + 3) * myUtils.randomSign(rand);
+            dy = myUtils.randFloat(rand) * (rand.Next(5) + 3) * myUtils.randomSign(rand);
 
             size = rand.Next(13) + 3;
 
             A = 0.85f;
+            A = myUtils.randFloat(rand, 0.1f);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -125,10 +126,10 @@ namespace my
 
             // Adjust dx / dy
             {
-                if (myUtils.randomChance(rand, 1, 5))
+                if (myUtils.randomChance(rand, 1, 3))
                     dx += myUtils.randFloat(rand) * 0.5f * myUtils.randomSign(rand);
 
-                if (myUtils.randomChance(rand, 1, 5))
+                if (myUtils.randomChance(rand, 1, 3))
                     dy += myUtils.randFloat(rand) * 0.5f * myUtils.randomSign(rand);
             }
 
