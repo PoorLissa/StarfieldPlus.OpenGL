@@ -5,27 +5,28 @@ using System.Collections.Generic;
 
 
 /*
-    - Empty object. Use as a template to create new objects
+    - Still test
 */
 
 
 namespace my
 {
-    public class myObj_empty : myObject
+    public class myObj_610 : myObject
     {
         // Priority
         public static int Priority => 10;
 
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
+        private static int N = 0;
         private static float dimAlpha = 0.05f;
+
+        private static myFreeShader shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_empty()
+        public myObj_610()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -41,9 +42,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-
-                shape = rand.Next(5);
+                N = rand.Next(1111) + rand.Next(1111) + rand.Next(1111) + 111;
             }
 
             initLocal();
@@ -54,7 +53,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = false;
+            dimAlpha = 0.01f;
 
             renderDelay = rand.Next(11) + 3;
 
@@ -63,24 +63,20 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-#pragma warning disable
-
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
+            //string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_empty\n\n"                       +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"renderDelay = {renderDelay}\n"            +
+            string str = $"Obj = myObj_610\n\n"                      +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
-
-#pragma warning restore
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -97,16 +93,12 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            dx = myUtils.randFloat(rand);
-            dy = myUtils.randFloat(rand);
+            dx = myUtils.randFloat(rand) * (rand.Next(13) + 1) * myUtils.randomSign(rand);
+            dy = myUtils.randFloat(rand) * (rand.Next(13) + 1) * myUtils.randomSign(rand);
 
-            size = rand.Next(11) + 3;
+            size = rand.Next(13) + 3;
 
-            A = 1;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
-
+            A = 0.85f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -119,10 +111,40 @@ namespace my
             x += dx;
             y += dy;
 
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+            // Adjust R / G / B
             {
-                generateNew();
+                if (myUtils.randomChance(rand, 1, 5))
+                    updColor(ref R);
+
+                if (myUtils.randomChance(rand, 1, 5))
+                    updColor(ref G);
+
+                if (myUtils.randomChance(rand, 1, 5))
+                    updColor(ref B);
             }
+
+            // Adjust dx / dy
+            {
+                if (myUtils.randomChance(rand, 1, 5))
+                    dx += myUtils.randFloat(rand) * 0.5f * myUtils.randomSign(rand);
+
+                if (myUtils.randomChance(rand, 1, 5))
+                    dy += myUtils.randFloat(rand) * 0.5f * myUtils.randomSign(rand);
+            }
+
+            float bounceFactor = 0.05f;
+
+            if (x < 0)
+                dx += bounceFactor;
+
+            if (x > gl_Width)
+                dx -= bounceFactor;
+
+            if (y < 0)
+                dy += bounceFactor;
+
+            if (y > gl_Height)
+                dy -= bounceFactor;
 
             return;
         }
@@ -131,53 +153,8 @@ namespace my
 
         protected override void Show()
         {
-            float size2x = size * 2;
-
-            switch (shape)
-            {
-                // Instanced squares
-                case 0:
-                    var rectInst = inst as myRectangleInst;
-
-                    rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-                    break;
-
-                // Instanced triangles
-                case 1:
-                    var triangleInst = inst as myTriangleInst;
-
-                    triangleInst.setInstanceCoords(x, y, size2x, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced circles
-                case 2:
-                    var ellipseInst = inst as myEllipseInst;
-
-                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced pentagons
-                case 3:
-                    var pentagonInst = inst as myPentagonInst;
-
-                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
-                case 4:
-                    var hexagonInst = inst as myHexagonInst;
-
-                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
-                    break;
-            }
-
-            return;
+            shader.SetColor(R, G, B, A);
+            shader.Draw(x, y, size, size, 13);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -187,15 +164,10 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
-            clearScreenSetup(doClearBuffer, 0.1f);
+            clearScreenSetup(doClearBuffer, 0.1f, front_and_back: true);
 
             while (!Glfw.WindowShouldClose(window))
             {
-                int Count = list.Count;
-
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -216,31 +188,18 @@ namespace my
 
                 // Render Frame
                 {
-                    inst.ResetBuffer();
-
-                    for (int i = 0; i != Count; i++)
+                    for (int i = 0; i != list.Count; i++)
                     {
-                        var obj = list[i] as myObj_empty;
+                        var obj = list[i] as myObj_610;
 
                         obj.Show();
                         obj.Move();
                     }
-
-                    if (doFillShapes)
-                    {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
-                    }
-
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
                 }
 
-                if (Count < N)
+                if (list.Count < N)
                 {
-                    list.Add(new myObj_empty());
+                    list.Add(new myObj_610());
                 }
 
                 cnt++;
@@ -255,11 +214,35 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, N, 0);
+            //base.initShapes(shape, N, 0);
+
+            getShader();
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            string header = "";
+            string main = "";
+
+            my.myShaderHelpers.Shapes.getShader_000(ref rand, ref header, ref main);
+            shader = new myFreeShader(header, main);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void updColor(ref float Color)
+        {
+            Color += myUtils.randFloat(rand) * 0.1f * myUtils.randomSign(rand);
+
+            if (Color < 0)
+                Color = 0;
+
+            if (Color > 1)
+                Color = 1;
+        }
     }
 };
