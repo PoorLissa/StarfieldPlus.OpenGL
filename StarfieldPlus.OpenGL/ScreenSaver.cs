@@ -176,6 +176,8 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_600));   // Pendulum
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_610));   // ...
 
+        // smooth trail: https://kosmonautblog.wordpress.com/2016/07/29/geometry-trails-tire-tracks-tutorial/
+
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 
 
