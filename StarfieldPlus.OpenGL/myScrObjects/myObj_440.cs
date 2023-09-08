@@ -17,7 +17,7 @@ namespace my
     public class myObj_440 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 
         private int cnt;
         protected float x, y, dx, dy, tmpx, tmpy;
@@ -437,19 +437,17 @@ namespace my
             dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.25f) * (rand.Next(15) + 3);
             dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.25f) * (rand.Next(15) + 3);
 
-            switch (rand.Next(3))
+            if (ballMoveMode == 4)
             {
-                case 0:
-                    size = rand.Next(3) + 3;
-                    break;
+                ballSpecialMove();
+            }
 
-                case 1:
-                    size = rand.Next(33) + 3;
-                    break;
-
-                case 2:
-                    size = rand.Next(333) + 3;
-                    break;
+            switch (rand.Next(4))
+            {
+                case 0: size = rand.Next(003) + 3; break;
+                case 1: size = rand.Next(033) + 3; break;
+                case 2: size = rand.Next(111) + 3; break;
+                case 3: size = rand.Next(333) + 3; break;
             }
 
             a = 0.5f;
