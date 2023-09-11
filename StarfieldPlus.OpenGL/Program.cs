@@ -1,6 +1,4 @@
-﻿//#define ZZZ
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -15,17 +13,16 @@ namespace StarfieldPlus.OpenGL
         private static System.Threading.Mutex mutex = null;
 
         // -------------------------------------------------------------------------------------------------------------------
-#if ZZZ
+
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern uint SetThreadExecutionState(uint esFlags);
-#endif
+
         static void Main(string[] args)
         {
-#if ZZZ
             SetThreadExecutionState((uint)(0x80000000L | 0x00000002L | 0x00000001L));
-#endif
-            //const string appName = "starField.Plus.OpenGL";
-            const string appName = "MyAppName";
+
+            const string appName = "starField.Plus.OpenGL";
+            //const string appName = "MyAppName";
             
             bool createdNew;
             var mutex = new System.Threading.Mutex(true, appName, out createdNew);

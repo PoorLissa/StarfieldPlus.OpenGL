@@ -178,12 +178,13 @@ namespace my
                 // Set context creation hints
                 myOGL.PrepareContext();
 
-                // Create window
-                Window openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", scr.GetMode());
-
+                // https://www.glfw.org/docs/3.3/window_guide.html
                 // This should take care of the situation when the window opens in background;
                 // This happens when the screensaver is started by a TaskScheduler in Win10
-                Glfw.FocusWindow(openGL_Window);
+                Glfw.WindowHint(Hint.Floating, true);
+
+                // Create window
+                Window openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", scr.GetMode());
 
                 // Set Blend mode
                 {

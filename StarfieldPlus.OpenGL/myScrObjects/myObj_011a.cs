@@ -21,7 +21,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
 
         private point pt1, pt2;
         private float A, R, G, B;
