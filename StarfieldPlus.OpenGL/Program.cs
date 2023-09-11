@@ -127,8 +127,26 @@ namespace StarfieldPlus.OpenGL
             // https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate
             // https://stackoverflow.com/questions/3665332/how-do-i-prevent-screen-savers-and-sleeps-during-my-program-execution
 
-			// scheduler solution: will probably need to set screensaver start timeout to high value, so it does not run again while the screensaver is active
-			// https://superuser.com/questions/538146/run-a-batch-cmd-upon-screensaver
+            // scheduler solution: will probably need to set screensaver start timeout to high value, so it does not run again while the screensaver is active
+            // https://superuser.com/questions/538146/run-a-batch-cmd-upon-screensaver
+
+            /*
+                Options to fix the Windows 10 behaviour:
+                1. Don't use desktop screenshot at all
+                    - Bad idea
+                2. Write my own scr launcher
+                    - No flash upon the start
+                    - I know how to check for idle time (mouse + keyboard)
+                    - I don't know how to adjust it for active applications (youtube, video players, etc)
+                3. Write an app that will take the desktop screenshot just before the screensaver launches
+                    - Need to figure out the exact timing
+                4. Use TaskScheduler to run the screensaver in response to Event ID 4802
+                    - Need to use a dummy screensaver (or use my own with custom arguments)
+                    - The dummy causes quick screen flash
+                    - Don't need to think about active apps (the screensaver start time will be managed by Windows)
+                    - Need to make sure the dummy does not start again while the scr is active (as the dummy will exit immediately -- its purpose is only to trigger the event)
+                    - Need to make the screensaver the topmost window, as I already saw it starting in a background
+            */
 
             try
             {

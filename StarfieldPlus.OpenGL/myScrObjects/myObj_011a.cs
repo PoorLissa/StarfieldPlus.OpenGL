@@ -51,8 +51,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-                N = 1;
+                N = 3 + rand.Next(11);
             }
 
             initLocal();
