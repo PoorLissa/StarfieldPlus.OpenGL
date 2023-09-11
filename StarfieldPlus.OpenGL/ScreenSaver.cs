@@ -25,20 +25,6 @@ public class ScreenSaver
     private my.myObject _obj = null;
     private byte _mode;
 
-    private enum ids
-    {
-        myObj_000, myObj_010, myObj_011, myObj_020, myObj_030, myObj_031, myObj_040, myObj_041, myObj_042, myObj_043, myObj_050, myObj_070, myObj_071, myObj_100,
-        myObj_101, myObj_102, myObj_103, myObj_110, myObj_120, myObj_130, myObj_131, myObj_132, myObj_150, myObj_160, myObj_170, myObj_180, myObj_181,
-        myObj_200, myObj_210, myObj_220, myObj_230,
-        myObj_300, myObj_310, myObj_320, myObj_330, myObj_340, myObj_350, myObj_360, myObj_370, myObj_380, myObj_390,
-        myObj_400, myObj_410, myObj_420, myObj_430, myObj_440, myObj_450, myObj_460, myObj_470, myObj_480, myObj_490,
-        myObj_500,
-        myObj_999a,
-        myObj_last
-    };
-
-    // -------------------------------------------------------------------------------------------------------------------
-
     public ScreenSaver()
     {
         my.myObject.gl_Width  = 0;
@@ -104,6 +90,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_000));   // Star Field
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_010));   // Randomly Roaming Squares (Snow Like)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011));   // Randomly Roaming Lines (based on Randomly Roaming Squares)
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011a));  // ...
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_012));   // Snow-like pattern made of different layers moving in different directions
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_020));   // Linearly Moving Shapes (Soap Bubbles Alike)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_021));   // Ever Growing Shapes located at the center of the screen + small offset

@@ -12,7 +12,8 @@ public class myLineInst : myInstancedPrimitive
     private static uint vbo = 0, instVbo = 0, shaderProgram = 0;
     private static int locationScrSize = 0;
     private static int floatTimesN = 0;
-    //private static float _angle = 0;
+
+    private float _lineWidth;
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -22,6 +23,8 @@ public class myLineInst : myInstancedPrimitive
         // - 4 floats for Coordinates (x1, y1, x2, y2)
         // - 4 floats for RGBA
         n = 8;
+
+        _lineWidth = 1.0f;
 
         if (vertices == null)
         {
@@ -51,6 +54,8 @@ public class myLineInst : myInstancedPrimitive
 
     public void Draw()
     {
+        glLineWidth(_lineWidth);
+
         updateInstances();
         updateVertices();
 
@@ -202,6 +207,13 @@ public class myLineInst : myInstancedPrimitive
         }
 
         return;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void setLineWidth(float width)
+    {
+        _lineWidth = width;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

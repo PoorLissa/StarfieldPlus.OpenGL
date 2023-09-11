@@ -181,8 +181,11 @@ namespace my
                 // Create window
                 Window openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", scr.GetMode());
 
+                // This should take care of the situation when the window opens in background;
+                // This happens when the screensaver is started by a TaskScheduler in Win10
+                Glfw.FocusWindow(openGL_Window);
+
                 // Set Blend mode
-                if (true)
                 {
                     glEnable(GL_BLEND);                                 // Enable blending
                     glBlendEquation(GL_FUNC_ADD);
@@ -203,9 +206,10 @@ namespace my
                 System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
 
-
-                Process(openGL_Window);
-
+                // Main Procedure
+                {
+                    Process(openGL_Window);
+                }
 
 
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Normal);
