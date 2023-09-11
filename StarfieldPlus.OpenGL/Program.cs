@@ -130,6 +130,9 @@ namespace StarfieldPlus.OpenGL
             // scheduler solution: will probably need to set screensaver start timeout to high value, so it does not run again while the screensaver is active
             // https://superuser.com/questions/538146/run-a-batch-cmd-upon-screensaver
 
+            // another scheduler solution (no dummy, just idle time - try it)
+            // https://virtualcustoms.net/showthread.php/69386-Re-Enable-Screensaver-Transparency-%28float-on-desktop%29-Function-in-8-1
+
             /*
                 Options to fix the Windows 10 behaviour:
                 1. Don't use desktop screenshot at all
