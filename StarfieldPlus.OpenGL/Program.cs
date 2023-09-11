@@ -1,4 +1,8 @@
-﻿using System.Windows.Forms;
+﻿//#define ZZZ
+
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 
 
@@ -6,13 +10,20 @@ namespace StarfieldPlus.OpenGL
 {
     class Program
     {
+
         // todo: use it later to prevent the screensaver from starting while it is rinning from the VS
         private static System.Threading.Mutex mutex = null;
 
         // -------------------------------------------------------------------------------------------------------------------
-
+#if ZZZ
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern uint SetThreadExecutionState(uint esFlags);
+#endif
         static void Main(string[] args)
         {
+#if ZZZ
+            SetThreadExecutionState((uint)(0x80000000L | 0x00000002L | 0x00000001L));
+#endif
             //const string appName = "starField.Plus.OpenGL";
             const string appName = "MyAppName";
             
@@ -111,6 +122,13 @@ namespace StarfieldPlus.OpenGL
             // https://www.tenforums.com/customization/25427-screen-saver-question-2.html
             // https://www.reddit.com/r/Windows10/comments/8pkrwx/desktop_disappears_when_using_bubbles_screensaver/
             // https://answers.microsoft.com/en-us/windows/forum/windows_8-desktop/bubbles-screensaver-has-black-background/e0807324-5ca6-4abe-b6ba-716848b41ff5?page=4
+
+            // also,
+            // https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate
+            // https://stackoverflow.com/questions/3665332/how-do-i-prevent-screen-savers-and-sleeps-during-my-program-execution
+
+			// scheduler solution: will probably need to set screensaver start timeout to high value, so it does not run again while the screensaver is active
+			// https://superuser.com/questions/538146/run-a-batch-cmd-upon-screensaver
 
             try
             {
