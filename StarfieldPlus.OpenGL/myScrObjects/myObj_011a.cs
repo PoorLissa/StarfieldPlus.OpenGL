@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 
 /*
@@ -21,13 +22,16 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99910;
 
         private point pt1, pt2;
         private float A, R, G, B;
         private float[] trail = null;
 
-        private static int N = 0, nTrail = 25;
+        private static int N = 0, nTrail = 250;
+
+        private static myFreeShader shader = null;
+        static myTexRectangle tex = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -103,7 +107,7 @@ namespace my
             if (pt2 == null)
                 pt2 = new point();
 
-            float spdFactor = 20;
+            float spdFactor = 10;
 
             pt1.x = rand.Next(gl_Width);
             pt1.y = rand.Next(gl_Height);
@@ -115,8 +119,7 @@ namespace my
             pt2.dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
             pt2.dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
 
-            A = 1;
-            R = G = B = 0.2f;
+            A = 0.25f + myUtils.randFloat(rand) * 0.25f;
             colorPicker.getColorRand(ref R, ref G, ref B);
 
             return;
@@ -126,20 +129,66 @@ namespace my
 
         private void movePt(ref point p)
         {
+            int offset = 333;
+            int moveMode = 1;
+
             p.x += p.dx;
             p.y += p.dy;
 
-            if (p.x < 0 && p.dx < 0)
-                p.dx *= -1;
+            switch (moveMode)
+            {
+                case 0:
+                    {
+                        if (p.x < 0 && p.dx < 0)
+                            p.dx *= -1;
 
-            if (p.y < 0 && p.dy < 0)
-                p.dy *= -1;
+                        if (p.y < 0 && p.dy < 0)
+                            p.dy *= -1;
 
-            if (p.x > gl_Width && p.dx > 0)
-                p.dx *= -1;
+                        if (p.x > gl_Width && p.dx > 0)
+                            p.dx *= -1;
 
-            if (p.y > gl_Height && p.dy > 0)
-                p.dy *= -1;
+                        if (p.y > gl_Height && p.dy > 0)
+                            p.dy *= -1;
+                    }
+                    break;
+
+                case 1:
+                    {
+                        float val = 0.13f;
+
+                        if (p.x < offset)
+                            p.dx += val;
+
+                        if (p.y < offset)
+                            p.dy += val;
+
+                        if (p.x > gl_Width - offset)
+                            p.dx -= val;
+
+                        if (p.y > gl_Height - offset)
+                            p.dy -= val;
+                    }
+                    break;
+
+                case 2:
+                    {
+                        float val = myUtils.randFloat(rand) * 0.15f;
+
+                        if (p.x < offset)
+                            p.dx += val;
+
+                        if (p.y < offset)
+                            p.dy += val;
+
+                        if (p.x > gl_Width - offset)
+                            p.dx -= val;
+
+                        if (p.y > gl_Height - offset)
+                            p.dy -= val;
+                    }
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -175,8 +224,31 @@ namespace my
 
         protected override void Show()
         {
-            float a = 1.0f;
-            float da = 1.0f / (nTrail + 1);
+            float a = A;
+            float da = A / (nTrail + 1);
+  
+            {
+                for (int i = 0; i < nTrail-1; i++)
+                {
+                    int idx1 = i * 4;
+                    int idx2 = i * 4 + 4;
+
+                    myPrimitive._LineInst.setInstanceCoords(trail[idx1 + 0], trail[idx1 + 1], trail[idx2 + 0], trail[idx2 + 1]);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, a);
+
+                    myPrimitive._LineInst.setInstanceCoords(trail[idx1 + 2], trail[idx1 + 3], trail[idx2 + 2], trail[idx2 + 3]);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, a);
+
+                    a -= da;
+                }
+
+                shader.SetColor(R, G, B, A*1.5f);
+                shader.Draw(trail[0], trail[1], 8, 8, 10);
+                shader.Draw(trail[2], trail[3], 8, 8, 10);
+
+                return;
+            }
+
 
             myPrimitive._LineInst.setInstanceCoords(pt1.x, pt1.y, pt2.x, pt2.y);
             myPrimitive._LineInst.setInstanceColor(R, G, B, 1);
@@ -201,6 +273,7 @@ namespace my
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.13f);
+            glDrawBuffer(GL_BACK);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -215,6 +288,12 @@ namespace my
                 // Dim screen
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
+
+                    if (tex != null)
+                    {
+                        tex.setOpacity(0.9f);
+                        tex.Draw(0, 0, gl_Width, gl_Height);
+                    }
                 }
 
                 // Render Frame
@@ -248,10 +327,29 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_LineInst(N * nTrail + N);
-            myPrimitive._LineInst.setLineWidth(3);
+            myPrimitive.init_LineInst(2 * N * nTrail);
+            myPrimitive._LineInst.setLineWidth(1 + rand.Next(11));
+
+            getShader();
+
+            if (colorPicker.getImg() != null && myUtils.randomChance(rand, 1, 3))
+            {
+                tex = new myTexRectangle(colorPicker.getImg());
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            string header = "";
+            string main = "";
+
+            my.myShaderHelpers.Shapes.getShader_000(ref rand, ref header, ref main);
+            shader = new myFreeShader(header, main);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     }
 };
