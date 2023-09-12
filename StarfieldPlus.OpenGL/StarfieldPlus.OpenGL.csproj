@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="myClasses\_ParticleTrail.cs" />
     <Compile Include="myScrObjects\myObj.cs" />
     <Compile Include="myScrObjects\myObj_021.cs" />
     <Compile Include="myScrObjects\myObj_020.cs" />

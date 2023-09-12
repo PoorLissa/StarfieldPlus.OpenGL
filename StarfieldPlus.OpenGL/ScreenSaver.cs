@@ -12,9 +12,11 @@
     https://www.shadertoy.com/view/3tXXRn
 */
 
-
-using System.Linq;
-using System.Reflection;
+// Windows 10 problems:
+/*
+    1. System.Threading.Thread.Sleep(renderDelay) causes irregular movement of particles
+    2. When NVidia Vulkan OpenGL present method is Auto or Native, there is a problem with drawing info winform over the opengl window
+*/
 
 
 #pragma warning disable IDE1006

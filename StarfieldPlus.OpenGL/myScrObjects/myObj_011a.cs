@@ -1,12 +1,10 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
-using System.Drawing;
 
 
 /*
-    - lines with trail history -- test
+    - Particles with tails
 */
 
 
@@ -14,21 +12,15 @@ namespace my
 {
     public class myObj_011a : myObject
     {
-        private class point
-        {
-            public float x, y, dx, dy;
-        };
-
-        // ---------------------------------------------------------------------------------------------------------------
-
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 999910;
 
-        private point pt1, pt2;
+        private float x, y, dx, dy, a, da;
         private float A, R, G, B;
-        private float[] trail = null;
+        private myParticleTrail trail = null;
 
         private static int N = 0, nTrail = 250;
+        private static int moveMode = 0, lineWidth = 1;
 
         private static myFreeShader shader = null;
         static myTexRectangle tex = null;
@@ -38,11 +30,7 @@ namespace my
         public myObj_011a()
         {
             if (id != uint.MaxValue)
-            {
-                trail = new float[nTrail * 4];
-
                 generateNew();
-            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -68,6 +56,10 @@ namespace my
         {
             doClearBuffer = true;
             renderDelay = rand.Next(11) + 3;
+            renderDelay = 0;
+
+            moveMode = rand.Next(3);
+            lineWidth = rand.Next(11) + 1;
 
             return;
         }
@@ -79,10 +71,14 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
+            //string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_011a\n\n"                     +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"moveMode = {moveMode}\n"               +
+                            $"lineWidth = {lineWidth}\n"             +
+                            $"nTrail = {nTrail}\n"                   +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -95,100 +91,31 @@ namespace my
         protected override void setNextMode()
         {
             initLocal();
+
+            myPrimitive._LineInst.setLineWidth(lineWidth);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
-            if (pt1 == null)
-                pt1 = new point();
-
-            if (pt2 == null)
-                pt2 = new point();
-
             float spdFactor = 10;
 
-            pt1.x = rand.Next(gl_Width);
-            pt1.y = rand.Next(gl_Height);
-            pt1.dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
-            pt1.dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
-
-            pt2.x = rand.Next(gl_Width);
-            pt2.y = rand.Next(gl_Height);
-            pt2.dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
-            pt2.dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
+            dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
+            dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
 
             A = 0.25f + myUtils.randFloat(rand) * 0.25f;
+            da = A / (nTrail + 1);
             colorPicker.getColorRand(ref R, ref G, ref B);
 
-            return;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        private void movePt(ref point p)
-        {
-            int offset = 333;
-            int moveMode = 1;
-
-            p.x += p.dx;
-            p.y += p.dy;
-
-            switch (moveMode)
+            if (trail == null)
             {
-                case 0:
-                    {
-                        if (p.x < 0 && p.dx < 0)
-                            p.dx *= -1;
-
-                        if (p.y < 0 && p.dy < 0)
-                            p.dy *= -1;
-
-                        if (p.x > gl_Width && p.dx > 0)
-                            p.dx *= -1;
-
-                        if (p.y > gl_Height && p.dy > 0)
-                            p.dy *= -1;
-                    }
-                    break;
-
-                case 1:
-                    {
-                        float val = 0.13f;
-
-                        if (p.x < offset)
-                            p.dx += val;
-
-                        if (p.y < offset)
-                            p.dy += val;
-
-                        if (p.x > gl_Width - offset)
-                            p.dx -= val;
-
-                        if (p.y > gl_Height - offset)
-                            p.dy -= val;
-                    }
-                    break;
-
-                case 2:
-                    {
-                        float val = myUtils.randFloat(rand) * 0.15f;
-
-                        if (p.x < offset)
-                            p.dx += val;
-
-                        if (p.y < offset)
-                            p.dy += val;
-
-                        if (p.x > gl_Width - offset)
-                            p.dx -= val;
-
-                        if (p.y > gl_Height - offset)
-                            p.dy -= val;
-                    }
-                    break;
+                trail = new myParticleTrail(nTrail, x, y);
             }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -197,25 +124,70 @@ namespace my
         {
             // Update trail info
             {
-                for (int i = nTrail - 1; i > 0; i--)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        int idx1 = ((i - 0) * 4) + j;
-                        int idx2 = ((i - 1) * 4) + j;
-
-                        trail[idx1] = trail[idx2];
-                    }
-                }
+                trail.update(x, y);
             }
 
-            movePt(ref pt1);
-            movePt(ref pt2);
+            int offset = 333;
 
-            trail[0] = pt1.x;
-            trail[1] = pt1.y;
-            trail[2] = pt2.x;
-            trail[3] = pt2.y;
+            x += dx;
+            y += dy;
+
+            a = A;
+
+            switch (moveMode)
+            {
+                case 0:
+                    {
+                        if (x < 0 && dx < 0)
+                            dx *= -1;
+
+                        if (y < 0 && dy < 0)
+                            dy *= -1;
+
+                        if (x > gl_Width && dx > 0)
+                            dx *= -1;
+
+                        if (y > gl_Height && dy > 0)
+                            dy *= -1;
+                    }
+                    break;
+
+                case 1:
+                    {
+                        float val = 0.13f;
+
+                        if (x < offset)
+                            dx += val;
+
+                        if (y < offset)
+                            dy += val;
+
+                        if (x > gl_Width - offset)
+                            dx -= val;
+
+                        if (y > gl_Height - offset)
+                            dy -= val;
+                    }
+                    break;
+
+                case 2:
+                    {
+                        float val = myUtils.randFloat(rand) * 0.15f;
+
+                        if (x < offset)
+                            dx += val;
+
+                        if (y < offset)
+                            dy += val;
+
+                        if (x > gl_Width - offset)
+                            dx -= val;
+
+                        if (y > gl_Height - offset)
+                            dy -= val;
+                    }
+                    break;
+            }
 
             return;
         }
@@ -224,45 +196,26 @@ namespace my
 
         protected override void Show()
         {
-            float a = A;
-            float da = A / (nTrail + 1);
-  
+            float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+            int i = 0;
+
+            trail.getXY(i++, ref x1, ref y1);
+
+            for (; i < nTrail; i++)
             {
-                for (int i = 0; i < nTrail-1; i++)
-                {
-                    int idx1 = i * 4;
-                    int idx2 = i * 4 + 4;
+                trail.getXY(i, ref x2, ref y2);
 
-                    myPrimitive._LineInst.setInstanceCoords(trail[idx1 + 0], trail[idx1 + 1], trail[idx2 + 0], trail[idx2 + 1]);
-                    myPrimitive._LineInst.setInstanceColor(R, G, B, a);
-
-                    myPrimitive._LineInst.setInstanceCoords(trail[idx1 + 2], trail[idx1 + 3], trail[idx2 + 2], trail[idx2 + 3]);
-                    myPrimitive._LineInst.setInstanceColor(R, G, B, a);
-
-                    a -= da;
-                }
-
-                shader.SetColor(R, G, B, A*1.5f);
-                shader.Draw(trail[0], trail[1], 8, 8, 10);
-                shader.Draw(trail[2], trail[3], 8, 8, 10);
-
-                return;
-            }
-
-
-            myPrimitive._LineInst.setInstanceCoords(pt1.x, pt1.y, pt2.x, pt2.y);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, 1);
-
-            a -= da;
-
-            for (int i = 0; i < nTrail; i++)
-            {
-                int idx = i * 4;
-
-                myPrimitive._LineInst.setInstanceCoords(trail[idx + 0], trail[idx + 1], trail[idx + 2], trail[idx + 3]);
+                myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
                 myPrimitive._LineInst.setInstanceColor(R, G, B, a);
+
+                x1 = x2;
+                y1 = y2;
+
                 a -= da;
             }
+
+            shader.SetColor(R, G, B, A*1.5f);
+            shader.Draw(x, y, 8, 8, 10);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -272,8 +225,10 @@ namespace my
             uint cnt = 0;
             initShapes();
 
+
             clearScreenSetup(doClearBuffer, 0.13f);
             glDrawBuffer(GL_BACK);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -327,14 +282,19 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_LineInst(2 * N * nTrail);
-            myPrimitive._LineInst.setLineWidth(1 + rand.Next(11));
+            myPrimitive.init_LineInst(N * nTrail);
+            myPrimitive._LineInst.setLineWidth(lineWidth);
 
             getShader();
 
-            if (colorPicker.getImg() != null && myUtils.randomChance(rand, 1, 3))
+            var mode = (myColorPicker.colorMode)colorPicker.getMode();
+
+            if (mode == myColorPicker.colorMode.IMAGE || mode == myColorPicker.colorMode.SNAPSHOT)
             {
-                tex = new myTexRectangle(colorPicker.getImg());
+                if (myUtils.randomChance(rand, 1, 3))
+                {
+                    tex = new myTexRectangle(colorPicker.getImg());
+                }
             }
         }
 
