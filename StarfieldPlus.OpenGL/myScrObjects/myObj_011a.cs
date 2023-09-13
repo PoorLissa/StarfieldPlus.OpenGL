@@ -13,9 +13,9 @@ namespace my
     public class myObj_011a : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
-        private float x, y, dx, dy, a, da;
+        private float x, y, dx, dy, a, da, angle, dAngle, rad;
         private float A, R, G, B;
         private myParticleTrail trail = null;
 
@@ -120,6 +120,13 @@ namespace my
 
         protected override void generateNew()
         {
+            // For a circular motion
+            {
+                angle = myUtils.randFloat(rand);
+                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
+                rad = rand.Next(gl_x0);
+            }
+
             float spdFactor = 10;
 
             x = rand.Next(gl_Width);
@@ -196,6 +203,19 @@ namespace my
             y += dy;
 
             a = A;
+
+            // Circular motion
+            {
+                x = gl_x0 + rad * (float)System.Math.Sin(angle);
+                y = gl_y0 + rad * (float)System.Math.Cos(angle);
+
+                angle += dAngle;
+
+                if (myUtils.randomChance(rand, 1, 13))
+                {
+                    rad += myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                }
+            }
 
             switch (moveMode)
             {
