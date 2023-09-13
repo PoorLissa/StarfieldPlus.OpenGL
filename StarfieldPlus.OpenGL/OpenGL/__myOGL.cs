@@ -10,7 +10,7 @@ class myOGL
     // -------------------------------------------------------------------------------------------------------------------
 
     // Set some common hints for the OpenGL profile creation
-    public static void PrepareContext()
+    public static void PrepareContextHints()
     {
         Glfw.WindowHint(Hint.ClientApi, ClientApi.OpenGL);
         Glfw.WindowHint(Hint.ContextVersionMajor, 3);
@@ -18,6 +18,11 @@ class myOGL
         Glfw.WindowHint(Hint.OpenglProfile, Profile.Core);
         Glfw.WindowHint(Hint.Doublebuffer, true);
         Glfw.WindowHint(Hint.Decorated, false);
+
+        // https://www.glfw.org/docs/3.3/window_guide.html
+        // This should take care of the situation when the window opens in background;
+        // This happens when the screensaver is started by a TaskScheduler in Win10
+        Glfw.WindowHint(Hint.Floating, true);
 
         //Glfw.WindowHint(Hint.Samples, 0);
         //Glfw.WindowHint(Hint.ScaleToMonitor, true);

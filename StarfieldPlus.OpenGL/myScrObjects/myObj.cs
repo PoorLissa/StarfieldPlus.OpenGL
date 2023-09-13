@@ -176,12 +176,7 @@ namespace my
             try
             {
                 // Set context creation hints
-                myOGL.PrepareContext();
-
-                // https://www.glfw.org/docs/3.3/window_guide.html
-                // This should take care of the situation when the window opens in background;
-                // This happens when the screensaver is started by a TaskScheduler in Win10
-                Glfw.WindowHint(Hint.Floating, true);
+                myOGL.PrepareContextHints();
 
                 // Create window
                 Window openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", scr.GetMode());
@@ -195,6 +190,17 @@ namespace my
 
                 // Hide cursor
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
+
+                // Make the process foreground, as the TaskScheduler might run it in a background
+                {
+                    System.Diagnostics.Process currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    IntPtr hWnd = currentProcess.MainWindowHandle;
+
+                    if (hWnd != IntPtr.Zero)
+                    {
+                        my.myWinAPI.SetForegroundWindow(hWnd);
+                    }
+                }
 
                 // One time call to let all the primitives know the screen dimensions
                 myPrimitive.init(gl_Width, gl_Height);
