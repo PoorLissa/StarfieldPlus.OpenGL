@@ -13,14 +13,16 @@ namespace my
     public class myObj_011a : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 
         private float x, y, dx, dy, a, da;
         private float A, R, G, B;
         private myParticleTrail trail = null;
 
-        private static int N = 0, nTrail = 250;
-        private static int moveMode = 0, lineWidth = 1;
+        private static int N = 0, nTrail = 150;
+        private static int moveMode = 0, lineWidth = 1, startMode = 0, offset = 0, randomizeTrail1Mode = 0, randomizeTrail2Mode = 0, trailModifyMode = 0;
+        private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true;
+        private static float randomizeTrail1Factor = 0, randomizeTrail2Factor = 0;
 
         private static myFreeShader shader = null;
         static myTexRectangle tex = null;
@@ -43,7 +45,9 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 3 + rand.Next(11);
+                N = 3 + rand.Next(111);
+
+                nTrail = 100 + rand.Next(333);
             }
 
             initLocal();
@@ -55,11 +59,26 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
-            renderDelay = rand.Next(11) + 3;
-            renderDelay = 0;
+
+            trailModifyMode = rand.Next(4);
+
+            doRandomizeTrail1 = myUtils.randomBool(rand);
+            doRandomizeTrail2 = myUtils.randomBool(rand);
+
+            randomizeTrail1Mode = rand.Next(2);
+            randomizeTrail2Mode = rand.Next(4);
+
+            randomizeTrail1Factor = rand.Next(23) + 1;
+            randomizeTrail2Factor = rand.Next(15) + 1;
 
             moveMode = rand.Next(3);
-            lineWidth = rand.Next(11) + 1;
+            startMode = rand.Next(4);
+
+            lineWidth = rand.Next(7) + 1;
+
+            offset = rand.Next(666);
+
+            doRandomizeSpeed = myUtils.randomChance(rand, 1, 5);
 
             return;
         }
@@ -93,6 +112,8 @@ namespace my
             initLocal();
 
             myPrimitive._LineInst.setLineWidth(lineWidth);
+
+            System.Threading.Thread.Sleep(33);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -110,6 +131,27 @@ namespace my
             da = A / (nTrail + 1);
             colorPicker.getColorRand(ref R, ref G, ref B);
 
+            switch (startMode)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    x = gl_x0;
+                    break;
+
+                case 2:
+                    y = gl_y0;
+                    break;
+
+                case 3:
+                    x = gl_x0;
+                    y = gl_y0;
+                    break;
+            }
+
+            y = 0;
+
             if (trail == null)
             {
                 trail = new myParticleTrail(nTrail, x, y);
@@ -124,10 +166,31 @@ namespace my
         {
             // Update trail info
             {
-                trail.update(x, y);
-            }
+                if (doRandomizeTrail1)
+                {
+                    float r1 = 0, r2 = 0;
+                    randomizeTrail1Factor = 10;
 
-            int offset = 333;
+                    switch (randomizeTrail1Mode)
+                    {
+                        case 0:
+                            r1 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail1Factor;
+                            r2 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail1Factor;
+                            break;
+
+                        case 1:
+                            r1 = (float)System.Math.Sin(x) * 3;
+                            r2 = (float)System.Math.Cos(y) * 3;
+                            break;
+                    }
+
+                    trail.update(x + r1, y + r2);
+                }
+                else
+                {
+                    trail.update(x, y);
+                }
+            }
 
             x += dx;
             y += dy;
@@ -189,6 +252,19 @@ namespace my
                     break;
             }
 
+            if (doRandomizeSpeed)
+            {
+                if (myUtils.randomChance(rand, 1, 5))
+                {
+                    dx += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
+                }
+
+                if (myUtils.randomChance(rand, 1, 5))
+                {
+                    dy += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
+                }
+            }
+
             return;
         }
 
@@ -205,8 +281,18 @@ namespace my
             {
                 trail.getXY(i, ref x2, ref y2);
 
-                myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
-                myPrimitive._LineInst.setInstanceColor(R, G, B, a);
+                switch (trailModifyMode)
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                        drawTailSegment(x1, y1, x2, y2);
+                        break;
+
+                    case 3:
+                        drawTailSegment(x1, y1 + i/2, x2, y2 - i/2);
+                        break;
+                }
 
                 x1 = x2;
                 y1 = y2;
@@ -216,6 +302,54 @@ namespace my
 
             shader.SetColor(R, G, B, A*1.5f);
             shader.Draw(x, y, 8, 8, 10);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void drawTailSegment(float x1, float y1, float x2, float y2)
+        {
+            if (doRandomizeTrail2)
+            {
+                float r1 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail2Factor;
+                float r2 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail2Factor;
+
+                switch (randomizeTrail2Mode)
+                {
+                    case 0:
+                        myPrimitive._LineInst.setInstanceCoords(x1 + r1, y1 + r2, x2 + r1, y2 + r2);
+                        break;
+
+                    case 1:
+                        myPrimitive._LineInst.setInstanceCoords(x1, y1, x2 + r1, y2 + r2);
+                        break;
+
+                    case 2:
+                        myPrimitive._LineInst.setInstanceCoords(x1 + r1, y1, x2 + r2, y2);
+                        break;
+
+                    case 3:
+                        r1 = (float)System.Math.Sin(x1 + y1) * randomizeTrail2Factor;
+                        r2 = (float)System.Math.Sin(x2 + y2) * randomizeTrail2Factor;
+                        myPrimitive._LineInst.setInstanceCoords(x1 + r1, y1 + r2, x2 - r1, y2 - r2);
+                        break;
+                }
+            }
+            else
+            {
+                myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
+            }
+
+            myPrimitive._LineInst.setInstanceColor(R, G, B, a);
+
+#if false
+            int zz = 2;
+
+            myPrimitive._LineInst.setInstanceCoords(x1 - zz, y1 - zz, x2 - zz, y2 - zz);
+            myPrimitive._LineInst.setInstanceColor(R/2, G/2, B/2, a/2);
+
+            myPrimitive._LineInst.setInstanceCoords(x1 + zz, y1 + zz, x2 + zz, y2 + zz);
+            myPrimitive._LineInst.setInstanceColor(R/2, G/2, B/2, a/2);
+#endif
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -272,7 +406,6 @@ namespace my
                 }
 
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
