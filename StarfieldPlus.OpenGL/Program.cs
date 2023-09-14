@@ -17,10 +17,9 @@ namespace StarfieldPlus.OpenGL
         static void Main(string[] args)
         {
 /*
+            uint originalTimeout = 0;
             uint SPI_GETSCREENSAVETIMEOUT = 0x000E;
             uint SPI_SETSCREENSAVETIMEOUT = 0x000F;
-
-            uint originalTimeout = 0;
 
             my.myWinAPI.SystemParametersInfo(SPI_GETSCREENSAVETIMEOUT,       0, ref originalTimeout, 0);
             my.myWinAPI.SystemParametersInfo(SPI_SETSCREENSAVETIMEOUT, 60 * 60, ref originalTimeout, 0);
@@ -44,7 +43,7 @@ namespace StarfieldPlus.OpenGL
 
                 // Prevent Windows from running the screensaver again;
                 // todo: This needs some more thought, because now the PC does not go to sleep at all!
-                //my.myWinAPI.SetThreadExecutionState((uint)(0x80000000L | 0x00000002L | 0x00000001L));
+                my.myWinAPI.SetThreadExecutionState((uint)(0x80000000L | 0x00000002L | 0x00000001L));
 
                 if (args.Length > 0)
                 {

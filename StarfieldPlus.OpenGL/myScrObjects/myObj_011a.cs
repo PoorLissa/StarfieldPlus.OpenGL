@@ -15,7 +15,7 @@ namespace my
         // Priority
         public static int Priority => 999910;
 
-        private float x, y, dx, dy, a, da, angle, dAngle, rad;
+        private float x, y, dx, dy, a, da, angle, dAngle, radx, rady;
         private float A, R, G, B;
         private myParticleTrail trail = null;
 
@@ -71,7 +71,7 @@ namespace my
             randomizeTrail1Factor = rand.Next(23) + 1;
             randomizeTrail2Factor = rand.Next(15) + 1;
 
-            moveMode = rand.Next(3);
+            moveMode = rand.Next(6);
             startMode = rand.Next(4);
 
             lineWidth = rand.Next(7) + 1;
@@ -96,6 +96,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"moveMode = {moveMode}\n"               +
+                            $"startMode = {startMode}\n"             +
                             $"lineWidth = {lineWidth}\n"             +
                             $"nTrail = {nTrail}\n"                   +
                             $"renderDelay = {renderDelay}\n"         +
@@ -120,13 +121,6 @@ namespace my
 
         protected override void generateNew()
         {
-            // For a circular motion
-            {
-                angle = myUtils.randFloat(rand);
-                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
-                rad = rand.Next(gl_x0);
-            }
-
             float spdFactor = 10;
 
             x = rand.Next(gl_Width);
@@ -134,10 +128,7 @@ namespace my
             dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
             dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
 
-            A = 0.25f + myUtils.randFloat(rand) * 0.25f;
-            da = A / (nTrail + 1);
-            colorPicker.getColorRand(ref R, ref G, ref B);
-
+            // Initial position of all the trail points
             switch (startMode)
             {
                 case 0:
@@ -157,7 +148,41 @@ namespace my
                     break;
             }
 
-            y = 0;
+            // Circular motion setup
+            {
+                switch (moveMode)
+                {
+                    // Circle
+                    case 3:
+                        radx = rady = rand.Next(gl_x0) + 3;
+                        break;
+
+                    // Horizontal Ellipse
+                    case 4:
+                        radx = rand.Next(gl_x0) + 3;
+                        rady = radx * myUtils.randFloat(rand);
+                        break;
+
+                    // Random Ellipse
+                    case 5:
+                        radx = rand.Next(gl_x0) + 3;
+                        rady = rand.Next(gl_x0) + 3;
+                        break;
+                }
+
+                //x = gl_x0 + radx * (float)System.Math.Sin(angle);
+                //y = gl_y0 + rady * (float)System.Math.Cos(angle);
+
+                x = gl_x0;
+                y = gl_y0;
+
+                angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
+                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
+            }
+
+            A = 0.25f + myUtils.randFloat(rand) * 0.25f;
+            da = A / (nTrail + 1);
+            colorPicker.getColorRand(ref R, ref G, ref B);
 
             if (trail == null)
             {
@@ -203,19 +228,6 @@ namespace my
             y += dy;
 
             a = A;
-
-            // Circular motion
-            {
-                x = gl_x0 + rad * (float)System.Math.Sin(angle);
-                y = gl_y0 + rad * (float)System.Math.Cos(angle);
-
-                angle += dAngle;
-
-                if (myUtils.randomChance(rand, 1, 13))
-                {
-                    rad += myUtils.randFloat(rand) * myUtils.randomSign(rand);
-                }
-            }
 
             switch (moveMode)
             {
@@ -268,6 +280,21 @@ namespace my
 
                         if (y > gl_Height - offset)
                             dy -= val;
+                    }
+                    break;
+
+                // Circular motion
+                case 3:
+                    {
+                        x = gl_x0 + radx * (float)System.Math.Sin(angle);
+                        y = gl_y0 + rady * (float)System.Math.Cos(angle);
+
+                        angle += dAngle;
+
+                        if (myUtils.randomChance(rand, 1, 13))
+                        {
+                            //rad += myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                        }
                     }
                     break;
             }
