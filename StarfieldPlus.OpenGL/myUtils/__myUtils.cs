@@ -54,6 +54,13 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        public static float randFloatSigned(Random r, float min = 0.0f)
+        {
+            return (float)(r.NextDouble() + min) * (r.Next(2) == 0 ? 1 : -1);
+        }
+
+        // -------------------------------------------------------------------------
+
         // Randomly return -1, 0 or +1
         public static int random101(Random r)
         {

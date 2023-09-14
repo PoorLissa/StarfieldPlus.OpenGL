@@ -21,7 +21,7 @@ namespace my
 
         private static int N = 0, nTrail = 150;
         private static int moveMode = 0, lineWidth = 1, startMode = 0, offset = 0, randomizeTrail1Mode = 0, randomizeTrail2Mode = 0, trailModifyMode = 0;
-        private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true;
+        private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true, doVaryRadius = true;
         private static float randomizeTrail1Factor = 0, randomizeTrail2Factor = 0;
 
         private static myFreeShader shader = null;
@@ -62,6 +62,8 @@ namespace my
 
             trailModifyMode = rand.Next(4);
 
+            doVaryRadius = myUtils.randomChance(rand, 1, 3);
+
             doRandomizeTrail1 = myUtils.randomBool(rand);
             doRandomizeTrail2 = myUtils.randomBool(rand);
 
@@ -92,17 +94,37 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             //string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_011a\n\n"                     +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"moveMode = {moveMode}\n"               +
-                            $"startMode = {startMode}\n"             +
-                            $"lineWidth = {lineWidth}\n"             +
-                            $"nTrail = {nTrail}\n"                   +
-                            $"renderDelay = {renderDelay}\n"         +
-                            $"file: {colorPicker.GetFileName()}"
-                ;
-            return str;
+            if (moveMode < 3)
+            {
+                string str = $"Obj = myObj_011a\n\n"                       +
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
+                                $"doClearBuffer = {doClearBuffer}\n"       +
+                                $"moveMode = {moveMode}\n"                 +
+                                $"startMode = {startMode}\n"               +
+                                $"lineWidth = {lineWidth}\n"               +
+                                $"nTrail = {nTrail}\n"                     +
+                                $"offset = {offset}\n"                     +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
+                                $"renderDelay = {renderDelay}\n"           +
+                                $"file: {colorPicker.GetFileName()}"
+                    ;
+                return str;
+            }
+            else
+            {
+                string str = $"Obj = myObj_011a\n\n"                     +
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                                $"doClearBuffer = {doClearBuffer}\n"     +
+                                $"moveMode = {moveMode}\n"               +
+                                $"startMode = {startMode}\n"             +
+                                $"lineWidth = {lineWidth}\n"             +
+                                $"nTrail = {nTrail}\n"                   +
+                                $"doVaryRadius = {doVaryRadius}\n"       +
+                                $"renderDelay = {renderDelay}\n"         +
+                                $"file: {colorPicker.GetFileName()}"
+                    ;
+                return str;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -110,11 +132,12 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            initLocal();
+            System.Threading.Thread.Sleep(17);
 
+            initLocal();
             myPrimitive._LineInst.setLineWidth(lineWidth);
 
-            System.Threading.Thread.Sleep(33);
+            System.Threading.Thread.Sleep(17);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -184,6 +207,7 @@ namespace my
             da = A / (nTrail + 1);
             colorPicker.getColorRand(ref R, ref G, ref B);
 
+            // Initialize Trail
             if (trail == null)
             {
                 trail = new myParticleTrail(nTrail, x, y);
@@ -224,15 +248,15 @@ namespace my
                 }
             }
 
-            x += dx;
-            y += dy;
-
             a = A;
 
             switch (moveMode)
             {
                 case 0:
                     {
+                        x += dx;
+                        y += dy;
+
                         if (x < 0 && dx < 0)
                             dx *= -1;
 
@@ -249,6 +273,9 @@ namespace my
 
                 case 1:
                     {
+                        x += dx;
+                        y += dy;
+
                         float val = 0.13f;
 
                         if (x < offset)
@@ -267,6 +294,9 @@ namespace my
 
                 case 2:
                     {
+                        x += dx;
+                        y += dy;
+
                         float val = myUtils.randFloat(rand) * 0.15f;
 
                         if (x < offset)
@@ -285,15 +315,18 @@ namespace my
 
                 // Circular motion
                 case 3:
+                case 4:
+                case 5:
                     {
                         x = gl_x0 + radx * (float)System.Math.Sin(angle);
                         y = gl_y0 + rady * (float)System.Math.Cos(angle);
 
                         angle += dAngle;
 
-                        if (myUtils.randomChance(rand, 1, 13))
+                        if (doVaryRadius && myUtils.randomChance(rand, 1, 11))
                         {
-                            //rad += myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                            radx += myUtils.randFloatSigned(rand);
+                            rady += myUtils.randFloatSigned(rand);
                         }
                     }
                     break;
@@ -308,7 +341,7 @@ namespace my
 
                 if (myUtils.randomChance(rand, 1, 5))
                 {
-                    dy += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
+                    dy += myUtils.randFloatSigned(rand) * 0.5f;
                 }
             }
 
@@ -333,13 +366,15 @@ namespace my
                     case 0:
                     case 1:
                     case 2:
-                        drawTailSegment(x1, y1, x2, y2);
+                        //drawTailSegment(x1, y1, x2, y2);
                         break;
 
                     case 3:
-                        drawTailSegment(x1, y1 + i/2, x2, y2 - i/2);
+                        //drawTailSegment(x1, y1 + i/2, x2, y2 - i/2);
                         break;
                 }
+
+                drawTailSegment(x1, y1 + i, x2, y2 + i);
 
                 x1 = x2;
                 y1 = y2;
