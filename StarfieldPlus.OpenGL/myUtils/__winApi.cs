@@ -1,5 +1,7 @@
-﻿using System;
+﻿using GLFW;
+using System;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 /*
     A place to store all the imported Windows APIs
@@ -17,5 +19,8 @@ namespace my
 
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref uint pvParam, uint fWinIni);
     };
 };
