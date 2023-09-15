@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Particles with tails
+    - Particles with real trails
 */
 
 
@@ -13,7 +13,7 @@ namespace my
     public class myObj_011a : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
         private float x, y, dx, dy, a, da, angle, dAngle, radx, rady;
         private float A, R, G, B;
@@ -24,6 +24,7 @@ namespace my
         private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true, doVaryRadius = true;
         private static float randomizeTrail1Factor = 0, randomizeTrail2Factor = 0;
         private static float t = 0, dt = 0;
+        private static float borderRepulsionFactor = 0;
 
         private static myFreeShader shader = null;
         static myTexRectangle tex = null;
@@ -48,7 +49,7 @@ namespace my
             {
                 dt = 0.01f;
 
-                switch (rand.Next(2))
+                switch (rand.Next(4))
                 {
                     case 0:
                         {
@@ -116,6 +117,8 @@ namespace my
             doRandomizeSpeed = myUtils.randomChance(rand, 1, 5);
             trailModifyMode = rand.Next(13);
 
+            borderRepulsionFactor = 0.1f + myUtils.randFloat(rand) * 0.5f;
+
             return;
         }
 
@@ -126,16 +129,19 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             if (moveMode < 3)
             {
+                string brf = $"{fStr(borderRepulsionFactor)}";
+
                 string str = $"Obj = myObj_011a\n\n"                       +
                                 $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
                                 $"doClearBuffer = {doClearBuffer}\n"       +
                                 $"moveMode = {moveMode}\n"                 +
                                 $"startMode = {startMode}\n"               +
                                 $"lineWidth = {lineWidth}\n"               +
+                                $"borderRepulsionFactor = {brf}\n"         +
                                 $"nTrail = {nTrail}\n"                     +
                                 $"offset = {offset}\n"                     +
                                 $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
@@ -206,6 +212,7 @@ namespace my
             }
 
             // Circular motion setup
+            if (moveMode >= 3)
             {
                 switch (moveMode)
                 {
@@ -307,19 +314,17 @@ namespace my
                         x += dx;
                         y += dy;
 
-                        float val = 0.13f;
-
                         if (x < offset)
-                            dx += val;
+                            dx += borderRepulsionFactor;
 
                         if (y < offset)
-                            dy += val;
+                            dy += borderRepulsionFactor;
 
                         if (x > gl_Width - offset)
-                            dx -= val;
+                            dx -= borderRepulsionFactor;
 
                         if (y > gl_Height - offset)
-                            dy -= val;
+                            dy -= borderRepulsionFactor;
                     }
                     break;
 
