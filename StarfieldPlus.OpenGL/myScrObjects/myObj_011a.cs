@@ -15,16 +15,20 @@ namespace my
         // Priority
         public static int Priority => 999910;
 
-        private float x, y, dx, dy, a, da, angle, dAngle, radx, rady;
+        private float x, y, dx, dy, X, Y, a, da, angle, dAngle, radx, rady;
         private float A, R, G, B;
+        private int cnt;
         private myParticleTrail trail = null;
 
         private static int N = 0, nTrail = 0, x0 = gl_x0, y0 = gl_y0;
         private static int moveMode = 0, lineWidth = 1, startMode = 0, offset = 0, randomizeTrail1Mode = 0, randomizeTrail2Mode = 0, trailModifyMode = 0;
         private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true, doVaryRadius = true;
+        private static float spdFactor = 10.0f;
         private static float randomizeTrail1Factor = 0, randomizeTrail2Factor = 0;
         private static float t = 0, dt = 0;
         private static float borderRepulsionFactor = 0;
+
+        private static int int_01 = 0;
 
         private static myFreeShader shader = null;
         static myTexRectangle tex = null;
@@ -81,6 +85,9 @@ namespace my
                 }
             }
 
+N = 1;
+nTrail = 100;
+
             initLocal();
         }
 
@@ -102,7 +109,11 @@ namespace my
             randomizeTrail1Factor = rand.Next(23) + 1;
             randomizeTrail2Factor = rand.Next(15) + 1;
 
-            moveMode = rand.Next(6);
+            moveMode = rand.Next(9);
+
+// modes 9-10 are untested
+moveMode = 10;
+
             startMode = rand.Next(4);
 
             // line width
@@ -145,6 +156,7 @@ namespace my
                 string str = $"Obj = myObj_011a\n\n"                       +
                                 $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
                                 $"doClearBuffer = {doClearBuffer}\n"       +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
                                 $"moveMode = {moveMode}\n"                 +
                                 $"startMode = {startMode}\n"               +
                                 $"lineWidth = {lineWidth}\n"               +
@@ -153,21 +165,24 @@ namespace my
                                 $"offset = {offset}\n"                     +
                                 $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
                                 $"renderDelay = {renderDelay}\n"           +
+                                $"int_01 = {int_01}\n"                     +
                                 $"file: {colorPicker.GetFileName()}"
                     ;
                 return str;
             }
             else
             {
-                string str = $"Obj = myObj_011a\n\n"                     +
-                                $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                                $"doClearBuffer = {doClearBuffer}\n"     +
-                                $"moveMode = {moveMode}\n"               +
-                                $"startMode = {startMode}\n"             +
-                                $"lineWidth = {lineWidth}\n"             +
-                                $"nTrail = {nTrail}\n"                   +
-                                $"doVaryRadius = {doVaryRadius}\n"       +
-                                $"renderDelay = {renderDelay}\n"         +
+                string str = $"Obj = myObj_011a\n\n"                       +
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
+                                $"doClearBuffer = {doClearBuffer}\n"       +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
+                                $"moveMode = {moveMode}\n"                 +
+                                $"startMode = {startMode}\n"               +
+                                $"lineWidth = {lineWidth}\n"               +
+                                $"nTrail = {nTrail}\n"                     +
+                                $"doVaryRadius = {doVaryRadius}\n"         +
+                                $"renderDelay = {renderDelay}\n"           +
+                                $"int_01 = {int_01}\n"                     +
                                 $"file: {colorPicker.GetFileName()}"
                     ;
                 return str;
@@ -191,8 +206,6 @@ namespace my
 
         protected override void generateNew()
         {
-            float spdFactor = 10;
-
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
             dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
@@ -219,7 +232,7 @@ namespace my
             }
 
             // Circular motion setup
-            if (moveMode >= 3)
+            if (moveMode >= 3 && moveMode <= 6)
             {
                 switch (moveMode)
                 {
@@ -239,13 +252,64 @@ namespace my
                         radx = rand.Next(gl_x0) + 3;
                         rady = rand.Next(gl_x0) + 3;
                         break;
+
+                    // Circle-to-Ellipse-and-back
+                    case 6:
+                        radx = rady = rand.Next(gl_x0) + 3;
+                        break;
+
                 }
 
                 angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
                 dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
 
-                x = gl_x0 + radx * (float)System.Math.Sin(angle);
-                y = gl_y0 + rady * (float)System.Math.Cos(angle);
+                MoveParticle();
+            }
+
+            if (moveMode == 7 || moveMode == 8)
+            {
+                int_01 = 10 + rand.Next(90);
+
+                cnt = 3 + rand.Next(10);
+
+                switch (rand.Next(2))
+                {
+                    case 0: dx = 0; break;
+                    case 1: dy = 0; break;
+                }
+            }
+
+            if (moveMode == 9)
+            {
+                cnt = 3 + rand.Next(100);
+
+                radx = rady = rand.Next(gl_x0/2) + 100;
+                X = rand.Next(gl_Width);
+                Y = rand.Next(gl_Height);
+
+                angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
+                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
+
+                MoveParticle();
+            }
+
+            if (moveMode == 10)
+            {
+                radx = rady = 500;
+
+                x = gl_x0;
+                y = gl_y0;
+
+                X = rand.Next(gl_Width);
+                Y = rand.Next(gl_Height);
+
+                dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * 100;
+                dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * 100;
+
+                angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
+                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
+
+                MoveParticle();
             }
 
             A = 0.25f + myUtils.randFloat(rand) * 0.25f;
@@ -295,6 +359,15 @@ namespace my
 
             a = A;
 
+            MoveParticle();
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void MoveParticle()
+        {
             switch (moveMode)
             {
                 case 0:
@@ -364,8 +437,21 @@ namespace my
                         x = gl_x0 + radx * (float)System.Math.Sin(angle);
                         y = gl_y0 + rady * (float)System.Math.Cos(angle);
 
-                        //x += (float)System.Math.Sin(t) * 333;
-                        //y += (float)System.Math.Cos(t) * 333;
+                        angle += dAngle;
+
+                        if (doVaryRadius && myUtils.randomChance(rand, 1, 11))
+                        {
+                            radx += myUtils.randFloatSigned(rand);
+                            rady += myUtils.randFloatSigned(rand);
+                        }
+                    }
+                    break;
+
+                // Circular motion with varying y-radius
+                case 6:
+                    {
+                        x = gl_x0 + radx * (float)System.Math.Sin(angle);
+                        y = gl_y0 + rady * (float)System.Math.Cos(angle) * (float)System.Math.Sin(t * 0.05);
 
                         angle += dAngle;
 
@@ -374,6 +460,59 @@ namespace my
                             radx += myUtils.randFloatSigned(rand);
                             rady += myUtils.randFloatSigned(rand);
                         }
+                    }
+                    break;
+
+                case 7:
+                case 8:
+                    {
+                        if (--cnt == 0)
+                        {
+                            switch (moveMode)
+                            {
+                                case 7: mode7GenerateNew(); break;
+                                case 8: mode8GenerateNew(); break;
+                            }
+                        }
+                        else
+                        {
+                            x += dx;
+                            y += dy;
+                        }
+                    }
+                    break;
+
+                case 9:
+                    {
+                        if (--cnt == 0)
+                        {
+                            cnt = 3 + rand.Next(100);
+
+                            radx = rady = rand.Next(gl_x0/2) + 100;
+                            X = rand.Next(gl_Width);
+                            Y = rand.Next(gl_Height);
+                        }
+                        else
+                        {
+                            x = X + radx * (float)System.Math.Sin(angle);
+                            y = Y + rady * (float)System.Math.Cos(angle);
+
+                            angle += dAngle;
+                        }
+                    }
+                    break;
+
+                case 10:
+                    {
+                        doRandomizeSpeed = false;
+
+                        x += dx;
+                        y += dy;
+
+                        dx *= (float)System.Math.Sin(angle);
+                        dy *= (float)System.Math.Cos(angle);
+
+                        angle += dAngle;
                     }
                     break;
             }
@@ -577,6 +716,70 @@ namespace my
 
             my.myShaderHelpers.Shapes.getShader_000(ref rand, ref header, ref main);
             shader = new myFreeShader(header, main);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void mode7GenerateNew()
+        {
+            float val = myUtils.randFloat(rand, 0.1f) * spdFactor;
+            cnt = 13 + rand.Next(int_01);
+
+            switch (rand.Next(2))
+            {
+                case 0:
+                    dx = 0;
+                    dy = val;
+
+                    if (y > gl_Height)
+                        dy *= -1;
+                    else if (y > 0)
+                        dy *= myUtils.randomSign(rand);
+                    break;
+
+                case 1:
+                    dx = val;
+                    dy = 0;
+
+                    if (x > gl_Width)
+                        dx *= -1;
+                    else if (x > 0)
+                        dx *= myUtils.randomSign(rand);
+                    break;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void mode8GenerateNew()
+        {
+            float val = myUtils.randFloat(rand, 0.1f) * spdFactor;
+            cnt = 13 + rand.Next(int_01);
+
+            if (dx == 0)
+            {
+                dx = val;
+                dy = 0;
+
+                if (x > gl_Width)
+                    dx *= -1;
+                else if (x > 0)
+                    dx *= myUtils.randomSign(rand);
+            }
+            else
+            {
+                dx = 0;
+                dy = val;
+
+                if (y > gl_Height)
+                    dy *= -1;
+                else if (y > 0)
+                    dy *= myUtils.randomSign(rand);
+            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
