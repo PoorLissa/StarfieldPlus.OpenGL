@@ -19,7 +19,7 @@ namespace my
         private float A, R, G, B;
         private myParticleTrail trail = null;
 
-        private static int N = 0, nTrail = 0;
+        private static int N = 0, nTrail = 0, x0 = gl_x0, y0 = gl_y0;
         private static int moveMode = 0, lineWidth = 1, startMode = 0, offset = 0, randomizeTrail1Mode = 0, randomizeTrail2Mode = 0, trailModifyMode = 0;
         private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true, doVaryRadius = true;
         private static float randomizeTrail1Factor = 0, randomizeTrail2Factor = 0;
@@ -119,6 +119,13 @@ namespace my
 
             borderRepulsionFactor = 0.1f + myUtils.randFloat(rand) * 0.5f;
 
+            // Set central point for the linear move modes
+            if (myUtils.randomChance(rand, 2, 3))
+            {
+                x0 = rand.Next(gl_Width);
+                y0 = rand.Next(gl_Height);
+            }
+
             return;
         }
 
@@ -198,16 +205,16 @@ namespace my
                     break;
 
                 case 1:
-                    x = gl_x0;
+                    x = x0;
                     break;
 
                 case 2:
-                    y = gl_y0;
+                    y = y0;
                     break;
 
                 case 3:
-                    x = gl_x0;
-                    y = gl_y0;
+                    x = x0;
+                    y = y0;
                     break;
             }
 
