@@ -366,15 +366,13 @@ namespace my
                     case 0:
                     case 1:
                     case 2:
-                        //drawTailSegment(x1, y1, x2, y2);
+                        drawTailSegment(x1, y1, x2, y2);
                         break;
 
                     case 3:
-                        //drawTailSegment(x1, y1 + i/2, x2, y2 - i/2);
+                        drawTailSegment(x1, y1 + i/2, x2, y2 - i/2);
                         break;
                 }
-
-                drawTailSegment(x1, y1 + i, x2, y2 + i);
 
                 x1 = x2;
                 y1 = y2;
