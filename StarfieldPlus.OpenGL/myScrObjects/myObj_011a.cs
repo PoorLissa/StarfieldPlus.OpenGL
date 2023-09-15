@@ -13,16 +13,17 @@ namespace my
     public class myObj_011a : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 
         private float x, y, dx, dy, a, da, angle, dAngle, radx, rady;
         private float A, R, G, B;
         private myParticleTrail trail = null;
 
-        private static int N = 0, nTrail = 150;
+        private static int N = 0, nTrail = 0;
         private static int moveMode = 0, lineWidth = 1, startMode = 0, offset = 0, randomizeTrail1Mode = 0, randomizeTrail2Mode = 0, trailModifyMode = 0;
         private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true, doVaryRadius = true;
         private static float randomizeTrail1Factor = 0, randomizeTrail2Factor = 0;
+        private static float t = 0, dt = 0;
 
         private static myFreeShader shader = null;
         static myTexRectangle tex = null;
@@ -45,9 +46,38 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 3 + rand.Next(111);
+                dt = 0.01f;
 
-                nTrail = 100 + rand.Next(333);
+                switch (rand.Next(2))
+                {
+                    case 0:
+                        {
+                            N = 3 + rand.Next(33);
+                            nTrail = 100 + rand.Next(500);
+                        }
+                        break;
+
+                    case 1:
+                        {
+                            N = 3 + rand.Next(111);
+                            nTrail = 100 + rand.Next(333);
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            N = 111 + rand.Next(666);
+                            nTrail = 50 + rand.Next(111);
+                        }
+                        break;
+
+                    case 3:
+                        {
+                            N = 111 + rand.Next(777);
+                            nTrail = 25 + rand.Next(50);
+                        }
+                        break;
+                }
             }
 
             initLocal();
@@ -59,8 +89,6 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
-
-            trailModifyMode = rand.Next(4);
 
             doVaryRadius = myUtils.randomChance(rand, 1, 3);
 
@@ -76,11 +104,17 @@ namespace my
             moveMode = rand.Next(6);
             startMode = rand.Next(4);
 
-            lineWidth = rand.Next(7) + 1;
+            // line width
+            switch (rand.Next(3))
+            {
+                case 0: lineWidth = rand.Next(3) + 1; break;
+                case 1: lineWidth = rand.Next(5) + 1; break;
+                case 2: lineWidth = rand.Next(7) + 1; break;
+            }
 
             offset = rand.Next(666);
-
             doRandomizeSpeed = myUtils.randomChance(rand, 1, 5);
+            trailModifyMode = rand.Next(13);
 
             return;
         }
@@ -193,14 +227,11 @@ namespace my
                         break;
                 }
 
-                //x = gl_x0 + radx * (float)System.Math.Sin(angle);
-                //y = gl_y0 + rady * (float)System.Math.Cos(angle);
-
-                x = gl_x0;
-                y = gl_y0;
-
                 angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
                 dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
+
+                x = gl_x0 + radx * (float)System.Math.Sin(angle);
+                y = gl_y0 + rady * (float)System.Math.Cos(angle);
             }
 
             A = 0.25f + myUtils.randFloat(rand) * 0.25f;
@@ -321,6 +352,9 @@ namespace my
                         x = gl_x0 + radx * (float)System.Math.Sin(angle);
                         y = gl_y0 + rady * (float)System.Math.Cos(angle);
 
+                        //x += (float)System.Math.Sin(t) * 333;
+                        //y += (float)System.Math.Cos(t) * 333;
+
                         angle += dAngle;
 
                         if (doVaryRadius && myUtils.randomChance(rand, 1, 11))
@@ -352,42 +386,52 @@ namespace my
 
         protected override void Show()
         {
-            float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-            int i = 0;
-
-            trail.getXY(i++, ref x1, ref y1);
-
-            for (; i < nTrail; i++)
+            // Draw the trail
             {
-                trail.getXY(i, ref x2, ref y2);
+                float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+                int i = 0;
 
-                switch (trailModifyMode)
+                // Get the first pair of coordinates
+                trail.getXY(i++, ref x1, ref y1);
+
+                for (; i < nTrail; i++)
                 {
-                    case 0:
-                    case 1:
-                    case 2:
-                        drawTailSegment(x1, y1, x2, y2);
-                        break;
+                    // Get the second pair of coordinates
+                    trail.getXY(i, ref x2, ref y2);
 
-                    case 3:
-                        drawTailSegment(x1, y1 + i/2, x2, y2 - i/2);
-                        break;
+                    switch (trailModifyMode)
+                    {
+                        case 0:
+                            drawTailSegment(x1, y1 + i/2, x2, y2 - i/2);
+                            break;
+
+                        default:
+                            drawTailSegment(x1, y1, x2, y2);
+                            break;
+                    }
+
+                    // Shift the first pair 1 position towards the end
+                    x1 = x2;
+                    y1 = y2;
+
+                    a -= da;
                 }
-
-                x1 = x2;
-                y1 = y2;
-
-                a -= da;
             }
 
-            shader.SetColor(R, G, B, A*1.5f);
-            shader.Draw(x, y, 8, 8, 10);
+            // Draw the particle
+            {
+                shader.SetColor(R, G, B, A * 1.5f);
+                shader.Draw(x, y, 8, 8, 10);
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         private void drawTailSegment(float x1, float y1, float x2, float y2)
         {
+            if (x1 == x2 && y1 == y2)
+                return;
+
             if (doRandomizeTrail2)
             {
                 float r1 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail2Factor;
@@ -486,6 +530,7 @@ namespace my
                 }
 
                 cnt++;
+                t += dt;
             }
 
             return;
