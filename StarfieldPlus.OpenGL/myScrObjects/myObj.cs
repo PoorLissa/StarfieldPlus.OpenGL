@@ -3,6 +3,7 @@ using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using StarfieldPlus.OpenGL;
 
 
 #pragma warning disable CS0162                      // Unreachable code warnings
@@ -192,14 +193,11 @@ namespace my
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
 
                 // Make the process foreground, as the TaskScheduler might run it in a background
-                //if (false)
+                if (Program.gl_Param == 1)
                 {
-                    System.Diagnostics.Process currentProcess = System.Diagnostics.Process.GetCurrentProcess();
-                    IntPtr hWnd = currentProcess.MainWindowHandle;
-
-                    if (hWnd != IntPtr.Zero)
+                    if (openGL_Window != IntPtr.Zero)
                     {
-                        my.myWinAPI.SetForegroundWindow(hWnd);
+                        my.myWinAPI.SetWindowPos(openGL_Window, 0, 0, 0, 0, 0, 0);
                     }
                 }
 

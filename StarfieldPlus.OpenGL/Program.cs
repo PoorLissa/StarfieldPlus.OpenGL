@@ -12,6 +12,8 @@ namespace StarfieldPlus.OpenGL
         // Used to prevent the screensaver from starting another instance
         private static System.Threading.Mutex singletonMutex = null;
 
+        public static byte gl_Param = 0;
+
         // -------------------------------------------------------------------------------------------------------------------
 
         static void Main(string[] args)
@@ -82,7 +84,13 @@ namespace StarfieldPlus.OpenGL
                             break;
 
                         // Full-screen mode
+                        // '/t' means, we're in Windows 10, and the screensaver is started from TaskScheduler
                         case "/s":
+                            mainProc();
+                            break;
+
+                        case "/t":
+                            gl_Param = 1;
                             mainProc();
                             break;
 
