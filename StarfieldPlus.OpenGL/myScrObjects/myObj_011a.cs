@@ -85,9 +85,6 @@ namespace my
                 }
             }
 
-N = 1;
-nTrail = 100;
-
             initLocal();
         }
 
@@ -109,10 +106,8 @@ nTrail = 100;
             randomizeTrail1Factor = rand.Next(23) + 1;
             randomizeTrail2Factor = rand.Next(15) + 1;
 
-            moveMode = rand.Next(9);
-
-// modes 9-10 are untested
-moveMode = 10;
+            moveMode = rand.Next(10);
+moveMode = 9;
 
             startMode = rand.Next(4);
 
@@ -281,20 +276,8 @@ moveMode = 10;
 
             if (moveMode == 9)
             {
-                cnt = 3 + rand.Next(100);
+                cnt = 33;
 
-                radx = rady = rand.Next(gl_x0/2) + 100;
-                X = rand.Next(gl_Width);
-                Y = rand.Next(gl_Height);
-
-                angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
-                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
-
-                MoveParticle();
-            }
-
-            if (moveMode == 10)
-            {
                 radx = rady = 500;
 
                 x = gl_x0;
@@ -303,8 +286,8 @@ moveMode = 10;
                 X = rand.Next(gl_Width);
                 Y = rand.Next(gl_Height);
 
-                dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * 100;
-                dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * 100;
+                dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * 10;
+                dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * 10;
 
                 angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
                 dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
@@ -486,33 +469,31 @@ moveMode = 10;
                     {
                         if (--cnt == 0)
                         {
-                            cnt = 3 + rand.Next(100);
+                            cnt = 33 + rand.Next(100);
 
-                            radx = rady = rand.Next(gl_x0/2) + 100;
-                            X = rand.Next(gl_Width);
-                            Y = rand.Next(gl_Height);
+                            float signx = myUtils.signOf(dx);
+                            float signy = myUtils.signOf(dx);
+
+                            if (false)
+                            {
+                                dx = myUtils.randFloatSigned(rand, 0.1f) * (3 + rand.Next(11));
+                                dy = myUtils.randFloatSigned(rand, 0.1f) * (3 + rand.Next(11));
+                            }
+                            else
+                            {
+                                dx = myUtils.randFloat(rand, 0.1f) * (3 + rand.Next(11)) * signx;
+                                dy = myUtils.randFloat(rand, 0.1f) * (3 + rand.Next(11)) * signy;
+                            }
                         }
                         else
                         {
-                            x = X + radx * (float)System.Math.Sin(angle);
-                            y = Y + rady * (float)System.Math.Cos(angle);
+                            doRandomizeSpeed = false;
+
+                            x += dx * (float)System.Math.Sin(angle);
+                            y += dy * (float)System.Math.Cos(angle);
 
                             angle += dAngle;
                         }
-                    }
-                    break;
-
-                case 10:
-                    {
-                        doRandomizeSpeed = false;
-
-                        x += dx;
-                        y += dy;
-
-                        dx *= (float)System.Math.Sin(angle);
-                        dy *= (float)System.Math.Cos(angle);
-
-                        angle += dAngle;
                     }
                     break;
             }
