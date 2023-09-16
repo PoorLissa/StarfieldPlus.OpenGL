@@ -192,6 +192,7 @@ namespace my
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
 
                 // Make the process foreground, as the TaskScheduler might run it in a background
+                //if (false)
                 {
                     System.Diagnostics.Process currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     IntPtr hWnd = currentProcess.MainWindowHandle;
@@ -343,6 +344,7 @@ namespace my
 
             // Display the modal form
             {
+                form.Focus();
                 form.ShowDialog();
             }
 

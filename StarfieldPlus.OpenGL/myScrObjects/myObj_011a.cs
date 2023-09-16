@@ -1,6 +1,7 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System.Collections.Generic;
+using System;
 
 
 /*
@@ -107,8 +108,6 @@ namespace my
             randomizeTrail2Factor = rand.Next(15) + 1;
 
             moveMode = rand.Next(10);
-moveMode = 9;
-
             startMode = rand.Next(4);
 
             // line width
@@ -132,6 +131,19 @@ moveMode = 9;
                 y0 = rand.Next(gl_Height);
             }
 
+            switch (moveMode)
+            {
+                case 7:
+                case 8:
+                    int_01 = 10 + rand.Next(90);
+                    break;
+
+                case 9:
+                    doRandomizeSpeed = false;
+                    int_01 = rand.Next(6);
+                    break;
+            }
+
             return;
         }
 
@@ -141,43 +153,43 @@ moveMode = 9;
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
+            string nStr(int n) { return n.ToString("N0"); }
             string fStr(float f) { return f.ToString("0.000"); }
 
             if (moveMode < 3)
             {
                 string brf = $"{fStr(borderRepulsionFactor)}";
 
-                string str = $"Obj = myObj_011a\n\n"                       +
-                                $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
-                                $"doClearBuffer = {doClearBuffer}\n"       +
+                string str = $"Obj = myObj_011a\n\n" +
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                                $"doClearBuffer = {doClearBuffer}\n" +
                                 $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
-                                $"moveMode = {moveMode}\n"                 +
-                                $"startMode = {startMode}\n"               +
-                                $"lineWidth = {lineWidth}\n"               +
-                                $"borderRepulsionFactor = {brf}\n"         +
-                                $"nTrail = {nTrail}\n"                     +
-                                $"offset = {offset}\n"                     +
+                                $"moveMode = {moveMode}\n" +
+                                $"startMode = {startMode}\n" +
+                                $"lineWidth = {lineWidth}\n" +
+                                $"borderRepulsionFactor = {brf}\n" +
+                                $"nTrail = {nTrail}\n" +
+                                $"offset = {offset}\n" +
                                 $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
-                                $"renderDelay = {renderDelay}\n"           +
-                                $"int_01 = {int_01}\n"                     +
+                                $"renderDelay = {renderDelay}\n" +
+                                $"int_01 = {int_01}\n" +
                                 $"file: {colorPicker.GetFileName()}"
                     ;
                 return str;
             }
             else
             {
-                string str = $"Obj = myObj_011a\n\n"                       +
-                                $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
-                                $"doClearBuffer = {doClearBuffer}\n"       +
+                string str = $"Obj = myObj_011a\n\n" +
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                                $"doClearBuffer = {doClearBuffer}\n" +
                                 $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
-                                $"moveMode = {moveMode}\n"                 +
-                                $"startMode = {startMode}\n"               +
-                                $"lineWidth = {lineWidth}\n"               +
-                                $"nTrail = {nTrail}\n"                     +
-                                $"doVaryRadius = {doVaryRadius}\n"         +
-                                $"renderDelay = {renderDelay}\n"           +
-                                $"int_01 = {int_01}\n"                     +
+                                $"moveMode = {moveMode}\n" +
+                                $"startMode = {startMode}\n" +
+                                $"lineWidth = {lineWidth}\n" +
+                                $"nTrail = {nTrail}\n" +
+                                $"doVaryRadius = {doVaryRadius}\n" +
+                                $"renderDelay = {renderDelay}\n" +
+                                $"int_01 = {int_01}\n" +
                                 $"file: {colorPicker.GetFileName()}"
                     ;
                 return str;
@@ -263,8 +275,6 @@ moveMode = 9;
 
             if (moveMode == 7 || moveMode == 8)
             {
-                int_01 = 10 + rand.Next(90);
-
                 cnt = 3 + rand.Next(10);
 
                 switch (rand.Next(2))
@@ -469,26 +479,10 @@ moveMode = 9;
                     {
                         if (--cnt == 0)
                         {
-                            cnt = 33 + rand.Next(100);
-
-                            float signx = myUtils.signOf(dx);
-                            float signy = myUtils.signOf(dx);
-
-                            if (false)
-                            {
-                                dx = myUtils.randFloatSigned(rand, 0.1f) * (3 + rand.Next(11));
-                                dy = myUtils.randFloatSigned(rand, 0.1f) * (3 + rand.Next(11));
-                            }
-                            else
-                            {
-                                dx = myUtils.randFloat(rand, 0.1f) * (3 + rand.Next(11)) * signx;
-                                dy = myUtils.randFloat(rand, 0.1f) * (3 + rand.Next(11)) * signy;
-                            }
+                            mode9GenerateNew();
                         }
                         else
                         {
-                            doRandomizeSpeed = false;
-
                             x += dx * (float)System.Math.Sin(angle);
                             y += dy * (float)System.Math.Cos(angle);
 
@@ -534,7 +528,7 @@ moveMode = 9;
                     switch (trailModifyMode)
                     {
                         case 0:
-                            drawTailSegment(x1, y1 + i/2, x2, y2 - i/2);
+                            drawTailSegment(x1, y1 + i / 2, x2, y2 - i / 2);
                             break;
 
                         default:
@@ -758,6 +752,64 @@ moveMode = 9;
                     dy *= -1;
                 else if (y > 0)
                     dy *= myUtils.randomSign(rand);
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void mode9GenerateNew()
+        {
+            cnt = 33 + rand.Next(100);
+
+            if (x > gl_Width + 666 || x < -666 || y > gl_Height + 666 || y < -666)
+            {
+                generateNew();
+                trail.reset(x, y);
+                return;
+            }
+
+            float signx = myUtils.signOf(dx);
+            float signy = myUtils.signOf(dy);
+
+            float val1 = myUtils.randFloat(rand, 0.1f);
+            float val2 = myUtils.randFloat(rand, 0.1f);
+
+            int factor1 = (3 + rand.Next(11));
+            int factor2 = (3 + rand.Next(11));
+
+            switch (int_01)
+            {
+                case 0:
+                    dx = val1 * factor1 * myUtils.randomSign(rand);
+                    dy = val2 * factor2 * myUtils.randomSign(rand);
+                    break;
+
+                case 1:
+                    dx = val1 * factor1 * signx;
+                    dy = val2 * factor2 * signy;
+                    break;
+
+                case 2:
+                    dx = val1 * factor1;
+                    dy = val1 * factor1;
+                    break;
+
+                case 3:
+                    dx = val1 * factor1 * myUtils.randomSign(rand);
+                    dy = val1 * factor1 * myUtils.randomSign(rand);
+                    break;
+
+                case 4:
+                    dx = val1 * factor1 * signx;
+                    dy = val1 * factor1 * signy;
+                    break;
+
+                case 5:
+                    dx = Math.Abs(dx) * myUtils.randomSign(rand);
+                    dy = Math.Abs(dy) * myUtils.randomSign(rand);
+                    break;
             }
 
             return;
