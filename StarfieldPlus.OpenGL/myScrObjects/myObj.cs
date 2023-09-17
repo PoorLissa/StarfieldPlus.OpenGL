@@ -192,7 +192,7 @@ namespace my
                 // Hide cursor
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
 
-                // Make the process foreground, as the TaskScheduler might run it in a background
+                // Make the process window topmost, as the TaskScheduler might run it in a background
                 if (Program.gl_Param == 1)
                 {
                     if (openGL_Window != IntPtr.Zero)
