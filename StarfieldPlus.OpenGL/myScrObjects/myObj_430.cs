@@ -21,7 +21,7 @@ namespace my
         private int bulletSpeed, closestTarget, trailLengthFactor;
         private bool alive;
         private float x, y, X, Y, dx, dy;
-        private float size, A, R, G, B, angle, dAngle, a, r, g, b;
+        private float size, A, R, G, B, angle, dAngle, r, g, b;
         private float randomSpeedFactor;
 
         private static int N = 0, n = 0, shape = 0, trailMode = 0, specialMode = 0;

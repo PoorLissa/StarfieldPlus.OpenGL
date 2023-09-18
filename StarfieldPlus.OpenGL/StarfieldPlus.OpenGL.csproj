@@ -249,7 +249,6 @@
     <EmbeddedResource Include="OpenGL\GLFW\Strings.resx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(TargetDir)\$(TargetName).exe" DestinationFiles="$(ProjectDir)\bin\$(Configuration)\$(TargetName).scr" SkipUnchangedFiles="true" />
   </Target>

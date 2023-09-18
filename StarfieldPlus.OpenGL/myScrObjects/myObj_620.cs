@@ -5,7 +5,12 @@ using System.Collections.Generic;
 
 
 /*
-    - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
+    - rectangles with width/height that are changing constantly;
+      while width is increasing, height is decreasing, and vice versa
+
+    z-ordering:
+    https://www.reddit.com/r/opengl/comments/6ctlrj/how_to_get_2d_z_ordering_working/
+    https://stackoverflow.com/questions/58386635/global-translucency-sorting-with-instanced-rendering
 */
 
 
@@ -19,9 +24,11 @@ namespace my
         private float x, y, width, height, dx, dy, dWidth, dHeight;
         private float A, R, G, B;
 
-        private static int N = 0, mode = 0, max = 666;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, mode = 0, max = 666, addSpeed = 0;
+        private static bool doFillShapes = false, doShowAngles = true;
+        private static float dimAlpha = 0.05f, spdFactor = 1.0f;
+
+        private static myFreeShader shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -41,8 +48,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-                N = 100;
+                N = rand.Next(100) + 33;
             }
 
             initLocal();
@@ -55,10 +61,14 @@ namespace my
         {
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes  = myUtils.randomChance(rand, 1, 3);
+            doShowAngles  = myUtils.randomChance(rand, 2, 3);
 
+            mode = rand.Next(2);
+
+            addSpeed = 50 + rand.Next(100);                     // Rato of adding new objects into List
             renderDelay = rand.Next(11) + 3;
 
-            mode = 0;
+            spdFactor = 1.0f + 0.1f * rand.Next(31);            // 1 + [0.0 .. 3.0]
 
             return;
         }
@@ -70,10 +80,15 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = myObj_620\n\n"                       +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"  +
+                            $"doClearBuffer = {doClearBuffer}\n"      +
+                            $"doFillShapes = {doFillShapes}\n"        +
+                            $"doShowAngles = {doShowAngles}\n"        +
+                            $"mode = {mode}\n"                        +
+                            $"spdFactor = {fStr(spdFactor)}\n"        +
                             $"renderDelay = {renderDelay}\n"          +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -105,14 +120,14 @@ namespace my
             {
                 // dWidth/dHeight are the same
                 case 0:
-                    dWidth  = myUtils.randFloat(rand, 0.1f);
+                    dWidth  = myUtils.randFloat(rand, 0.1f) * spdFactor;
                     dHeight = dWidth;
                     break;
 
                 // dWidth/dHeight are different
                 case 1:
-                    dWidth  = myUtils.randFloat(rand, 0.1f);
-                    dHeight = myUtils.randFloat(rand, 0.1f);
+                    dWidth  = myUtils.randFloat(rand, 0.1f) * spdFactor;
+                    dHeight = myUtils.randFloat(rand, 0.1f) * spdFactor;
                     break;
             }
 
@@ -127,7 +142,7 @@ namespace my
                     break;
             }
 
-            A = 1;
+            A = myUtils.randFloat(rand, 0.1f);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -166,6 +181,17 @@ namespace my
             rectInst.setInstanceCoords(x - width, y - height, 2 * width, 2 * height);
             rectInst.setInstanceColor(R, G, B, A);
             rectInst.setInstanceAngle(0);
+
+            if (doShowAngles)
+            {
+                float size = 14;
+
+                shader.SetColor(R, G, B, A);
+                shader.Draw(x - width, y - height, size, size, 10);
+                shader.Draw(x - width, y + height, size, size, 10);
+                shader.Draw(x + width, y - height, size, size, 10);
+                shader.Draw(x + width, y + height, size, size, 10);
+            }
 
             return;
         }
@@ -215,18 +241,17 @@ namespace my
 
                     if (doFillShapes)
                     {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
+                        inst.SetColorA(0.1f);
                         inst.Draw(true);
                     }
 
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
                     inst.SetColorA(0);
                     inst.Draw(false);
                 }
 
-                if (Count < N)
+                if (Count < N && cnt == addSpeed)
                 {
+                    cnt = 0;
                     list.Add(new myObj_620());
                 }
 
@@ -244,9 +269,28 @@ namespace my
             myPrimitive.init_ScrDimmer();
             base.initShapes(0, N, 0);
 
+            getShader();
+
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            shader = new myFreeShader($@"
+                        float circle(vec2 uv, float rad) {{ return smoothstep(rad, rad - 0.005, length(uv)); }}
+                    ",
+
+                    $@"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+                        uv -= Pos.xy;
+                        uv *= aspect;
+                        result = vec4(myColor * circle(uv, Pos.z));
+                    "
+            );
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     }
 };

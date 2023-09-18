@@ -183,6 +183,8 @@ namespace StarfieldPlus.OpenGL
         // Perform some additional actions, specific to different Windows versions
         private static void winSpecificAction()
         {
+#pragma warning disable
+
             switch (gl_WinVer)
             {
                 // For Windows 10:
@@ -190,17 +192,77 @@ namespace StarfieldPlus.OpenGL
                 // todo: This needs some more thought, because now the PC does not go to sleep at all!
                 case 10:
                     {
-                        uint ES_CONTINUOUS = 0x80000000;
-                        uint ES_DISPLAY_REQUIRED = 0x00000002;
-                        //uint ES_SYSTEM_REQUIRED = 0x00000001;
+                        uint ES_DISPLAY_REQUIRED = 0x00000002;  // ES_DISPLAY_REQUIRED. This flag indicates that the display is in use. When passed by itself, the display idle timer is reset to zero once. The timer restarts and the screensaver will be displayed when it next expires
+                        uint ES_SYSTEM_REQUIRED  = 0x00000001;  // ES_SYSTEM_REQUIRED.  This flag indicates that the system is active. When passed alone, the system idle timer is reset to zero once. The timer restarts and the machine will sleep when it expires
+                        uint ES_CONTINUOUS       = 0x80000000;  // ES_CONTINUOUS.       This flag is used to specify that the behaviour of the two previous flags is continuous. Rather than resetting the idle timers once, they are disabled until you specify otherwise. Using this flag means that you do not need to call SetThreadExecutionState repeatedly
 
                         my.myWinAPI.SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
                         //my.myWinAPI.SetThreadExecutionState((uint)(0x80000000L | 0x00000002L | 0x00000001L));
                     }
                     break;
             }
+
+#pragma warning restore
         }
 
         // -------------------------------------------------------------------------------------------------------------------
     }
 }
+
+
+#if false
+
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
+
+/*
+    https://stackoverflow.com/questions/20221955/c-sharp-is-there-any-reliable-event-that-exists-to-be-notified-when-the-screen
+*/
+
+namespace msg_sniffer_001
+{
+    public partial class Form1 : Form
+    {
+        private const int WM_SYSCOMMAND = 0x0112;
+        private const int SC_SCREENSAVE = 0xF140;
+
+        [DllImport("user32")]
+        public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
+
+        // ------------------------------------------------------------------------------------------
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Shown(object sender, EventArgs e)
+        {
+            //private const int WM_xxx = 0x0;
+            //you have to know for which event you wanna register
+            IntPtr hWnd = this.Handle;
+            PostMessage(hWnd, WM_SYSCOMMAND, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case WM_SYSCOMMAND:
+                    {
+                        if ((m.WParam.ToInt32() & 0xFFF0) == SC_SCREENSAVE)
+                        {
+                            richTextBox1.AppendText($"Screen saver started at {DateTime.Now}");
+                        }
+                    }
+                    break;
+            }
+
+            base.WndProc(ref m);
+        }
+    }
+}
+
+#endif
