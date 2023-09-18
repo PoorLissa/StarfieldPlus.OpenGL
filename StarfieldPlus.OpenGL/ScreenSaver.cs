@@ -78,7 +78,6 @@ public class ScreenSaver
     // todo:
     // - number of rotating lines. the length of each line is changing over time
     // - lots of triangles, where each vertice is moving like a bouncing ball
-    // - rectangles, where lenght/height are changing constantly; while lenght is increasing, height is decreasing
     // - create random rectangles, but put them on the screen only when they don't intersect any existing rectangles (maybe allow placing on the inside)
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
@@ -92,7 +91,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_000));   // Star Field
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_010));   // Randomly Roaming Squares (Snow Like)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011));   // Randomly Roaming Lines (based on Randomly Roaming Squares)
-        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011a));  // ...
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011a));  // Particles with real trails
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_012));   // Snow-like pattern made of different layers moving in different directions
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_020));   // Linearly Moving Shapes (Soap Bubbles Alike)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_021));   // Ever Growing Shapes located at the center of the screen + small offset
@@ -164,6 +163,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_590));   // Particle's move as an average of n other particles' move
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_600));   // Pendulum
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_610));   // ...
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_620));   // ...
 
         // smooth trail: https://kosmonautblog.wordpress.com/2016/07/29/geometry-trails-tire-tracks-tutorial/
 

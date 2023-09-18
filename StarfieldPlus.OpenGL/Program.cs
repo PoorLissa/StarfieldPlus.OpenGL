@@ -12,7 +12,7 @@ namespace StarfieldPlus.OpenGL
         // Used to prevent the screensaver from starting another instance
         private static System.Threading.Mutex singletonMutex = null;
 
-        public static byte gl_Param = 0;
+        public static byte gl_WinVer = 0;
 
         // -------------------------------------------------------------------------------------------------------------------
 
@@ -41,18 +41,6 @@ namespace StarfieldPlus.OpenGL
                 {
                     _ini["Settings.ImgPath"] = "";
                     _ini.save();
-                }
-
-                // For Windows 10:
-                // Prevent Windows from running the screensaver again;
-                // todo: This needs some more thought, because now the PC does not go to sleep at all!
-                {
-                    uint ES_CONTINUOUS = 0x80000000;
-                    uint ES_DISPLAY_REQUIRED = 0x00000002;
-                    uint ES_SYSTEM_REQUIRED = 0x00000001;
-
-                    my.myWinAPI.SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
-                    //my.myWinAPI.SetThreadExecutionState((uint)(0x80000000L | 0x00000002L | 0x00000001L));
                 }
 
                 if (args.Length > 0)
@@ -84,13 +72,14 @@ namespace StarfieldPlus.OpenGL
                             break;
 
                         // Full-screen mode
-                        // '/t' means, we're in Windows 10, and the screensaver is started from TaskScheduler
                         case "/s":
                             mainProc();
                             break;
 
+                        // Full-screen mode
+                        // '/t' means, we're in Windows 10, and the screensaver is started from TaskScheduler
                         case "/t":
-                            gl_Param = 1;
+                            gl_WinVer = 10;
                             mainProc();
                             break;
 
@@ -172,6 +161,8 @@ namespace StarfieldPlus.OpenGL
                     - Need to make the screensaver the topmost window, as I already saw it starting in a background
             */
 
+            winSpecificAction();
+
             try
             {
                 ScreenSaver scr = new ScreenSaver();
@@ -185,6 +176,29 @@ namespace StarfieldPlus.OpenGL
             }
 
             return;
+        }
+
+        // -------------------------------------------------------------------------------------------------------------------
+
+        // Perform some additional actions, specific to different Windows versions
+        private static void winSpecificAction()
+        {
+            switch (gl_WinVer)
+            {
+                // For Windows 10:
+                // Prevent Windows from running the screensaver again;
+                // todo: This needs some more thought, because now the PC does not go to sleep at all!
+                case 10:
+                    {
+                        uint ES_CONTINUOUS = 0x80000000;
+                        uint ES_DISPLAY_REQUIRED = 0x00000002;
+                        //uint ES_SYSTEM_REQUIRED = 0x00000001;
+
+                        my.myWinAPI.SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+                        //my.myWinAPI.SetThreadExecutionState((uint)(0x80000000L | 0x00000002L | 0x00000001L));
+                    }
+                    break;
+            }
         }
 
         // -------------------------------------------------------------------------------------------------------------------

@@ -14,7 +14,7 @@ namespace my
     public class myObj_011a : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 
         private float x, y, dx, dy, X, Y, a, da, angle, dAngle, radx, rady;
         private float A, R, G, B;
@@ -22,7 +22,7 @@ namespace my
         private myParticleTrail trail = null;
 
         private static int N = 0, nTrail = 0, x0 = gl_x0, y0 = gl_y0;
-        private static int moveMode = 0, lineWidth = 1, startMode = 0, offset = 0, randomizeTrail1Mode = 0, randomizeTrail2Mode = 0, trailModifyMode = 0;
+        private static int moveMode = 0, lineWidth = 1, startMode = 0, borderOffset = 0, randomizeTrail1Mode = 0, randomizeTrail2Mode = 0, trailModifyMode = 0;
         private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true, doVaryRadius = true;
         private static float spdFactor = 10.0f;
         private static float randomizeTrail1Factor = 0, randomizeTrail2Factor = 0;
@@ -118,7 +118,7 @@ namespace my
                 case 2: lineWidth = rand.Next(7) + 1; break;
             }
 
-            offset = rand.Next(666);
+            borderOffset = rand.Next(666);
             doRandomizeSpeed = myUtils.randomChance(rand, 1, 5);
             trailModifyMode = rand.Next(13);
 
@@ -160,36 +160,36 @@ namespace my
             {
                 string brf = $"{fStr(borderRepulsionFactor)}";
 
-                string str = $"Obj = myObj_011a\n\n" +
-                                $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                                $"doClearBuffer = {doClearBuffer}\n" +
-                                $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
-                                $"moveMode = {moveMode}\n" +
-                                $"startMode = {startMode}\n" +
-                                $"lineWidth = {lineWidth}\n" +
-                                $"borderRepulsionFactor = {brf}\n" +
-                                $"nTrail = {nTrail}\n" +
-                                $"offset = {offset}\n" +
-                                $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
-                                $"renderDelay = {renderDelay}\n" +
-                                $"int_01 = {int_01}\n" +
+                string str = $"Obj = myObj_011a\n\n"                        +
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                                $"doClearBuffer = {doClearBuffer}\n"        +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +
+                                $"moveMode = {moveMode}\n"                  +
+                                $"startMode = {startMode}\n"                +
+                                $"lineWidth = {lineWidth}\n"                +
+                                $"borderRepulsionFactor = {brf}\n"          +
+                                $"nTrail = {nTrail}\n"                      +
+                                $"borderOffset = {borderOffset}\n"          +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +
+                                $"renderDelay = {renderDelay}\n"            +
+                                $"int_01 = {int_01}\n"                      +
                                 $"file: {colorPicker.GetFileName()}"
                     ;
                 return str;
             }
             else
             {
-                string str = $"Obj = myObj_011a\n\n" +
-                                $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                                $"doClearBuffer = {doClearBuffer}\n" +
-                                $"doRandomizeSpeed = {doRandomizeSpeed}\n" +
-                                $"moveMode = {moveMode}\n" +
-                                $"startMode = {startMode}\n" +
-                                $"lineWidth = {lineWidth}\n" +
-                                $"nTrail = {nTrail}\n" +
-                                $"doVaryRadius = {doVaryRadius}\n" +
-                                $"renderDelay = {renderDelay}\n" +
-                                $"int_01 = {int_01}\n" +
+                string str = $"Obj = myObj_011a\n\n"                        +
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                                $"doClearBuffer = {doClearBuffer}\n"        +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +
+                                $"moveMode = {moveMode}\n"                  +
+                                $"startMode = {startMode}\n"                +
+                                $"lineWidth = {lineWidth}\n"                +
+                                $"nTrail = {nTrail}\n"                      +
+                                $"doVaryRadius = {doVaryRadius}\n"          +
+                                $"renderDelay = {renderDelay}\n"            +
+                                $"int_01 = {int_01}\n"                      +
                                 $"file: {colorPicker.GetFileName()}"
                     ;
                 return str;
@@ -387,16 +387,16 @@ namespace my
                         x += dx;
                         y += dy;
 
-                        if (x < offset)
+                        if (x < borderOffset)
                             dx += borderRepulsionFactor;
 
-                        if (y < offset)
+                        if (y < borderOffset)
                             dy += borderRepulsionFactor;
 
-                        if (x > gl_Width - offset)
+                        if (x > gl_Width - borderOffset)
                             dx -= borderRepulsionFactor;
 
-                        if (y > gl_Height - offset)
+                        if (y > gl_Height - borderOffset)
                             dy -= borderRepulsionFactor;
                     }
                     break;
@@ -408,16 +408,16 @@ namespace my
 
                         float val = myUtils.randFloat(rand) * 0.15f;
 
-                        if (x < offset)
+                        if (x < borderOffset)
                             dx += val;
 
-                        if (y < offset)
+                        if (y < borderOffset)
                             dy += val;
 
-                        if (x > gl_Width - offset)
+                        if (x > gl_Width - borderOffset)
                             dx -= val;
 
-                        if (y > gl_Height - offset)
+                        if (y > gl_Height - borderOffset)
                             dy -= val;
                     }
                     break;

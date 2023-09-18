@@ -193,7 +193,7 @@ namespace my
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
 
                 // Make the process window topmost, as the TaskScheduler might run it in a background
-                if (Program.gl_Param == 1)
+                if (Program.gl_WinVer == 10)
                 {
                     if (openGL_Window != IntPtr.Zero)
                     {
