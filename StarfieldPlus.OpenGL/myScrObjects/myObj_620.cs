@@ -19,13 +19,13 @@ namespace my
     public class myObj_620 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 
         private float x, y, width, height, dx, dy, dWidth, dHeight;
         private float A, R, G, B;
 
         private static int N = 0, mode = 0, max = 666, addSpeed = 0;
-        private static bool doFillShapes = false, doShowAngles = true;
+        private static bool doFillShapes = false, doShowDots = true, doAccountForA = true;
         private static float dimAlpha = 0.05f, spdFactor = 1.0f;
 
         private static myFreeShader shader = null;
@@ -48,7 +48,14 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(100) + 33;
+                N = 33;
+
+                switch (rand.Next(11))
+                {
+                    case 0 : N += rand.Next(300); break;
+                    case 1 : N += rand.Next(200); break;
+                    default: N += rand.Next(100); break;
+                }
             }
 
             initLocal();
@@ -59,16 +66,29 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doFillShapes  = myUtils.randomChance(rand, 1, 3);
-            doShowAngles  = myUtils.randomChance(rand, 2, 3);
+            doClearBuffer = myUtils.randomChance(rand, 11, 13);
+            doFillShapes  = myUtils.randomChance(rand, 1, 9);
+            doShowDots    = myUtils.randomChance(rand, 4, 5);
+
+            doAccountForA = myUtils.randomBool(rand);           // Max size depends on opacity
 
             mode = rand.Next(2);
 
-            addSpeed = 50 + rand.Next(100);                     // Rato of adding new objects into List
-            renderDelay = rand.Next(11) + 3;
+            addSpeed = 50 + rand.Next(100);
+            renderDelay = 0;
 
             spdFactor = 1.0f + 0.1f * rand.Next(31);            // 1 + [0.0 .. 3.0]
+
+            switch (rand.Next(2))
+            {
+                case 0:
+                    max = 666;
+                    break;
+
+                case 1:
+                    max = 100 + rand.Next(333);
+                    break;
+            }
 
             return;
         }
@@ -86,8 +106,10 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"  +
                             $"doClearBuffer = {doClearBuffer}\n"      +
                             $"doFillShapes = {doFillShapes}\n"        +
-                            $"doShowAngles = {doShowAngles}\n"        +
+                            $"doShowDots = {doShowDots}\n"            +
+                            $"doAccountForA = {doAccountForA}\n"      +
                             $"mode = {mode}\n"                        +
+                            $"max = {max}\n"                          +
                             $"spdFactor = {fStr(spdFactor)}\n"        +
                             $"renderDelay = {renderDelay}\n"          +
                             $"file: {colorPicker.GetFileName()}"
@@ -145,6 +167,12 @@ namespace my
             A = myUtils.randFloat(rand, 0.1f);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
+            if (doAccountForA)
+            {
+                width *= A;
+                height *= A;
+            }
+
             return;
         }
 
@@ -182,7 +210,7 @@ namespace my
             rectInst.setInstanceColor(R, G, B, A);
             rectInst.setInstanceAngle(0);
 
-            if (doShowAngles)
+            if (doShowDots)
             {
                 float size = 14;
 

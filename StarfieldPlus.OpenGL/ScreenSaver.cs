@@ -83,6 +83,7 @@ public class ScreenSaver
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
+    // - rotating circles made of letters and symbols
 
 
 
@@ -163,7 +164,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_590));   // Particle's move as an average of n other particles' move
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_600));   // Pendulum
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_610));   // ...
-        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_620));   // ...
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_620));   // Rectangles with width/height that are changing constantly; while width is increasing, height is decreasing, and vice versa
 
         // smooth trail: https://kosmonautblog.wordpress.com/2016/07/29/geometry-trails-tire-tracks-tutorial/
 

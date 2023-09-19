@@ -16,10 +16,13 @@ namespace my
         // Priority
         public static int Priority => 10;
 
-        private float x, y, rad, A, R, G, B, angle, dAngle;
+        private float x, y, rad, A, R, G, B, angle, dAngle, a, da;
 
-        private static int N = 0, mode = 0, subMode = 0, radMode = 0, dAngleMode = 0;
+        private myParticleTrail trail = null;
+
+        private static int N = 0, mode = 0, subMode = 0, radMode = 0, dAngleMode = 0, nTrail = 100;
         private static float dimAlpha = 0.05f;
+        private static bool doUseTrails = true;
 
         private static float dRad = 0, dAngleStep = 0;
 
@@ -65,6 +68,8 @@ namespace my
                 }
 
                 dRad = 0.5f * gl_Width / N;
+
+                doUseTrails = N < 333;
             }
 
             initLocal();
@@ -75,9 +80,16 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-
-            renderDelay = rand.Next(11) + 3;
+            if (doUseTrails)
+            {
+                doClearBuffer = true;
+                renderDelay = 0;
+            }
+            else
+            {
+                doClearBuffer = myUtils.randomBool(rand);
+                renderDelay = rand.Next(11) + 3;
+            }
 
             return;
         }
@@ -94,6 +106,7 @@ namespace my
             string str = $"Obj = myObj_600\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doUseTrails = {doUseTrails}\n"         +
                             $"mode = {mode}\n"                       +
                             $"dAngleMode = {dAngleMode}\n"           +
                             $"radMode = {radMode}\n"                 +
@@ -172,8 +185,15 @@ namespace my
                 y = rad;
             }
 
-            A = 1;
+            A = 1.0f;
             colorPicker.getColorRand(ref R, ref G, ref B);
+
+            // Initialize Trail
+            if (doUseTrails && trail == null)
+            {
+                trail = new myParticleTrail(nTrail, x, y);
+                da = A / (nTrail + 1);
+            }
 
             return;
         }
@@ -182,6 +202,13 @@ namespace my
 
         protected override void Move()
         {
+            // Update trail info
+            if (doUseTrails)
+            {
+                trail.update(x, y);
+                a = A;
+            }
+
             angle += dAngle;
 
             switch (mode)
@@ -217,16 +244,52 @@ namespace my
 
         protected override void Show()
         {
+            // Draw the trail
+            if (doUseTrails)
+            {
+                float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+                int i = 0;
+
+                // Get the first pair of coordinates
+                trail.getXY(i++, ref x1, ref y1);
+
+                for (; i < nTrail; i++)
+                {
+                    // Get the second pair of coordinates
+                    trail.getXY(i, ref x2, ref y2);
+
+                    drawTailSegment(x1, y1, x2, y2);
+
+                    // Shift the first pair 1 position towards the end
+                    x1 = x2;
+                    y1 = y2;
+
+                    a -= da;
+                }
+            }
+
             shader.SetColor(R, G, B, A);
             shader.Draw(x, y, 10, 10, 10);
 
+            // Draw connecting lines
             if (id > 0)
             {
                 var prev = list[(int)id - 1] as myObj_600;
 
                 myPrimitive._LineInst.setInstanceCoords(x, y, prev.x, prev.y);
-                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
+                myPrimitive._LineInst.setInstanceColor(1, 1, 1, doUseTrails ? 0.05f : 0.1f);
             }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void drawTailSegment(float x1, float y1, float x2, float y2)
+        {
+            if (x1 == x2 && y1 == y2)
+                return;
+
+            myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, a);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -245,6 +308,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -267,7 +332,7 @@ namespace my
                 {
                     myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_600;
 
@@ -276,11 +341,6 @@ namespace my
                     }
 
                     myPrimitive._LineInst.Draw();
-                }
-
-                if (list.Count < N)
-                {
-                    list.Add(new myObj_600());
                 }
 
                 cnt++;
@@ -294,8 +354,12 @@ namespace my
 
         private void initShapes()
         {
+            int numLines = doUseTrails
+                ? N + N * nTrail
+                : N;
+
             myPrimitive.init_ScrDimmer();
-            myPrimitive.init_LineInst(N);
+            myPrimitive.init_LineInst(numLines);
 
             getShader();
 
