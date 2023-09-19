@@ -87,7 +87,8 @@ namespace my
             {
                 N = 10000;
 
-                doUseRGB = myUtils.randomChance(rand, 1, 5);            // If true, paint alphabet in white and then set custom color for each particle
+                // If true, paint alphabet in white and then set custom color for each particle
+                doUseRGB = myUtils.randomChance(rand, 1, 5);
 
                 // Size
                 switch (rand.Next(4))
@@ -336,7 +337,7 @@ namespace my
         {
             if (doUseRGB)
             {
-                tTex.Draw(x, y, index, A, angle, sizeFactor, R, B, G);
+                tTex.Draw(x, y, index, A, angle, sizeFactor, R, G, B);
             }
             else
             {
@@ -366,13 +367,13 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
-
-                int Count = list.Count;
 
                 // Dim screen
                 {

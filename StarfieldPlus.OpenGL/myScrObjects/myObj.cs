@@ -179,6 +179,12 @@ namespace my
                 // Set context creation hints
                 myOGL.PrepareContextHints();
 
+                {
+                    // todo: test at home if this works
+                    var handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                    my.myWinAPI.SetWindowPos(handle, -1, 0, 0, 0, 0, 0);
+                }
+
                 // Create window
                 Window openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", scr.GetMode());
 

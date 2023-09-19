@@ -6,6 +6,9 @@ using System;
 
 /*
     - Particles with real trails
+
+    Smooth trail howto:
+    https://kosmonautblog.wordpress.com/2016/07/29/geometry-trails-tire-tracks-tutorial/
 */
 
 
