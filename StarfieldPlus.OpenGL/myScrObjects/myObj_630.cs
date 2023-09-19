@@ -16,7 +16,7 @@ namespace my
         // Priority
         public static int Priority => 999910;
 
-        private int index;
+        private int index, cnt;
         private float x, y;
         private float A, dA, R, G, B, rad, sizeFactor, angle = 0, dAngle;
 
@@ -128,6 +128,8 @@ namespace my
 
         protected override void generateNew()
         {
+            cnt = 50 + rand.Next(111);
+
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
@@ -165,16 +167,21 @@ namespace my
             }
 
             A = myUtils.randFloat(rand);
-            dA = myUtils.randFloat(rand, 0.1f) * 0.001f;
+            dA = myUtils.randFloat(rand, 0.1f) * 0.0025f;
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
-            // Set the symbol
+            // Pair the particle to a symbol
             index = rand.Next(tTex.Lengh());
 
             sizeFactor = (sizeMode == 1 && size > 21)
-                ? 0.5f + myUtils.randFloat(rand) * 20 / (float)size
+                ? 0.5f + myUtils.randFloat(rand) * (20 / (float)size)
                 : 1.0f;
+
+            if (sizeFactor < 1)
+            {
+                ;
+            }
 
             // Move once to start at the right location
             Move();
@@ -189,7 +196,8 @@ namespace my
             switch (dAMode)
             {
                 case 1:
-                    A -= dA;
+                    if (--cnt < 0)
+                        A -= dA;
                     break;
             }
 
