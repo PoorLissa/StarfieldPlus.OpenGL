@@ -26,7 +26,8 @@ namespace my
         private static bool doUseRGB = true;
 
         private static TexText tTex = null;
-        private static int[] Rad = null;
+        private static int[] Rads = null;
+        private static float[] dAngles = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -56,11 +57,24 @@ namespace my
 
                     if (radMode == 1)
                     {
-                        Rad = new int[rand.Next(11) + 2];
+                        int nCircles = 1;
 
-                        for (int i = 0; i < Rad.Length; i++)
+                        switch (rand.Next(3))
                         {
-                            Rad[i] = minRad + rand.Next(maxRad - minRad);
+                            case 0: nCircles = 2 + rand.Next(11); break;    // 2 .. 12
+                            case 1: nCircles = 4 + rand.Next(09); break;    // 4 .. 12 
+                            case 2: nCircles = 6 + rand.Next(07); break;    // 6 .. 12
+                        }
+
+                        Rads = new int[nCircles];           // Radius of a circle
+                        dAngles = new float[nCircles];      // dAngle for this raduis
+
+                        N = rand.Next(123 * nCircles) + 123;
+
+                        for (int i = 0; i < nCircles; i++)
+                        {
+                            Rads[i] = minRad + rand.Next(maxRad - minRad);
+                            dAngles[i] = myUtils.randFloatSigned(rand, 0.05f) * 0.01f;
                         }
                     }
                 }
@@ -85,8 +99,14 @@ namespace my
             dAngleMode = rand.Next(4);
             dAngleCommon = myUtils.randFloatSigned(rand, 0.05f) * 0.01f;
 
-            size = 50 + rand.Next(50);
-            renderDelay = rand.Next(11) + 3;
+            // Special mode, where each circle's particles rotate at the same speed
+            if (radMode == 1 && myUtils.randomChance(rand, 1, 2))
+            {
+                dAngleMode = 4;
+            }
+
+            size = 50 + rand.Next(100);
+            renderDelay = 0;
 
             return;
         }
@@ -95,6 +115,8 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
+            int nCircles = radMode == 0 ? 0 : Rads.Length;
+
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
@@ -104,6 +126,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doUseRGB = {doUseRGB}\n"               +
                             $"radMode = {radMode}\n"                 +
+                            $"num of Circles = {nCircles}\n"         +
                             $"sizeMode = {sizeMode}\n"               +
                             $"dAMode = {dAMode}\n"                   +
                             $"dAngleMode = {dAngleMode}\n"           +
@@ -128,6 +151,8 @@ namespace my
 
         protected override void generateNew()
         {
+            int circleId = -1;
+
             cnt = 50 + rand.Next(111);
 
             x = rand.Next(gl_Width);
@@ -140,7 +165,8 @@ namespace my
                     break;
 
                 case 1:
-                    rad = Rad[rand.Next(Rad.Length)];
+                    circleId = rand.Next(Rads.Length);
+                    rad = Rads[circleId];
                     break;
             }
 
@@ -163,6 +189,10 @@ namespace my
 
                 case 3:
                     dAngle = dAngleCommon * myUtils.randomSign(rand);   // Value is the same, sign is random
+                    break;
+
+                case 4:
+                    dAngle = dAngles[circleId];                         // Value and sign are the same for this particular circle
                     break;
             }
 
