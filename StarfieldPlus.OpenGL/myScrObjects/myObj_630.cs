@@ -176,7 +176,7 @@ namespace my
                 ? 0.5f + myUtils.randFloat(rand) * 20 / (float)size
                 : 1.0f;
 
-            // Recalculate the particle's coordinates to evade random flickering at the first step
+            // Move once to start at the right location
             Move();
 
             return;
