@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Particles move as an average of n other particles move
+    - Particle moves as a result of an average of n other particles movement
 */
 
 
@@ -21,7 +21,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 
         private float X, Y, Z;
         private float A, R, G, B, da;

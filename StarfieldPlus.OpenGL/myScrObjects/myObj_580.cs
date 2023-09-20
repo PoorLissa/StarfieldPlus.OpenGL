@@ -18,11 +18,12 @@ namespace my
 
         private int gravId;
         private float x, y, dx, dy, X, Y;
-        private float size, A, R, G, B, mass, angle = 0;
+        private float size, A, da, R, G, B, mass, angle = 0;
         private bool isFirst;
+        private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, gravMode = 0;
-        private static bool doFillShapes = false, doUseInitSpeed = false;
+        private static int N = 0, shape = 0, gravMode = 0, nTrail = 0;
+        private static bool doFillShapes = false, doUseInitSpeed = false, doUseTrails = false;
         private static float dimAlpha = 0.05f, gMode2_factor = 0;
 
         private static int n = 5;
@@ -56,6 +57,18 @@ namespace my
 
             // Global unmutable constants
             {
+                doUseTrails = myUtils.randomChance(rand, 10, 11);
+
+                if (doUseTrails)
+                {
+                    switch (rand.Next(3))
+                    {
+                        case 0: nTrail = 100 + rand.Next(100); break;
+                        case 1: nTrail = 100 + rand.Next(333); break;
+                        case 2: nTrail = 100 + rand.Next(666); break;
+                    }
+                }
+
                 n = 3 + rand.Next(5);
 
                 N = rand.Next(1000) + 10000;
@@ -153,6 +166,15 @@ namespace my
 
             gravId = rand.Next(n);
 
+            // da for a trail
+            da = A / (nTrail + 1);
+
+            // Initialize Trail
+            if (doUseTrails && id < n && trail == null)
+            {
+                trail = new myParticleTrail(nTrail, x, y);
+            }
+
             return;
         }
 
@@ -160,6 +182,12 @@ namespace my
 
         protected override void Move()
         {
+            // Update trail info
+            if (doUseTrails && id < n)
+            {
+                trail.update(x, y);
+            }
+
             x += dx;
             y += dy;
 
@@ -285,6 +313,12 @@ namespace my
 
         protected override void Show()
         {
+            // Draw the trail
+            if (doUseTrails && id < n)
+            {
+                trail.Show(R, G, B, A, da);
+            }
+
             if (mass > 100)
             {
                 shader.SetColor(R, G, B, A);
@@ -317,6 +351,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -338,14 +374,17 @@ namespace my
                 // Render Frame
                 {
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_580;
 
                         obj.Show();
                         obj.Move();
                     }
+
+                    myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
                     {
@@ -359,7 +398,7 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_580());
                 }
@@ -377,6 +416,8 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
+
+            myPrimitive.init_LineInst(doUseTrails ? n * nTrail : N);
 
             getShader();
 
