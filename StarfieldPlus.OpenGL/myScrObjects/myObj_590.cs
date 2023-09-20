@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Particle's move as an average of n other particles' move
+    - Particles move as an average of n other particles move
 */
 
 
@@ -21,13 +21,15 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99910;
 
         private float X, Y, Z;
-        private float A, R, G, B;
+        private float A, R, G, B, da;
+        private float size;
+        private myParticleTrail trail = null;
 
-        private static int N = 0, n = 0, moveMode = 0;
-        private static bool doFillShapes = false;
+        private static int N = 0, n = 0, moveMode = 0, nTrail = 0;
+        private static bool doFillShapes = false, doUseTrails = false;
         private static float dimAlpha = 0.05f;
 
         private static myFreeShader shader = null;
@@ -52,8 +54,21 @@ namespace my
 
             // Global unmutable constants
             {
+                doClearBuffer = true;
+                doUseTrails = myUtils.randomChance(rand, 11, 12);
+
                 N = rand.Next(10) + 2;
                 n = rand.Next(10) + 2;
+
+                if (doUseTrails)
+                {
+                    switch (rand.Next(3))
+                    {
+                        case 0: nTrail = 100 + rand.Next(100); break;
+                        case 1: nTrail = 100 + rand.Next(333); break;
+                        case 2: nTrail = 100 + rand.Next(666); break;
+                    }
+                }
             }
 
             initLocal();
@@ -64,8 +79,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = true;
-
             moveMode = rand.Next(2);
         }
 
@@ -81,6 +94,8 @@ namespace my
             string str = $"Obj = myObj_590\n\n"                      +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"n = {n}\n"                             +
+                            $"doUseTrails = {doUseTrails}\n"         +
+                            $"nTrail = {nTrail}\n"                   +
                             $"moveMode = {moveMode}\n"               +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -100,6 +115,8 @@ namespace my
 
         protected override void generateNew()
         {
+            size = 20 + rand.Next(15);
+
             X = Y = Z = 0;
 
             if (dataList == null)
@@ -120,10 +137,28 @@ namespace my
                 d.dz = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(5) + 11);
 
                 dataList.Add(d);
+
+                X += d.x;
+                Y += d.y;
+                Z += d.z;
             }
 
-            A = 1;
+            // Initial position
+            X /= n;
+            Y /= n;
+            Z /= n;
+
+            A = 0.8f + myUtils.randFloat(rand) * 0.2f;
             colorPicker.getColorRand(ref R, ref G, ref B);
+
+            // da for a trail
+            da = A / (nTrail + 1);
+
+            // Initialize Trail
+            if (doUseTrails && trail == null)
+            {
+                trail = new myParticleTrail(nTrail, X, Y);
+            }
 
             return;
         }
@@ -132,6 +167,12 @@ namespace my
 
         protected override void Move()
         {
+            // Update trail info
+            if (doUseTrails)
+            {
+                trail.update(X, Y);
+            }
+
             for (int i = 0; i < n; i++)
             {
                 var d = dataList[i];
@@ -197,13 +238,13 @@ namespace my
 
         protected override void Show()
         {
+            var ellipseInst = inst as myEllipseInst;
+
             X = Y = Z = 0;
 
             for (int i = 0; i < n; i++)
             {
                 var d = dataList[i];
-
-                var ellipseInst = inst as myEllipseInst;
 
                 ellipseInst.setInstanceCoords(d.x, d.y, 10, 0);
                 ellipseInst.setInstanceColor(R, G, B, 0.5f);
@@ -217,8 +258,11 @@ namespace my
             Y /= n;
             Z /= n;
 
-            //float size = 33 + (Z - 500) / 10;
-            float size = 33;
+            // Draw the trail
+            if (doUseTrails)
+            {
+                trail.Show(R, G, B, A, da);
+            }
 
             shader.SetColor(R, G, B, A);
             shader.Draw(X, Y, 5, 5, 10);
@@ -266,6 +310,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -292,7 +338,7 @@ namespace my
                     inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_590;
 
@@ -314,7 +360,7 @@ namespace my
                     myPrimitive._LineInst.Draw();
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_590());
                 }
@@ -331,7 +377,8 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            myPrimitive.init_LineInst(N);
+            myPrimitive.init_LineInst(doUseTrails ? (N + N * nTrail) : N);
+
             base.initShapes(2, N * n, 0);
 
             string h = "", m = "";

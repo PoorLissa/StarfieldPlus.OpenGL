@@ -97,5 +97,33 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        public void Show(float R, float G, float B, float A, float da)
+        {
+            float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+            int i = 0;
+
+            // Get the first pair of coordinates
+            getXY(i++, ref x1, ref y1);
+
+            for (; i < _N; i++)
+            {
+                // Get the second pair of coordinates
+                getXY(i, ref x2, ref y2);
+
+                myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
+                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+                // Shift the first pair 1 position towards the end
+                x1 = x2;
+                y1 = y2;
+
+                A -= da;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     };
 };
