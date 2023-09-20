@@ -18,7 +18,7 @@ namespace my
 
         private int gravId;
         private float x, y, dx, dy, X, Y;
-        private float size, A, da, R, G, B, mass, angle = 0;
+        private float size, A, R, G, B, mass, angle = 0;
         private bool isFirst;
         private myParticleTrail trail = null;
 
@@ -166,13 +166,15 @@ namespace my
 
             gravId = rand.Next(n);
 
-            // da for a trail
-            da = A / (nTrail + 1);
-
             // Initialize Trail
             if (doUseTrails && id < n && trail == null)
             {
                 trail = new myParticleTrail(nTrail, x, y);
+            }
+
+            if (trail != null)
+            {
+                trail.updateDa(A);
             }
 
             return;
@@ -316,7 +318,7 @@ namespace my
             // Draw the trail
             if (doUseTrails && id < n)
             {
-                trail.Show(R, G, B, A, da);
+                trail.Show(R, G, B, A);
             }
 
             if (mass > 100)

@@ -24,7 +24,7 @@ namespace my
         public static int Priority => 10;
 
         private float X, Y, Z;
-        private float A, R, G, B, da;
+        private float A, R, G, B;
         private float size;
         private myParticleTrail trail = null;
 
@@ -151,13 +151,15 @@ namespace my
             A = 0.8f + myUtils.randFloat(rand) * 0.2f;
             colorPicker.getColorRand(ref R, ref G, ref B);
 
-            // da for a trail
-            da = A / (nTrail + 1);
-
             // Initialize Trail
             if (doUseTrails && trail == null)
             {
                 trail = new myParticleTrail(nTrail, X, Y);
+            }
+
+            if (trail != null)
+            {
+                trail.updateDa(A);
             }
 
             return;
@@ -261,7 +263,7 @@ namespace my
             // Draw the trail
             if (doUseTrails)
             {
-                trail.Show(R, G, B, A, da);
+                trail.Show(R, G, B, A);
             }
 
             shader.SetColor(R, G, B, A);

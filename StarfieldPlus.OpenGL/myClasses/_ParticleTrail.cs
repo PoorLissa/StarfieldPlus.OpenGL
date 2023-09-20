@@ -13,6 +13,7 @@ namespace my
         private int _index;
         private int _N;
         private float[] _arr = null;
+        private float _da;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -21,16 +22,18 @@ namespace my
             _N = n;
             _arr = new float[_N * 2];
             _index = 0;
+            _da = 0.001f;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // Initialize all the trail array with the same values
+        // Initialize the whole array using the same initial values
         public myParticleTrail(int n, float x, float y)
         {
             _N = n;
             _arr = new float[_N * 2];
             _index = 0;
+            _da = 0.001f;
 
             for (int i = 0; i < _N * 2; i += 2)
             {
@@ -67,6 +70,14 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Recalculate da value
+        public void updateDa(float A)
+        {
+            _da = A / (_N + 1);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         public void getXY(int i, ref float x, ref float y)
         {
             int idx = _index - 2 - 2 * i;
@@ -99,7 +110,7 @@ namespace my
 
         // Draw the whole trail;
         // Relies on myPrimitive._LineInst, which must be initialized to the proper size
-        public void Show(float R, float G, float B, float A, float da)
+        public void Show(float R, float G, float B, float A)
         {
             float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
             int i = 0;
@@ -119,7 +130,7 @@ namespace my
                 x1 = x2;
                 y1 = y2;
 
-                A -= da;
+                A -= _da;
             }
 
             return;

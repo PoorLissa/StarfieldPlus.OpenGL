@@ -16,7 +16,7 @@ namespace my
         // Priority
         public static int Priority => 10;
 
-        private float x, y, rad, A, R, G, B, angle, dAngle, a, da;
+        private float x, y, rad, A, R, G, B, angle, dAngle;
 
         private myParticleTrail trail = null;
 
@@ -192,7 +192,11 @@ namespace my
             if (doUseTrails && trail == null)
             {
                 trail = new myParticleTrail(nTrail, x, y);
-                da = A / (nTrail + 1);
+            }
+
+            if (trail != null)
+            {
+                trail.updateDa(A);
             }
 
             return;
@@ -206,7 +210,6 @@ namespace my
             if (doUseTrails)
             {
                 trail.update(x, y);
-                a = A;
             }
 
             angle += dAngle;
@@ -247,25 +250,7 @@ namespace my
             // Draw the trail
             if (doUseTrails)
             {
-                float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-                int i = 0;
-
-                // Get the first pair of coordinates
-                trail.getXY(i++, ref x1, ref y1);
-
-                for (; i < nTrail; i++)
-                {
-                    // Get the second pair of coordinates
-                    trail.getXY(i, ref x2, ref y2);
-
-                    drawTailSegment(x1, y1, x2, y2);
-
-                    // Shift the first pair 1 position towards the end
-                    x1 = x2;
-                    y1 = y2;
-
-                    a -= da;
-                }
+                trail.Show(R, G, B, A);
             }
 
             shader.SetColor(R, G, B, A);
@@ -279,17 +264,6 @@ namespace my
                 myPrimitive._LineInst.setInstanceCoords(x, y, prev.x, prev.y);
                 myPrimitive._LineInst.setInstanceColor(1, 1, 1, doUseTrails ? 0.05f : 0.1f);
             }
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        private void drawTailSegment(float x1, float y1, float x2, float y2)
-        {
-            if (x1 == x2 && y1 == y2)
-                return;
-
-            myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, a);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
