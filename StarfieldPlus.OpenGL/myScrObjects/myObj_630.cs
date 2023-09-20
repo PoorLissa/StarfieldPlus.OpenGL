@@ -14,15 +14,15 @@ namespace my
     public class myObj_630 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 
         private int index, cnt;
         private float x, y;
-        private float A, dA, R, G, B, rad, sizeFactor, angle = 0, dAngle;
+        private float A, dA, R, G, B, radx, rady, sizeFactor, angle = 0, dAngle;
 
         private static int N = 0, size = 20, minRad = 0, maxRad = 0;
         private static int dAngleMode = 0, dAMode, radMode = 0, sizeMode = 0;
-        private static float dimAlpha = 0.05f, dAngleCommon = 0;
+        private static float dimAlpha = 0.05f, dAngleCommon = 0, ellipticFactor = 1.0f;
         private static bool doUseRGB = true;
 
         private static TexText tTex = null;
@@ -54,6 +54,10 @@ namespace my
                     radMode = rand.Next(2);
                     minRad = rand.Next(333) + 33;
                     maxRad = gl_x0 - rand.Next(333);
+
+                    ellipticFactor = myUtils.randomChance(rand, 1, 2)
+                        ? 1.0f
+                        : 0.8f + myUtils.randFloat(rand) * 0.2f;
 
                     if (radMode == 1)
                     {
@@ -105,7 +109,7 @@ namespace my
                 dAngleMode = 4;
             }
 
-            size = 50 + rand.Next(100);
+            size = 50 + rand.Next(66);
             renderDelay = 0;
 
             return;
@@ -120,20 +124,21 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_630\n\n"                      +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doUseRGB = {doUseRGB}\n"               +
-                            $"radMode = {radMode}\n"                 +
-                            $"num of Circles = {nCircles}\n"         +
-                            $"sizeMode = {sizeMode}\n"               +
-                            $"dAMode = {dAMode}\n"                   +
-                            $"dAngleMode = {dAngleMode}\n"           +
-                            $"font = '{tTex.FontFamily()}'\n"        +
-                            $"minRad = {minRad}\n"                   +
-                            $"maxRad = {maxRad}\n"                   +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = myObj_630\n\n"                          +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"     +
+                            $"doUseRGB = {doUseRGB}\n"                   +
+                            $"radMode = {radMode}\n"                     +
+                            $"ellipticFactor = {fStr(ellipticFactor)}\n" +
+                            $"num of Circles = {nCircles}\n"             +
+                            $"sizeMode = {sizeMode}\n"                   +
+                            $"dAMode = {dAMode}\n"                       +
+                            $"dAngleMode = {dAngleMode}\n"               +
+                            $"font = '{tTex.FontFamily()}'\n"            +
+                            $"minRad = {minRad}\n"                       +
+                            $"maxRad = {maxRad}\n"                       +
+                            $"renderDelay = {renderDelay}\n"             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -161,14 +166,16 @@ namespace my
             switch (radMode)
             {
                 case 0:
-                    rad = minRad + rand.Next(maxRad - minRad);
+                    radx = minRad + rand.Next(maxRad - minRad);
                     break;
 
                 case 1:
                     circleId = rand.Next(Rads.Length);
-                    rad = Rads[circleId];
+                    radx = Rads[circleId];
                     break;
             }
+
+            rady = radx * ellipticFactor;
 
             angle = myUtils.randFloatSigned(rand) * rand.Next(123);
             dAngle = myUtils.randFloat(rand, 0.05f) * 0.01f;
@@ -239,8 +246,8 @@ namespace my
             {
                 angle += dAngle;
 
-                x = gl_x0 + rad * (float)Math.Sin(angle);
-                y = gl_y0 + rad * (float)Math.Cos(angle);
+                x = gl_x0 + radx * (float)Math.Sin(angle);
+                y = gl_y0 + rady * (float)Math.Cos(angle);
             }
 
             return;

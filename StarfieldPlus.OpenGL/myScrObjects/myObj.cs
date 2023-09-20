@@ -203,7 +203,7 @@ namespace my
                 {
                     if (openGL_Window != IntPtr.Zero)
                     {
-                        my.myWinAPI.SetWindowPos(openGL_Window, 0, 0, 0, 0, 0, 0);
+                        my.myWinAPI.SetWindowPos(openGL_Window, -1, 0, 0, 0, 0, 0);
                     }
                 }
 

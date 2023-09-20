@@ -22,7 +22,7 @@ class myOGL
         // https://www.glfw.org/docs/3.3/window_guide.html
         // This should take care of the situation when the window opens in background;
         // This happens when the screensaver is started by a TaskScheduler in Win10
-        //Glfw.WindowHint(Hint.Floating, true);
+        // Glfw.WindowHint(Hint.Floating, true);
 
         //Glfw.WindowHint(Hint.Samples, 0);
         //Glfw.WindowHint(Hint.ScaleToMonitor, true);
