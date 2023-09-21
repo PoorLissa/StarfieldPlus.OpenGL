@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using StarfieldPlus.OpenGL;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 #pragma warning disable CS0162                      // Unreachable code warnings
@@ -109,13 +110,13 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Override it for every derived class to implement the logic
-        protected virtual void Process(Window window)
+        protected virtual void Process(GLFW.Window window)
         {
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        protected void processInput(Window window)
+        protected void processInput(GLFW.Window window)
         {
             // Exit via mouse move
 #if DEBUG
@@ -180,7 +181,7 @@ namespace my
                 myOGL.PrepareContextHints();
 
                 // Create window
-                Window openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", scr.GetMode());
+                GLFW.Window openGL_Window = myOGL.CreateWindow(ref gl_Width, ref gl_Height, "scr.OpenGL", scr.GetMode());
 
                 // Set Blend mode
                 {
@@ -188,9 +189,6 @@ namespace my
                     glBlendEquation(GL_FUNC_ADD);
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Set blending function                    
                 }
-
-                // Hide cursor
-                Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
 
                 // Make the process window topmost, as the TaskScheduler might run it in a background
                 if (Program.gl_WinVer == 10)
@@ -202,7 +200,7 @@ namespace my
                         int SWP_DRAWFRAME      = 0x0020;    // Draws a frame(defined in the window's class description) around the window.
                         int SWP_FRAMECHANGED   = 0x0020;    // Applies new frame styles set using the SetWindowLong function.Sends a WM_NCCALCSIZE message to the window, even if the window's size is not being changed. If this flag is not specified, WM_NCCALCSIZE is sent only when the window's size is being changed.
                         int SWP_HIDEWINDOW     = 0x0080;    // Hides the window.
-                        int SWP_NOACTIVATE     = 0x0010;    // Does not activate the window.If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group(depending on the setting of the hWndInsertAfter parameter).
+                        int SWP_NOACTIVATE     = 0x0010;    // Does not activate the window.If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group (depending on the setting of the hWndInsertAfter parameter).
                         int SWP_NOCOPYBITS     = 0x0100;    // Discards the entire contents of the client area. If this flag is not specified, the valid contents of the client area are saved and copied back into the client area after the window is sized or repositioned.
                         int SWP_NOMOVE         = 0x0002;    // Retains the current position(ignores X and Y parameters).
                         int SWP_NOOWNERZORDER  = 0x0200;    // Does not change the owner window's position in the Z order.
@@ -213,12 +211,20 @@ namespace my
                         int SWP_NOZORDER       = 0x0004;    // Retains the current Z order(ignores the hWndInsertAfter parameter)
                         int SWP_SHOWWINDOW     = 0x0040;    // Displays the window
 
-                        int flags = SWP_NOMOVE | SWP_NOREDRAW | SWP_NOSIZE;
+                        int flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
                         int HWND_TOPMOST = -1;
 
-                        //my.myWinAPI.SetWindowPos(openGL_Window, -1, 0, 0, 0, 0, 0);
                         var handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+
                         my.myWinAPI.SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, flags);
+
+                        //handle = System.Diagnostics.Process.GetCurrentProcess().Handle;
+
+                        //my.myWinAPI.SetForegroundWindow(handle);
+                        //my.myWinAPI.SetFocus(handle);
+                        //Glfw.FocusWindow(openGL_Window);
+
+                        //my.myWinAPI.SetActiveWindow(handle);
                     }
                 }
 
@@ -233,12 +239,15 @@ namespace my
                 System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
 
+                // Hide cursor
+                Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
+
                 // Main Procedure
                 {
                     Process(openGL_Window);
                 }
 
-
+                // Show cursor
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Normal);
                 Glfw.Terminate();
             }
