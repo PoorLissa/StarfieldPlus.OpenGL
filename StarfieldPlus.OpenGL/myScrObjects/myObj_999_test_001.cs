@@ -121,9 +121,12 @@ namespace my
 
         protected override void Move()
         {
-            if (false)
+            if (true)
             {
                 trail.update(x, y);
+
+                x += dx;
+                y += dy;
             }
             else
             {
@@ -138,11 +141,18 @@ namespace my
 
                 float dist = (float)Math.Sqrt(dx * dx + dy * dy);
 
-                float sin = (float)Math.Sin(x) * 15;
-                float cos = (float)Math.Cos(x) * 15;
+                float sin = (float)Math.Sin(x) * 35 * dx/dy;
+                float cos = (float)Math.Sin(y) * 35 * dy/dx;
 
                 //trail.update(x * sin, y * sin);
-                trail.update(x + sin * dx/dist, y + cos*dy/dist);
+                //trail.update(x + sin / dx, y + cos / dy);
+
+                //trail.update(x + sin, y + cos);
+
+                float dx1 = (float)Math.Sin(x) * (dy / dist) * 25;
+                float dy1 = (float)Math.Sin(x) * (dx / dist) * 25;
+
+                trail.update(x + dx1, y + dy1);
             }
 
             // ---------------------------------------------------------
