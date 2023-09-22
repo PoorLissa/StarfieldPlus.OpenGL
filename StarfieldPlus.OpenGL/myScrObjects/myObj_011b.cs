@@ -5,27 +5,30 @@ using System.Collections.Generic;
 
 
 /*
-    - Trails test
+    - Particles with real trails again
 */
 
 
 namespace my
 {
-    public class myObj_999_test_001 : myObject
+    public class myObj_011b : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrailMax = 111, mode = 0;
+        private static int N = 0, shape = 0, nTrailMin = 50, nTrailMax = 111, moveMode = 0, trailMode = 0;
+        private static bool doFillShapes = true;
+
+        private static float[] f_arr = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_999_test_001()
+        public myObj_011b()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -39,14 +42,23 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
+            f_arr = new float[3];
+
             // Global unmutable constants
             {
                 N = rand.Next(100) + 100;
-                shape = rand.Next(5);
-
                 N = 1000;
 
-                mode = 2;
+                shape = rand.Next(5);
+
+                nTrailMin = 50 + rand.Next(25);
+
+                switch (rand.Next(3))
+                {
+                    case 0: nTrailMax = 50 + rand.Next(111); break;
+                    case 1: nTrailMax = 75 + rand.Next(333); break;
+                    case 2: nTrailMax = 99 + rand.Next(666); break;
+                }
             }
 
             initLocal();
@@ -58,7 +70,33 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
+            doFillShapes = myUtils.randomChance(rand, 1, 2);
             renderDelay = 0;
+
+            moveMode  = rand.Next(3);
+            trailMode = rand.Next(4);
+
+            switch (trailMode)
+            {
+                case 1:
+                case 2:
+                    f_arr[0] = 2 + rand.Next(3);                // sin/cos amplitude factor [2 .. 4]
+                    f_arr[1] = 1.0f / (2 + rand.Next(33));      // sin/cos argument divider 1.0 / [2 .. 34]
+                    break;
+
+                case 3:
+                    if (myUtils.randomChance(rand, 1, 2))
+                    {
+                        f_arr[0] = 02 + rand.Next(05);
+                        f_arr[1] = 20 + rand.Next(50);
+                    }
+                    else
+                    {
+                        f_arr[0] = 20 + rand.Next(50);
+                        f_arr[1] = 02 + rand.Next(05);
+                    }
+                    break;
+            }
 
             return;
         }
@@ -70,10 +108,17 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_999_test_001\n\n"             +
+            string f_arrStr = $"{fStr(f_arr[0])}; {fStr(f_arr[1])}; {fStr(f_arr[2])};";
+
+            string str = $"Obj = myObj_011b\n\n"                     +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"moveMode= {moveMode}\n"                +
+                            $"trailMode = {trailMode}\n"             +
+                            $"nTrailMin = {nTrailMin}\n"             +
+                            $"nTrailMax = {nTrailMax}\n"             +
+                            $"f_arr = {f_arrStr}\n"                  +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -92,48 +137,28 @@ namespace my
 
         protected override void generateNew()
         {
+            int nTrail = nTrailMin + rand.Next(nTrailMax);
+
             A = 0.5f;
-
-            switch (mode)
-            {
-                case 0:
-                    x = gl_x0 + rand.Next(31) - 15;
-                    y = gl_y0 + rand.Next(31) - 15;
-
-                    dx = myUtils.randFloatSigned(rand, 0.01f) * 2;
-                    dy = myUtils.randFloatSigned(rand, 0.01f) * 2;
-
-                    colorPicker.getColor(x, y, ref R, ref G, ref B);
-                    break;
-
-                case 1:
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
-
-                    dx = 0;
-                    dy = myUtils.randFloat(rand, 0.01f) * 2;
-
-                    colorPicker.getColor(x, y, ref R, ref G, ref B);
-                    break;
-
-                case 2:
-                    A = myUtils.randFloat(rand, 0.1f);
-
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
-
-                    colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-                    y = gl_Height;
-
-                    dx = 0;
-                    dy = -myUtils.randFloat(rand, 0.01f) * 3;
-                    break;
-            }
-
             size = rand.Next(3) + 3;
 
-            int nTrail = 50 + rand.Next(nTrailMax);
+            switch (moveMode)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    {
+                        A = myUtils.randFloat(rand, 0.1f);
+                        colorPicker.getColorRand(ref R, ref G, ref B);
+
+                        x = rand.Next(gl_Width);
+                        y = gl_Height;
+
+                        dx = 0;
+                        dy = -myUtils.randFloat(rand, 0.01f) * 3;
+                    }
+                    break;
+            }
 
             // Initialize Trail
             if (trail == null)
@@ -155,34 +180,38 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private void endOfLife(bool condition)
+        {
+            if (condition)
+            {
+                A -= 0.001f;
+
+                if (A < 0)
+                    generateNew();
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         protected override void Move()
         {
-            if (false)
+            switch (moveMode)
             {
-                trail.update(x, y);
+                // Straight bottom to top
+                case 0:
+                    {
+                        x += dx;
+                        y += dy;
 
-                x += dx;
-                y += dy;
-            }
-            else
-            {
-                x += dx;
-                y += dy;
+                        endOfLife(y < 0);
+                    }
+                    break;
 
-                float factor = 11;
-
-                float extraX = 0;
-                float extraY = 0;
-
-                if (dy < 0)
-                    factor = 3;
-
-                switch (mode)
-                {
-                    case 2:
-                        factor = 3 + (float)Math.Sin(y / 3) * 5;
-                            extraX = myUtils.randFloat(rand) * 5;
-                            extraY = myUtils.randFloat(rand) * 5;
+                // Angle rotations, speed maintained
+                case 1:
+                    {
+                        x += dx;
+                        y += dy;
 
                         if (dx == 0 && myUtils.randomChance(rand, 1, 33))
                         {
@@ -196,45 +225,72 @@ namespace my
                             dx = 0;
                         }
 
-                        break;
-                }
-
-                float addX = dx + (float)Math.Sin(y / 4) * factor + extraX;
-                float addY = dy + (float)Math.Sin(x / 4) * factor + extraY;
-
-                trail.update(x + addX, y + addY);
-            }
-
-            // ---------------------------------------------------------
-
-            switch (mode)
-            {
-                case 0:
-                case 1:
-                    {
-                        if (x < 0 && dx < 0)
-                            dx *= -1;
-
-                        if (y < 0 && dy < 0)
-                            dy *= -1;
-
-                        if (x > gl_Width && dx > 0)
-                            dx *= -1;
-
-                        if (y > gl_Height && dy > 0)
-                            dy *= -1;
+                        endOfLife(y < 0);
                     }
                     break;
 
+                // Angle rotations, speed random each time
                 case 2:
                     {
-                        if (y < 0)
-                        {
-                            A -= 0.001f;
+                        x += dx;
+                        y += dy;
 
-                            if (A < 0)
-                                generateNew();
+                        if (dx == 0 && myUtils.randomChance(rand, 1, 33))
+                        {
+                            dx = myUtils.randFloatSigned(rand, 0.01f) * 3;
+                            dy = 0;
                         }
+
+                        if (dy == 0 && myUtils.randomChance(rand, 1, 15))
+                        {
+                            dy = -myUtils.randFloat(rand, 0.01f) * 3;
+                            dx = 0;
+                        }
+
+                        endOfLife(y < 0);
+                    }
+                    break;
+            }
+
+            switch (trailMode)
+            {
+                // Straight trail
+                case 0:
+                    {
+                        trail.update(x, y);
+                    }
+                    break;
+
+                // Sin trail, take 1
+                case 1:
+                    {
+                        float addX = dx + (float)Math.Sin(y * f_arr[1]) * f_arr[0];
+                        float addY = dy + (float)Math.Sin(x * f_arr[1]) * f_arr[0];
+
+                        trail.update(x + addX, y + addY);
+                    }
+                    break;
+
+                // Sin trail, take 2
+                case 2:
+                    {
+                        float extraX = myUtils.randFloat(rand) * 5;
+                        float extraY = myUtils.randFloat(rand) * 5;
+
+                        float addX = dx + (float)Math.Sin(y * f_arr[1]) * f_arr[0] + extraX;
+                        float addY = dy + (float)Math.Sin(x * f_arr[1]) * f_arr[0] + extraY;
+
+                        trail.update(x + addX, y + addY);
+                    }
+                    break;
+
+                // Randomized trail offsets
+                case 3:
+                    {
+                        float addX = myUtils.randFloatSigned(rand) * f_arr[0];
+                        float addY = myUtils.randFloatSigned(rand) * f_arr[1];
+
+                        trail.update(x + addX, y + addY);
                     }
                     break;
             }
@@ -304,10 +360,7 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
-            clearScreenSetup(doClearBuffer, 0.1f);
+            clearScreenSetup(doClearBuffer, 0.13f);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -323,18 +376,25 @@ namespace my
 
                 // Render Frame
                 {
-                    myPrimitive._LineInst.ResetBuffer();
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_999_test_001;
+                        var obj = list[i] as myObj_011b;
 
                         obj.Show();
                         obj.Move();
                     }
 
                     myPrimitive._LineInst.Draw();
+
+                    if (doFillShapes)
+                    {
+                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                        inst.SetColorA(-0.5f);
+                        inst.Draw(true);
+                    }
 
                     // Tell the fragment shader to do nothing with the existing instance opacity:
                     inst.SetColorA(0);
@@ -343,7 +403,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_999_test_001());
+                    list.Add(new myObj_011b());
                 }
 
                 cnt++;
@@ -358,7 +418,7 @@ namespace my
         private void initShapes()
         {
             base.initShapes(shape, N, 0);
-            myPrimitive.init_LineInst(N * nTrailMax);
+            myPrimitive.init_LineInst(N * (nTrailMin + nTrailMax));     // should be enough, right?
 
             return;
         }

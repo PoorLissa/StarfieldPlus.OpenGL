@@ -92,6 +92,7 @@ public class ScreenSaver
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_010));   // Randomly Roaming Squares (Snow Like)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011));   // Randomly Roaming Lines (based on Randomly Roaming Squares)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011a));  // Particles with real trails
+        my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_011b));  // Particles with real trails again
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_012));   // Snow-like pattern made of different layers moving in different directions
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_020));   // Linearly Moving Shapes (Soap Bubbles Alike)
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_021));   // Ever Growing Shapes located at the center of the screen + small offset
@@ -168,7 +169,7 @@ public class ScreenSaver
 
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999a));  // Test rotating shape, unfinished yet good
 
-#if true
+#if false
         my.myObj_Prioritizer.RegisterClass(typeof(my.myObj_999_test_001));  // Trails test
 #endif
 
