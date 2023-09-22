@@ -21,7 +21,7 @@ namespace my
 
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrailMax = 500;
+        private static int N = 0, shape = 0, nTrailMax = 111;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -91,6 +91,9 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
+            x = gl_x0 + rand.Next(31) - 15;
+            y = gl_y0 + rand.Next(31) - 15;
+
             dx = myUtils.randFloatSigned(rand, 0.01f) * 2;
             dy = myUtils.randFloatSigned(rand, 0.01f) * 2;
 
@@ -101,7 +104,7 @@ namespace my
 
             A = 0.33f;
 
-            int nTrail = 10 + rand.Next(nTrailMax);
+            int nTrail = 50 + rand.Next(nTrailMax);
 
             // Initialize Trail
             if (trail == null)
@@ -130,29 +133,15 @@ namespace my
             }
             else
             {
-                // dy / dist = sin(a)
-                // dx / dist = cos(a)
-
-                float oldx = x;
-                float oldy = y;
-
                 x += dx;
                 y += dy;
 
-                float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+                int factor = 2;
 
-                float sin = (float)Math.Sin(x) * 35 * dx/dy;
-                float cos = (float)Math.Sin(y) * 35 * dy/dx;
+                float addX = dx + (float)Math.Sin(y / 2) * factor;
+                float addY = dy + (float)Math.Sin(x / 2) * factor;
 
-                //trail.update(x * sin, y * sin);
-                //trail.update(x + sin / dx, y + cos / dy);
-
-                //trail.update(x + sin, y + cos);
-
-                float dx1 = (float)Math.Sin(x) * (dy / dist) * 25;
-                float dy1 = (float)Math.Sin(x) * (dx / dist) * 25;
-
-                trail.update(x + dx1, y + dy1);
+                trail.update(x + addX, y + addY);
             }
 
             // ---------------------------------------------------------
