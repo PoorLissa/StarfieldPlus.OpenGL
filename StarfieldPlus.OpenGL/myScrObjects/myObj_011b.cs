@@ -16,13 +16,14 @@ namespace my
         // Priority
         public static int Priority => 999910;
 
+        private int sign;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B;
 
         private myParticleTrail trail = null;
 
         private static int N = 0, shape = 0, nTrailMin = 50, nTrailMax = 111, moveMode = 0, trailMode = 0;
-        private static bool doFillShapes = true;
+        private static bool doFillShapes = true, doDrawToWhite = true;
 
         private static float[] f_arr = null;
 
@@ -46,8 +47,14 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(100) + 100;
                 N = 1000;
+
+                switch (rand.Next(3))
+                {
+                    case 0: N += rand.Next(00100); break;
+                    case 1: N += rand.Next(01000); break;
+                    case 2: N += rand.Next(10000); break;
+                }
 
                 shape = rand.Next(5);
 
@@ -70,11 +77,14 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
-            doFillShapes = myUtils.randomChance(rand, 1, 2);
+            doFillShapes  = myUtils.randomChance(rand, 1, 2);
+            doDrawToWhite = myUtils.randomChance(rand, 1, 3);
             renderDelay = 0;
 
-            moveMode  = rand.Next(3);
+            moveMode  = rand.Next(4);
             trailMode = rand.Next(4);
+
+            trailMode = 3;
 
             switch (trailMode)
             {
@@ -87,13 +97,13 @@ namespace my
                 case 3:
                     if (myUtils.randomChance(rand, 1, 2))
                     {
-                        f_arr[0] = 02 + rand.Next(05);
-                        f_arr[1] = 20 + rand.Next(50);
+                        f_arr[0] = 2 + rand.Next(5);
+                        f_arr[1] = f_arr[0] + rand.Next((int)f_arr[0] * 3);
                     }
                     else
                     {
-                        f_arr[0] = 20 + rand.Next(50);
-                        f_arr[1] = 02 + rand.Next(05);
+                        f_arr[1] = 2 + rand.Next(5);
+                        f_arr[0] = f_arr[1] + rand.Next((int)f_arr[1] * 3);
                     }
                     break;
             }
@@ -114,6 +124,8 @@ namespace my
 
             string str = $"Obj = myObj_011b\n\n"                     +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doFillShapes = {doFillShapes}\n"       +
+                            $"doDrawToWhite = {doDrawToWhite}\n"     +
                             $"moveMode= {moveMode}\n"                +
                             $"trailMode = {trailMode}\n"             +
                             $"nTrailMin = {nTrailMin}\n"             +
@@ -147,6 +159,7 @@ namespace my
                 case 0:
                 case 1:
                 case 2:
+                case 3:
                     {
                         A = myUtils.randFloat(rand, 0.1f);
                         colorPicker.getColorRand(ref R, ref G, ref B);
@@ -156,6 +169,8 @@ namespace my
 
                         dx = 0;
                         dy = -myUtils.randFloat(rand, 0.01f) * 3;
+
+                        sign = myUtils.randomSign(rand);
                     }
                     break;
             }
@@ -250,6 +265,34 @@ namespace my
                         endOfLife(y < 0);
                     }
                     break;
+
+                // Angle rotations, speed maintained, x-direction always alternates
+                case 3:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (dx == 0)
+                        {
+                            if (myUtils.randomChance(rand, 1, 33))
+                            {
+                                dx = -dy * sign;
+                                dy = 0;
+                                sign *= -1;
+                            }
+                        }
+                        else
+                        {
+                            if (myUtils.randomChance(rand, 1, 15))
+                            {
+                                dy = dx < 0 ? dx : -dx;
+                                dx = 0;
+                            }
+                        }
+
+                        endOfLife(y < 0);
+                    }
+                    break;
             }
 
             switch (trailMode)
@@ -274,8 +317,8 @@ namespace my
                 // Sin trail, take 2
                 case 2:
                     {
-                        float extraX = myUtils.randFloat(rand) * 5;
-                        float extraY = myUtils.randFloat(rand) * 5;
+                        float extraX = myUtils.randFloatSigned(rand) * 5;
+                        float extraY = myUtils.randFloat(rand) * 10;
 
                         float addX = dx + (float)Math.Sin(y * f_arr[1]) * f_arr[0] + extraX;
                         float addY = dy + (float)Math.Sin(x * f_arr[1]) * f_arr[0] + extraY;
@@ -302,7 +345,14 @@ namespace my
 
         protected override void Show()
         {
-            trail.Show(R, G, B, A);
+            if (doDrawToWhite)
+            {
+                trail.ShowToWhite(R, G, B, A);
+            }
+            else
+            {
+                trail.Show(R, G, B, A);
+            }
 
             float size2x = size * 2;
 
@@ -314,14 +364,14 @@ namespace my
 
                     rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
                     rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
+                    rectInst.setInstanceAngle(0);
                     break;
 
                 // Instanced triangles
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, size2x, angle);
+                    triangleInst.setInstanceCoords(x, y, size2x, 0);
                     triangleInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -329,7 +379,7 @@ namespace my
                 case 2:
                     var ellipseInst = inst as myEllipseInst;
 
-                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
+                    ellipseInst.setInstanceCoords(x, y, size2x, 0);
                     ellipseInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -337,7 +387,7 @@ namespace my
                 case 3:
                     var pentagonInst = inst as myPentagonInst;
 
-                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
+                    pentagonInst.setInstanceCoords(x, y, size2x, 0);
                     pentagonInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -345,7 +395,7 @@ namespace my
                 case 4:
                     var hexagonInst = inst as myHexagonInst;
 
-                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
+                    hexagonInst.setInstanceCoords(x, y, size2x, 0);
                     hexagonInst.setInstanceColor(R, G, B, A);
                     break;
             }

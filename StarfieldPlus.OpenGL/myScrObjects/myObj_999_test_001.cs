@@ -246,7 +246,7 @@ namespace my
 
         protected override void Show()
         {
-            trail.Show(R, G, B, A);
+            trail.Show (R, G, B, A);
 
             float size2x = size * 2;
 
