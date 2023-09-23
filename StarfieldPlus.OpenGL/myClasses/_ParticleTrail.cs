@@ -140,6 +140,7 @@ namespace my
 
         // Draw the whole trail;
         // Relies on myPrimitive._LineInst, which must be initialized to the proper size
+        // Gradually changes the color until it becomes white
         public void ShowToWhite(float R, float G, float B, float A)
         {
             float x1 = 0, y1 = 0, x2 = 0, y2 = 0;

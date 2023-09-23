@@ -14,7 +14,7 @@ namespace my
     public class myObj_011b : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 
         private int sign;
         private float x, y, dx, dy;
@@ -82,9 +82,7 @@ namespace my
             renderDelay = 0;
 
             moveMode  = rand.Next(4);
-            trailMode = rand.Next(4);
-
-            trailMode = 3;
+            trailMode = rand.Next(8);
 
             switch (trailMode)
             {
@@ -105,6 +103,22 @@ namespace my
                         f_arr[1] = 2 + rand.Next(5);
                         f_arr[0] = f_arr[1] + rand.Next((int)f_arr[1] * 3);
                     }
+                    break;
+
+                case 4:
+                    f_arr[0] = 1 + rand.Next(11);
+                    break;
+
+                case 5:
+                    f_arr[0] = 2 + rand.Next(11);
+                    f_arr[1] = 3 + rand.Next(33);
+                    break;
+
+                case 6:
+                case 7:
+                    f_arr[0] = 2 + rand.Next(20);
+                    f_arr[1] = 2 + rand.Next(33);
+                    f_arr[2] = 2 + rand.Next(7);
                     break;
             }
 
@@ -295,6 +309,8 @@ namespace my
                     break;
             }
 
+            // --- Trail ---
+
             switch (trailMode)
             {
                 // Straight trail
@@ -334,6 +350,35 @@ namespace my
                         float addY = myUtils.randFloatSigned(rand) * f_arr[1];
 
                         trail.update(x + addX, y + addY);
+                    }
+                    break;
+
+                case 4:
+                    {
+                        float addX = (float)Math.Sin(y) * f_arr[0];
+                        trail.update(x + addX, y);
+                    }
+                    break;
+
+                case 5:
+                    {
+                        float addX = (float)(Math.Sin(y) * f_arr[0] * Math.Sin(y / f_arr[1]));
+                        trail.update(x + addX, y);
+                    }
+                    break;
+
+                case 6:
+                    {
+                        float addX = (float)(Math.Sin(y / f_arr[0]) * f_arr[0] + Math.Cos(y * f_arr[1]) * f_arr[2]) * 0.5f;
+                        trail.update(x + addX, y);
+                    }
+                    break;
+
+                // The same as 6, but using (x % 33)
+                case 7:
+                    {
+                        float addX = (float)(Math.Sin(y / (1 + x % 33)) * f_arr[0] + Math.Cos(y * f_arr[1]) * f_arr[2]) * 0.5f;
+                        trail.update(x + addX, y);
                     }
                     break;
             }
