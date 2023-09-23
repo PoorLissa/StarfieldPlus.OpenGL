@@ -25,6 +25,7 @@ namespace my
         private static int N = 0, shape = 0, nTrailMin = 50, nTrailMax = 111, moveMode = 0, trailMode = 0;
         private static bool doFillShapes = true, doDrawToWhite = true;
 
+        private static int[] i_arr = null;
         private static float[] f_arr = null;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -43,6 +44,7 @@ namespace my
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
+            i_arr = new int[3];
             f_arr = new float[3];
 
             // Global unmutable constants
@@ -81,8 +83,19 @@ namespace my
             doDrawToWhite = myUtils.randomChance(rand, 1, 3);
             renderDelay = 0;
 
-            moveMode  = rand.Next(4);
+
+            moveMode  = rand.Next(6);
             trailMode = rand.Next(8);
+
+
+            switch (moveMode)
+            {
+                case 4:
+                case 5:
+                    i_arr[0] = 2 + rand.Next(15);
+                    i_arr[1] = 2 + rand.Next(15);
+                    break;
+            }
 
             switch (trailMode)
             {
@@ -134,6 +147,7 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
+            string i_arrStr = $"{nStr(i_arr[0])}; {nStr(i_arr[1])}; {nStr(i_arr[2])};";
             string f_arrStr = $"{fStr(f_arr[0])}; {fStr(f_arr[1])}; {fStr(f_arr[2])};";
 
             string str = $"Obj = myObj_011b\n\n"                     +
@@ -144,6 +158,7 @@ namespace my
                             $"trailMode = {trailMode}\n"             +
                             $"nTrailMin = {nTrailMin}\n"             +
                             $"nTrailMax = {nTrailMax}\n"             +
+                            $"i_arr = {i_arrStr}\n"                  +
                             $"f_arr = {f_arrStr}\n"                  +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -174,6 +189,8 @@ namespace my
                 case 1:
                 case 2:
                 case 3:
+                case 4:
+                case 5:
                     {
                         A = myUtils.randFloat(rand, 0.1f);
                         colorPicker.getColorRand(ref R, ref G, ref B);
@@ -303,6 +320,24 @@ namespace my
                                 dx = 0;
                             }
                         }
+
+                        endOfLife(y < 0);
+                    }
+                    break;
+
+                case 4:
+                    {
+                        y += dy;
+                        x += (int)(1.1 * Math.Sin(y / i_arr[0])) * i_arr[1];
+
+                        endOfLife(y < 0);
+                    }
+                    break;
+
+                case 5:
+                    {
+                        y += dy;
+                        x += (int)(1.1 * Math.Sin(y % 100)) * i_arr[1];
 
                         endOfLife(y < 0);
                     }
