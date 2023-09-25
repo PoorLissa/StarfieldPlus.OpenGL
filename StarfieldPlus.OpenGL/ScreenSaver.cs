@@ -97,6 +97,7 @@ public class ScreenSaver
         register(my.myObj_011.Type);      // Randomly Roaming Lines (based on Randomly Roaming Squares)
         register(my.myObj_011a.Type);     // Particles with real trails
         register(my.myObj_011b.Type);     // Particles with real trails again
+        register(my.myObj_011c.Type);     // Particles with real trails again again
         register(my.myObj_012.Type);      // Snow-like pattern made of different layers moving in different directions
         register(my.myObj_020.Type);      // Linearly Moving Shapes (Soap Bubbles Alike)
         register(my.myObj_021.Type);      // Ever Growing Shapes located at the center of the screen + small offset
