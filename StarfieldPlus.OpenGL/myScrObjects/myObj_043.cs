@@ -21,6 +21,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
+		public static System.Type Type => typeof(myObj_043);
 
         private const int N = 50;
 

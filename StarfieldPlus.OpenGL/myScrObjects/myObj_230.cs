@@ -18,6 +18,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
+		public static System.Type Type => typeof(myObj_230);
 
         private enum ParticleType { One, Two, Three, Four };
 

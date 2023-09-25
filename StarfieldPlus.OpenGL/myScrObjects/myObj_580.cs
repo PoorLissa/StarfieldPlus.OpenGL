@@ -15,6 +15,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
+        public static System.Type Type => typeof(myObj_580);
 
         private int gravId;
         private float x, y, dx, dy, X, Y;

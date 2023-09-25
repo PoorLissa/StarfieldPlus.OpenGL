@@ -14,6 +14,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
+		public static System.Type Type => typeof(myObj_050);
 
         private int x, y, sizeX, sizeY, sizeDst, sizeSrc;
         private bool isVertical;

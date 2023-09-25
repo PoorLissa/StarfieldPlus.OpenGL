@@ -126,7 +126,7 @@ namespace my
 
         protected void processInput(GLFW.Window window)
         {
-            // Exit via mouse move
+            // Exit via mouse move (only in Release mode)
             {
 #if DEBUG
                 ;

@@ -40,6 +40,7 @@ namespace my
     {
         // Priority
         public static int Priority => 15;
+        public static System.Type Type => typeof(myObj_500);
 
         private float R, G, B;
         private int mode = 0;

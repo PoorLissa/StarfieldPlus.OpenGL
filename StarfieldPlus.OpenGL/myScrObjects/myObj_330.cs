@@ -25,7 +25,8 @@ namespace my
     public class myObj_330 : myObject
     {
         // Priority: we have 70 modes, so the priority will be higher than usual:
-        public static int Priority { get { return getPriority(); } }
+        public static int Priority => 50;
+		public static System.Type Type => typeof(myObj_330);
 
         private myObjectParams p = null;
 
@@ -5603,18 +5604,7 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-        // ---------------------------------------------------------------------------------------------------------------
-        // ---------------------------------------------------------------------------------------------------------------
 
-        private static int getPriority()
-        {
-#if DEBUG
-            return 50;
-#endif
-            return 50;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
     }
 
     // ==================== Helper Classes =========================================================================================

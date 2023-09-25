@@ -14,7 +14,8 @@ namespace my
     public class myObj_012 : myObject
     {
         // Priority
-        public static int Priority { get { return getPriority(); } }
+        public static int Priority => 10;
+		public static System.Type Type => typeof(myObj_012);
 
         private float x, y, dx, dy, rad, t, dt;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
@@ -939,14 +940,5 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static int getPriority()
-        {
-#if DEBUG
-            return 10;
-#endif
-            return 10;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
     }
 };

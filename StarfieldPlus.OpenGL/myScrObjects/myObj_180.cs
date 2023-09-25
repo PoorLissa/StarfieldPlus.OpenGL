@@ -15,6 +15,7 @@ namespace my
     {
         // Priority
         public static int Priority => 20;
+		public static System.Type Type => typeof(myObj_180);
 
         private static bool doFillShapes = false, doUseDispersion = false, doUseXOffset = false, doUseRandomSpeed = false,
                             doUseIncreasingWaveSize = false, doShiftCenter = false, dXYgen_useRandSign1 = false, dXYgen_useRandSign2 = false,

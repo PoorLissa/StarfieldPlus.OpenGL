@@ -18,6 +18,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
+		public static System.Type Type => typeof(myObj_200);
 
         private static bool doChangeBgrColor = false, randomDrad = false, varLineWidth = false;
         private static int shapeType = 0, moveType = 0, rotationType = 0, dimMode = 0, N = 1;

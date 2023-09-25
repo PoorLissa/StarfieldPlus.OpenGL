@@ -18,6 +18,7 @@ namespace my
     {
         // Priority
         public static int Priority => 35;
+		public static System.Type Type => typeof(myObj_300);
 
         private class myObj_300_Particle
         {

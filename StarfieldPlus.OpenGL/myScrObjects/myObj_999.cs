@@ -23,6 +23,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
+        public static System.Type Type => typeof(myObj_999a);
 
         private float x, y, time = 0, dt = 0.01f;
         private float r, g, b;

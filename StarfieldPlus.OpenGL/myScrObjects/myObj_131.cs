@@ -14,6 +14,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
+		public static System.Type Type => typeof(myObj_131);
 
         private int maxSize, sizeStep;
         private float x, y, dx, dy, size, dSize, A, R, G, B, angle, dA, dAngle;

@@ -14,6 +14,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
+		public static System.Type Type => typeof(myObj_410);
 
         int circCount;
         private float size, dSize, A, R, G, B;
