@@ -9,6 +9,17 @@ using System.Security.Cryptography;
 
 namespace my
 {
+    // My custom dll imports
+    public static class myDll
+    {
+        [DllImport("cpp.helper.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern ulong monitorOffTimeout();
+
+        [DllImport("cpp.helper.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern ulong systemSleepTimeout();
+    }
+
+    // WinAPI imports
     public static class myWinAPI
     {
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -31,5 +42,24 @@ namespace my
 
         [DllImport("user32.dll")]
         public static extern int SetActiveWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, int wMsg, IntPtr wParam, IntPtr lParam);
+    };
+
+    // Custom methods build up on imported WinAPIs
+    public static class myWinApiExt
+    {
+        /// <summary>
+        /// Turns off monitor.
+        /// 'handle' param is a handle to any existing window
+        /// </summary>
+        public static void MonitorTurnOff(IntPtr handle)
+        {
+            int WM_SYSCOMMAND = 0x0112;
+            int SC_MONITORPOWER = 0xF170;
+
+            my.myWinAPI.SendMessage(handle, WM_SYSCOMMAND, (IntPtr)SC_MONITORPOWER, (IntPtr)2);
+        }
     };
 };

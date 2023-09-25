@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using StarfieldPlus.OpenGL;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Drawing.Text;
 
 
 #pragma warning disable CS0162                      // Unreachable code warnings
@@ -28,6 +31,11 @@ namespace my
         protected enum BgrDrawMode : byte { NEVER, ONCE, ALWAYS };
 
         protected uint id { get; private set; } = 0;
+
+        // Timeouts for Monitor Off, System Sleep:
+        private static uint monitorOffTime = 10 * 60, systemSleepTime = 30 * 60;
+        private static uint gl_State = 0;
+        private static DateTime startTime;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -119,54 +127,75 @@ namespace my
         protected void processInput(GLFW.Window window)
         {
             // Exit via mouse move
-#if DEBUG
-            ;
-#else
             {
-                double xpos, ypos;
-                Glfw.GetCursorPosition(window, out xpos, out ypos);
-
-                if (cursorx != 0 && cursory != 0)
+#if DEBUG
+                ;
+#else
                 {
-                    if (xpos != cursorx || ypos != cursory)
+                    double xpos, ypos;
+                    Glfw.GetCursorPosition(window, out xpos, out ypos);
+
+                    if (cursorx != 0 && cursory != 0)
                     {
-                        Glfw.SetWindowShouldClose(window, true);
+                        if (xpos != cursorx || ypos != cursory)
+                        {
+                            Glfw.SetWindowShouldClose(window, true);
+                        }
                     }
+
+                    cursorx = xpos;
+                    cursory = ypos;
+                }
+#endif
+            }
+
+            // Monitor Off timeout (Windows 10 related issue)
+            if (gl_State == 0 && ((TimeSpan)(DateTime.Now - startTime)).TotalSeconds > monitorOffTime)
+            {
+                gl_State = 1u;
+
+                if (systemSleepTime > monitorOffTime)
+                {
+                    systemSleepTime -= monitorOffTime;
                 }
 
-                cursorx = xpos;
-                cursory = ypos;
+                Glfw.SetWindowShouldClose(window, true);
+                return;
             }
-#endif
 
             // Exit via Esc Key press
             if (Glfw.GetKey(window, GLFW.Keys.Escape) == GLFW.InputState.Press)
             {
                 Glfw.SetWindowShouldClose(window, true);
+                return;
             }
 
             // Show some info (Tab)
             if (Glfw.GetKey(window, GLFW.Keys.Tab) == GLFW.InputState.Press)
             {
                 displayInfo();
+                return;
             }
 
             // Decrease speed
             if (Glfw.GetKey(window, GLFW.Keys.Up) == GLFW.InputState.Press)
             {
                 renderDelay++;
+                return;
             }
 
             // Increase speed
             if (Glfw.GetKey(window, GLFW.Keys.Down) == GLFW.InputState.Press)
             {
                 renderDelay -= (renderDelay > 0) ? 1 : 0;
+                return;
             }
 
             // Next mode
             if (Glfw.GetKey(window, GLFW.Keys.Space) == GLFW.InputState.Press)
             {
                 setNextMode();
+                return;
             }
         }
 
@@ -177,6 +206,8 @@ namespace my
         {
             try
             {
+                setUpWindowsTimeouts();
+
                 // Set context creation hints
                 myOGL.PrepareContextHints();
 
@@ -238,18 +269,26 @@ namespace my
                 // Tags: locale, culture, en-US
                 System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
-
                 // Hide cursor
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
 
                 // Main Procedure
                 {
+                    gl_State = 0;
+
                     Process(openGL_Window);
+                    PostProcess(openGL_Window);
                 }
 
                 // Show cursor
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Normal);
                 Glfw.Terminate();
+
+                // Finally, in case we've reached all the timeouts, put the PC to sleep before exiting
+                if (gl_State == 2)
+                {
+                    Application.SetSuspendState(PowerState.Suspend, true, true);
+                }
             }
             catch (System.Exception ex)
             {
@@ -276,6 +315,65 @@ namespace my
                 MessageBox.Show(ex.Message, "Log Exception", MessageBoxButtons.OK);
             }
 #endif
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Get and set up the timers information needed to handle monitor off and computer sleep functions;
+        private void setUpWindowsTimeouts()
+        {
+            startTime = DateTime.Now;
+
+            monitorOffTime  = ((uint)my.myDll.monitorOffTimeout());
+            systemSleepTime = ((uint)my.myDll.systemSleepTimeout()) * 1000;     // The timer will be is ms
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Some post procesing
+        private void PostProcess(GLFW.Window window)
+        {
+            switch (gl_State)
+            {
+                // In this case, screensaver reached the first timeout and is going to turn off the monitor;
+                // We're going to keep the scr running, awaiting for the user's input or the second timeout (whichever comes first)
+                case 1u:
+                    {
+                        Glfw.SetWindowShouldClose(window, false);
+
+                        // Turn the screen off
+                        var handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                        my.myWinApiExt.MonitorTurnOff(handle);
+
+                        int sleepCnt = 0;
+
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+
+                        while (!Glfw.WindowShouldClose(window))
+                        {
+                            processInput(window);
+                            Glfw.PollEvents();
+                            System.Threading.Thread.Sleep(66);
+
+                            // Periodically check the time elasped 
+                            if (++sleepCnt == 50)
+                            {
+                                // Put the PC to sleep, when the timer has reached systemSleepTime value
+                                if (sw.ElapsedMilliseconds > systemSleepTime)
+                                {
+                                    gl_State = 2;
+                                    Glfw.SetWindowShouldClose(window, true);
+                                }
+
+                                sleepCnt = 0;
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
