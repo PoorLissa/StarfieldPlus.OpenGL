@@ -18,13 +18,14 @@ namespace my
 		public static System.Type Type => typeof(myObj_011c);
 
         private int sign;
-        private float x, y, dx, dy, ddy;
+        private float x, y, dx, dy, ddx, ddy;
         private float size, A, R, G, B;
 
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrailMin = 50, nTrailMax = 111, moveMode = 0, trailMode = 0;
-        private static bool doFillShapes = true, doDrawToWhite = true;
+        private static int N = 0, shape = 0, nTrailMin = 50, nTrailMax = 111, startMode = 0, moveMode = 0, trailMode = 0, reflectMode = 0;
+        private static bool doFillShapes = true, doDrawToWhite = true, doUseBlackBox = true;
+        private static int X = gl_x0, Y = gl_y0, blackBoxW = 0, blackBoxH = 0;
 
         private static int[] i_arr = null;
         private static float[] f_arr = null;
@@ -69,6 +70,8 @@ namespace my
                     case 1: nTrailMax = 75 + rand.Next(333); break;
                     case 2: nTrailMax = 99 + rand.Next(666); break;
                 }
+
+                startMode = rand.Next(5);
             }
 
             initLocal();
@@ -79,16 +82,23 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            X = rand.Next(gl_Width);
+            Y = rand.Next(gl_Height);
+
             doClearBuffer = true;
             doFillShapes  = myUtils.randomChance(rand, 1, 2);
             doDrawToWhite = myUtils.randomChance(rand, 1, 3);
+            doUseBlackBox = myUtils.randomChance(rand, 1, 2);
             renderDelay = 0;
 
+            blackBoxW = 111 + rand.Next(gl_x0 / 2);
+            blackBoxH = 111 + rand.Next(gl_y0 / 2);
 
-            moveMode  = 0;
+            moveMode  = rand.Next(3);
             trailMode = rand.Next(8);
-            trailMode = 0;
+            reflectMode = rand.Next(2);
 
+            i_arr[0] = 1 + rand.Next(3);                        // speed factor for dx, dy
 
             switch (moveMode)
             {
@@ -151,7 +161,8 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doDrawToWhite = {doDrawToWhite}\n"     +
-                            $"moveMode= {moveMode}\n"                +
+                            $"doUseBlackBox = {doUseBlackBox}\n"     +
+                            $"moveMode = {moveMode}\n"               +
                             $"trailMode = {trailMode}\n"             +
                             $"nTrailMin = {nTrailMin}\n"             +
                             $"nTrailMax = {nTrailMax}\n"             +
@@ -175,29 +186,75 @@ namespace my
 
         protected override void generateNew()
         {
-            A = 0.5f;
             size = rand.Next(3) + 3;
+            A = myUtils.randFloat(rand, 0.1f);
+            colorPicker.getColorRand(ref R, ref G, ref B);
 
+            // Set starting point
+            switch (startMode)
+            {
+                case 0:
+                    x = gl_x0;
+                    y = gl_y0;
+                    break;
+
+                case 1:
+                    x = X;
+                    y = Y;
+                    break;
+
+                case 2:
+                    x = rand.Next(gl_Width);
+                    y = Y;
+                    break;
+
+                case 3:
+                    y = rand.Next(gl_Height);
+                    x = X;
+                    break;
+
+                case 4:
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    break;
+            }
+
+            // Set dx, dy, ddx, ddy
             switch (moveMode)
             {
                 case 0:
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
                     {
-                        A = myUtils.randFloat(rand, 0.1f);
-                        colorPicker.getColorRand(ref R, ref G, ref B);
-
-                        x = rand.Next(gl_Width);
-                        y = gl_y0;
-
                         dx = myUtils.randFloatSigned(rand, 0.01f) * 3;
-                        dy = 0;
-                        ddy = 0.01f + myUtils.randFloat(rand) * 0.01f;
+                        ddx = 0;
 
+                        dy = 0;
+                        ddy = 0.01f + myUtils.randFloat(rand) * 0.01f * i_arr[0];
+
+                        // Direction: up or down
                         ddy *= myUtils.randomSign(rand);
+                    }
+                    break;
+
+                case 1:
+                    {
+                        dy = myUtils.randFloatSigned(rand, 0.01f) * 3;
+                        ddy = 0;
+
+                        dx = 0;
+                        ddx = 0.01f + myUtils.randFloat(rand) * 0.01f * i_arr[0];
+
+                        // Direction: left or right
+                        ddx *= myUtils.randomSign(rand);
+                    }
+                    break;
+
+                case 2:
+                    {
+                        dx = myUtils.randFloatSigned(rand, 0.01f) * 3;
+                        dy = myUtils.randFloatSigned(rand, 0.01f) * 3;
+
+                        ddx = (0.01f + myUtils.randFloat(rand) * 0.01f) * myUtils.randomSign(rand) * i_arr[0];
+                        ddy = (0.01f + myUtils.randFloat(rand) * 0.01f) * myUtils.randomSign(rand) * i_arr[0];
                     }
                     break;
             }
@@ -223,7 +280,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void reflect()
+        private void reflect1()
         {
             if (y > gl_Height && dy > 0)
                 dy *= -1;
@@ -240,18 +297,57 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private void reflect2()
+        {
+            float val = 0.05f;
+
+            if (y > gl_Height)
+                dy -= val;
+
+            if (y < 0)
+                dy += val;
+
+            if (x < 0)
+                dx += val;
+
+            if (x > gl_Width)
+                dx -= val;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+
         protected override void Move()
         {
             switch (moveMode)
             {
-                // Straight bottom to top
                 case 0:
+                case 1:
+                case 2:
                     {
                         x += dx;
                         y += dy;
-                        dy += ddy;
 
-                        reflect();
+                        // In blackBoxMode, acceleration is applied only when the particle is outside of the box:
+                        if (doUseBlackBox)
+                        {
+                            if (x < blackBoxW || x > gl_Width - blackBoxW || y < blackBoxH || y > gl_Height - blackBoxH)
+                            {
+                                dx += ddx;
+                                dy += ddy;
+                            }
+                        }
+                        else
+                        {
+                            dx += ddx;
+                            dy += ddy;
+                        }
+
+                        switch (reflectMode)
+                        {
+                            case 0: reflect1(); break;
+                            case 1: reflect2(); break;
+                        }
                     }
                     break;
             }

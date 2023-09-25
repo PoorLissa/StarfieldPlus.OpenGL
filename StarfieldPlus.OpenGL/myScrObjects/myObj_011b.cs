@@ -155,7 +155,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doDrawToWhite = {doDrawToWhite}\n"     +
-                            $"moveMode= {moveMode}\n"                +
+                            $"moveMode = {moveMode}\n"               +
                             $"trailMode = {trailMode}\n"             +
                             $"nTrailMin = {nTrailMin}\n"             +
                             $"nTrailMax = {nTrailMax}\n"             +
