@@ -14,18 +14,18 @@ namespace my
     public class myObj_011c : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_011c);
 
-        private int sign;
+        private int cnt;
         private float x, y, dx, dy, ddx, ddy;
         private float size, A, R, G, B;
 
         private myParticleTrail trail = null;
 
         private static int N = 0, shape = 0, nTrailMin = 50, nTrailMax = 111, startMode = 0, moveMode = 0, trailMode = 0, reflectMode = 0;
-        private static bool doFillShapes = true, doDrawToWhite = true, doUseBlackBox = true;
-        private static int X = gl_x0, Y = gl_y0, blackBoxW = 0, blackBoxH = 0;
+        private static bool doFillShapes = true, doDrawToWhite = true, doUseBlackBox = true, doUseLifeCnt = true;
+        private static int X = gl_x0, Y = gl_y0, blackBoxW = 0, blackBoxH = 0, maxCnt = 0;
 
         private static int[] i_arr = null;
         private static float[] f_arr = null;
@@ -89,7 +89,10 @@ namespace my
             doFillShapes  = myUtils.randomChance(rand, 1, 2);
             doDrawToWhite = myUtils.randomChance(rand, 1, 3);
             doUseBlackBox = myUtils.randomChance(rand, 1, 2);
+            doUseLifeCnt  = myUtils.randomChance(rand, 4, 5);
             renderDelay = 0;
+
+            maxCnt = 333 + rand.Next(999);
 
             blackBoxW = 111 + rand.Next(gl_x0 / 2);
             blackBoxH = 111 + rand.Next(gl_y0 / 2);
@@ -162,6 +165,7 @@ namespace my
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doDrawToWhite = {doDrawToWhite}\n"     +
                             $"doUseBlackBox = {doUseBlackBox}\n"     +
+                            $"doUseLifeCnt = {doUseLifeCnt}\n"       +
                             $"moveMode = {moveMode}\n"               +
                             $"trailMode = {trailMode}\n"             +
                             $"nTrailMin = {nTrailMin}\n"             +
@@ -186,6 +190,7 @@ namespace my
 
         protected override void generateNew()
         {
+            cnt = 333 + rand.Next(maxCnt);
             size = rand.Next(3) + 3;
             A = myUtils.randFloat(rand, 0.1f);
             colorPicker.getColorRand(ref R, ref G, ref B);
@@ -319,6 +324,16 @@ namespace my
 
         protected override void Move()
         {
+            if (doUseLifeCnt && --cnt < 0)
+            {
+                A -= 0.01f;
+
+                if (A < 0)
+                {
+                    generateNew();
+                }
+            }
+
             switch (moveMode)
             {
                 case 0:
