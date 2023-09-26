@@ -6,6 +6,25 @@
 
 // -----------------------------------------------------------------------------------------------
 
+/*
+    NTSTATUS CallNtPowerInformation(
+      [in]  POWER_INFORMATION_LEVEL InformationLevel,
+      [in]  PVOID                   InputBuffer,
+      [in]  ULONG                   InputBufferLength,
+      [out] PVOID                   OutputBuffer,
+      [in]  ULONG                   OutputBufferLength
+    );
+*/
+
+extern "C" __declspec(dllexport) DWORD systemExecutionState()
+{
+    SYSTEM_POWER_POLICY spp;
+
+    CallNtPowerInformation(POWER_INFORMATION_LEVEL::SystemExecutionState, nullptr, 0, &spp, sizeof(spp));
+
+    return spp.VideoTimeout;
+}
+
 extern "C" __declspec(dllexport) DWORD monitorOffTimeout()
 {
     SYSTEM_POWER_POLICY spp;
@@ -14,8 +33,6 @@ extern "C" __declspec(dllexport) DWORD monitorOffTimeout()
 
     return spp.VideoTimeout;
 }
-
-// -----------------------------------------------------------------------------------------------
 
 // https://learn.microsoft.com/en-us/windows/win32/power/system-power-information-str
 // Note that this structure definition was accidentally omitted from WinNT.h.

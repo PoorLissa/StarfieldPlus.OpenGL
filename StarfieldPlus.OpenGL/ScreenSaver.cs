@@ -120,7 +120,7 @@ public class ScreenSaver
         register(my.myObj_130.Type);      // Growing shapes -- Rain circles alike -- no buffer clearing
         register(my.myObj_131.Type);      // Growing shapes -- Rain circles alike
         register(my.myObj_132.Type);      // Splines
-        register(my.myObj_140.Type);      // Grid with moving rectangle lenses -- test, looks strange
+        register(my.myObj_140.Type);      // Grid with moving rectangle lenses -- TBD -- looks strange
         register(my.myObj_150.Type);      // Conway's Life
         register(my.myObj_160.Type);      // Desktop: Ever fading away pieces
         register(my.myObj_170.Type);      // Desktop: Diminishing pieces
