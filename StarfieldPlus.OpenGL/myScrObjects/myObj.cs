@@ -274,7 +274,9 @@ namespace my
 
                 // Main Procedure
                 {
-                    gl_State = 0;
+                    // Disable this for now.
+                    // Check later -- still need to pause after the monitor timeout is reached
+                    gl_State = 10;
 
                     Process(openGL_Window);
                     PostProcess(openGL_Window);
