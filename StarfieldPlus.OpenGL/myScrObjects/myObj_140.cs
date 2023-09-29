@@ -10,6 +10,8 @@ using System.Collections.Generic;
     Make it like a lense -- but with an area. The tiles closest to the center get larger scale factor
     Also, as an option: display a grid, where each cell is an avg color from this position;
     AND only where the active object is, display actual texture
+
+    -- Change of plans! This is now a random image viewer which displays 2 different images at different opacity
 */
 
 
@@ -102,7 +104,7 @@ namespace my
             else
                 tex.reloadImg(colorPicker.getImg());
 
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.IMAGE);
+            colorPicker.reloadImage();
 
             return;
         }

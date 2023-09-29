@@ -155,6 +155,14 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        // Load another image, effectively replacing the current one
+        public void reloadImage()
+        {
+            getCustomPicture(_W, _H);
+        }
+
+        // -------------------------------------------------------------------------
+
         public void setPixel(int x, int y, int A = 255)
         {
             if (x > -1 && y > -1 && x < _img.Width && y < _img.Height)
