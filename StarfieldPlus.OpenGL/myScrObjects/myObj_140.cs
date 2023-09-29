@@ -18,15 +18,15 @@ namespace my
     public class myObj_140 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 9999910;
 		public static System.Type Type => typeof(myObj_140);
 
-        private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float A, dA;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
+        private static int N = 0;
         private static float dimAlpha = 0.05f;
+
+        private myTexRectangle tex = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -41,14 +41,12 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.IMAGE);
             list = new List<myObject>();
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-
-                shape = rand.Next(5);
+                N = 2;
             }
 
             initLocal();
@@ -59,9 +57,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-
-            renderDelay = rand.Next(11) + 3;
+            doClearBuffer = true;
+            renderDelay = 10;
 
             return;
         }
@@ -95,20 +92,17 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            A = 0;
+            dA = 0.0001f + myUtils.randFloat(rand) * 0.0003f;
 
-            dx = myUtils.randFloat(rand);
-            dy = myUtils.randFloat(rand);
+            dA *= 3;
 
-            size = rand.Next(11) + 3;
+            if (tex == null)
+                tex = new myTexRectangle(colorPicker.getImg());
+            else
+                tex.reloadImg(colorPicker.getImg());
 
-            A = 1;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
-
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.IMAGE);
 
             return;
         }
@@ -117,10 +111,14 @@ namespace my
 
         protected override void Move()
         {
-            x += dx;
-            y += dy;
+            A += dA;
 
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+            if (A > 1 && dA > 0)
+            {
+                dA *= -1;
+            }
+
+            if (A < 0)
             {
                 generateNew();
             }
@@ -132,53 +130,8 @@ namespace my
 
         protected override void Show()
         {
-            float size2x = size * 2;
-
-            switch (shape)
-            {
-                // Instanced squares
-                case 0:
-                    var rectInst = inst as myRectangleInst;
-
-                    rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-                    break;
-
-                // Instanced triangles
-                case 1:
-                    var triangleInst = inst as myTriangleInst;
-
-                    triangleInst.setInstanceCoords(x, y, size2x, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced circles
-                case 2:
-                    var ellipseInst = inst as myEllipseInst;
-
-                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced pentagons
-                case 3:
-                    var pentagonInst = inst as myPentagonInst;
-
-                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
-                case 4:
-                    var hexagonInst = inst as myHexagonInst;
-
-                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
-                    break;
-            }
-
-            return;
+            tex.setOpacity(A);
+            tex.Draw(0, 0, gl_Width, gl_Height);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -187,9 +140,6 @@ namespace my
         {
             uint cnt = 0;
             initShapes();
-
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
@@ -217,8 +167,6 @@ namespace my
 
                 // Render Frame
                 {
-                    inst.ResetBuffer();
-
                     for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_140;
@@ -226,17 +174,6 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
-
-                    if (doFillShapes)
-                    {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
-                    }
-
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
                 }
 
                 if (Count < N)
@@ -245,7 +182,6 @@ namespace my
                 }
 
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -256,9 +192,6 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, N, 0);
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
