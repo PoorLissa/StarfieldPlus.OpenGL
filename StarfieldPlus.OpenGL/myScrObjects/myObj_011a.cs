@@ -17,7 +17,7 @@ namespace my
     public class myObj_011a : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_011a);
 
         private float x, y, dx, dy, X, Y, a, da, angle, dAngle, radx, rady;
@@ -113,6 +113,8 @@ namespace my
 
             moveMode = rand.Next(10);
             startMode = rand.Next(4);
+
+moveMode = 10;
 
             // line width
             switch (rand.Next(3))
@@ -243,7 +245,7 @@ namespace my
             }
 
             // Circular motion setup
-            if (moveMode >= 3 && moveMode <= 6)
+            if ((moveMode >= 3 && moveMode <= 6) || (moveMode == 10))
             {
                 switch (moveMode)
                 {
@@ -269,6 +271,10 @@ namespace my
                         radx = rady = rand.Next(gl_x0) + 3;
                         break;
 
+                    case 10:
+                        radx = rady = rand.Next(gl_x0) + 3;
+                        cnt = 100 + rand.Next(33);
+                        break;
                 }
 
                 angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
@@ -341,8 +347,8 @@ namespace my
                             break;
 
                         case 1:
-                            r1 = (float)System.Math.Sin(x) * 3;
-                            r2 = (float)System.Math.Cos(y) * 3;
+                            r1 = (float)Math.Sin(x) * 3;
+                            r2 = (float)Math.Cos(y) * 3;
                             break;
                     }
 
@@ -431,8 +437,8 @@ namespace my
                 case 4:
                 case 5:
                     {
-                        x = gl_x0 + radx * (float)System.Math.Sin(angle);
-                        y = gl_y0 + rady * (float)System.Math.Cos(angle);
+                        x = gl_x0 + radx * (float)Math.Sin(angle);
+                        y = gl_y0 + rady * (float)Math.Cos(angle);
 
                         angle += dAngle;
 
@@ -447,8 +453,8 @@ namespace my
                 // Circular motion with varying y-radius
                 case 6:
                     {
-                        x = gl_x0 + radx * (float)System.Math.Sin(angle);
-                        y = gl_y0 + rady * (float)System.Math.Cos(angle) * (float)System.Math.Sin(t * 0.05);
+                        x = gl_x0 + radx * (float)Math.Sin(angle);
+                        y = gl_y0 + rady * (float)Math.Cos(angle) * (float)Math.Sin(t * 0.05);
 
                         angle += dAngle;
 
@@ -487,8 +493,51 @@ namespace my
                         }
                         else
                         {
-                            x += dx * (float)System.Math.Sin(angle);
-                            y += dy * (float)System.Math.Cos(angle);
+                            x += dx * (float)Math.Sin(angle);
+                            y += dy * (float)Math.Cos(angle);
+
+                            angle += dAngle;
+                        }
+                    }
+                    break;
+
+                case 10:
+                    {
+                        if (--cnt < 1)
+                        {
+                            if (cnt == 0)
+                            {
+                                dx = x - gl_x0;
+                                dy = y - gl_y0;
+
+                                int speed = 3 + rand.Next(10);
+                                float dist = speed / (float)Math.Sqrt(dx * dx + dy * dy);
+
+                                dx *= dist;
+                                dy *= dist;
+                            }
+
+                            if (cnt < -11)
+                            {
+                                x += dx;
+                                y += dy;
+
+                                if (x < 0 || y < 0 || x > gl_Width || y > gl_Height)
+                                {
+                                    A -= 0.01f;
+
+                                    if (A < 0)
+                                    {
+                                        generateNew();
+                                        trail.reset(x, y);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            x = gl_x0 + radx * (float)Math.Sin(angle);
+                            y = gl_y0 + rady * (float)Math.Cos(angle);
 
                             angle += dAngle;
                         }
