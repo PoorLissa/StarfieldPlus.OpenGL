@@ -17,7 +17,7 @@ namespace my
     public class myObj_011a : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_011a);
 
         private float x, y, dx, dy, X, Y, a, da, angle, dAngle, radx, rady;
@@ -33,7 +33,7 @@ namespace my
         private static float t = 0, dt = 0;
         private static float borderRepulsionFactor = 0;
 
-        private static int int_01 = 0;
+        private static int int_01 = 0, int_02 = 0;
 
         private static myFreeShader shader = null;
         static myTexRectangle tex = null;
@@ -148,6 +148,12 @@ moveMode = 10;
                     doRandomizeSpeed = false;
                     int_01 = rand.Next(6);
                     break;
+
+                case 10:
+                    doRandomizeSpeed = myUtils.randomChance(rand, 1, 7);
+                    int_01 = 1 + rand.Next(8);
+                    int_02 = 2 + rand.Next(7);
+                    break;
             }
 
             return;
@@ -247,6 +253,9 @@ moveMode = 10;
             // Circular motion setup
             if ((moveMode >= 3 && moveMode <= 6) || (moveMode == 10))
             {
+                angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
+                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
+
                 switch (moveMode)
                 {
                     // Circle
@@ -273,12 +282,10 @@ moveMode = 10;
 
                     case 10:
                         radx = rady = rand.Next(gl_x0) + 3;
-                        cnt = 100 + rand.Next(33);
+                        cnt = 100 + rand.Next(333);
+                        dAngle *= (1.0f / int_01);
                         break;
                 }
-
-                angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
-                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
 
                 MoveParticle();
             }
@@ -510,7 +517,8 @@ moveMode = 10;
                                 dx = x - gl_x0;
                                 dy = y - gl_y0;
 
-                                int speed = 3 + rand.Next(10);
+                                int speed = 1 + rand.Next(int_02);
+
                                 float dist = speed / (float)Math.Sqrt(dx * dx + dy * dy);
 
                                 dx *= dist;
