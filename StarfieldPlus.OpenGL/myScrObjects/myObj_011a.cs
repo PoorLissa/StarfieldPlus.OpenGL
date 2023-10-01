@@ -114,8 +114,6 @@ namespace my
             moveMode = rand.Next(10);
             startMode = rand.Next(4);
 
-moveMode = 10;
-
             // line width
             switch (rand.Next(3))
             {

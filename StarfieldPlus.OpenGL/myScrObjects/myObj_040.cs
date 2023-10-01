@@ -6,6 +6,8 @@ using System.Collections.Generic;
 
 /*
     - Snake-like branches moving outwards from the center
+
+        In case doClearBuffer = true, myParticleTrail is used
 */
 
 
@@ -19,17 +21,20 @@ namespace my
 
         private float x, y, dx, dy, size, dSize, R, G, B, A, dA, angle, dAngle;
         private int angleMode = 0, signX, signY, oldX = 0, oldY = 0;
+        private myParticleTrail trail = null;
 
         private static float dimAlpha = 0, ddSize = 0, offX = 0, offY = 0, dOffX = 0, dOffY = 0;
         private static int N = 0, rndMax = 0, shape = 0, moveType = 0, dimRate = 0, maxSize = 0,
-                           lineMode = 0, fillMode = 0, centerGenMode = 0, tailLength = 0;
+                           lineMode = 0, fillMode = 0, centerGenMode = 0, tailLength = 0,
+                           nTrail = 0;
         static bool doUseStrongerDimFactor = false, doDrawTwice = true, doAdjustOpacity = true, doAdjustSpeed = true;
 
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_040()
         {
-            generateNew();
+            if (id != uint.MaxValue)
+                generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -42,12 +47,14 @@ namespace my
 
             // Global immutable consts
             {
-                doClearBuffer = false;
+                doClearBuffer = myUtils.randomChance(rand, 1, 2);
                 doDrawTwice   = myUtils.randomBool(rand);
 
                 shape = rand.Next(5);
                 N = 1111 + rand.Next(333);
                 stepsPerFrame = rand.Next(5) + 1;
+
+                nTrail = 100 + rand.Next(666);
             }
 
             initLocal();
@@ -66,6 +73,12 @@ namespace my
             centerGenMode = rand.Next(4);                           // How dx/dy are generated, also, position of center
             doAdjustOpacity = myUtils.randomChance(rand, 2, 3);     // If true, reduce opacity for multi-step modes
             doAdjustSpeed   = myUtils.randomChance(rand, 1, 2);     // If true, reduce dx and dy for multi-step modes
+
+            if (doClearBuffer)
+            {
+                lineMode = 0;
+                doAdjustOpacity = false;
+            }
 
             tailLength = myUtils.randomChance(rand, 1, 2) ? rand.Next(11) : 0;
             rndMax = rand.Next(800) + 100;
@@ -256,6 +269,17 @@ namespace my
             oldX = (int)x;
             oldY = (int)y;
 
+            // Initialize Trail
+            if (trail == null)
+            {
+                trail = new myParticleTrail(nTrail, x, y);
+            }
+            else
+            {
+                trail.reset(x, y);
+                trail.updateDa(1);
+            }
+
             return;
         }
 
@@ -263,6 +287,11 @@ namespace my
 
         protected override void Move()
         {
+            if (doClearBuffer)
+            {
+                trail.update(x, y);
+            }
+
             oldX = (int)x;
             oldY = (int)y;
 
@@ -294,7 +323,18 @@ namespace my
 
             if (y < 0 || y > gl_Height || x < 0 || x > gl_Width || A < 0)
             {
-                generateNew();
+                if (doClearBuffer)
+                {
+                    A -= 3 * dA;
+
+                    if (A < 0)
+                        generateNew();
+
+                }
+                else
+                {
+                    generateNew();
+                }
             }
 
             return;
@@ -304,6 +344,11 @@ namespace my
 
         protected override void Show()
         {
+            if (doClearBuffer)
+            {
+                trail.Show(R, G, B, A > 1 ? 1 : A);
+            }
+
             float size2x = size * 2;
 
             switch (shape)
@@ -436,70 +481,123 @@ namespace my
             int step, i;
             initShapes();
 
-            dimScreenRGB_SetRandom(0.1f);
-            glDrawBuffer(GL_FRONT_AND_BACK);
+            clearScreenSetup(doClearBuffer, 0.13f);
 
-            while (!Glfw.WindowShouldClose(window))
+            if (doClearBuffer)
             {
-                processInput(window);
-
-                // Swap fore/back framebuffers, and poll for operating system events.
-                Glfw.SwapBuffers(window);
-                Glfw.PollEvents();
-
-                // Dim screen
+                while (!Glfw.WindowShouldClose(window))
                 {
-                    // Modify background color occasionally
-                    if (myUtils.randomChance(rand, 1, 10001))
+                    int Count = list.Count;
+
+                    processInput(window);
+
+                    // Swap fore/back framebuffers, and poll for operating system events.
+                    Glfw.SwapBuffers(window);
+                    Glfw.PollEvents();
+
+                    // Dim screen
                     {
-                        dimScreenRGB_Adjust(0.1f);
+                        glClear(GL_COLOR_BUFFER_BIT);
                     }
 
-                    dimScreen(dimAlpha, false, doUseStrongerDimFactor);
-                }
-
-                // Render frame
-                {
-                    inst.ResetBuffer();
-
-                    if (lineMode != 0)
+                    // Render frame
                     {
+                        inst.ResetBuffer();
                         myPrimitive._LineInst.ResetBuffer();
-                    }
 
-                    for (step = 0; step < stepsPerFrame; step++)
-                    {
-                        for (i = 0; i != list.Count; i++)
+                        for (i = 0; i != Count; i++)
                         {
                             var obj = list[i] as myObj_040;
 
                             obj.Show();
                             obj.Move();
                         }
-                    }
 
-                    if (lineMode != 0)
-                    {
                         myPrimitive._LineInst.Draw();
+
+                        if (fillMode > 0)
+                        {
+                            inst.SetColorA(-0.25f);
+                            inst.Draw(true);
+                        }
+
+                        inst.SetColorA(0);
+                        inst.Draw(false);
                     }
 
-                    if (fillMode > 0)
+                    if (Count < N)
                     {
-                        inst.SetColorA(-0.25f);
-                        inst.Draw(true);
+                        list.Add(new myObj_040());
                     }
 
-                    inst.SetColorA(0);
-                    inst.Draw(false);
+                    cnt++;
+                    System.Threading.Thread.Sleep(renderDelay);
                 }
-
-                if (list.Count < N)
+            }
+            else
+            {
+                while (!Glfw.WindowShouldClose(window))
                 {
-                    list.Add(new myObj_040());
-                }
+                    processInput(window);
 
-                cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
+                    // Swap fore/back framebuffers, and poll for operating system events.
+                    Glfw.SwapBuffers(window);
+                    Glfw.PollEvents();
+
+                    // Dim screen
+                    {
+                        // Modify background color occasionally
+                        if (myUtils.randomChance(rand, 1, 10001))
+                        {
+                            dimScreenRGB_Adjust(0.1f);
+                        }
+
+                        dimScreen(dimAlpha, false, doUseStrongerDimFactor);
+                    }
+
+                    // Render frame
+                    {
+                        inst.ResetBuffer();
+
+                        if (lineMode != 0)
+                        {
+                            myPrimitive._LineInst.ResetBuffer();
+                        }
+
+                        for (step = 0; step < stepsPerFrame; step++)
+                        {
+                            for (i = 0; i != list.Count; i++)
+                            {
+                                var obj = list[i] as myObj_040;
+
+                                obj.Show();
+                                obj.Move();
+                            }
+                        }
+
+                        if (lineMode != 0)
+                        {
+                            myPrimitive._LineInst.Draw();
+                        }
+
+                        if (fillMode > 0)
+                        {
+                            inst.SetColorA(-0.25f);
+                            inst.Draw(true);
+                        }
+
+                        inst.SetColorA(0);
+                        inst.Draw(false);
+                    }
+
+                    if (list.Count < N)
+                    {
+                        list.Add(new myObj_040());
+                    }
+
+                    cnt++;
+                    System.Threading.Thread.Sleep(renderDelay);
+                }
             }
 
             list.Clear();
@@ -513,12 +611,19 @@ namespace my
         {
             int lineN = N;
 
-            myPrimitive.init_Rectangle();
+            if (doClearBuffer)
+            {
+                myPrimitive.init_LineInst(N * nTrail);
+                base.initShapes(shape, N * (doDrawTwice ? 2 : 1), 0);
+            }
+            else
+            {
+                myPrimitive.init_Rectangle();
+                myPrimitive.init_ScrDimmer();
 
-            myPrimitive.init_ScrDimmer();
-            myPrimitive.init_LineInst(lineN * stepsPerFrame);
-
-            base.initShapes(shape, N * stepsPerFrame * (doDrawTwice ? 2 : 1), 0);
+                myPrimitive.init_LineInst(lineN * stepsPerFrame);
+                base.initShapes(shape, N * stepsPerFrame * (doDrawTwice ? 2 : 1), 0);
+            }
 
             return;
         }
@@ -818,6 +923,8 @@ namespace my
                 dA *= -1;
             }
         }
+
+        // ---------------------------------------------------------------------------------------------------------------
 
     };
 };
