@@ -33,9 +33,8 @@ namespace my
         protected uint id { get; private set; } = 0;
 
         // Timeouts for Monitor Off, System Sleep:
-        private static uint monitorOffTime = 10 * 60, systemSleepTime = 30 * 60;
-        private static uint gl_State = 0;
-        private static DateTime startTime;
+        private static uint _monitorOffTime = 10 * 60, _systemSleepTime = 30 * 60;
+        private static DateTime _startTime;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -149,16 +148,10 @@ namespace my
 #endif
             }
 
-            // Monitor Off timeout (Windows 10 related issue)
-            if (gl_State == 0 && ((TimeSpan)(DateTime.Now - startTime)).TotalSeconds > monitorOffTime)
+            // Watch the Monitor Off timeout (Windows 10 related issue)
+            if (Program.gl_State == Program.STATE.MANAGED_MAIN && ((TimeSpan)(DateTime.Now - _startTime)).TotalSeconds > _monitorOffTime)
             {
-                gl_State = 1u;
-
-                if (systemSleepTime > monitorOffTime)
-                {
-                    systemSleepTime -= monitorOffTime;
-                }
-
+                Program.gl_State = Program.STATE.MANAGED_MONITOR_OFF;
                 Glfw.SetWindowShouldClose(window, true);
                 return;
             }
@@ -206,7 +199,8 @@ namespace my
         {
             try
             {
-                setUpWindowsTimeouts();
+                // Get Monitor Off and Sleep timeout values
+                getWindowsTimeouts();
 
                 // Set context creation hints
                 myOGL.PrepareContextHints();
@@ -219,44 +213,6 @@ namespace my
                     glEnable(GL_BLEND);                                 // Enable blending
                     glBlendEquation(GL_FUNC_ADD);
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Set blending function                    
-                }
-
-                // Make the process window topmost, as the TaskScheduler might run it in a background
-                if (Program.gl_WinVer == 10)
-                {
-                    if (openGL_Window != IntPtr.Zero)
-                    {
-                        int SWP_ASYNCWINDOWPOS = 0x4000;    // If the calling thread and the thread that owns the window are attached to different input queues, the system posts the request to the thread that owns the window. This prevents the calling thread from blocking its execution while other threads process the request.
-                        int SWP_DEFERERASE     = 0x2000;    // Prevents generation of the WM_SYNCPAINT message.
-                        int SWP_DRAWFRAME      = 0x0020;    // Draws a frame(defined in the window's class description) around the window.
-                        int SWP_FRAMECHANGED   = 0x0020;    // Applies new frame styles set using the SetWindowLong function.Sends a WM_NCCALCSIZE message to the window, even if the window's size is not being changed. If this flag is not specified, WM_NCCALCSIZE is sent only when the window's size is being changed.
-                        int SWP_HIDEWINDOW     = 0x0080;    // Hides the window.
-                        int SWP_NOACTIVATE     = 0x0010;    // Does not activate the window.If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group (depending on the setting of the hWndInsertAfter parameter).
-                        int SWP_NOCOPYBITS     = 0x0100;    // Discards the entire contents of the client area. If this flag is not specified, the valid contents of the client area are saved and copied back into the client area after the window is sized or repositioned.
-                        int SWP_NOMOVE         = 0x0002;    // Retains the current position(ignores X and Y parameters).
-                        int SWP_NOOWNERZORDER  = 0x0200;    // Does not change the owner window's position in the Z order.
-                        int SWP_NOREDRAW       = 0x0008;    // Does not redraw changes. If this flag is set, no repainting of any kind occurs. This applies to the client area, the nonclient area(including the title bar and scroll bars), and any part of the parent window uncovered as a result of the window being moved. When this flag is set, the application must explicitly invalidate or redraw any parts of the window and parent window that need redrawing.
-                        int SWP_NOREPOSITION   = 0x0200;    // Same as the SWP_NOOWNERZORDER flag
-                        int SWP_NOSENDCHANGING = 0x0400;    // Prevents the window from receiving the WM_WINDOWPOSCHANGING message.
-                        int SWP_NOSIZE         = 0x0001;    // Retains the current size(ignores the cx and cy parameters)
-                        int SWP_NOZORDER       = 0x0004;    // Retains the current Z order(ignores the hWndInsertAfter parameter)
-                        int SWP_SHOWWINDOW     = 0x0040;    // Displays the window
-
-                        int flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
-                        int HWND_TOPMOST = -1;
-
-                        var handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
-
-                        my.myWinAPI.SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, flags);
-
-                        //handle = System.Diagnostics.Process.GetCurrentProcess().Handle;
-
-                        //my.myWinAPI.SetForegroundWindow(handle);
-                        //my.myWinAPI.SetFocus(handle);
-                        //Glfw.FocusWindow(openGL_Window);
-
-                        //my.myWinAPI.SetActiveWindow(handle);
-                    }
                 }
 
                 // One time call to let all the primitives know the screen dimensions
@@ -272,12 +228,11 @@ namespace my
                 // Hide cursor
                 Glfw.SetInputMode(openGL_Window, InputMode.Cursor, (int)GLFW.CursorMode.Hidden);
 
+                // Make the window topmost (in the case of task scheduler)
+                makeTopmost(openGL_Window);
+
                 // Main Procedure
                 {
-                    // Disable this for now.
-                    // Check later -- still need to pause after the monitor timeout is reached
-                    gl_State = 10;
-
                     Process(openGL_Window);
                     PostProcess(openGL_Window);
                 }
@@ -287,7 +242,7 @@ namespace my
                 Glfw.Terminate();
 
                 // Finally, in case we've reached all the timeouts, put the PC to sleep before exiting
-                if (gl_State == 2)
+                if (Program.gl_State == Program.STATE.MANAGED_SLEEP)
                 {
                     Application.SetSuspendState(PowerState.Suspend, true, true);
                 }
@@ -322,12 +277,50 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Get and set up the timers information needed to handle monitor off and computer sleep functions;
-        private void setUpWindowsTimeouts()
+        private void getWindowsTimeouts()
         {
-            startTime = DateTime.Now;
+            _startTime = DateTime.Now;
 
-            monitorOffTime  = ((uint)my.myDll.monitorOffTimeout());
-            systemSleepTime = ((uint)my.myDll.systemSleepTimeout()) * 1000;     // The timer will be is ms
+            _monitorOffTime  = ((uint)my.myDll.monitorOffTimeout());
+            _systemSleepTime = ((uint)my.myDll.systemSleepTimeout());
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void makeTopmost(GLFW.Window window)
+        {
+            // Make the process window topmost, as the TaskScheduler might run it in a background
+            if (Program.gl_State == Program.STATE.TASK_SCHEDULER)
+            {
+#pragma warning disable
+                if (window != IntPtr.Zero)
+                {
+                    int SWP_ASYNCWINDOWPOS = 0x4000;    // If the calling thread and the thread that owns the window are attached to different input queues, the system posts the request to the thread that owns the window. This prevents the calling thread from blocking its execution while other threads process the request.
+                    int SWP_DEFERERASE     = 0x2000;    // Prevents generation of the WM_SYNCPAINT message.
+                    int SWP_DRAWFRAME      = 0x0020;    // Draws a frame(defined in the window's class description) around the window.
+                    int SWP_FRAMECHANGED   = 0x0020;    // Applies new frame styles set using the SetWindowLong function.Sends a WM_NCCALCSIZE message to the window, even if the window's size is not being changed. If this flag is not specified, WM_NCCALCSIZE is sent only when the window's size is being changed.
+                    int SWP_HIDEWINDOW     = 0x0080;    // Hides the window.
+                    int SWP_NOACTIVATE     = 0x0010;    // Does not activate the window.If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group (depending on the setting of the hWndInsertAfter parameter).
+                    int SWP_NOCOPYBITS     = 0x0100;    // Discards the entire contents of the client area. If this flag is not specified, the valid contents of the client area are saved and copied back into the client area after the window is sized or repositioned.
+                    int SWP_NOMOVE         = 0x0002;    // Retains the current position(ignores X and Y parameters).
+                    int SWP_NOOWNERZORDER  = 0x0200;    // Does not change the owner window's position in the Z order.
+                    int SWP_NOREDRAW       = 0x0008;    // Does not redraw changes. If this flag is set, no repainting of any kind occurs. This applies to the client area, the nonclient area(including the title bar and scroll bars), and any part of the parent window uncovered as a result of the window being moved. When this flag is set, the application must explicitly invalidate or redraw any parts of the window and parent window that need redrawing.
+                    int SWP_NOREPOSITION   = 0x0200;    // Same as the SWP_NOOWNERZORDER flag
+                    int SWP_NOSENDCHANGING = 0x0400;    // Prevents the window from receiving the WM_WINDOWPOSCHANGING message.
+                    int SWP_NOSIZE         = 0x0001;    // Retains the current size(ignores the cx and cy parameters)
+                    int SWP_NOZORDER       = 0x0004;    // Retains the current Z order(ignores the hWndInsertAfter parameter)
+                    int SWP_SHOWWINDOW     = 0x0040;    // Displays the window
+
+                    int flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
+                    int HWND_TOPMOST = -1;
+
+                    var handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                    my.myWinAPI.SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, flags);
+                }
+#pragma warning restore
+            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -335,22 +328,30 @@ namespace my
         // Some post procesing
         private void PostProcess(GLFW.Window window)
         {
-            switch (gl_State)
+            switch (Program.gl_State)
             {
-                // In this case, screensaver reached the first timeout and is going to turn off the monitor;
-                // We're going to keep the scr running, awaiting for the user's input or the second timeout (whichever comes first)
-                case 1u:
+                // In this case, screensaver reached the first timeout;
+                // By this time, Windows should be turning the monitor off;
+                // We're going to keep the scr running to prevent it from starting again;
+                // This state should be active until we've received the user's input or the second timeout expires (whichever comes first)
+                case Program.STATE.MANAGED_MONITOR_OFF:
                     {
                         Glfw.SetWindowShouldClose(window, false);
 
                         // Turn the screen off
-                        var handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
-                        my.myWinApiExt.MonitorTurnOff(handle);
+                        // Actually, no need for that, as the system is able to count down monitor timeout and turn the screen off itself
+                        //var handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                        //my.myWinApiExt.MonitorTurnOff(handle);
 
                         int sleepCnt = 0;
 
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
+
+                        // Recalculate sleep timer target value:
+                        // If the monitor timeout was set to 20 min, and the system sleep was set to 60 min,
+                        // then out current _systemSleepTime must be set to 60 - 20 = 40 min (the first 20 min are already gone).
+                        _systemSleepTime -= _systemSleepTime > _monitorOffTime ? _monitorOffTime : 0;
 
                         while (!Glfw.WindowShouldClose(window))
                         {
@@ -358,13 +359,13 @@ namespace my
                             Glfw.PollEvents();
                             System.Threading.Thread.Sleep(66);
 
-                            // Periodically check the time elasped 
+                            // Periodically check the time elapsed 
                             if (++sleepCnt == 50)
                             {
-                                // Put the PC to sleep, when the timer has reached systemSleepTime value
-                                if (sw.ElapsedMilliseconds > systemSleepTime)
+                                // Set the next state and break out of this loop
+                                if (sw.ElapsedMilliseconds > _systemSleepTime * 1000)
                                 {
-                                    gl_State = 2;
+                                    Program.gl_State = Program.STATE.MANAGED_SLEEP;
                                     Glfw.SetWindowShouldClose(window, true);
                                 }
 

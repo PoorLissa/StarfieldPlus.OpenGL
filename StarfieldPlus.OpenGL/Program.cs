@@ -9,24 +9,16 @@ namespace StarfieldPlus.OpenGL
 {
     class Program
     {
+        public enum STATE { INIT, TASK_SCHEDULER, MANAGED_MAIN, MANAGED_MONITOR_OFF, MANAGED_SLEEP };
 
         // Used to prevent the screensaver from starting another instance
         private static System.Threading.Mutex singletonMutex = null;
-
-        public static byte gl_WinVer = 0;
+        public static STATE gl_State = STATE.INIT;
 
         // -------------------------------------------------------------------------------------------------------------------
 
         static void Main(string[] args)
         {
-/*
-            uint originalTimeout = 0;
-            uint SPI_GETSCREENSAVETIMEOUT = 0x000E;
-            uint SPI_SETSCREENSAVETIMEOUT = 0x000F;
-
-            my.myWinAPI.SystemParametersInfo(SPI_GETSCREENSAVETIMEOUT,       0, ref originalTimeout, 0);
-            my.myWinAPI.SystemParametersInfo(SPI_SETSCREENSAVETIMEOUT, 60 * 60, ref originalTimeout, 0);
-*/
             const string appName = "starField.Plus.OpenGL";
 
             bool initialOwnershipGranted = false;
@@ -62,25 +54,33 @@ namespace StarfieldPlus.OpenGL
 
                     switch (arg1)
                     {
-                        // Configuration mode
+                        // STANDARD: Configuration mode
                         case "/c":
                             configProc();
                             break;
 
-                        // Preview mode
+                        // STANDARD: Preview mode
                         case "/p":
                             previewProc();
                             break;
 
-                        // Full-screen mode
+                        // STANDARD: Full-screen mode
                         case "/s":
                             mainProc();
                             break;
 
-                        // Full-screen mode
-                        // '/t' means, we're in Windows 10, and the screensaver is started from TaskScheduler
+                        // EXTENDED: '/t' means, we're in Windows 10, and the screensaver is started from TaskScheduler
                         case "/t":
-                            gl_WinVer = 10;
+                            Program.gl_State = STATE.TASK_SCHEDULER;
+                            mainProc();
+                            break;
+
+                        // EXTENDED: '/m' means, the screensaver is started via external manager (which is the case with Windows 10)
+                        // In this case, we'll want to:
+                        // - idle the screensaver when the monitor turns off
+                        // - put the system to sleep manually when the sleep timer expires
+                        case "/m":
+                            Program.gl_State = STATE.MANAGED_MAIN;
                             mainProc();
                             break;
 
@@ -99,8 +99,6 @@ namespace StarfieldPlus.OpenGL
                     mainProc();
 #endif
                 }
-
-                //my.myWinAPI.SystemParametersInfo(SPI_SETSCREENSAVETIMEOUT, originalTimeout, ref originalTimeout, 0);
             }
 
             return;
@@ -162,10 +160,10 @@ namespace StarfieldPlus.OpenGL
                     - Need to make the screensaver the topmost window, as I already saw it starting in a background
             */
 
-            winSpecificAction();
-
             try
             {
+                winSpecificAction();
+
                 ScreenSaver scr = new ScreenSaver();
 
                 scr.selectObject();
@@ -186,19 +184,18 @@ namespace StarfieldPlus.OpenGL
         {
 #pragma warning disable
 
-            switch (gl_WinVer)
+            switch (Program.gl_State)
             {
                 // For Windows 10:
-                // Prevent Windows from running the screensaver again;
-                // todo: This needs some more thought, because now the PC does not go to sleep at all!
-                case 10:
+                // Prevents Windows from running the screensaver again;
+                // Supposed to be used only in case when the screensaver has been started via TaskScheduler
+                case STATE.TASK_SCHEDULER:
                     {
                         uint ES_DISPLAY_REQUIRED = 0x00000002;  // ES_DISPLAY_REQUIRED. This flag indicates that the display is in use. When passed by itself, the display idle timer is reset to zero once. The timer restarts and the screensaver will be displayed when it next expires
                         uint ES_SYSTEM_REQUIRED  = 0x00000001;  // ES_SYSTEM_REQUIRED.  This flag indicates that the system is active. When passed alone, the system idle timer is reset to zero once. The timer restarts and the machine will sleep when it expires
                         uint ES_CONTINUOUS       = 0x80000000;  // ES_CONTINUOUS.       This flag is used to specify that the behaviour of the two previous flags is continuous. Rather than resetting the idle timers once, they are disabled until you specify otherwise. Using this flag means that you do not need to call SetThreadExecutionState repeatedly
 
                         my.myWinAPI.SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
-                        //my.myWinAPI.SetThreadExecutionState((uint)(0x80000000L | 0x00000002L | 0x00000001L));
                     }
                     break;
             }
@@ -209,61 +206,3 @@ namespace StarfieldPlus.OpenGL
         // -------------------------------------------------------------------------------------------------------------------
     }
 }
-
-
-#if false
-
-using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-
-/*
-    https://stackoverflow.com/questions/20221955/c-sharp-is-there-any-reliable-event-that-exists-to-be-notified-when-the-screen
-*/
-
-namespace msg_sniffer_001
-{
-    public partial class Form1 : Form
-    {
-        private const int WM_SYSCOMMAND = 0x0112;
-        private const int SC_SCREENSAVE = 0xF140;
-
-        [DllImport("user32")]
-        public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
-
-        // ------------------------------------------------------------------------------------------
-
-        public Form1()
-        {
-            InitializeComponent();
-        }
-
-        private void Form1_Shown(object sender, EventArgs e)
-        {
-            //private const int WM_xxx = 0x0;
-            //you have to know for which event you wanna register
-            IntPtr hWnd = this.Handle;
-            PostMessage(hWnd, WM_SYSCOMMAND, IntPtr.Zero, IntPtr.Zero);
-        }
-
-        protected override void WndProc(ref Message m)
-        {
-            switch (m.Msg)
-            {
-                case WM_SYSCOMMAND:
-                    {
-                        if ((m.WParam.ToInt32() & 0xFFF0) == SC_SCREENSAVE)
-                        {
-                            richTextBox1.AppendText($"Screen saver started at {DateTime.Now}");
-                        }
-                    }
-                    break;
-            }
-
-            base.WndProc(ref m);
-        }
-    }
-}
-
-#endif
