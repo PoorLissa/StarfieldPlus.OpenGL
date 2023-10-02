@@ -152,7 +152,7 @@ public class ScreenSaver
         register(my.myObj_490.Type);      // F (x, y)
         register(my.myObj_500.Type);      // Free Shader Experiments - 1
         register(my.myObj_501.Type);      // Free Shader Experiments - 2
-        register(my.myObj_510.Type);      // ...
+        register(my.myObj_510.Type);      // Moving Shooters vs static Targets
         register(my.myObj_520.Type);      // Static pulsating shapes
         register(my.myObj_530.Type);      // A ring of moving particles
         register(my.myObj_540.Type);      // Falling alphabet letters (Matrix style)

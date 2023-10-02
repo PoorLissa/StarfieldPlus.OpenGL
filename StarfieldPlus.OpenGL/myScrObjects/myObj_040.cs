@@ -277,8 +277,9 @@ namespace my
             else
             {
                 trail.reset(x, y);
-                trail.updateDa(1);
             }
+
+            trail.updateDa(1);
 
             return;
         }

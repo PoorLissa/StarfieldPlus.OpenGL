@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
+    - Moving Shooters vs static Targets
 */
 
 
@@ -17,11 +17,14 @@ namespace my
         public static int Priority => 10;
         public static System.Type Type => typeof(myObj_510);
 
+        private int   rcvId;
         private float x, y, X, Y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, nSrc = 0, nRcv = 0;
-        private static bool doFillShapes = false;
+        private myParticleTrail trail = null;
+
+        private static int N = 0, shape = 0, nSrc = 0, nRcv = 0, nTrail = 10, bulletSpdFactor = 0;
+        private static bool doFillShapes = false, doUseSingletarget = true;
         private static float dimAlpha = 0.05f;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -48,6 +51,8 @@ namespace my
                 N = nSrc + nRcv + 1000;
 
                 shape = rand.Next(5);
+
+                nTrail = 10 + rand.Next(100);
             }
 
             initLocal();
@@ -58,8 +63,11 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = true;
             doFillShapes  = myUtils.randomBool(rand);
+            doUseSingletarget = myUtils.randomChance(rand, 2, 3);
+
+            bulletSpdFactor = 1 + rand.Next(15);
 
             float _R = 0, _G = 0, _B = 0;
 
@@ -75,6 +83,8 @@ namespace my
                     }
 
                     myObj_510 obj = list[i] as myObj_510;
+
+                    obj.rcvId = rand.Next(nRcv) + nSrc;
 
                     obj.x = rand.Next(gl_Width);
                     obj.y = rand.Next(gl_Height);
@@ -106,6 +116,8 @@ namespace my
 
                     myObj_510 obj = list[i] as myObj_510;
 
+                    obj.rcvId = -1;
+
                     obj.x = rand.Next(gl_Width);
                     obj.y = rand.Next(gl_Height);
                     obj.dx = obj.dy = 0;
@@ -117,6 +129,8 @@ namespace my
                     obj.A = 0.5f;
                 }
             }
+
+            renderDelay = 1;
 
             return;
         }
@@ -130,9 +144,14 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             //string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_510\n\n"                      +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = myObj_510\n\n"                          +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"     +
+                            $"doUseSingletarget = {doUseSingletarget}\n" +
+                            $"nSrc = {nSrc}\n"                           +
+                            $"nRcv = {nRcv}\n"                           +
+                            $"nTrail = {nTrail}\n"                       +
+                            $"bulletSpdFactor = {bulletSpdFactor}\n"     +
+                            $"renderDelay = {renderDelay}\n"             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -150,24 +169,32 @@ namespace my
 
         protected override void generateNew()
         {
+            // Generate bullet
             if (id > nSrc + nRcv)
             {
                 int i = rand.Next(nSrc);
                 int j = rand.Next(nRcv) + nSrc;
 
-                x = (list[i] as myObj_510).x;
-                y = (list[i] as myObj_510).y;
-                X = (list[j] as myObj_510).x;
-                Y = (list[j] as myObj_510).y;
+                if (doUseSingletarget)
+                {
+                    j = (list[i] as myObj_510).rcvId;
+                }
+
+                var snd = list[i] as myObj_510;
+                var rcv = list[j] as myObj_510;
+
+                x = snd.x;
+                y = snd.y;
+                X = rcv.x;
+                Y = rcv.y;
 
                 dx = X - x;
                 dy = Y - y;
 
                 float dist = (float)(Math.Sqrt(dx * dx + dy * dy));
 
-                float spd = 1.0f;
-
-                spd = myUtils.randFloat(rand, 0.1f) * 0.5f * (rand.Next(5) + 1);
+                float spd = 0.5f + myUtils.randFloat(rand) * 0.25f;
+                spd *= bulletSpdFactor;
 
                 dx = (dx / dist) * spd;
                 dy = (dy / dist) * spd;
@@ -175,7 +202,22 @@ namespace my
                 size = 3;
 
                 A = 0.5f;
-                colorPicker.getColor(x, y, ref R, ref G, ref B);
+                //colorPicker.getColor(x, y, ref R, ref G, ref B);
+                R = snd.R;
+                G = snd.G;
+                B = snd.B;
+
+                // Initialize Trail
+                if (trail == null)
+                {
+                    trail = new myParticleTrail(nTrail, x, y);
+                }
+                else
+                {
+                    trail.reset(x, y);
+                }
+
+                trail.updateDa(A * 2);
             }
 
             return;
@@ -191,6 +233,11 @@ namespace my
                 bool sign2 = (target - val - dVal) >= 0;
 
                 return (sign1 != sign2);
+            }
+
+            if (trail != null)
+            {
+                trail.update(x, y);
             }
 
             x += dx;
@@ -209,10 +256,16 @@ namespace my
 
                 if (y > gl_Height)
                     dy -= myUtils.randFloat(rand) * 0.05f;
+
+                if (myUtils.randomChance(rand, 1, 1001))
+                {
+                    rcvId = rand.Next(nRcv) + nSrc;
+                }
             }
             else
             {
-                if (checkCollision(x, dx, X) || checkCollision(y, dy, Y) || x < 0 || y < 0 || x > gl_Width || y > gl_Height)
+                if (checkCollision(x, dx, X) || checkCollision(y, dy, Y) ||
+                    (x < 0 && dx < 0) || (y < 0 && dy < 0) || (x > gl_Width && dx > 0) || (y > gl_Height && dy > 0))
                 {
                     generateNew();
                 }
@@ -225,6 +278,11 @@ namespace my
 
         protected override void Show()
         {
+            if (trail != null)
+            {
+                trail.Show(R, G, B, A);
+            }
+
             float size2x = size * 2;
 
             switch (shape)
@@ -281,10 +339,12 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.1f);
+            clearScreenSetup(doClearBuffer, 0.15f);
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -306,14 +366,17 @@ namespace my
                 // Render Frame
                 {
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_510;
 
                         obj.Show();
                         obj.Move();
                     }
+
+                    myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
                     {
@@ -327,7 +390,7 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_510());
                 }
@@ -345,6 +408,7 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
+            myPrimitive.init_LineInst(N * nTrail);
 
             return;
         }
