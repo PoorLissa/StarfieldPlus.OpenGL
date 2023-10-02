@@ -18,11 +18,13 @@ namespace my
 		public static System.Type Type => typeof(myObj_640);
 
         private int x, y, width, height, cnt;
-        private float A, R, G, B;
+        private float A, dA, R, G, B;
         private bool isOk;
 
-        private static int N = 0;
-        private static bool doFillShapes = false, doUseSquares = true;
+        private static int N = 0, min = 5, max = 100;
+        private static bool doFillShapes = false, doUseSquares = true, doUseSize = true, doUseDa = true;
+
+        private static float lineWidth = 2;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -56,9 +58,16 @@ namespace my
         {
             doClearBuffer = true;
             doFillShapes = myUtils.randomChance(rand, 1, 2);
-            doUseSquares = myUtils.randomChance(rand, 1, 2);
+            doUseSquares = myUtils.randomChance(rand, 2, 3);
+            doUseSize    = myUtils.randomChance(rand, 1, 2);
+            doUseDa      = myUtils.randomChance(rand, 1, 2);
+
+            min = 5 + rand.Next(10);
+            max = 100 + rand.Next(500);
 
             renderDelay = 10;
+
+            lineWidth = 1.0f + myUtils.randFloat(rand) * 1.5f;
 
             return;
         }
@@ -70,12 +79,17 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_640\n\n"                      +
+            string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doUseSquares = {doUseSquares}\n"       +
+                            $"doUseSize = {doUseSize}\n"             +
+                            $"doUseDa = {doUseDa}\n"                 +
+                            $"min = {min}\n"                         +
+                            $"max = {max}\n"                         +
+                            $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -88,6 +102,8 @@ namespace my
         protected override void setNextMode()
         {
             initLocal();
+
+            glLineWidth(lineWidth);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -102,12 +118,12 @@ namespace my
 
             if (doUseSquares)
             {
-                width = height = 50 + rand.Next(100);
+                width = height = 50 + rand.Next(max);
             }
             else
             {
-                width  = 50 + rand.Next(100);
-                height = 50 + rand.Next(100);
+                width  = 50 + rand.Next(max);
+                height = 50 + rand.Next(max);
             }
 
             // Check if this shape intersects any other existing shapes:
@@ -118,6 +134,7 @@ namespace my
                     {
                         var other = list[i] as myObj_640;
 
+                        if (other.isOk)
                         do
                         {
                             int dx = Math.Abs(x - other.x);
@@ -129,15 +146,24 @@ namespace my
                             if (dx < w && dy < h)
                             {
                                 isOk = false;
-                                width  -= 2;
-                                height -= 2;
+
+                                if (doUseSquares)
+                                {
+                                    width  -= 2;
+                                    height -= 2;
+                                }
+                                else
+                                {
+                                    width  -= 2;
+                                    height -= 2;
+                                }
                             }
                             else
                             {
                                 isOk = true;
                             }
                         }
-                        while (!isOk && width >= 50);
+                        while (!isOk && width >= min && height >= min);
                     }
 
                     if (!isOk)
@@ -147,8 +173,23 @@ namespace my
 
             if (isOk)
             {
-                A = 0.5f;
+                if (doUseDa)
+                {
+                    A = 0.85f + myUtils.randFloat(rand) * 0.15f;
+                    dA = A / cnt;
+                }
+                else
+                {
+                    A = 0.5f + myUtils.randFloat(rand) * 0.5f;
+                    dA = 0;
+                }
+
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                if (doUseSize)
+                {
+                    cnt += (width + height) / 2;
+                }
             }
 
             return;
@@ -160,8 +201,14 @@ namespace my
         {
             if (--cnt < 0)
             {
+                isOk = false;
                 cnt = 0;
+
                 generateNew();
+            }
+            else
+            {
+                A -= dA;
             }
 
             return;
@@ -175,13 +222,56 @@ namespace my
             {
                 myPrimitive._Rectangle.SetColor(R, G, B, A);
                 myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.Draw(x - width, y - height, 2 * width, 2 * height, false);
+                myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
 
                 if (doFillShapes)
                 {
                     myPrimitive._Rectangle.SetColor(R, G, B, A / 5);
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.Draw(x - width, y - height, 2 * width, 2 * height, true);
+                }
+
+                if (false)
+                {
+                    int zzz = 10;
+
+                    myPrimitive._Rectangle.SetColor(R, G, B, A);
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.Draw(x - width + zzz, y - height + zzz, 2 * (width - zzz), 2 * (height - zzz), false);
+
+                    myPrimitive._Line.SetColor(R, G, B, A);
+                    myPrimitive._Line.Draw(x - width, y - height, x - width + zzz, y - height + zzz);
+                    myPrimitive._Line.Draw(x - width, y + height, x - width + zzz, y + height - zzz);
+                    myPrimitive._Line.Draw(x + width, y - height, x + width - zzz, y - height + zzz);
+                    myPrimitive._Line.Draw(x + width, y + height, x + width - zzz, y + height - zzz);
+
+                    myPrimitive._Rectangle.SetColor(R, G, B, A/3);
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.Draw(x - width + zzz, y - height + zzz, 2 * (width - zzz), 2 * (height - zzz), true);
+                }
+
+                if (false)
+                {
+                    void rect(int factor)
+                    {
+                        int w = width  / factor;
+                        int h = height / factor;
+
+                        float ox = -1 * w * (gl_x0 - x) / gl_x0;
+                        float oy = -1 * h * (gl_y0 - y) / gl_y0;
+
+                        myPrimitive._Rectangle.SetColor(R, G, B, A/2);
+                        myPrimitive._Rectangle.SetAngle(0);
+                        myPrimitive._Rectangle.Draw(x - w - ox, y - h - oy, 2 * w, 2 * h, false);
+
+                        myPrimitive._Line.SetColor(R, G, B, A/2);
+                        myPrimitive._Line.Draw(x - width, y - height, x - w - ox, y - h - oy);
+                        myPrimitive._Line.Draw(x - width, y + height, x - w - ox, y + h - oy);
+                        myPrimitive._Line.Draw(x + width, y - height, x + w - ox, y - h - oy);
+                        myPrimitive._Line.Draw(x + width, y + height, x + w - ox, y + h - oy);
+                    }
+
+                    rect(3);
                 }
             }
         }
@@ -239,6 +329,10 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
+
+            myPrimitive.init_Line();
+
+            glLineWidth(lineWidth);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
