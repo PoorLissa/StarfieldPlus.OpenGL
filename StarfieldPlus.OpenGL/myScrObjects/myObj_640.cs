@@ -14,14 +14,14 @@ namespace my
     public class myObj_640 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99910;
 		public static System.Type Type => typeof(myObj_640);
 
         private int x, y, width, height, cnt;
         private float A, dA, R, G, B;
         private bool isOk;
 
-        private static int N = 0, min = 5, max = 100, maxCnt = 1000;
+        private static int N = 0, minSize = 5, maxSize = 100, maxCnt = 1000;
         private static bool doFillShapes = false, doUseSquares = true, doUseSize = true, doUseDa = true;
 
         private static float lineWidth = 2;
@@ -62,8 +62,8 @@ namespace my
             doUseSize    = myUtils.randomChance(rand, 1, 2);
             doUseDa      = myUtils.randomChance(rand, 1, 2);
 
-            min = 5 + rand.Next(10);
-            max = 100 + rand.Next(500);
+            minSize = 5 + rand.Next(10);
+            maxSize = 100 + rand.Next(500);
 
             maxCnt = 1000 + rand.Next(12345);
 
@@ -89,8 +89,8 @@ namespace my
                             $"doUseSquares = {doUseSquares}\n"       +
                             $"doUseSize = {doUseSize}\n"             +
                             $"doUseDa = {doUseDa}\n"                 +
-                            $"min = {min}\n"                         +
-                            $"max = {max}\n"                         +
+                            $"minSize = {minSize}\n"                 +
+                            $"maxSize = {maxSize}\n"                 +
                             $"maxCnt = {maxCnt}\n"                   +
                             $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
@@ -114,68 +114,96 @@ namespace my
         protected override void generateNew()
         {
             isOk = true;
-            cnt = 300 + rand.Next(maxCnt);
 
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
             if (doUseSquares)
             {
-                width = height = 50 + rand.Next(max);
+                width = height = 50 + rand.Next(maxSize);
             }
             else
             {
-                width  = 50 + rand.Next(max);
-                height = 50 + rand.Next(max);
+                width  = 50 + rand.Next(maxSize);
+                height = 50 + rand.Next(maxSize);
             }
 
-            // Check if this shape intersects any other existing shapes:
+            // Check if this rectangle intersects any other existing rectangles:
             {
-                for (int i = 0; i < list.Count; i++)
+                int Count = list.Count, minOffset = 3;
+
+                for (int i = 0; isOk && i < Count; i++)
                 {
-                    if (isOk && i != this.id)
+                    if (i != this.id)
                     {
                         var other = list[i] as myObj_640;
 
                         if (other.isOk)
-                        do
                         {
                             int dx = Math.Abs(x - other.x);
                             int dy = Math.Abs(y - other.y);
 
-                            int w = 3 + width  + other.width;
-                            int h = 3 + height + other.height;
-
-                            if (dx < w && dy < h)
+                            // Center of the current shape is lying within the other shape (with some tolerance)
+                            if ((dx < other.width + minOffset + 1) && (dy < other.height + minOffset + 1))
                             {
                                 isOk = false;
-
-                                if (doUseSquares)
-                                {
-                                    width  -= 2;
-                                    height -= 2;
-                                }
-                                else
-                                {
-                                    width  -= 2;
-                                    height -= 2;
-                                }
+                                break;
                             }
-                            else
+
+                            do
                             {
-                                isOk = true;
-                            }
-                        }
-                        while (!isOk && width >= min && height >= min);
-                    }
+                                int w = minOffset + width  + other.width;
+                                int h = minOffset + height + other.height;
 
-                    if (!isOk)
-                        break;
+                                isOk = dx > w || dy > h;
+
+                                if (!isOk)
+                                {
+                                    if (doUseSquares)
+                                    {
+                                        width = height = dx > dy
+                                            ? dx - other.width  - minOffset - 1
+                                            : dy - other.height - minOffset - 1;
+                                    }
+                                    else
+                                    {
+                                        int mode = 2;
+
+                                        switch (mode)
+                                        {
+                                            case 0:
+                                                width -= 2;
+                                                height -= 2;
+                                                break;
+
+                                            case 1:
+                                                if (dx < dy)
+                                                    height = dy - other.height - minOffset - 1;
+                                                else
+                                                    width = dx - other.width - minOffset - 1;
+                                                break;
+
+                                            case 2:
+                                                if (width < height)
+                                                    height = dy - other.height - minOffset - 1;
+                                                else
+                                                    width = dx - other.width - minOffset - 1;
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                            while (!isOk && width >= minSize && height >= minSize);
+                        }
+                    }
                 }
             }
 
             if (isOk)
             {
+                cnt = 300 + rand.Next(maxCnt);
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+
                 if (doUseDa)
                 {
                     A = 0.85f + myUtils.randFloat(rand) * 0.15f;
@@ -186,8 +214,6 @@ namespace my
                     A = 0.5f + myUtils.randFloat(rand) * 0.5f;
                     dA = 0;
                 }
-
-                colorPicker.getColor(x, y, ref R, ref G, ref B);
 
                 if (doUseSize)
                 {
@@ -229,7 +255,7 @@ namespace my
 
                 if (doFillShapes)
                 {
-                    myPrimitive._Rectangle.SetColor(R, G, B, A / 5);
+                    myPrimitive._Rectangle.SetColor(R, G, B, A * 0.2f);
                     myPrimitive._Rectangle.SetAngle(0);
                     myPrimitive._Rectangle.Draw(x - width, y - height, 2 * width, 2 * height, true);
                 }
