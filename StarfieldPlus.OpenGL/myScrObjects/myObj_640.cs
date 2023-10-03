@@ -26,6 +26,8 @@ namespace my
 
         private static float lineWidth = 2;
 
+        private static myTexRectangle tex = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_640()
@@ -44,7 +46,6 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
                 N = 1000 + rand.Next(6666);
             }
 
@@ -249,15 +250,27 @@ namespace my
         {
             if (isOk)
             {
-                myPrimitive._Rectangle.SetColor(R, G, B, A);
-                myPrimitive._Rectangle.SetAngle(0);
-                myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
-
-                if (doFillShapes)
+                if (tex != null)
                 {
-                    myPrimitive._Rectangle.SetColor(R, G, B, A * 0.2f);
+                    tex.setOpacity(A);
+                    tex.Draw(x - width, y - height, 2 * width, 2 * height, x - width, y - height, 2 * width, 2 * height);
+
+                    myPrimitive._Rectangle.SetColor(R, G, B, A);
                     myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.Draw(x - width, y - height, 2 * width, 2 * height, true);
+                    myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
+                }
+                else
+                {
+                    myPrimitive._Rectangle.SetColor(R, G, B, A);
+                    myPrimitive._Rectangle.SetAngle(0);
+                    myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
+
+                    if (doFillShapes)
+                    {
+                        myPrimitive._Rectangle.SetColor(R, G, B, A * 0.2f);
+                        myPrimitive._Rectangle.SetAngle(0);
+                        myPrimitive._Rectangle.Draw(x - width, y - height, 2 * width, 2 * height, true);
+                    }
                 }
 
                 if (false)
@@ -362,6 +375,14 @@ namespace my
             myPrimitive.init_Line();
 
             glLineWidth(lineWidth);
+
+            if (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT || colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE)
+            {
+                if (myUtils.randomChance(rand, 1, 3))
+                {
+                    tex = new myTexRectangle(colorPicker.getImg());
+                }
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------

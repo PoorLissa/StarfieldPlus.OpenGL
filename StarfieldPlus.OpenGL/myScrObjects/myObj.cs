@@ -33,7 +33,7 @@ namespace my
         protected uint id { get; private set; } = 0;
 
         // Timeouts for Monitor Off, System Sleep:
-        private static uint _monitorOffTime = 10 * 60, _systemSleepTime = 30 * 60;
+        private static uint _monitorOffTime = 10 * 60, _systemSleepTime = 30 * 60, _sysStateCnt = 0;
         private static DateTime _startTime;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -123,6 +123,9 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // This function is called each frame. It is used to:
+        // - process user input
+        // - track system state
         protected void processInput(GLFW.Window window)
         {
             // Exit via mouse move (only in Release mode)
@@ -149,11 +152,21 @@ namespace my
             }
 
             // Watch the Monitor Off timeout (Windows 10 related issue)
-            if (Program.gl_State == Program.STATE.MANAGED_MAIN && ((TimeSpan)(DateTime.Now - _startTime)).TotalSeconds > _monitorOffTime)
+            if (Program.gl_State == Program.STATE.MANAGED_MAIN)
             {
-                Program.gl_State = Program.STATE.MANAGED_MONITOR_OFF;
-                Glfw.SetWindowShouldClose(window, true);
-                return;
+                if (++_sysStateCnt == 100)
+                {
+                    _sysStateCnt = 0;
+
+                    // This task is not time critical;
+                    // Run it when the counter expires
+                    if ((DateTime.Now - _startTime).TotalSeconds > _monitorOffTime)
+                    {
+                        Program.gl_State = Program.STATE.MANAGED_MONITOR_OFF;
+                        Glfw.SetWindowShouldClose(window, true);
+                        return;
+                    }
+                }
             }
 
             // Exit via Esc Key press
@@ -217,9 +230,6 @@ namespace my
 
                 // One time call to let all the primitives know the screen dimensions
                 myPrimitive.init(gl_Width, gl_Height);
-
-                gl_x0 = gl_Width  / 2;
-                gl_y0 = gl_Height / 2;
 
                 // Set culture to avoid incorrect float conversion in shader strings
                 // Tags: locale, culture, en-US
