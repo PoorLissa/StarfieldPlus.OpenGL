@@ -14,14 +14,14 @@ namespace my
     public class myObj_640 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_640);
 
         private int x, y, width, height, cnt;
         private float A, dA, R, G, B;
         private bool isOk;
 
-        private static int N = 0, min = 5, max = 100;
+        private static int N = 0, min = 5, max = 100, maxCnt = 1000;
         private static bool doFillShapes = false, doUseSquares = true, doUseSize = true, doUseDa = true;
 
         private static float lineWidth = 2;
@@ -45,7 +45,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 1000;
+                N = 1000 + rand.Next(6666);
             }
 
             initLocal();
@@ -64,6 +64,8 @@ namespace my
 
             min = 5 + rand.Next(10);
             max = 100 + rand.Next(500);
+
+            maxCnt = 1000 + rand.Next(12345);
 
             renderDelay = 10;
 
@@ -89,6 +91,7 @@ namespace my
                             $"doUseDa = {doUseDa}\n"                 +
                             $"min = {min}\n"                         +
                             $"max = {max}\n"                         +
+                            $"maxCnt = {maxCnt}\n"                   +
                             $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -111,7 +114,7 @@ namespace my
         protected override void generateNew()
         {
             isOk = true;
-            cnt = 300 + rand.Next(1000);
+            cnt = 300 + rand.Next(maxCnt);
 
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
