@@ -73,7 +73,7 @@ namespace my
             string nStr(int n) { return n.ToString("N0"); }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_501 -- Free Shader Experiments\n\n" +
+            string str = $"Obj = {Type} -- Free Shader Experiments\n\n"    +
                             $"N = {nStr(1)}\n"                             +
                             $"R = {fStr(R)};\n"                            +
                             $"G = {fStr(G)};\n"                            +

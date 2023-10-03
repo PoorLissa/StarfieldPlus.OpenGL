@@ -99,10 +99,10 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_210\n\n" +
-                            $"N = {list.Count} of {N}\n" +
+            string str = $"Obj = {Type}\n\n" 					 +
+                            $"N = {list.Count} of {N}\n" 		 +
                             $"doClearBuffer = {doClearBuffer}\n" +
-                            $"isCenter = {isCenter}\n" +
+                            $"isCenter = {isCenter}\n" 			 +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

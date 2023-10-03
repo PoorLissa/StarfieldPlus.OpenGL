@@ -99,7 +99,7 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_181 -- Particle Wave Generators\n\n"         +
+            string str = $"Obj = {Type} -- Particle Wave Generators\n\n"         	+
                             $"N = {nStr(N - n)} (+ {nStr(n)} generator(s))\n"       +
                             $"liveCnt / deadCnt = {N-n-deadCnt} / {deadCnt}\n"      +
                             $"sizeMode = {sizeMode}\n"                              +

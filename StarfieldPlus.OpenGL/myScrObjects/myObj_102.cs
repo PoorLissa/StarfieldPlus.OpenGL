@@ -148,7 +148,7 @@ namespace my
             width = 500;
             height = 600;
 
-            string str = $"Obj = myObj_102\n\n"                         +
+            string str = $"Obj = {Type}\n\n"                         	+
                             $"N = {list.Count} of {N}; nObj = {nObj}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"doUseGrid = {doUseGrid}\n"                +

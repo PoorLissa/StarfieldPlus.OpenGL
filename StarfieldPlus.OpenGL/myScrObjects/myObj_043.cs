@@ -122,17 +122,17 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_043\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"shape = {shape}\n" +
-                            $"moveMode = {moveMode}\n" +
-                            $"connectionMode = {connectionMode}\n" +
-                            $"colorMode = {colorMode}\n" +
+            string str = $"Obj = {Type}\n\n" 						+
+                            $"N = {list.Count} of {N}\n" 			+
+                            $"shape = {shape}\n" 					+
+                            $"moveMode = {moveMode}\n" 				+
+                            $"connectionMode = {connectionMode}\n" 	+
+                            $"colorMode = {colorMode}\n" 			+
                             $"RGB = {R.ToString("0.00")} - {G.ToString("0.00")} - {B.ToString("0.00")}\n" +
-                            $"da = {da.ToString("0.00000")}\n" +
+                            $"da = {da.ToString("0.00000")}\n" 		+
                             $"a = {a}; b = {b}; c = {c}\nsi1 = {si1}; si2 = {si2}\n sf2 = {sf2}\n sf3 = {sf3}\n" +
-                            $"renderDelay = {renderDelay}\n" +
-                            $"dimAlpha = {dimAlpha}\n" +
+                            $"renderDelay = {renderDelay}\n" 		+
+                            $"dimAlpha = {dimAlpha}\n" 				+
                             $"dimAlphaFactor = {dimAlphaFactor}\n"
                 ;
             return str;

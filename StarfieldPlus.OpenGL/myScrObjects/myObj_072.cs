@@ -90,7 +90,7 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_072\n\n"                      +
+            string str = $"Obj = {Type}\n\n"                      	 +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"mode = {mode}\n"                       +
                             $"sizeMode = {sizeMode}\n"               +

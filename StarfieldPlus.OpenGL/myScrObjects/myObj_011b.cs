@@ -151,7 +151,7 @@ namespace my
             string i_arrStr = $"{nStr(i_arr[0])}; {nStr(i_arr[1])}; {nStr(i_arr[2])};";
             string f_arrStr = $"{fStr(f_arr[0])}; {fStr(f_arr[1])}; {fStr(f_arr[2])};";
 
-            string str = $"Obj = myObj_011b\n\n"                     +
+            string str = $"Obj = {Type}\n\n"                     	 +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doDrawToWhite = {doDrawToWhite}\n"     +

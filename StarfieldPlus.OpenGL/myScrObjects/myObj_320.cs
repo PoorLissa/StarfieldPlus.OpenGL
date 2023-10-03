@@ -75,7 +75,7 @@ namespace my
         {
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_320\n\n"                 +
+            string str = $"Obj = {Type}\n\n"                 	+
                             $"objN = {objN}\n"                  +
                             $"drawMode = {drawMode}\n"          +
                             $"gridMode = {gridMode}\n"          +

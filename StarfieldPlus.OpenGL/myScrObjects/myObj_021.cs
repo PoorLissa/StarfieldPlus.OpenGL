@@ -98,7 +98,7 @@ namespace my
         {
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_021\n\n"                         +
+            string str = $"Obj = {Type}\n\n"                         	+
                             $"N = {list.Count} of {N}\n"                +
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"dimAlpha = {dimAlpha.ToString("0.00")}\n" +

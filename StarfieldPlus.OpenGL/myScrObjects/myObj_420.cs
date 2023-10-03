@@ -78,7 +78,7 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_420\n\n"                         +
+            string str = $"Obj = {Type}\n\n"                         	+
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"dxyMode = {dxyMode}\n"                    +

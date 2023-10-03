@@ -111,7 +111,7 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_350\n\n"                         +
+            string str = $"Obj = {Type}\n\n"                         	+
                             $"N = {list.Count} of {N}\n"                +
                             $"shape = {shape}\n"                        +
                             $"maxChildren = {maxChildren}\n"            +

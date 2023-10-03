@@ -88,7 +88,7 @@ namespace my
         {
             height = 700;
 
-            string str = $"Obj = myObj_000 (Starfield)\n\n"            +
+            string str = $"Obj = {Type} (Starfield)\n\n"               +
                             $"Total N = {list.Count} of ({N})\n"       +
                             $"moving stars N = {N - staticStarsN}\n"   +
                             $"static stars N = {staticStarsN}\n"       +

@@ -107,17 +107,17 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_131\n\n" +
+            string str = $"Obj = {Type}\n\n" 							+
                             $"N = {list.Count} of {N} x {shapeN - 1}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"doFillShapes = {doFillShapes}\n" +
-                            $"shape = {shape}\n" +
-                            $"moveMode = {moveMode}\n" +
-                            $"rotationMode = {rotationMode}\n" +
-                            $"daMode = {daMode}\n" +
-                            $"dxdyMode = {dxdyMode}\n" +
-                            $"dxdyFactor = {dxdyFactor}\n" +
-                            $"renderDelay = {renderDelay}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n" 		+
+                            $"doFillShapes = {doFillShapes}\n" 			+
+                            $"shape = {shape}\n" 						+
+                            $"moveMode = {moveMode}\n" 					+
+                            $"rotationMode = {rotationMode}\n" 			+
+                            $"daMode = {daMode}\n" 						+
+                            $"dxdyMode = {dxdyMode}\n" 					+
+                            $"dxdyFactor = {dxdyFactor}\n" 				+
+                            $"renderDelay = {renderDelay}\n" 			+
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

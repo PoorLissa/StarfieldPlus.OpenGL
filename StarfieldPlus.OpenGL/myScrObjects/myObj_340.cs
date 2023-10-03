@@ -112,7 +112,7 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_340\n\n"                             +
+            string str = $"Obj = {Type}\n\n"                             	+
                             $"N = {list.Count} of {N}; active: {nActive}\n" +
                             $"mode = {mode}\n"                              +
                             $"lifeCntMode = {lifeCntMode}\n"                +

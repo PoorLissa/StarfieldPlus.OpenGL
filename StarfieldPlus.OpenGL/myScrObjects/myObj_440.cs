@@ -98,7 +98,7 @@ namespace my
 
             float ballSize = (list[0] as myObj_440_Ball).size;
 
-            string str = $"Obj = myObj_440\n\n"                      +
+            string str = $"Obj = {Type}\n\n"                      	 +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"shape = {shape}\n"                     +

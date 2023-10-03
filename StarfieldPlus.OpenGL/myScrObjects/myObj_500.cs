@@ -98,11 +98,11 @@ namespace my
             string nStr(int n) { return n.ToString("N0"); }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = myObj_500 -- Free Shader Experiments\n\n" +
-                            $"N = {nStr(0)}\n" +
+            string str = $"Obj = {Type} -- Free Shader Experiments\n\n" 	 +
+                            $"N = {nStr(0)}\n" 								 +
                             $"R = {fStr(R)}; G = {fStr(G)}; B = {fStr(B)}\n" +
-                            $"mode = {mode}\n" +
-                            $"renderDelay = {renderDelay}\n" +
+                            $"mode = {mode}\n" 								 +
+                            $"renderDelay = {renderDelay}\n" 				 +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

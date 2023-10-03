@@ -157,19 +157,19 @@ namespace my
 
             string colorSteps = (colorStepR == colorStepG && colorStepR == colorStepB) ? "The same" : "Different";
 
-            string str = $"Obj = myObj_150 -- Conway's Life\n\n" +
-                            $"N = {list.Count}\n" +
-                            $"step = {step}\n" +
-                            $"cellOffset = {cellOffset}\n" +
-                            $"drawMode = {drawMode}\n" +
-                            $"clearMode = {clearMode}\n" +
-                            $"lightMode = {lightMode}\n" +
-                            $"populateMode = {populateMode}\n" +
-                            $"doUseRandBgr = {doUseRandBgr}\n" +
+            string str = $"Obj = {Type} -- Conway's Life\n\n" 	+
+                            $"N = {list.Count}\n" 				+
+                            $"step = {step}\n" 					+
+                            $"cellOffset = {cellOffset}\n" 		+
+                            $"drawMode = {drawMode}\n" 			+
+                            $"clearMode = {clearMode}\n" 		+
+                            $"lightMode = {lightMode}\n" 		+
+                            $"populateMode = {populateMode}\n" 	+
+                            $"doUseRandBgr = {doUseRandBgr}\n" 	+
                             $"doUseRandCellColor = {doUseRandCellColor}\n" +
-                            $"colorSteps: {colorSteps}\n" +
-                            $"frameRate = {frameRate}\n" +
-                            $"extraInfo: {extraInfo}\n" +
+                            $"colorSteps: {colorSteps}\n" 		+
+                            $"frameRate = {frameRate}\n" 		+
+                            $"extraInfo: {extraInfo}\n" 		+
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

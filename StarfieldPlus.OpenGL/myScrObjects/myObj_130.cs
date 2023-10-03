@@ -109,7 +109,7 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_130\n\n"                     +
+            string str = $"Obj = {Type}\n\n"                     	+
                             $"N = {list.Count} of {N}\n"            +
                             $"doClearBuffer = {doClearBuffer}\n"    +
                             $"shape = {shape}\n"                    +

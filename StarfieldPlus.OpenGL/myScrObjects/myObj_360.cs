@@ -81,7 +81,7 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_360\n\n"                             +
+            string str = $"Obj = {Type}\n\n"                             	+
                             $"N = {list.Count} of {N}\n"                    +
                             $"mode = {mode}\n"                              +
                             $"shape = {shape}\n"                            +

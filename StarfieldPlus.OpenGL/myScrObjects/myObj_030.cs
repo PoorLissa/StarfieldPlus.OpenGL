@@ -74,8 +74,8 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            return $"Obj = myObj_030\n\n" +
-                            $"N = {N}\n" +
+            return $"Obj = {Type}\n\n" 					+
+                            $"N = {N}\n" 				+
                             $"moveMode = {moveMode}\n"
                             ;
         }

@@ -170,7 +170,7 @@ namespace my
             {
                 string brf = $"{fStr(borderRepulsionFactor)}";
 
-                string str = $"Obj = myObj_011a\n\n"                        +
+                string str = $"Obj = {Type}\n\n"                        	+
                                 $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
                                 $"doClearBuffer = {doClearBuffer}\n"        +
                                 $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +

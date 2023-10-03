@@ -182,7 +182,7 @@ namespace my
                 return "";
             }
 
-            return $"Obj = myObj_042\n\n" +
+            return $"Obj = {Type}\n\n" 																+
                             $"N = {list.Count} of {N}\n"                                            +
                             $"doUseShader = {doUseShader}\n"                                        +
                             $"shape = {shape} ({getShape(shape)})\n"                                +

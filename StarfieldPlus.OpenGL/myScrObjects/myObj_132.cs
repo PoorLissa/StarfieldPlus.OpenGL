@@ -119,7 +119,7 @@ namespace my
                 str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
             }
 
-            string str = $"Obj = myObj_132\n\n"                  +
+            string str = $"Obj = {Type}\n\n"                  	 +
                             $"N = {list.Count} of {N}\n"         +
                             $"mode = {mode}\n"                   +
                             $"stepsPerFrame = {stepsPerFrame}\n" +

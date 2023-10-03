@@ -147,19 +147,18 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = myObj_120\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"doUseGradualSize = {doUseGradualSize}\n" +
-                            $"mode = {mode}\n" +
-                            $"subMode = {subMode}\n" +
-                            $"dirMode = {dirMode}\n" +
-                            $"freqMode = {freqMode}\n" +
-                            $"dtMode = {dtMode}\n" +
-                            $"di = {di}\n" +
-                            $"renderDelay = {renderDelay}\n" +
-                            $"file: {colorPicker.GetFileName()}" +
-                            $""
+            string str = $"Obj = {Type}\n\n" 							+
+                            $"N = {list.Count} of {N}\n" 				+
+                            $"doClearBuffer = {doClearBuffer}\n" 		+
+                            $"doUseGradualSize = {doUseGradualSize}\n" 	+
+                            $"mode = {mode}\n" 							+
+                            $"subMode = {subMode}\n" 					+
+                            $"dirMode = {dirMode}\n" 					+
+                            $"freqMode = {freqMode}\n" 					+
+                            $"dtMode = {dtMode}\n" 						+
+                            $"di = {di}\n" 								+
+                            $"renderDelay = {renderDelay}\n" 			+
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }

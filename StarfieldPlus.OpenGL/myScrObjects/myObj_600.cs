@@ -104,7 +104,7 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");     }
             string fStr(float f) { return f.ToString("0.0000"); }
 
-            string str = $"Obj = myObj_600\n\n"                      +
+            string str = $"Obj = {Type}\n\n"                      	 +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"doUseTrails = {doUseTrails}\n"         +

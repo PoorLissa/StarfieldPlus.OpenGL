@@ -191,7 +191,7 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_300\n\n"                             +
+            string str = $"Obj = {Type}\n\n"                             	+
                             $"N = {list.Count} of {N} x {maxParticles}\n"   +
                             $"doClearBuffer = {doClearBuffer}\n"            +
                             $"doShowConnections = {doShowConnections}\n"    +

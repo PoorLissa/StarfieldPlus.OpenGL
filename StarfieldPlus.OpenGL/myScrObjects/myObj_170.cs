@@ -124,7 +124,7 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = myObj_170\n\n"                  +
+            string str = $"Obj = {Type}\n\n"                  	 +
                             $"N = {list.Count} of {N}\n"         +
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"doUseCells = {doUseCells}\n"       +

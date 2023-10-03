@@ -112,13 +112,13 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_200\n\n" +
-                            $"N = {list.Count} of {N}\n" +
-                            $"shape = {shape}\n" +
-                            $"shapeType = {shapeType}\n" +
-                            $"moveType = {moveType}\n" +
+            string str = $"Obj = {Type}\n\n" 				+
+                            $"N = {list.Count} of {N}\n" 	+
+                            $"shape = {shape}\n" 			+
+                            $"shapeType = {shapeType}\n" 	+
+                            $"moveType = {moveType}\n" 		+
                             $"rotationType = {rotationType}\n" +
-                            $"dimMode = {dimMode}\n" +
+                            $"dimMode = {dimMode}\n" 		+
                             $"varLineWidth = {varLineWidth}\n" +
                             $"renderDelay = {renderDelay}\n" +
                             $"dimAlpha = {dimAlpha}\n"

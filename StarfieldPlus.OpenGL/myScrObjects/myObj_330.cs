@@ -883,7 +883,7 @@ namespace my
                 str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
             }
 
-            string str = $"Obj = myObj_330\n\n"                     +
+            string str = $"Obj = {Type}\n\n"                     	+
                             $"mode = {mode}\n\n"                    +
                             $"N = {nStr(list.Count)} of ({N})\n"    +
                             $"dimAlpha = {fStr(dimAlpha)}\n"        +

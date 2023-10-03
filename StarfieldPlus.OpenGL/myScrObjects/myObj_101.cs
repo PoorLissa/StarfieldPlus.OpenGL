@@ -76,7 +76,7 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = myObj_101\n\n"                     +
+            string str = $"Obj = {Type}\n\n"                     	+
                             $"N = {objN} of {N}\n"                  +
                             $"doClearBuffer = {doClearBuffer}\n"    +
                             $"maxX = {maxX}\n"                      +

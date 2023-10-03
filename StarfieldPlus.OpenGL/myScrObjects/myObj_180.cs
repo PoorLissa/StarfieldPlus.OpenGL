@@ -255,7 +255,7 @@ namespace my
                 return $"\n Short: {res}";
             }
 
-            string str = $"Obj = myObj_180\n\n"                                 +
+            string str = $"Obj = {Type}\n\n"                                 	+
                             $"N = {N}\n"                                        +
                             $"deadCnt = {deadCnt}\n"                            +
                             $"doClearBuffer = {doClearBuffer}\n"                +

@@ -88,7 +88,7 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = myObj_070 -- Falling Pieces\n\n"   +
+            string str = $"Obj = {Type} -- Falling Pieces\n\n"   	+
                             $"N = {list.Count} of {N}\n"            +
                             $"shape = {shape}\n"                    +
                             $"doUseGrid = {doUseGrid}\n"            +

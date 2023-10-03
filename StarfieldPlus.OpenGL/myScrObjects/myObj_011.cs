@@ -103,7 +103,7 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_011 -- Randomly Roaming Lines\n\n"       +
+            string str = $"Obj = {Type} -- Randomly Roaming Lines\n\n"       	+
                             $"N = {list.Count} of {N}\n"                        +
                             $"pN = {pN}\n"                                      +
                             $"maxOpacity = {maxOpacity.ToString("0.000")}f\n"   +

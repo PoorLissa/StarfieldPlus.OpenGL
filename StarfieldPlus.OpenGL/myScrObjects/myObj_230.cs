@@ -114,7 +114,7 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = myObj_230\n\n"                 +
+            string str = $"Obj = {Type}\n\n"                 	+
                             $"N = {list.Count} of {N}\n"        +
                             $"nTaskCount = {nTaskCount}\n"      +
                             $"proc = {proc}\n"                  +
