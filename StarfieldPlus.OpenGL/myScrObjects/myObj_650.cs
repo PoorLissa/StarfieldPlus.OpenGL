@@ -1,0 +1,245 @@
+﻿using GLFW;
+using static OpenGL.GL;
+using System;
+using System.Collections.Generic;
+
+
+/*
+    - 
+*/
+
+
+namespace my
+{
+    public class myObj_650 : myObject
+    {
+        // Priority
+        public static int Priority => 999910;
+		public static System.Type Type => typeof(myObj_650);
+
+        private int index, cnt;
+        private float x, y, A, R, G, B, angle = 0, sizeFactor = 1;
+
+        private static int N = 0, size = 20, moveMode = 0;
+        private static float dimAlpha = 0.05f;
+
+        private static TexText tTex = null;
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        public myObj_650()
+        {
+            if (id != uint.MaxValue)
+                generateNew();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            list = new List<myObject>();
+
+            // Global unmutable constants
+            {
+                N = 1000 + rand.Next(1000);
+                N = 5000 + rand.Next(9000);
+            }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = false;
+
+            size = 20 + rand.Next(50);
+            moveMode = rand.Next(2);
+
+            renderDelay = rand.Next(11) + 3;
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override string CollectCurrentInfo(ref int width, ref int height)
+        {
+            height = 600;
+
+            string nStr(int   n) { return n.ToString("N0");    }
+            //string fStr(float f) { return f.ToString("0.000"); }
+
+            string str = $"Obj = {Type}\n\n"                         +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"size = {size}\n"                       +
+                            $"moveMode = {moveMode}\n"               +
+                            $"renderDelay = {renderDelay}\n"         +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
+            return str;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // 
+        protected override void setNextMode()
+        {
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void generateNew()
+        {
+            cnt = doClearBuffer
+                ? 100 + rand.Next(111)
+                :  50 + rand.Next(33);
+
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
+
+            A = doClearBuffer ? 1.0f : myUtils.randFloat(rand, 0.1f);
+            colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            // Map the particle to a symbol
+            index = rand.Next(tTex.Lengh());
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Move()
+        {
+            generateNew();
+            return;
+
+            if (doClearBuffer)
+            {
+                if (--cnt < 0)
+                {
+                    A -= 0.01f;
+
+                    if (A < 0)
+                        generateNew();
+                }
+            }
+            else
+            {
+                switch (moveMode)
+                {
+                    case 0:
+                        if (--cnt < 0)
+                        {
+                            A -= 0.01f;
+
+                            if (A < 0)
+                                generateNew();
+                        }
+                        break;
+
+                    case 1:
+                        if (--cnt == 0)
+                        {
+                            generateNew();
+                        }
+                        break;
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Show()
+        {
+            //tTex.Draw(x, y, index, A, ((float)(Math.PI) - angle), sizeFactor, R, G, B);
+
+            tTex.Draw(x, y, index, A, angle, sizeFactor, R, G, B);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Process(Window window)
+        {
+            uint cnt = 0;
+            initShapes();
+
+
+            clearScreenSetup(doClearBuffer, 0.1f, front_and_back: true);
+
+
+            while (!Glfw.WindowShouldClose(window))
+            {
+                int Count = list.Count;
+
+                processInput(window);
+
+                // Swap fore/back framebuffers, and poll for operating system events.
+                Glfw.SwapBuffers(window);
+                Glfw.PollEvents();
+
+                // Clear screen
+                {
+                    if (doClearBuffer)
+                    {
+                        glClear(GL_COLOR_BUFFER_BIT);
+                    }
+                    else
+                    {
+                        //glDrawBuffer(false ? GL_FRONT_AND_BACK : GL_BACK);
+                        //glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
+
+                        dimScreen(dimAlpha);
+
+                        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                        //glDrawBuffer(true ? GL_FRONT_AND_BACK : GL_BACK);
+                    }
+                }
+
+                // Render Frame
+                {
+                    for (int i = 0; i != Count; i++)
+                    {
+                        var obj = list[i] as myObj_650;
+
+                        obj.Show();
+                        obj.Move();
+                    }
+                }
+
+                if (Count < N)
+                {
+                    list.Add(new myObj_650());
+                }
+
+                cnt++;
+                System.Threading.Thread.Sleep(renderDelay);
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void initShapes()
+        {
+            myPrimitive.init_ScrDimmer();
+
+            TexText.setScrDimensions(gl_Width, gl_Height);
+            tTex = new TexText(size, true);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+    }
+};

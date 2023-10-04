@@ -165,6 +165,7 @@ public class ScreenSaver
         register(my.myObj_620.Type);      // Rectangles with width/height that are changing constantly; while width is increasing, height is decreasing, and vice versa
         register(my.myObj_630.Type);      // Rotating circles made of letters and symbols
         register(my.myObj_640.Type);      // Create random rectangles, but put them on the screen only when they don't intersect any existing rectangles
+        register(my.myObj_650.Type);      // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
