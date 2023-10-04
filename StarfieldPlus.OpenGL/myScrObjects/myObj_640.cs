@@ -14,19 +14,20 @@ namespace my
     public class myObj_640 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_640);
 
         private int x, y, width, height, cnt;
         private float A, dA, R, G, B;
         private bool isOk;
 
-        private static int N = 0, minSize = 5, maxSize = 100, maxCnt = 1000;
+        private static int N = 0, minSize = 5, maxSize = 100, maxCnt = 1000, rectMode = 0;
         private static bool doFillShapes = false, doUseSquares = true, doUseSize = true, doUseDa = true;
 
         private static float lineWidth = 2;
 
         private static myTexRectangle tex = null;
+        private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -59,13 +60,14 @@ namespace my
         {
             doClearBuffer = true;
             doFillShapes = myUtils.randomChance(rand, 1, 2);
-            doUseSquares = myUtils.randomChance(rand, 2, 3);
+            doUseSquares = myUtils.randomChance(rand, 1, 2);
             doUseSize    = myUtils.randomChance(rand, 1, 2);
             doUseDa      = myUtils.randomChance(rand, 1, 2);
 
             minSize = 5 + rand.Next(10);
             maxSize = 100 + rand.Next(500);
 
+            rectMode = rand.Next(3);
             maxCnt = 1000 + rand.Next(12345);
 
             renderDelay = 10;
@@ -93,6 +95,7 @@ namespace my
                             $"minSize = {minSize}\n"                 +
                             $"maxSize = {maxSize}\n"                 +
                             $"maxCnt = {maxCnt}\n"                   +
+                            $"rectMode = {rectMode}\n"               +
                             $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -168,27 +171,33 @@ namespace my
                                     }
                                     else
                                     {
-                                        int mode = 2;
-
-                                        switch (mode)
+                                        switch (rectMode)
                                         {
                                             case 0:
-                                                width -= 2;
+                                                width  -= 2;
                                                 height -= 2;
                                                 break;
 
                                             case 1:
                                                 if (dx < dy)
+                                                {
                                                     height = dy - other.height - minOffset - 1;
+                                                }
                                                 else
+                                                {
                                                     width = dx - other.width - minOffset - 1;
+                                                }
                                                 break;
 
                                             case 2:
                                                 if (width < height)
+                                                {
                                                     height = dy - other.height - minOffset - 1;
+                                                }
                                                 else
+                                                {
                                                     width = dx - other.width - minOffset - 1;
+                                                }
                                                 break;
                                         }
                                     }
@@ -325,7 +334,10 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.1f);
+
+            glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0, 0, 0, 1);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -337,9 +349,10 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                // Dim screen
+                // Clear screen
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -369,9 +382,10 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
-            myPrimitive.init_Rectangle();
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.23f, mode: 0);
 
+            myPrimitive.init_Rectangle();
             myPrimitive.init_Line();
 
             glLineWidth(lineWidth);

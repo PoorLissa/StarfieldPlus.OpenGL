@@ -27,6 +27,8 @@ namespace my
         private static myFreeShader shader1 = null;
         private static myFreeShader shader2 = null;
 
+        private static myScreenGradient grad = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_550()
@@ -62,6 +64,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
+            doClearBuffer = true;
             doShowLines   = myUtils.randomChance(rand, 1, 2);
             doUseGradient = myUtils.randomChance(rand, 1, 2);
 
@@ -75,8 +78,6 @@ namespace my
 
             maxRad = 111 + rand.Next(gl_Width);
 
-            renderDelay = rand.Next(11) + 3;
-
             dirMode = rand.Next(4);
 
             radMode = rand.Next(5);
@@ -84,6 +85,8 @@ namespace my
             radFactor = myUtils.randFloat(rand) * 0.5f;
 
             dimAlpha = 0.1f + myUtils.randFloat(rand) * 0.2f;
+
+            renderDelay = 1;
 
             return;
         }
@@ -110,8 +113,8 @@ namespace my
                             $"colorMode = {colorMode}\n"             +
                             $"radMode = {radMode}\n"                 +
                             $"radFactor = {fStr(radFactor)}\n"       +
-                            $"renderDelay = {renderDelay}\n"         +
                             $"dimAlpha = {fStr(dimAlpha)}\n"         +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -296,8 +299,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            var tex = new myTexRectangle(myUtils.getGradientBgr(ref rand, gl_Width, gl_Height));
-
             uint cnt = 0;
             initShapes();
 
@@ -324,7 +325,7 @@ namespace my
 
                     if (doUseGradient)
                     {
-                        tex.Draw(0, 0, gl_Width, gl_Height);
+                        grad.Draw();
                     }
                 }
 
@@ -361,6 +362,9 @@ namespace my
 
         private void initShapes()
         {
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.11f, mode: 0);
+
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(N * N);
 
