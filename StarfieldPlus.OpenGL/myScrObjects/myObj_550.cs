@@ -66,7 +66,7 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doClearBuffer = true;
             doShowLines   = myUtils.randomChance(rand, 1, 2);
-            doUseGradient = myUtils.randomChance(rand, 1, 2);
+            doUseGradient = myUtils.randomChance(rand, 3, 4);
 
             maxDist = 10000 + rand.Next(80001);
 
@@ -363,7 +363,27 @@ namespace my
         private void initShapes()
         {
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.11f, mode: 0);
+
+            switch (rand.Next(4))
+            {
+                case 0:
+                    grad.SetRandomColors(rand, 0.2f, mode: 0);
+                    break;
+
+                case 1:
+                    grad.SetRandomColors(rand, 0.7f, mode: 0);
+                    break;
+
+                case 2:
+                    grad.SetRandomColors(rand, 0.2f, mode: 1);
+                    grad.SetRandomColors(rand, 0.7f, mode: 2);
+                    break;
+
+                case 3:
+                    grad.SetRandomColors(rand, 0.7f, mode: 1);
+                    grad.SetRandomColors(rand, 0.2f, mode: 2);
+                    break;
+            }
 
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(N * N);

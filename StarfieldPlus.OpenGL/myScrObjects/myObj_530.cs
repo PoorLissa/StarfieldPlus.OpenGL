@@ -27,6 +27,8 @@ namespace my
 
         private static int[] Rads;
 
+        private static myScreenGradient grad = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_530()
@@ -48,8 +50,12 @@ namespace my
                 N = rand.Next(10000) + 3000;
                 N = 33333;
 
-                n = rand.Next(2) + 1;
-                n = 1;
+                switch (rand.Next(3))
+                {
+                    case 0: n = 1; break;
+                    case 1: n = rand.Next(3) + 1; break;
+                    case 2: n = rand.Next(7) + 1; break;
+                }
 
                 Rads = new int[n];
 
@@ -64,7 +70,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 12, 13);
+            doClearBuffer = myUtils.randomChance(rand, 10, 13);
             doTraceColor = myUtils.randomChance(rand, 1, 11);
             doFillShapes = myUtils.randomChance(rand, 1, 3);
             doMoveWhileWaiting = myUtils.randomChance(rand, 1, 2);
@@ -75,7 +81,12 @@ namespace my
 
             for (int i = 0; i < n; i++)
             {
-                Rads[i] = 333 + rand.Next(333);
+                if (n == 1)
+                    Rads[i] = 333 + rand.Next(333);
+                else if (n < 4)
+                    Rads[i] = 123 + rand.Next(666);
+                else
+                    Rads[i] = 123 + rand.Next(1111);
             }
 
             Thickness = rand.Next(111) + 1;
@@ -99,6 +110,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                               +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"       +
+                            $"n = {n}\n"                                   +
                             $"doClearBuffer = {doClearBuffer}\n"           +
                             $"dAlphaMode = {dAlphaMode}\n"                 +
                             $"Thickness = {Thickness}\n"                   +
@@ -206,7 +218,7 @@ namespace my
                 case 4:
                 case 5:
                     angle = myUtils.randFloat(rand) * rand.Next(123);
-                    dAngle = myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.01f;
+                    dAngle = myUtils.randFloatSigned(rand) * 0.01f;
                     break;
             }
 
@@ -218,7 +230,6 @@ namespace my
         // todo:
         // 1. random linear movement starting from the circle curface
         // 2. rotation on different orbits
-
         protected override void Move()
         {
             angle += dAngle;
@@ -325,11 +336,10 @@ namespace my
 
         protected override void Process(Window window)
         {
+            float t = 0;
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
 
             clearScreenSetup(doClearBuffer, 0.11f, true);
 
@@ -349,6 +359,7 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
+                        grad.Draw();
                     }
                     else
                     {
@@ -367,7 +378,10 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
-
+/*
+                    Rads[0] += ((int)(Math.Sin(t) * 10)) / 8;
+                    t += 0.001f;
+*/
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
@@ -398,6 +412,10 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
+
+            grad = new myScreenGradient();
+            float factor = myUtils.randFloat(rand) * 0.2f;
+            grad.SetRandomColors(rand, factor, mode: 0);
 
             return;
         }
