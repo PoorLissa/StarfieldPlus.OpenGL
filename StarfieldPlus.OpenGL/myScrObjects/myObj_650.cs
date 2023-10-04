@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Drawing symbols using the color sampled from an image
 */
 
 
@@ -14,14 +14,14 @@ namespace my
     public class myObj_650 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_650);
 
         private int index, cnt;
         private float x, y, A, R, G, B, angle = 0, sizeFactor = 1;
 
-        private static int N = 0, size = 20, moveMode = 0;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, size = 20, moveMode = 0, sizeMode = 0, angleMode = 0;
+        private static float dimAlpha = 0.01f;
 
         private static TexText tTex = null;
 
@@ -43,8 +43,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 1000 + rand.Next(1000);
-                N = 5000 + rand.Next(9000);
+                N = 1000 + rand.Next(3333);
             }
 
             initLocal();
@@ -58,10 +57,18 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = false;
 
-            size = 20 + rand.Next(50);
-            moveMode = rand.Next(2);
+            switch (rand.Next(3))
+            {
+                case 0: size = 20 + rand.Next(10); break;
+                case 1: size = 20 + rand.Next(30); break;
+                case 2: size = 20 + rand.Next(50); break;
+            }
 
-            renderDelay = rand.Next(11) + 3;
+            sizeMode = rand.Next(2);
+            moveMode = rand.Next(2);
+            angleMode = rand.Next(5);
+
+            renderDelay = rand.Next(31) + 3;
 
             return;
         }
@@ -80,6 +87,8 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"size = {size}\n"                       +
                             $"moveMode = {moveMode}\n"               +
+                            $"sizeMode = {sizeMode}\n"               +
+                            $"angleMode = {angleMode}\n"             +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -101,6 +110,23 @@ namespace my
             cnt = doClearBuffer
                 ? 100 + rand.Next(111)
                 :  50 + rand.Next(33);
+
+            // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
+            sizeFactor = sizeMode == 1 && size > 21
+                ? 0.5f + myUtils.randFloat(rand) * 20 / (float)size
+                : 1.0f;
+
+            switch (angleMode)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    angle = 0;
+                    break;
+
+                case 3: angle = myUtils.randFloatSigned(rand) * 0.1f; break;
+                case 4: angle = myUtils.randFloatSigned(rand) * 1.0f; break;
+            }
 
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
@@ -161,8 +187,6 @@ namespace my
 
         protected override void Show()
         {
-            //tTex.Draw(x, y, index, A, ((float)(Math.PI) - angle), sizeFactor, R, G, B);
-
             tTex.Draw(x, y, index, A, angle, sizeFactor, R, G, B);
         }
 
