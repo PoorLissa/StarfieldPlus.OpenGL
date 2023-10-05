@@ -32,6 +32,8 @@ namespace my
         private static bool doFillShapes = false, doUseRandomSpeed = true, doUseBulletSpread = true;
         private static float dimAlpha = 0.05f;
 
+        private static myScreenGradient grad = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_430()
@@ -426,6 +428,7 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
+                        grad.Draw();
                     }
                     else
                     {
@@ -480,6 +483,10 @@ namespace my
             myPrimitive.init_LineInst(N);
 
             base.initShapes(shape, N, 0);
+
+            grad = new myScreenGradient();
+            float factor = myUtils.randFloat(rand) * 0.2f;
+            grad.SetRandomColors(rand, factor, mode: 0);
 
             return;
         }
