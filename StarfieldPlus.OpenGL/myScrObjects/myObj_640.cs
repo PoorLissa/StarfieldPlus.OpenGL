@@ -14,14 +14,14 @@ namespace my
     public class myObj_640 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99910;
 		public static System.Type Type => typeof(myObj_640);
 
         private int x, y, width, height, cnt;
         private float A, dA, R, G, B;
         private bool isOk;
 
-        private static int N = 0, minSize = 5, maxSize = 100, maxCnt = 1000, rectMode = 0;
+        private static int N = 0, min = 5, minSize = 50, maxSize = 100, maxCnt = 1000, rectMode = 0, drawMode = 0;
         private static bool doFillShapes = false, doUseSquares = true, doUseSize = true, doUseDa = true;
 
         private static float lineWidth = 2;
@@ -48,6 +48,12 @@ namespace my
             // Global unmutable constants
             {
                 N = 1000 + rand.Next(6666);
+
+                drawMode = 0;
+
+                if (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT || colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE)
+                    if (myUtils.randomChance(rand, 1, 3))
+                        drawMode = 2 + rand.Next(2);        // 2 .. 3
             }
 
             initLocal();
@@ -64,8 +70,9 @@ namespace my
             doUseSize    = myUtils.randomChance(rand, 1, 2);
             doUseDa      = myUtils.randomChance(rand, 1, 2);
 
-            minSize = 5 + rand.Next(10);
-            maxSize = 100 + rand.Next(500);
+            min = 5 + rand.Next(10);            // min size while reducing shapes
+            minSize = 50;                       // min size while generating shapes
+            maxSize = 100 + rand.Next(500);     // max size while generating shapes
 
             rectMode = rand.Next(3);
             maxCnt = 1000 + rand.Next(12345);
@@ -92,10 +99,12 @@ namespace my
                             $"doUseSquares = {doUseSquares}\n"       +
                             $"doUseSize = {doUseSize}\n"             +
                             $"doUseDa = {doUseDa}\n"                 +
+                            $"min = {min}\n"                         +
                             $"minSize = {minSize}\n"                 +
                             $"maxSize = {maxSize}\n"                 +
                             $"maxCnt = {maxCnt}\n"                   +
                             $"rectMode = {rectMode}\n"               +
+                            $"drawMode = {drawMode}\n"               +
                             $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -124,12 +133,12 @@ namespace my
 
             if (doUseSquares)
             {
-                width = height = 50 + rand.Next(maxSize);
+                width = height = minSize + rand.Next(maxSize);
             }
             else
             {
-                width  = 50 + rand.Next(maxSize);
-                height = 50 + rand.Next(maxSize);
+                width  = minSize + rand.Next(maxSize);
+                height = minSize + rand.Next(maxSize);
             }
 
             // Check if this rectangle intersects any other existing rectangles:
@@ -203,7 +212,7 @@ namespace my
                                     }
                                 }
                             }
-                            while (!isOk && width >= minSize && height >= minSize);
+                            while (!isOk && width >= min && height >= min);
                         }
                     }
                 }
@@ -228,6 +237,11 @@ namespace my
                 if (doUseSize)
                 {
                     cnt += (width + height) / 2;
+                }
+
+                if (drawMode == 3)
+                {
+                    A = 1;
                 }
             }
 
@@ -259,29 +273,53 @@ namespace my
         {
             if (isOk)
             {
-                if (tex != null)
+                switch (drawMode)
                 {
-                    tex.setOpacity(A);
-                    tex.Draw(x - width, y - height, 2 * width, 2 * height, x - width, y - height, 2 * width, 2 * height);
+                    // Draw plain rectangles / squares
+                    case 0:
+                    case 1:
+                        {
+                            myPrimitive._Rectangle.SetColor(R, G, B, A);
+                            myPrimitive._Rectangle.SetAngle(0);
+                            myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
 
-                    myPrimitive._Rectangle.SetColor(R, G, B, A);
-                    myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
+                            if (doFillShapes)
+                            {
+                                myPrimitive._Rectangle.SetColor(R, G, B, A * 0.2f);
+                                myPrimitive._Rectangle.SetAngle(0);
+                                myPrimitive._Rectangle.Draw(x - width, y - height, 2 * width, 2 * height, true);
+                            }
+                        }
+                        break;
+
+                    // Draw from image
+                    case 2:
+                        {
+                            tex.setOpacity(A);
+                            tex.Draw(x - width, y - height, 2 * width, 2 * height, x - width, y - height, 2 * width, 2 * height);
+
+                            myPrimitive._Rectangle.SetColor(R, G, B, A);
+                            myPrimitive._Rectangle.SetAngle(0);
+                            myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
+                        }
+                        break;
+
+                    // Draw from image, opacity is inversely proportional to size
+                    case 3:
+                        {
+                            float factor = 25.0f * (min * min) / (minSize * maxSize);
+
+                            tex.setOpacity(A * factor);
+                            tex.Draw(x - width, y - height, 2 * width, 2 * height, x - width, y - height, 2 * width, 2 * height);
+
+                            myPrimitive._Rectangle.SetColor(R, G, B, A);
+                            myPrimitive._Rectangle.SetAngle(0);
+                            myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
+                        }
+                        break;
                 }
-                else
-                {
-                    myPrimitive._Rectangle.SetColor(R, G, B, A);
-                    myPrimitive._Rectangle.SetAngle(0);
-                    myPrimitive._Rectangle.Draw(x - width + lineWidth, y - height + lineWidth, 2 * width - lineWidth, 2 * height - lineWidth, false);
 
-                    if (doFillShapes)
-                    {
-                        myPrimitive._Rectangle.SetColor(R, G, B, A * 0.2f);
-                        myPrimitive._Rectangle.SetAngle(0);
-                        myPrimitive._Rectangle.Draw(x - width, y - height, 2 * width, 2 * height, true);
-                    }
-                }
-
+/*
                 if (false)
                 {
                     int zzz = 10;
@@ -324,6 +362,7 @@ namespace my
 
                     rect(3);
                 }
+*/
             }
         }
 
@@ -390,12 +429,9 @@ namespace my
 
             glLineWidth(lineWidth);
 
-            if (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT || colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE)
+            if (drawMode == 2 || drawMode == 3)
             {
-                if (myUtils.randomChance(rand, 1, 3))
-                {
-                    tex = new myTexRectangle(colorPicker.getImg());
-                }
+                tex = new myTexRectangle(colorPicker.getImg());
             }
         }
 
