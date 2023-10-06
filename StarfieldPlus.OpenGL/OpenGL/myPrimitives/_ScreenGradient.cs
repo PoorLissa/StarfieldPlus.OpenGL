@@ -1,9 +1,8 @@
 ﻿using my;
 using static OpenGL.GL;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 /*
-    This class only serves one purpose: dimming the frame by drawing a full-screen rectangle as fast as possible;
+    This class only serves one purpose: drawing a full screen color gradient
 */
 
 public class myScreenGradient : myPrimitive
@@ -14,15 +13,20 @@ public class myScreenGradient : myPrimitive
     private float _r1, _g1, _b1, _a1;
 
     // Uniform ids:
-    private static int myColor1 = 0, myColor2 = 0;
+    private static int _myColor1 = 0, _myColor2 = 0;
 
     private static int verticesLength = 12;
     private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
+    private static int _mode = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myScreenGradient()
+    public myScreenGradient(int mode = -1)
     {
+        _mode = mode < 0
+            ? new System.Random().Next(2)
+            : mode;
+
         if (vertices == null)
         {
             vertices = new float[verticesLength];
@@ -31,8 +35,8 @@ public class myScreenGradient : myPrimitive
             glUseProgram(shaderProgram);
 
             // Uniforms
-            myColor1 = glGetUniformLocation(shaderProgram, "myColor1");
-            myColor2 = glGetUniformLocation(shaderProgram, "myColor2");
+            _myColor1 = glGetUniformLocation(shaderProgram, "myColor1");
+            _myColor2 = glGetUniformLocation(shaderProgram, "myColor2");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();
@@ -108,8 +112,8 @@ public class myScreenGradient : myPrimitive
 
         // Update uniforms:
         {
-            glUniform4f(myColor1, _r, _g, _b, _a);
-            glUniform4f(myColor2, _r1, _g1, _b1, _a1);
+            glUniform4f(_myColor1, _r, _g, _b, _a);
+            glUniform4f(_myColor2, _r1, _g1, _b1, _a1);
         }
 
         // Move vertices data from CPU to GPU
@@ -153,22 +157,12 @@ public class myScreenGradient : myPrimitive
         // To avoid that, use dithering: https://shader-tutorial.dev/advanced/color-banding-dithering/
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
 
-            header: $@"out vec4 result; uniform vec4 myColor1; uniform vec4 myColor2; float hInv = 1.0 / {Height};
+            header: $@"out vec4 result; uniform vec4 myColor1; uniform vec4 myColor2;
+                                float hInv = 1.0 / {Height}; float wInv = 1.0 / {Width};
                 {myShaderHelpers.Generic.noiseFunc12_v1}
                 {myShaderHelpers.Generic.randFunc}",
 
-                main: $@"
-                    vec2 st = vec2(0, gl_FragCoord.y * hInv);
-
-                    float mixValue = distance(st, vec2(0, 1));
-                    float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
-
-                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
-                    mixValue *= noise;
-
-                    vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
-                    result = vec4(color, 1);
-                "
+                main: getMainFunc()
         );
 
         shaderProgram = glCreateProgram();
@@ -206,6 +200,56 @@ public class myScreenGradient : myPrimitive
             // Unbind current buffer
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    private static string getMainFunc()
+    {
+        string res = null;
+
+        switch (_mode)
+        {
+            // Simple vertical gradient
+            case 0:
+                {
+                    res = $@"vec2 st = vec2(0, gl_FragCoord.y * hInv);
+
+                    float mixValue = distance(st, vec2(0, 1));
+                    float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
+
+                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
+                    mixValue *= noise;
+
+                    vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
+                    result = vec4(color, 1);";
+                }
+                break;
+
+            // Randomized gradient
+            case 1:
+                {
+                    var r = new System.Random();
+
+                    res = $@"vec2 st = vec2(gl_FragCoord.x * wInv, gl_FragCoord.y * hInv);
+
+                    float mixValue = distance(st, vec2({myUtils.randFloat(r)}, {myUtils.randFloat(r)}));
+                    float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
+
+                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
+                    mixValue *= noise;
+
+                    vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
+                    result = vec4(color, 1);";
+                }
+                break;
+
+            default:
+                System.Diagnostics.Debug.Assert(false, "Unexpected scr.gradient mode.");
+                break;
+        }
+
+        return res;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

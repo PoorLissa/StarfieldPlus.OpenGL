@@ -166,6 +166,7 @@ public class ScreenSaver
         register(my.myObj_630.Type);      // Rotating circles made of letters and symbols
         register(my.myObj_640.Type);      // Create random rectangles, but put them on the screen only when they don't intersect any existing rectangles
         register(my.myObj_650.Type);      // Drawing symbols using the color sampled from an image
+        register(my.myObj_660.Type);      // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
