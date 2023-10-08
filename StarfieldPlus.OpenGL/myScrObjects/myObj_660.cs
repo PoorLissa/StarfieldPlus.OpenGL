@@ -14,7 +14,7 @@ namespace my
     public class myObj_660 : myObject
     {
         // Priority
-        public static int Priority => 666610;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_660);
 
         private int next;
@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, n = 0, nMode = 0, shape = 0;
         private static bool doFillShapes = false, doUseRandSpeed = true;
-        private static float t = 0, dt = 0.001f, dimAlpha = 0.05f, randSpeedFactor = 0;
+        private static float t = 0, dt = 0.001f, dimAlpha = 0.05f, randSpeedFactor = 0, lineWidth = 1;
 
         private enum STATE { ALIVE, WAITING, DEAD };
 
@@ -67,10 +67,12 @@ namespace my
             doUseRandSpeed = myUtils.randomChance(rand, 3, 5);
             randSpeedFactor = 0.01f + myUtils.randFloat(rand);
 
+            lineWidth = 0.5f + myUtils.randFloat(rand, 0.1f) * rand.Next(5);
+
             nMode = rand.Next(11);
             getNewN();
 
-            renderDelay = 1;
+            renderDelay = 0;
 
             return;
         }
@@ -89,6 +91,7 @@ namespace my
                             $"doUseRandSpeed = {doUseRandSpeed}\n"         +
                             $"randSpeedFactor = {fStr(randSpeedFactor)}\n" +
                             $"nMode = {nMode}\n"                           +
+                            $"lineWidth = {fStr(lineWidth)}\n"             +
                             $"renderDelay = {renderDelay}\n"               +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -101,6 +104,8 @@ namespace my
         protected override void setNextMode()
         {
             initLocal();
+
+            myPrimitive._LineInst.setLineWidth(lineWidth);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -121,6 +126,7 @@ namespace my
             if (doUseRandSpeed)
             {
                 speed += myUtils.randFloat(rand) * randSpeedFactor;
+                speed *= 0.5f;
             }
 
             float dist = 1.0f / (float)Math.Sqrt(dx * dx + dy * dy);
@@ -300,12 +306,53 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        public class pt
+        {
+            public float x, y, z;
+
+            public void draw()
+            {
+                //myPrimitive._Rectangle.SetColor(1, 1, 1, 1);
+                myPrimitive._Rectangle.Draw(x, y, 3, 3, false);
+            }
+        }
+
+
         protected override void Process(Window window)
         {
             uint cnt = 0;
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+
+            // todo: move it somewhere else and maybe make some sense of it
+/*
+            myPrimitive.init_Rectangle();
+            myPrimitive.init_Line();
+            int n = 500;
+            var arr = new pt[n * 2];
+            float step = 1.0f * gl_Width / (n-1);
+
+            for (int i = 0; i < n*2; i += 2)
+            {
+                pt pt1 = new pt();
+                pt pt2 = new pt();
+
+                pt1.x = i/2 * step;
+                pt1.y = gl_y0 - (float)Math.Sin(i / 2) * 200;
+                pt1.z = 0;
+
+                pt2.x = i/2 * step;
+                pt2.y = gl_y0 + (float)Math.Sin(i / 2) * 200;
+                pt2.z = 0;
+
+                arr[i + 0] = pt1;
+                arr[i + 1] = pt2;
+            }
+
+            float pt_angle = 0;
+*/
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -330,6 +377,37 @@ namespace my
                         dimScreen(dimAlpha);
                     }
                 }
+
+#if false
+                for (int i = 0; i < n*2; i += 2)
+                {
+                    var pt1 = arr[i + 0];
+                    var pt2 = arr[i + 1];
+
+                    //pt1.y -= (float)Math.Sin(pt_angle + i) * (float)Math.Sin(i/2) * 2;
+                    //pt2.y += (float)Math.Sin(pt_angle + i) * (float)Math.Sin(i/2) * 2;
+
+                    pt1.y = gl_y0 - (float)Math.Sin(pt_angle + i / 2) * 300;
+                    //pt_angle += 0.0001f;
+                    pt2.y = gl_y0 + (float)Math.Sin(pt_angle + i / 2) * 300;
+                    //pt_angle += 0.0001f;
+
+                    pt1.y -= (float)Math.Sin(pt_angle + i / 1) * 11;
+                    pt2.y += (float)Math.Sin(pt_angle + i / 1) * 11;
+
+                    myPrimitive._Line.SetColor(1, 1, 1, 0.1f);
+                    myPrimitive._Line.Draw(pt1.x, pt1.y, pt2.x, pt2.y);
+
+                    myPrimitive._Rectangle.SetColor(1, 0, 0, 1);
+                    pt1.draw();
+
+                    myPrimitive._Rectangle.SetColor(0, 1, 0, 1);
+                    pt2.draw();
+                }
+
+                pt_angle += 0.003f;
+                continue;
+#endif
 
                 // Render Frame
                 {
@@ -461,7 +539,7 @@ namespace my
             base.initShapes(shape, N, 0);
             myPrimitive.init_LineInst(N * 2);
 
-            myPrimitive._LineInst.setLineWidth(3);
+            myPrimitive._LineInst.setLineWidth(lineWidth);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);

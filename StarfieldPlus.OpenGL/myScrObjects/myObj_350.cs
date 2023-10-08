@@ -21,12 +21,14 @@ namespace my
         private myObj_350 parent = null;
 
         private int level;
-        private float x, y, dx, dy;
+        private float x, y, dx, dy, rad1, rad2;
         private float size, A, R, G, B, angle = 0, gravityRate;
 
         private static int N = 0, shape = 0, levelBase = 0, maxChildren = 0, childMoveMode = 0;
-        private static bool doFillShapes = false, doUseOpacityAsSpeed = true;
+        private static bool doFillShapes = false, doUseOpacityAsSpeed = true, doConnectToCenter = true;
         private static float dimAlpha = 0.05f;
+
+        private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -63,6 +65,20 @@ namespace my
                     obj.dx = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * (rand.Next(3) + 1);
                     obj.dy = myUtils.randomSign(rand) * myUtils.randFloat(rand, 0.1f) * (rand.Next(3) + 1);
 
+                    // Rotating mode
+                    if (childMoveMode == 4 || childMoveMode == 5)
+                    {
+                        obj.rad1 = 3 + rand.Next((int)obj.parent.size);
+                        obj.rad2 = 3 + rand.Next((int)obj.parent.size);
+
+                        if (childMoveMode == 4)
+                            obj.rad2 = obj.rad1;
+
+                        obj.dx = myUtils.randFloatSigned(rand) * rand.Next(123);
+                        obj.dy = myUtils.randFloatSigned(rand) * 0.1f;
+                        obj.dy = (0.1f + myUtils.randFloat(rand) * 0.05f) * myUtils.randomSign(rand);
+                    }
+
                     children.Add(obj);
                 }
 
@@ -93,14 +109,15 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomChance(rand, 10, 11);
             doUseOpacityAsSpeed = myUtils.randomBool(rand);
 
             dimAlpha = 0.1f + myUtils.randFloat(rand) * 0.5f;
 
-            childMoveMode = rand.Next(4);
+            childMoveMode = rand.Next(6);
 
             doUseOpacityAsSpeed = true;
+            doConnectToCenter = (childMoveMode > 3) && myUtils.randomChance(rand, 1, 2);
 
             return;
         }
@@ -111,14 +128,14 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = {Type}\n\n"                         	+
-                            $"N = {list.Count} of {N}\n"                +
-                            $"shape = {shape}\n"                        +
-                            $"maxChildren = {maxChildren}\n"            +
-                            $"childMoveMode = {childMoveMode}\n"        +
-                            $"dimAlpha = {dimAlpha.ToString("0.000")}\n"+
-                            $"file: {colorPicker.GetFileName()}"        +
-                            $""
+            string str = $"Obj = {Type}\n\n"                         	 +
+                            $"N = {list.Count} of {N}\n"                 +
+                            $"shape = {shape}\n"                         +
+                            $"maxChildren = {maxChildren}\n"             +
+                            $"childMoveMode = {childMoveMode}\n"         +
+                            $"doConnectToCenter = {doConnectToCenter}\n" +
+                            $"dimAlpha = {dimAlpha.ToString("0.000")}\n" +
+                            $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
         }
@@ -263,6 +280,16 @@ namespace my
                                 dy -= gravityRate;
                         }
                         break;
+
+                    // Rotate around parent's center
+                    case 4:
+                    case 5:
+                        {
+                            x = parent.x + rad1 * (float)Math.Sin(dx);
+                            y = parent.y + rad2 * (float)Math.Cos(dx);
+                            dx += dy;
+                        }
+                        break;
                 }
             }
 
@@ -273,22 +300,37 @@ namespace my
 
         protected override void Show()
         {
-            // Show all children
             if (parent == null)
             {
-                for (int i = 0; i < children.Count; i++)
+                // Draw connecting lines between all the children
+                if (doConnectToCenter)
                 {
-                    var obj = children[i] as myObj_350;
-
-                    for (int j = i+1; j < children.Count; j++)
+                    for (int i = 0; i < children.Count; i++)
                     {
-                        var other = children[j] as myObj_350;
+                        var obj = children[i] as myObj_350;
 
-                        myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, other.x, other.y);
+                        myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, x, y);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, 0.175f);
-                    }
 
-                    obj.Show();
+                        obj.Show();
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < children.Count; i++)
+                    {
+                        var obj = children[i] as myObj_350;
+
+                        for (int j = i + 1; j < children.Count; j++)
+                        {
+                            var other = children[j] as myObj_350;
+
+                            myPrimitive._LineInst.setInstanceCoords(obj.x, obj.y, other.x, other.y);
+                            myPrimitive._LineInst.setInstanceColor(R, G, B, 0.175f);
+                        }
+
+                        obj.Show();
+                    }
                 }
 
                 return;
@@ -364,6 +406,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -375,6 +419,7 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
+                        grad.Draw();
                     }
                     else
                     {
@@ -387,7 +432,7 @@ namespace my
                     inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i < Count; i++)
                     {
                         var obj = list[i] as myObj_350;
 
@@ -430,6 +475,9 @@ namespace my
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(N * nChildren * (nChildren - 1));
             base.initShapes(shape, N * (nChildren + 1), 0);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f, 0);
 
             return;
         }

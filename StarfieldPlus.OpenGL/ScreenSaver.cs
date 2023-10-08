@@ -82,6 +82,7 @@ public class ScreenSaver
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
+    // - several rectangles, one inside the other, and moving particles that can't cross the border of a rectangle
 
 
 
