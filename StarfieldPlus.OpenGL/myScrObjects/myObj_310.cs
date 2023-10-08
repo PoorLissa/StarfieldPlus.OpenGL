@@ -14,6 +14,9 @@ using System.Collections.Generic;
     каждый слой со своим z-ордером.
     чем больше ордер, тем тусклее звезда и тем меньщше ее дх ду при движении
     попробовать с непрерывным з-одеорлм и с прерывным, типа по слоям
+
+    lots of static particles that appear and disappear;
+    active particle moves through them and builds connections aas it goes
 */
 
 
@@ -250,7 +253,7 @@ namespace my
                             $"slowFactor = {slowFactor}\n"                 +
                             $"axisMode = {axisMode}\n"                     +
                             $"param: [{str_params}]\n\n"                   +
-                            $"renderDelay = [{renderDelay}]\n"             +
+                            $"renderDelay = {renderDelay}\n"               +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -1347,6 +1350,7 @@ namespace my
                 while (list.Count < N)
                     list.Add(new myObj_310());
 
+
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
@@ -1375,6 +1379,7 @@ namespace my
                 // That is, in Win7
                 glDrawBuffer(GL_DEPTH_BUFFER_BIT);
             }
+
 
             while (!Glfw.WindowShouldClose(window))
             {
