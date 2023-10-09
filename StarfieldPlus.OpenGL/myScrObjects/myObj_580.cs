@@ -30,6 +30,7 @@ namespace my
         private static int n = 5;
 
         private static myFreeShader shader = null;
+        private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -92,7 +93,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomChance(rand, 4, 5);
             doUseInitSpeed = myUtils.randomBool(rand);
 
             renderDelay = rand.Next(11) + 3;
@@ -200,6 +201,15 @@ namespace my
 
                 if (id != obj.id)
                 {
+                    // Flicker the smaller stars
+                    if (mass < 100)
+                    {
+                        if (myUtils.randomChance(rand, 1, 100))
+                        {
+                            A += myUtils.randFloatSigned(rand) * 0.05f;
+                        }
+                    }
+
                     switch (gravMode)
                     {
                         // Large stars are attracted to each other;
@@ -367,6 +377,7 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
+                        grad.Draw();
                     }
                     else
                     {
@@ -421,6 +432,9 @@ namespace my
             base.initShapes(shape, N, 0);
 
             myPrimitive.init_LineInst(doUseTrails ? n * nTrail : N);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f, mode: 0);
 
             getShader();
 
