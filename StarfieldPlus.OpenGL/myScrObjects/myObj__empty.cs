@@ -24,6 +24,8 @@ namespace my
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
+        private static myScreenGradient grad = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_empty()
@@ -208,6 +210,7 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
+                        grad.Draw();
                     }
                     else
                     {
@@ -257,6 +260,9 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f, 0);
 
             return;
         }
