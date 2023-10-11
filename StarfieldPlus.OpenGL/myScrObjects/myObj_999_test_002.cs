@@ -30,6 +30,8 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        /* !!!! look for test this and test this! !!!!!!! */
+
         // Priority
         public static int Priority => 9999910;
 		public static System.Type Type => typeof(myObj_999_test_002);
@@ -341,9 +343,13 @@ namespace my
                     if (other.x > max)
                         break;
 
-                    dx = x - other.x;
-                    dy = y - other.y;
+                    // test this!!!
 
+                    dy = y - other.y;
+                    if (dy > maxConnectionDist || dy < -maxConnectionDist)
+                        continue;
+
+                    dx = x - other.x;
                     dist2 = dx * dx + dy * dy;
 
                     if (dist2 < maxDist2)
@@ -363,9 +369,13 @@ namespace my
                     if (other.x < min)
                         break;
 
-                    dx = x - other.x;
-                    dy = y - other.y;
+                    // test this!!!
 
+                    dy = y - other.y;
+                    if (dy > maxConnectionDist || dy < -maxConnectionDist)
+                        continue;
+
+                    dx = x - other.x;
                     dist2 = dx * dx + dy * dy;
 
                     if (dist2 < maxDist2)
