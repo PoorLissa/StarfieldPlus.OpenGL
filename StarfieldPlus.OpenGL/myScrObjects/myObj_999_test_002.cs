@@ -30,8 +30,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        /* !!!! look for test this and test this! !!!!!!! */
-
         // Priority
         public static int Priority => 9999910;
 		public static System.Type Type => typeof(myObj_999_test_002);
@@ -70,7 +68,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(100) + 100;
-                N = 3000;
+                N = 2500;
 
                 doUseSortedList = true;
 
@@ -130,7 +128,7 @@ namespace my
 
             size = 3;
 
-            A = 1;
+            A = 0.5f + myUtils.randFloat(rand) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -215,10 +213,9 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -296,7 +293,7 @@ namespace my
                 }
 
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
+                //System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -323,7 +320,7 @@ namespace my
         {
             int Count = list.Count;
             int maxDist2 = maxConnectionDist * maxConnectionDist;
-            float maxDist2_inv = 1.0f / maxDist2, opacityFactor = 0.1f;
+            float maxDist2_inv = 1.0f / maxDist2, opacityFactor = 0.025f;
 
             if (doUseSortedList)
             {
@@ -343,13 +340,9 @@ namespace my
                     if (other.x > max)
                         break;
 
-                    // test this!!!
-
-                    dy = y - other.y;
-                    if (dy > maxConnectionDist || dy < -maxConnectionDist)
-                        continue;
-
                     dx = x - other.x;
+                    dy = y - other.y;
+
                     dist2 = dx * dx + dy * dy;
 
                     if (dist2 < maxDist2)
@@ -369,13 +362,9 @@ namespace my
                     if (other.x < min)
                         break;
 
-                    // test this!!!
-
-                    dy = y - other.y;
-                    if (dy > maxConnectionDist || dy < -maxConnectionDist)
-                        continue;
-
                     dx = x - other.x;
+                    dy = y - other.y;
+
                     dist2 = dx * dx + dy * dy;
 
                     if (dist2 < maxDist2)
