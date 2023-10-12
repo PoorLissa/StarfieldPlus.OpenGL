@@ -37,9 +37,9 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, maxConnectionDist = 100;
-        private static bool doFillShapes = false, doUseSortedList = false;
-        private static float dimAlpha = 0.05f, dSpeed = 0.01f;
+        private static int N = 0, shape = 0, maxConnectionDist = 100, nTaskCount = 1;
+        private static bool doFillShapes = false;
+        private static float dSpeed = 0.01f;
 
         private static myScreenGradient grad = null;
 
@@ -47,6 +47,8 @@ namespace my
 
         // Comparer for a binary search on the sortedList
         private static myObj_999_test_002_Comparer cmp = new myObj_999_test_002_Comparer();
+
+        private static object _lock = new object();
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +72,8 @@ namespace my
                 N = rand.Next(100) + 100;
                 N = 2500;
 
-                doUseSortedList = true;
+                nTaskCount = Environment.ProcessorCount - 1;
+                nTaskCount = 1;
 
                 shape = rand.Next(5);
             }
@@ -153,12 +156,6 @@ namespace my
         {
             float size2x = size * 2;
 
-            // Draw all the connecting lines between particles;
-            // This is the most time consuming part here, and is optimized using binary searches on a sorted array
-            {
-                showConnections();
-            }
-
             switch (shape)
             {
                 // Instanced squares
@@ -210,28 +207,52 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
 
+            if (true)
+            {
+                while (list.Count < N)
+                {
+                    var obj = new myObj_999_test_002();
+
+                    list.Add(obj);
+                    sortedList.Add(obj);
+                }
+            }
+
+
+            switch (nTaskCount)
+            {
+                // Single thread
+                case 1:
+                    process1(window);
+                    break;
+
+                // Multiple threads
+                default:
+                    process2(window);
+                    break;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Single thread process
+        private void process1(Window window)
+        {
+            uint cnt = 0;
+
             while (!Glfw.WindowShouldClose(window))
             {
                 int Count = list.Count;
 
-                if (doUseSortedList)
-                {
-                    sortedList.Sort(delegate(myObj_999_test_002 obj1, myObj_999_test_002 obj2)
-                    {
-                        return obj1.x < obj2.x
-                            ? -1
-                            : obj1.x > obj2.x
-                                ? 1
-                                : 0;
-                    });
-                }
+                SortParticles();
 
                 processInput(window);
 
@@ -241,15 +262,8 @@ namespace my
 
                 // Dim screen
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -257,16 +271,18 @@ namespace my
                     inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
+                    // Draw all the connecting lines between particles;
+                    // This is the most time consuming part here, and is optimized using binary searches on a sorted array
+                    for (int i = 0; i != Count; i++)
+                    {
+                        (list[i] as myObj_999_test_002).showConnections();
+                    }
+
                     // As we're working off a sortedList, Show and Move methods should be called from within the separate loops
                     for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_999_test_002;
                         obj.Show();
-                    }
-
-                    for (int i = 0; i != Count; i++)
-                    {
-                        var obj = list[i] as myObj_999_test_002;
                         obj.Move();
                     }
 
@@ -293,7 +309,6 @@ namespace my
                 }
 
                 cnt++;
-                //System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -301,9 +316,109 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Multiple threads process
+        private void process2(Window window)
+        {
+            uint cnt = 0;
+
+            var taskList = new System.Threading.Tasks.Task[nTaskCount];
+
+            // Define a delegate that executes the task:
+            Func<object, int> action = (object obj) =>
+            {
+                int k = (int)obj;
+
+                int beg = (k + 0) * list.Count / nTaskCount;
+                int end = (k + 1) * list.Count / nTaskCount;
+
+                for (int i = beg; i < end; i++)
+                    (list[i] as myObj_999_test_002).showConnectionsThreadSafe();
+
+                return 0;
+            };
+
+            // Make sure the list is already sorted when we're starting out threads
+            SortParticles();
+
+            for (int k = 0; k < nTaskCount; k++)
+            {
+                var task = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
+                taskList[k] = task;
+            }
+
+
+            while (!Glfw.WindowShouldClose(window))
+            {
+                int Count = list.Count;
+
+                processInput(window);
+
+                // Swap fore/back framebuffers, and poll for operating system events.
+                Glfw.SwapBuffers(window);
+                Glfw.PollEvents();
+
+                // Dim screen
+                {
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    grad.Draw();
+                }
+
+                // Render Frame
+                {
+                    // Wait until all the tasks have finished
+                    System.Threading.Tasks.Task.WaitAll(taskList);
+                    myPrimitive._LineInst.Draw();
+                    myPrimitive._LineInst.ResetBuffer();
+
+                    inst.ResetBuffer();
+
+                    // Move every particle
+                    for (int i = 0; i != Count; i++)
+                    {
+                        var obj = list[i] as myObj_999_test_002;
+
+                        obj.Move();
+                        obj.Show();
+                    }
+
+                    if (doFillShapes)
+                    {
+                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                        inst.SetColorA(-0.5f);
+                        inst.Draw(true);
+                    }
+
+                    // Tell the fragment shader to do nothing with the existing instance opacity:
+                    inst.SetColorA(0);
+                    inst.Draw(false);
+                }
+
+                if (Count < N)
+                {
+                    var obj = new myObj_999_test_002();
+
+                    list.Add(obj);
+                    sortedList.Add(obj);
+                }
+
+                SortParticles();
+
+                // Restart all the tasks
+                for (int k = 0; k < nTaskCount; k++)
+                {
+                    var task = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
+                    taskList[k] = task;
+                }
+
+                cnt++;
+            }
+
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
             myPrimitive.init_LineInst(N * N);
@@ -316,88 +431,165 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private void SortParticles()
+        {
+            sortedList.Sort(delegate (myObj_999_test_002 obj1, myObj_999_test_002 obj2)
+            {
+                return obj1.x < obj2.x
+                    ? -1
+                    : obj1.x > obj2.x
+                        ? 1
+                        : 0;
+            });
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         private void showConnections()
         {
             int Count = list.Count;
             int maxDist2 = maxConnectionDist * maxConnectionDist;
             float maxDist2_inv = 1.0f / maxDist2, opacityFactor = 0.025f;
 
-            if (doUseSortedList)
+            int min = (int)x - maxConnectionDist;
+            int max = (int)x + maxConnectionDist;
+
+            float dx, dy, dist2, a;
+
+            // Find current object's index within our sortedList:
+            int current_index = sortedList.BinarySearch(this, cmp);
+
+            // Traverse right, while within the maxConnectionDist distance
+            for (int i = current_index + 1; i < Count; i++)
             {
-                int min = (int)x - maxConnectionDist;
-                int max = (int)x + maxConnectionDist;
+                var other = sortedList[i];
 
-                float dx, dy, dist2, a;
+                if (other.x > max)
+                    break;
 
-                // Find current object's index within our sortedList:
-                int current_index = sortedList.BinarySearch(this, cmp);
+                dx = x - other.x;
+                dy = y - other.y;
 
-                // Traverse right, while within the maxConnectionDist distance
-                for (int i = current_index + 1; i < Count; i++)
+                dist2 = dx * dx + dy * dy;
+
+                if (dist2 < maxDist2)
                 {
-                    var other = sortedList[i];
+                    a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
 
-                    if (other.x > max)
-                        break;
-
-                    dx = x - other.x;
-                    dy = y - other.y;
-
-                    dist2 = dx * dx + dy * dy;
-
-                    if (dist2 < maxDist2)
-                    {
-                        a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
-
-                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
-                    }
-                }
-
-                // Traverse left, while within the maxConnectionDist distance
-                for (int i = current_index - 1; i >= 0; i--)
-                {
-                    var other = sortedList[i];
-
-                    if (other.x < min)
-                        break;
-
-                    dx = x - other.x;
-                    dy = y - other.y;
-
-                    dist2 = dx * dx + dy * dy;
-
-                    if (dist2 < maxDist2)
-                    {
-                        a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
-
-                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
-                    }
+                    myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
                 }
             }
-            else
+
+            // Traverse left, while within the maxConnectionDist distance
+            for (int i = current_index - 1; i >= 0; i--)
             {
-                // Brute force
-                for (int i = 0; i < Count; i++)
+                var other = sortedList[i];
+
+                if (other.x < min)
+                    break;
+
+                dx = x - other.x;
+                dy = y - other.y;
+
+                dist2 = dx * dx + dy * dy;
+
+                if (dist2 < maxDist2)
                 {
-                    if (i != id)
+                    a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
+
+                    myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void showConnectionsThreadSafe()
+        {
+            var selectedList1 = new List<int>();
+            var selectedList2 = new List<float>();
+
+            int Count = list.Count;
+            int maxDist2 = maxConnectionDist * maxConnectionDist;
+            float maxDist2_inv = 1.0f / maxDist2, opacityFactor = 0.025f;
+
+            int min = (int)x - maxConnectionDist;
+            int max = (int)x + maxConnectionDist;
+
+            float dx, dy, dist2, a;
+
+            // Find current object's index within our sortedList:
+            int current_index = sortedList.BinarySearch(this, cmp);
+
+            // Traverse right, while within the maxConnectionDist distance
+            for (int i = current_index + 1; i < Count; i++)
+            {
+                var other = sortedList[i];
+
+                if (other.x > max)
+                    break;
+
+                dx = x - other.x;
+                dy = y - other.y;
+
+                dist2 = dx * dx + dy * dy;
+
+                if (dist2 < maxDist2)
+                {
+                    a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
+
+                    selectedList1.Add(i);
+                    selectedList2.Add(a);
+
+/*
+                    lock (_lock)
                     {
-                        var other = list[i] as myObj_999_test_002;
+                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                    }*/
+                }
+            }
 
-                        float dx = x - other.x;
-                        float dy = y - other.y;
+            // Traverse left, while within the maxConnectionDist distance
+            for (int i = current_index - 1; i >= 0; i--)
+            {
+                var other = sortedList[i];
 
-                        float dist2 = dx * dx + dy * dy;
+                if (other.x < min)
+                    break;
 
-                        if (dist2 < maxDist2)
-                        {
-                            float a = 1.0f - dist2 * maxDist2_inv;
+                dx = x - other.x;
+                dy = y - other.y;
 
-                            myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
-                        }
-                    }
+                dist2 = dx * dx + dy * dy;
+
+                if (dist2 < maxDist2)
+                {
+                    a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
+
+                    selectedList1.Add(i);
+                    selectedList2.Add(a);
+
+/*
+                    lock (_lock)
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                    }*/
+                }
+            }
+
+            lock (_lock)
+            {
+                for (int i = 0; i < selectedList1.Count; i++)
+                {
+                    int index = selectedList1[i];
+                    var other = sortedList[index];
+
+                    myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, selectedList2[i]);
                 }
             }
         }
