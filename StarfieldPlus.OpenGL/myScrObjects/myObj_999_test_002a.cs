@@ -17,34 +17,17 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_999_test_002 : myObject
+    public class myObj_999_test_002a : myObject
     {
-        class myObj_999_test_002_Comparer : IComparer<myObj_999_test_002>
-        {
-            public int Compare(myObj_999_test_002 obj1, myObj_999_test_002 obj2)
-            {
-                int x1 = (int)obj1.x;
-                int x2 = (int)obj2.x;
-
-                return x1 < x2
-                    ? -1
-                    : x1 > x2
-                        ? 1
-                        : 0;
-            }
-        };
-
-        // ---------------------------------------------------------------------------------------------------------------
-
         // Priority
-        public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_999_test_002);
+        public static int Priority => 9999910;
+		public static System.Type Type => typeof(myObj_999_test_002a);
 
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
         private static int N = 0, shape = 0, maxConnectionDist = 100, nTaskCount = 1, lenMode = 0;
-        private static bool doFillShapes = false;
+        private static bool doFillShapes = false, doGenerateAll = false;
         private static float dSpeed = 0.01f, opacityFactor = 0.025f;
 
         private static int   maxDistSquared = 0;
@@ -52,16 +35,11 @@ namespace my
 
         private static myScreenGradient grad = null;
 
-        private static List<myObj_999_test_002> sortedList = null;
-
-        // Comparer for a binary search on the sortedList
-        private static myObj_999_test_002_Comparer cmp = new myObj_999_test_002_Comparer();
-
         private static object _lock = new object();
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_999_test_002()
+        public myObj_999_test_002a()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -74,7 +52,6 @@ namespace my
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
-            sortedList = new List<myObj_999_test_002>();
 
             // Global unmutable constants
             {
@@ -85,6 +62,9 @@ namespace my
 
                 nTaskCount = Environment.ProcessorCount - 1;
                 nTaskCount = 1;
+
+                doGenerateAll = false;
+                //doGenerateAll = true;
             }
 
             initLocal();
@@ -237,16 +217,9 @@ namespace my
             clearScreenSetup(doClearBuffer, 0.1f);
 
 
-            if (false)
-            {
+            if (doGenerateAll)
                 while (list.Count < N)
-                {
-                    var obj = new myObj_999_test_002();
-
-                    list.Add(obj);
-                    sortedList.Add(obj);
-                }
-            }
+                    list.Add(new myObj_999_test_002a());
 
 
             switch (nTaskCount)
@@ -299,13 +272,13 @@ namespace my
                     // This is the most time consuming part here, and is optimized using binary searches on a sorted array
                     for (int i = 0; i != Count; i++)
                     {
-                        (list[i] as myObj_999_test_002).showConnections();
+                        (list[i] as myObj_999_test_002a).showConnections(i);
                     }
 
                     // As we're working off a sortedList, Show and Move methods should be called from within the separate loops
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_999_test_002;
+                        var obj = list[i] as myObj_999_test_002a;
                         obj.Show();
                         obj.Move();
                     }
@@ -326,10 +299,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    var obj = new myObj_999_test_002();
-
-                    list.Add(obj);
-                    sortedList.Add(obj);
+                    list.Add(new myObj_999_test_002a());
                 }
 
                 cnt++;
@@ -356,7 +326,7 @@ namespace my
                 int end = (k + 1) * list.Count / nTaskCount;
 
                 for (int i = beg; i < end; i++)
-                    (list[i] as myObj_999_test_002).showConnectionsThreadSafe();
+                    (list[i] as myObj_999_test_002a).showConnectionsThreadSafe(i);
 
                 return 0;
             };
@@ -399,7 +369,7 @@ namespace my
                     // Move every particle
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_999_test_002;
+                        var obj = list[i] as myObj_999_test_002a;
 
                         obj.Move();
                         obj.Show();
@@ -419,10 +389,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    var obj = new myObj_999_test_002();
-
-                    list.Add(obj);
-                    sortedList.Add(obj);
+                    list.Add(new myObj_999_test_002a());
                 }
 
                 SortParticles();
@@ -462,11 +429,14 @@ namespace my
 
         private void SortParticles()
         {
-            sortedList.Sort(delegate (myObj_999_test_002 obj1, myObj_999_test_002 obj2)
+            list.Sort(delegate (myObject obj1, myObject obj2)
             {
-                return obj1.x < obj2.x
+                var o1 = obj1 as myObj_999_test_002a;
+                var o2 = obj2 as myObj_999_test_002a;
+
+                return o1.x < o2.x
                     ? -1
-                    : obj1.x > obj2.x
+                    : o1.x > o2.x
                         ? 1
                         : 0;
             });
@@ -474,7 +444,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void showConnections()
+        private void showConnections(int current_index)
         {
             int Count = list.Count;
 
@@ -483,13 +453,10 @@ namespace my
 
             float dx, dy, dist2, a;
 
-            // Find current object's index within our sortedList:
-            int current_index = sortedList.BinarySearch(this, cmp);
-
             // Traverse right, while within the maxConnectionDist distance
             for (int i = current_index + 1; i < Count; i++)
             {
-                var other = sortedList[i];
+                var other = list[i] as myObj_999_test_002a;
 
                 if (other.x > max)
                     break;
@@ -511,7 +478,7 @@ namespace my
             // Traverse left, while within the maxConnectionDist distance
             for (int i = current_index - 1; i >= 0; i--)
             {
-                var other = sortedList[i];
+                var other = list[i] as myObj_999_test_002a;
 
                 if (other.x < min)
                     break;
@@ -533,7 +500,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void showConnectionsThreadSafe()
+        private void showConnectionsThreadSafe(int current_index)
         {
             var selectedList1 = new List<int>();
             var selectedList2 = new List<float>();
@@ -545,13 +512,10 @@ namespace my
 
             float dx, dy, dist2, a;
 
-            // Find current object's index within our sortedList:
-            int current_index = sortedList.BinarySearch(this, cmp);
-
             // Traverse right, while within the maxConnectionDist distance
             for (int i = current_index + 1; i < Count; i++)
             {
-                var other = sortedList[i];
+                var other = list[i] as myObj_999_test_002a;
 
                 if (other.x > max)
                     break;
@@ -573,7 +537,7 @@ namespace my
             // Traverse left, while within the maxConnectionDist distance
             for (int i = current_index - 1; i >= 0; i--)
             {
-                var other = sortedList[i];
+                var other = list[i] as myObj_999_test_002a;
 
                 if (other.x < min)
                     break;
@@ -597,7 +561,7 @@ namespace my
                 for (int i = 0; i < selectedList1.Count; i++)
                 {
                     int index = selectedList1[i];
-                    var other = sortedList[index];
+                    var other = list[index] as myObj_999_test_002a;
 
                     myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
                     myPrimitive._LineInst.setInstanceColor(1, 1, 1, selectedList2[i]);
