@@ -6,6 +6,12 @@ using System.Collections.Generic;
 
 /*
     - test for sorted O(N^2) interactions
+
+    1. Remove sortedList, work off (and sort) the main list: this way, we don't need to use binarySearch: we'll already know the position
+    2. Use cells. Each cell contains a dictionary, each dictionary contains all the particles belonging to this cell
+        For the current particle, get its x % cellSize and y % cellSize => cellId
+        For that cellId, find all neighbouring cells
+        For every such neighbour, check its child particles vs the current one
 */
 
 
@@ -39,7 +45,10 @@ namespace my
 
         private static int N = 0, shape = 0, maxConnectionDist = 100, nTaskCount = 1, lenMode = 0;
         private static bool doFillShapes = false;
-        private static float dSpeed = 0.01f;
+        private static float dSpeed = 0.01f, opacityFactor = 0.025f;
+
+        private static int   maxDistSquared = 0;
+        private static float maxDistSquared_Inverted = 1.0f;
 
         private static myScreenGradient grad = null;
 
@@ -72,10 +81,10 @@ namespace my
                 N = rand.Next(100) + 100;
                 N = 3333;
 
-                nTaskCount = Environment.ProcessorCount - 1;
-                nTaskCount = 4;
-
                 shape = rand.Next(5);
+
+                nTaskCount = Environment.ProcessorCount - 1;
+                nTaskCount = 1;
             }
 
             initLocal();
@@ -97,7 +106,9 @@ namespace my
                 case 2: maxConnectionDist = 200; break;
             }
 
-            maxConnectionDist = 250;
+            maxDistSquared = maxConnectionDist * maxConnectionDist;
+            maxDistSquared_Inverted = 1.0f / maxDistSquared;
+
             renderDelay = 0;
 
             return;
@@ -114,6 +125,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                             +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"     +
+                            $"nTaskCount = {nTaskCount}\n"               +
                             $"lenMode = {lenMode}\n"                     +
                             $"maxConnectionDist = {maxConnectionDist}\n" +
                             $"renderDelay = {renderDelay}\n"             +
@@ -140,7 +152,8 @@ namespace my
             dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
             dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
 
-            size = 3;
+            size = shape == 1 ? 2 : 3;
+            //angle = myUtils.randFloat(rand) * rand.Next(123);
 
             A = 0.5f + myUtils.randFloat(rand) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -437,7 +450,7 @@ namespace my
         {
             base.initShapes(shape, N, 0);
 
-            myPrimitive.init_LineInst(N * N);
+            myPrimitive.init_LineInst(N * (N / 10));
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
@@ -464,8 +477,6 @@ namespace my
         private void showConnections()
         {
             int Count = list.Count;
-            int maxDist2 = maxConnectionDist * maxConnectionDist;
-            float maxDist2_inv = 1.0f / maxDist2, opacityFactor = 0.025f;
 
             int min = (int)x - maxConnectionDist;
             int max = (int)x + maxConnectionDist;
@@ -488,9 +499,9 @@ namespace my
 
                 dist2 = dx * dx + dy * dy;
 
-                if (dist2 < maxDist2)
+                if (dist2 < maxDistSquared)
                 {
-                    a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
+                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
 
                     myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
                     myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
@@ -510,9 +521,9 @@ namespace my
 
                 dist2 = dx * dx + dy * dy;
 
-                if (dist2 < maxDist2)
+                if (dist2 < maxDistSquared)
                 {
-                    a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
+                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
 
                     myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
                     myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
@@ -528,8 +539,6 @@ namespace my
             var selectedList2 = new List<float>();
 
             int Count = list.Count;
-            int maxDist2 = maxConnectionDist * maxConnectionDist;
-            float maxDist2_inv = 1.0f / maxDist2, opacityFactor = 0.025f;
 
             int min = (int)x - maxConnectionDist;
             int max = (int)x + maxConnectionDist;
@@ -552,19 +561,12 @@ namespace my
 
                 dist2 = dx * dx + dy * dy;
 
-                if (dist2 < maxDist2)
+                if (dist2 < maxDistSquared)
                 {
-                    a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
+                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
 
                     selectedList1.Add(i);
                     selectedList2.Add(a);
-
-/*
-                    lock (_lock)
-                    {
-                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
-                    }*/
                 }
             }
 
@@ -581,19 +583,12 @@ namespace my
 
                 dist2 = dx * dx + dy * dy;
 
-                if (dist2 < maxDist2)
+                if (dist2 < maxDistSquared)
                 {
-                    a = (1.0f - dist2 * maxDist2_inv) * opacityFactor;
+                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
 
                     selectedList1.Add(i);
                     selectedList2.Add(a);
-
-/*
-                    lock (_lock)
-                    {
-                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
-                    }*/
                 }
             }
 
