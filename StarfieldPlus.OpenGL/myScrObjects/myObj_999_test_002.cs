@@ -37,7 +37,7 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, maxConnectionDist = 100, nTaskCount = 1;
+        private static int N = 0, shape = 0, maxConnectionDist = 100, nTaskCount = 1, lenMode = 0;
         private static bool doFillShapes = false;
         private static float dSpeed = 0.01f;
 
@@ -70,10 +70,10 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(100) + 100;
-                N = 2500;
+                N = 3333;
 
                 nTaskCount = Environment.ProcessorCount - 1;
-                nTaskCount = 1;
+                nTaskCount = 4;
 
                 shape = rand.Next(5);
             }
@@ -87,6 +87,15 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
+
+            lenMode = rand.Next(3);
+
+            switch (lenMode)
+            {
+                case 0: maxConnectionDist = 250; break;
+                case 1: maxConnectionDist = 100 + rand.Next(150); break;
+                case 2: maxConnectionDist = 200; break;
+            }
 
             maxConnectionDist = 250;
             renderDelay = 0;
@@ -103,9 +112,11 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             //string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                             +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"     +
+                            $"lenMode = {lenMode}\n"                     +
+                            $"maxConnectionDist = {maxConnectionDist}\n" +
+                            $"renderDelay = {renderDelay}\n"             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -411,6 +422,11 @@ namespace my
                 }
 
                 cnt++;
+
+                if (lenMode == 2 && myUtils.randomChance(rand, 1, 1234))
+                {
+                    maxConnectionDist = 100 + rand.Next(150);
+                }
             }
 
         }
@@ -592,6 +608,8 @@ namespace my
                     myPrimitive._LineInst.setInstanceColor(1, 1, 1, selectedList2[i]);
                 }
             }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
