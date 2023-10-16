@@ -79,12 +79,12 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(100) + 100;
-                N = 3333;
+                N = 7500;
 
                 shape = rand.Next(5);
 
                 nTaskCount = Environment.ProcessorCount - 1;
-                nTaskCount = 1;
+                nTaskCount = 6;
             }
 
             initLocal();
@@ -98,6 +98,7 @@ namespace my
             doClearBuffer = true;
 
             lenMode = rand.Next(3);
+lenMode = 0;
 
             switch (lenMode)
             {
@@ -168,9 +169,22 @@ namespace my
             x += dx;
             y += dy;
 
+#if true
             if (x < 0) dx += dSpeed; else if (x > gl_Width ) dx -= dSpeed;
             if (y < 0) dy += dSpeed; else if (y > gl_Height) dy -= dSpeed;
+#else
+            if (x < 0 && dx < 0)
+                dx *= -1;
 
+            if (y < 0 && dy < 0)
+                dy *= -1;
+
+            if (x > gl_Width && dx > 0)
+                dx *= -1;
+
+            if (y > gl_Height && dy > 0)
+                dy *= -1;
+#endif
             return;
         }
 
@@ -237,7 +251,7 @@ namespace my
             clearScreenSetup(doClearBuffer, 0.1f);
 
 
-            if (false)
+            if (true)
             {
                 while (list.Count < N)
                 {

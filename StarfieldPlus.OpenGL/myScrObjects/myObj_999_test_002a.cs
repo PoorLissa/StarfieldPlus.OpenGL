@@ -20,7 +20,7 @@ namespace my
     public class myObj_999_test_002a : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 99910;
 		public static System.Type Type => typeof(myObj_999_test_002a);
 
         private float x, y, dx, dy;
@@ -37,6 +37,9 @@ namespace my
 
         private static object _lock = new object();
 
+        // Override base list, to sort it without type casting
+        private static new List<myObj_999_test_002a> list = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_999_test_002a()
@@ -51,17 +54,18 @@ namespace my
         protected override void initGlobal()
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height);
-            list = new List<myObject>();
+            list = new List<myObj_999_test_002a>();
 
             // Global unmutable constants
             {
                 N = rand.Next(100) + 100;
-                N = 3333;
+                N = 3500;
+                N = 2500 + rand.Next(1001);
 
                 shape = rand.Next(5);
 
                 nTaskCount = Environment.ProcessorCount - 1;
-                nTaskCount = 1;
+                nTaskCount = 6;
 
                 doGenerateAll = false;
                 //doGenerateAll = true;
@@ -132,8 +136,9 @@ namespace my
             dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
             dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
 
+            angle = 0;
             size = shape == 1 ? 2 : 3;
-            //angle = myUtils.randFloat(rand) * rand.Next(123);
+            angle = myUtils.randFloat(rand) * rand.Next(123);
 
             A = 0.5f + myUtils.randFloat(rand) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -148,9 +153,22 @@ namespace my
             x += dx;
             y += dy;
 
+#if true
             if (x < 0) dx += dSpeed; else if (x > gl_Width ) dx -= dSpeed;
             if (y < 0) dy += dSpeed; else if (y > gl_Height) dy -= dSpeed;
+#else
+            if (x < 0 && dx < 0)
+                dx *= -1;
 
+            if (y < 0 && dy < 0)
+                dy *= -1;
+
+            if (x > gl_Width && dx > 0)
+                dx *= -1;
+
+            if (y > gl_Height && dy > 0)
+                dy *= -1;
+#endif
             return;
         }
 
@@ -397,8 +415,7 @@ namespace my
                 // Restart all the tasks
                 for (int k = 0; k < nTaskCount; k++)
                 {
-                    var task = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
-                    taskList[k] = task;
+                    taskList[k] = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
                 }
 
                 cnt++;
@@ -429,14 +446,11 @@ namespace my
 
         private void SortParticles()
         {
-            list.Sort(delegate (myObject obj1, myObject obj2)
+            list.Sort(delegate (myObj_999_test_002a obj1, myObj_999_test_002a obj2)
             {
-                var o1 = obj1 as myObj_999_test_002a;
-                var o2 = obj2 as myObj_999_test_002a;
-
-                return o1.x < o2.x
+                return obj1.x < obj2.x
                     ? -1
-                    : o1.x > o2.x
+                    : obj1.x > obj2.x
                         ? 1
                         : 0;
             });
@@ -456,7 +470,7 @@ namespace my
             // Traverse right, while within the maxConnectionDist distance
             for (int i = current_index + 1; i < Count; i++)
             {
-                var other = list[i] as myObj_999_test_002a;
+                var other = list[i];
 
                 if (other.x > max)
                     break;
@@ -478,7 +492,7 @@ namespace my
             // Traverse left, while within the maxConnectionDist distance
             for (int i = current_index - 1; i >= 0; i--)
             {
-                var other = list[i] as myObj_999_test_002a;
+                var other = list[i];
 
                 if (other.x < min)
                     break;
@@ -537,7 +551,7 @@ namespace my
             // Traverse left, while within the maxConnectionDist distance
             for (int i = current_index - 1; i >= 0; i--)
             {
-                var other = list[i] as myObj_999_test_002a;
+                var other = list[i];
 
                 if (other.x < min)
                     break;
@@ -561,7 +575,7 @@ namespace my
                 for (int i = 0; i < selectedList1.Count; i++)
                 {
                     int index = selectedList1[i];
-                    var other = list[index] as myObj_999_test_002a;
+                    var other = list[index];
 
                     myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
                     myPrimitive._LineInst.setInstanceColor(1, 1, 1, selectedList2[i]);
