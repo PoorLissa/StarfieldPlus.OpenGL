@@ -178,7 +178,7 @@ public class ScreenSaver
 #endif
 
 #if true
-        register(my.myObj_999_test_002.Type);
+        //register(my.myObj_999_test_002.Type);
         register(my.myObj_999_test_002a.Type);
 #endif
 
