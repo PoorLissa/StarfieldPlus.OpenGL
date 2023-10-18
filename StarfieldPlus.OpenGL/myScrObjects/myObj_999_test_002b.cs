@@ -157,6 +157,7 @@ lenMode = 0;
                             $"lenMode = {lenMode}\n"                     +
                             $"maxConnectionDist = {maxConnectionDist}\n" +
                             $"renderDelay = {renderDelay}\n"             +
+                            $"cell info: {getCellsInfo()}\n"             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -189,6 +190,8 @@ lenMode = 0;
             A = 0.5f + myUtils.randFloat(rand) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
+            dic[cellId].items.Add(id, this);
+
             return;
         }
 
@@ -198,6 +201,9 @@ lenMode = 0;
         {
             //x += dx;
             //y += dy;
+
+            x += dx * 0.1f;
+            y += dy * 0.1f;
 
 #if true
             if (x < 0) dx += dSpeed; else if (x > gl_Width ) dx -= dSpeed;
@@ -348,13 +354,13 @@ lenMode = 0;
                     // This is the most time consuming part here, and is optimized using multimap approach
                     for (int i = 0; i != Count; i++)
                     {
-                        (list[i] as myObj_999_test_002b).showConnections();
+                        list[i].showConnections();
                     }
 
                     // As we're working off a sortedList, Show and Move methods should be called from within the separate loops
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_999_test_002b;
+                        var obj = list[i];
                         obj.Show();
                         obj.Move();
                     }
@@ -447,6 +453,35 @@ lenMode = 0;
             }
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private string getCellsInfo()
+        {
+            int nCells = dic.Count;
+            int min = N;
+            int max = 0;
+            int avg = 0;
+            int particles = 0;
+
+            foreach (var Cell in dic)
+            {
+                int cnt = Cell.Value.items.Count;
+
+                if (cnt < min)
+                    min = cnt;
+
+                if (cnt > max)
+                    max = cnt;
+
+                avg += cnt;
+            }
+
+            particles = avg;
+            avg /= nCells;
+
+            return $"\ncells = {nCells}\nparticles = {particles}\nmin = {min}\nmax = {max}\navg = {avg}";
         }
 
         // ---------------------------------------------------------------------------------------------------------------

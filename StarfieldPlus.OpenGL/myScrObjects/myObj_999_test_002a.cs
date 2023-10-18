@@ -12,6 +12,13 @@ using System.Collections.Generic;
         For the current particle, get its x % cellSize and y % cellSize => cellId
         For that cellId, find all neighbouring cells
         For every such neighbour, check its child particles vs the current one
+
+
+
+    1. Test the new neighbours idiom (which is only implemented for 1 thread curently)
+    2. If neighbours work, can we use 2 distances - one for the neighbours that are within our reach,
+            and the other a bit larger, to keep track of others who might become our neigbours in the nearest future?
+    3. See if using 'list[i].x ..' instead of 'var other = list[i]; other.x ...' is faster or not
 */
 
 
@@ -26,8 +33,10 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
+        private List<myObj_999_test_002a> neighbours = null;
+
         private static int N = 0, shape = 0, maxConnectionDist = 100, nTaskCount = 1, lenMode = 0;
-        private static bool doFillShapes = false, doGenerateAll = false;
+        private static bool doFillShapes = false, doGenerateAll = false, doUseSlowSpeed = false, doRememberNeighbours = false;
         private static float dSpeed = 0.01f, opacityFactor = 0.025f;
 
         private static int   maxDistSquared = 0;
@@ -67,8 +76,17 @@ namespace my
                 nTaskCount = Environment.ProcessorCount - 1;
                 nTaskCount = 6;
 
+                {
+                    doRememberNeighbours = true;
+
+                    if (doRememberNeighbours)
+                        nTaskCount = 1;
+                }
+
                 doGenerateAll = false;
                 //doGenerateAll = true;
+
+                doUseSlowSpeed = myUtils.randomChance(rand, 1, 2);
             }
 
             initLocal();
@@ -111,6 +129,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"     +
                             $"nTaskCount = {nTaskCount}\n"               +
                             $"lenMode = {lenMode}\n"                     +
+                            $"doUseSlowSpeed = {doUseSlowSpeed}\n"       +
                             $"maxConnectionDist = {maxConnectionDist}\n" +
                             $"renderDelay = {renderDelay}\n"             +
                             $"file: {colorPicker.GetFileName()}"
@@ -136,12 +155,23 @@ namespace my
             dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
             dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
 
+            if (doUseSlowSpeed)
+            {
+                dx *= 0.1f;
+                dy *= 0.1f;
+            }
+
             angle = 0;
             size = shape == 1 ? 2 : 3;
             angle = myUtils.randFloat(rand) * rand.Next(123);
 
             A = 0.5f + myUtils.randFloat(rand) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            if (doRememberNeighbours && neighbours == null)
+            {
+                neighbours = new List<myObj_999_test_002a>();
+            }
 
             return;
         }
@@ -288,9 +318,19 @@ namespace my
 
                     // Draw all the connecting lines between particles;
                     // This is the most time consuming part here, and is optimized using binary searches on a sorted array
-                    for (int i = 0; i != Count; i++)
+                    if (doRememberNeighbours)
                     {
-                        (list[i] as myObj_999_test_002a).showConnections(i);
+                        for (int i = 0; i != Count; i++)
+                        {
+                            list[i].showConnections(i, doUseNeighbours: true);
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i != Count; i++)
+                        {
+                            list[i].showConnections(i);
+                        }
                     }
 
                     // As we're working off a sortedList, Show and Move methods should be called from within the separate loops
@@ -510,6 +550,99 @@ namespace my
                     myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
                 }
             }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Check the actual distances between this point and the rest of them only once in a while;
+        // Remember all the particles that are within the range and 
+        private void showConnections(int current_index, bool doUseNeighbours)
+        {
+            float dx, dy, distSquared, a;
+
+            if (myUtils.randomChance(rand, 1, 10))
+            {
+                // Do a honest search for neighbours
+                neighbours.Clear();
+
+                int Count = list.Count;
+
+                int min = (int)x - maxConnectionDist;
+                int max = (int)x + maxConnectionDist;
+
+                // Traverse right, while within the maxConnectionDist distance
+                for (int i = current_index + 1; i < Count; i++)
+                {
+                    var other = list[i];
+
+                    if (other.x > max)
+                        break;
+
+                    dx = x - other.x;
+                    dy = y - other.y;
+
+                    distSquared = dx * dx + dy * dy;
+
+                    if (distSquared < maxDistSquared)
+                    {
+                        a = (1.0f - distSquared * maxDistSquared_Inverted) * opacityFactor;
+
+                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+
+                        neighbours.Add(other);
+                    }
+                }
+
+                // Traverse left, while within the maxConnectionDist distance
+                for (int i = current_index - 1; i >= 0; i--)
+                {
+                    var other = list[i];
+
+                    if (other.x < min)
+                        break;
+
+                    dx = x - other.x;
+                    dy = y - other.y;
+
+                    distSquared = dx * dx + dy * dy;
+
+                    if (distSquared < maxDistSquared)
+                    {
+                        a = (1.0f - distSquared * maxDistSquared_Inverted) * opacityFactor;
+
+                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+
+                        neighbours.Add(other);
+                    }
+                }
+            }
+            else
+            {
+                // Use the neighbours we still remember to draw the connections
+                int Count = neighbours.Count;
+
+                for (int i = 0; i < Count; i++)
+                {
+                    var other = list[i];
+
+                    dx = x - other.x;
+                    dy = y - other.y;
+
+                    distSquared = dx * dx + dy * dy;
+
+                    if (distSquared < maxDistSquared)
+                    {
+                        a = (1.0f - distSquared * maxDistSquared_Inverted) * opacityFactor;
+
+                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                    }
+                }
+            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
