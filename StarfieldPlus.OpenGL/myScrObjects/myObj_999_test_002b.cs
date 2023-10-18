@@ -17,19 +17,33 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_999_test_002a : myObject
+    public class cell
+    {
+        public int x, y, w, h;
+
+        public Dictionary<uint, myObj_999_test_002b> items = null;
+
+        public cell()
+        {
+            items = new Dictionary<uint, myObj_999_test_002b>();
+        }
+    };
+
+    public class myObj_999_test_002b : myObject
     {
         // Priority
-        public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_999_test_002a);
+        public static int Priority => 99910;
+		public static System.Type Type => typeof(myObj_999_test_002b);
 
+        private int cellId;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
         private static int N = 0, shape = 0, maxConnectionDist = 100, nTaskCount = 1, lenMode = 0;
-        private static bool doFillShapes = false, doGenerateAll = false;
+        private static bool doFillShapes = false, doGenerateAll = false, doShowCellBounds = true;
         private static float dSpeed = 0.01f, opacityFactor = 0.025f;
 
+        private static int   cellSize = 100, cellRow = 0;
         private static int   maxDistSquared = 0;
         private static float maxDistSquared_Inverted = 1.0f;
 
@@ -38,11 +52,13 @@ namespace my
         private static object _lock = new object();
 
         // Override base list, to sort it without type casting
-        private static new List<myObj_999_test_002a> list = null;
+        private static new List<myObj_999_test_002b> list = null;
+
+        private static Dictionary<int, cell> dic = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_999_test_002a()
+        public myObj_999_test_002b()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -54,21 +70,47 @@ namespace my
         protected override void initGlobal()
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height);
-            list = new List<myObj_999_test_002a>();
+            list = new List<myObj_999_test_002b>();
+
+            {
+                dic = new Dictionary<int, cell>();
+                cellSize = 250;
+
+                int minx = 0;
+                int maxx = gl_Width;
+
+                cellRow = 1 + (maxx - minx) / cellSize;
+
+                for (int j = 0; j < gl_Height; j += cellSize)
+                {
+                    for (int i = minx; i < maxx; i += cellSize)
+                    {
+                        int id = i / cellSize + (j / cellSize) * cellRow;
+
+                        dic[id] = new cell();
+
+                        dic[id].x = i / cellSize;
+                        dic[id].y = j / cellSize;
+                        dic[id].w = cellSize;
+                        dic[id].h = cellSize;
+                    }
+                }
+            }
 
             // Global unmutable constants
             {
                 N = rand.Next(100) + 100;
                 N = 3500;
                 N = 2500 + rand.Next(1001);
+                N = 2345;
 
                 shape = rand.Next(5);
 
                 nTaskCount = Environment.ProcessorCount - 1;
-                nTaskCount = 6;
+                nTaskCount = 1;
 
                 doGenerateAll = false;
-                //doGenerateAll = true;
+                doGenerateAll = true;
             }
 
             initLocal();
@@ -82,6 +124,8 @@ namespace my
             doClearBuffer = true;
 
             lenMode = rand.Next(3);
+
+lenMode = 0;
 
             switch (lenMode)
             {
@@ -133,6 +177,8 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
+            cellId = (int)x / cellSize + ((int)y / cellSize) * cellRow;
+
             dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
             dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
 
@@ -150,25 +196,32 @@ namespace my
 
         protected override void Move()
         {
-            x += dx;
-            y += dy;
+            //x += dx;
+            //y += dy;
 
 #if true
             if (x < 0) dx += dSpeed; else if (x > gl_Width ) dx -= dSpeed;
             if (y < 0) dy += dSpeed; else if (y > gl_Height) dy -= dSpeed;
 #else
-            if (x < 0 && dx < 0)
-                dx *= -1;
-
-            if (y < 0 && dy < 0)
-                dy *= -1;
-
-            if (x > gl_Width && dx > 0)
-                dx *= -1;
-
-            if (y > gl_Height && dy > 0)
-                dy *= -1;
+            if(x < 0 )
 #endif
+
+            // Check if the particle has moved out of its current cell
+            {
+                int newCellId = (int)x / cellSize + ((int)y / cellSize) * cellRow;
+
+                if (cellId != newCellId && dic.ContainsKey(newCellId))
+                {
+                    var oldDic = dic[cellId];
+                    var newDic = dic[newCellId];
+
+                    oldDic.items.Remove(id);
+                    newDic.items.Add(id, this);
+
+                    cellId = newCellId;
+                }
+            }
+
             return;
         }
 
@@ -177,6 +230,13 @@ namespace my
         protected override void Show()
         {
             float size2x = size * 2;
+
+            if (doShowCellBounds)
+            {
+                var cell = dic[cellId];
+                myPrimitive._Rectangle.SetColor(1, 1, 1, 0.05f);
+                myPrimitive._Rectangle.Draw(cell.x * cellSize, cell.y * cellSize, cell.w, cell.h);
+            }
 
             switch (shape)
             {
@@ -237,7 +297,7 @@ namespace my
 
             if (doGenerateAll)
                 while (list.Count < N)
-                    list.Add(new myObj_999_test_002a());
+                    list.Add(new myObj_999_test_002b());
 
 
             switch (nTaskCount)
@@ -267,8 +327,6 @@ namespace my
             {
                 int Count = list.Count;
 
-                SortParticles();
-
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -287,16 +345,16 @@ namespace my
                     myPrimitive._LineInst.ResetBuffer();
 
                     // Draw all the connecting lines between particles;
-                    // This is the most time consuming part here, and is optimized using binary searches on a sorted array
+                    // This is the most time consuming part here, and is optimized using multimap approach
                     for (int i = 0; i != Count; i++)
                     {
-                        (list[i] as myObj_999_test_002a).showConnections(i);
+                        (list[i] as myObj_999_test_002b).showConnections();
                     }
 
                     // As we're working off a sortedList, Show and Move methods should be called from within the separate loops
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_999_test_002a;
+                        var obj = list[i] as myObj_999_test_002b;
                         obj.Show();
                         obj.Move();
                     }
@@ -317,7 +375,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_999_test_002a());
+                    list.Add(new myObj_999_test_002b());
                 }
 
                 cnt++;
@@ -331,101 +389,6 @@ namespace my
         // Multiple threads process
         private void process2(Window window)
         {
-            uint cnt = 0;
-
-            var taskList = new System.Threading.Tasks.Task[nTaskCount];
-
-            // Define a delegate that executes the task:
-            Func<object, int> action = (object obj) =>
-            {
-                int k = (int)obj;
-
-                int beg = (k + 0) * list.Count / nTaskCount;
-                int end = (k + 1) * list.Count / nTaskCount;
-
-                for (int i = beg; i < end; i++)
-                    (list[i] as myObj_999_test_002a).showConnectionsThreadSafe(i);
-
-                return 0;
-            };
-
-            // Make sure the list is already sorted when we're starting out threads
-            SortParticles();
-
-            for (int k = 0; k < nTaskCount; k++)
-            {
-                var task = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
-                taskList[k] = task;
-            }
-
-
-            while (!Glfw.WindowShouldClose(window))
-            {
-                int Count = list.Count;
-
-                processInput(window);
-
-                // Swap fore/back framebuffers, and poll for operating system events.
-                Glfw.SwapBuffers(window);
-                Glfw.PollEvents();
-
-                // Dim screen
-                {
-                    glClear(GL_COLOR_BUFFER_BIT);
-                    grad.Draw();
-                }
-
-                // Render Frame
-                {
-                    // Wait until all the tasks have finished
-                    System.Threading.Tasks.Task.WaitAll(taskList);
-                    myPrimitive._LineInst.Draw();
-                    myPrimitive._LineInst.ResetBuffer();
-
-                    inst.ResetBuffer();
-
-                    // Move every particle
-                    for (int i = 0; i != Count; i++)
-                    {
-                        var obj = list[i] as myObj_999_test_002a;
-
-                        obj.Move();
-                        obj.Show();
-                    }
-
-                    if (doFillShapes)
-                    {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
-                    }
-
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
-                }
-
-                if (Count < N)
-                {
-                    list.Add(new myObj_999_test_002a());
-                }
-
-                SortParticles();
-
-                // Restart all the tasks
-                for (int k = 0; k < nTaskCount; k++)
-                {
-                    taskList[k] = System.Threading.Tasks.Task<int>.Factory.StartNew(action, k);
-                }
-
-                cnt++;
-
-                if (lenMode == 2 && myUtils.randomChance(rand, 1, 1234))
-                {
-                    maxConnectionDist = 100 + rand.Next(150);
-                }
-            }
-
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -434,7 +397,12 @@ namespace my
         {
             base.initShapes(shape, N, 0);
 
-            myPrimitive.init_LineInst(N * (N / 10));
+            int n = N < 10 ? 100 : N * (N / 10);
+
+            myPrimitive.init_LineInst(n);
+
+            if (doShowCellBounds)
+                myPrimitive.init_Rectangle();
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
@@ -444,141 +412,37 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void SortParticles()
+        private void showConnections()
         {
-            list.Sort(delegate (myObj_999_test_002a obj1, myObj_999_test_002a obj2)
-            {
-                return obj1.x < obj2.x
-                    ? -1
-                    : obj1.x > obj2.x
-                        ? 1
-                        : 0;
-            });
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        private void showConnections(int current_index)
-        {
-            int Count = list.Count;
-
-            int min = (int)x - maxConnectionDist;
-            int max = (int)x + maxConnectionDist;
-
             float dx, dy, dist2, a;
 
-            // Traverse right, while within the maxConnectionDist distance
-            for (int i = current_index + 1; i < Count; i++)
+            for (int i = -1; i < 2; i++)
             {
-                var other = list[i];
-
-                if (other.x > max)
-                    break;
-
-                dx = x - other.x;
-                dy = y - other.y;
-
-                dist2 = dx * dx + dy * dy;
-
-                if (dist2 < maxDistSquared)
+                for (int j = -1; j < 2; j++)
                 {
-                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
+                    int cell = cellId + cellRow * i + j;
 
-                    myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
-                }
-            }
+                    if (dic.ContainsKey(cell))
+                    {
+                        foreach (var other in dic[cell].items)
+                        {
+                            if (id != other.Value.id)
+                            {
+                                dx = x - other.Value.x;
+                                dy = y - other.Value.y;
 
-            // Traverse left, while within the maxConnectionDist distance
-            for (int i = current_index - 1; i >= 0; i--)
-            {
-                var other = list[i];
+                                dist2 = dx * dx + dy * dy;
 
-                if (other.x < min)
-                    break;
+                                if (dist2 < maxDistSquared)
+                                {
+                                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
 
-                dx = x - other.x;
-                dy = y - other.y;
-
-                dist2 = dx * dx + dy * dy;
-
-                if (dist2 < maxDistSquared)
-                {
-                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
-
-                    myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
-                }
-            }
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        private void showConnectionsThreadSafe(int current_index)
-        {
-            var selectedList1 = new List<int>();
-            var selectedList2 = new List<float>();
-
-            int Count = list.Count;
-
-            int min = (int)x - maxConnectionDist;
-            int max = (int)x + maxConnectionDist;
-
-            float dx, dy, dist2, a;
-
-            // Traverse right, while within the maxConnectionDist distance
-            for (int i = current_index + 1; i < Count; i++)
-            {
-                var other = list[i] as myObj_999_test_002a;
-
-                if (other.x > max)
-                    break;
-
-                dx = x - other.x;
-                dy = y - other.y;
-
-                dist2 = dx * dx + dy * dy;
-
-                if (dist2 < maxDistSquared)
-                {
-                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
-
-                    selectedList1.Add(i);
-                    selectedList2.Add(a);
-                }
-            }
-
-            // Traverse left, while within the maxConnectionDist distance
-            for (int i = current_index - 1; i >= 0; i--)
-            {
-                var other = list[i];
-
-                if (other.x < min)
-                    break;
-
-                dx = x - other.x;
-                dy = y - other.y;
-
-                dist2 = dx * dx + dy * dy;
-
-                if (dist2 < maxDistSquared)
-                {
-                    a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
-
-                    selectedList1.Add(i);
-                    selectedList2.Add(a);
-                }
-            }
-
-            lock (_lock)
-            {
-                for (int i = 0; i < selectedList1.Count; i++)
-                {
-                    int index = selectedList1[i];
-                    var other = list[index];
-
-                    myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, selectedList2[i]);
+                                    myPrimitive._LineInst.setInstanceCoords(x, y, other.Value.x, other.Value.y);
+                                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -586,6 +450,5 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
     }
 };
