@@ -27,7 +27,7 @@ namespace my
     public class myObj_999_test_002a : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99910;
 		public static System.Type Type => typeof(myObj_999_test_002a);
 
         private float x, y, dx, dy;
@@ -70,11 +70,13 @@ namespace my
                 N = rand.Next(100) + 100;
                 N = 3500;
                 N = 2500 + rand.Next(1001);
+                N = 9999;
 
                 shape = rand.Next(5);
 
                 nTaskCount = Environment.ProcessorCount - 1;
                 nTaskCount = 6;
+                nTaskCount = 1;
 
                 {
                     doRememberNeighbours = true;
@@ -87,6 +89,7 @@ namespace my
                 //doGenerateAll = true;
 
                 doUseSlowSpeed = myUtils.randomChance(rand, 1, 2);
+doUseSlowSpeed = false;
             }
 
             initLocal();
@@ -100,6 +103,7 @@ namespace my
             doClearBuffer = true;
 
             lenMode = rand.Next(3);
+lenMode = 0;
 
             switch (lenMode)
             {
@@ -155,6 +159,12 @@ namespace my
             dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
             dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
 
+            if (myUtils.randomChance(rand, 33, 35))
+            {
+                dx *= myUtils.randFloat(rand) * 0.1f;
+                dy *= myUtils.randFloat(rand) * 0.1f;
+            }
+
             if (doUseSlowSpeed)
             {
                 dx *= 0.1f;
@@ -166,6 +176,7 @@ namespace my
             angle = myUtils.randFloat(rand) * rand.Next(123);
 
             A = 0.5f + myUtils.randFloat(rand) * 0.5f;
+A /= 10;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             if (doRememberNeighbours && neighbours == null)
@@ -474,7 +485,9 @@ namespace my
         {
             base.initShapes(shape, N, 0);
 
-            myPrimitive.init_LineInst(N * (N / 10));
+            int n = N < 10 ? 100 : N * (N / 10);
+
+            myPrimitive.init_LineInst(n);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
@@ -560,7 +573,7 @@ namespace my
         {
             float dx, dy, distSquared, a;
 
-            if (myUtils.randomChance(rand, 1, 10))
+            if (myUtils.randomChance(rand, 1, 1333))
             {
                 // Do a honest search for neighbours
                 neighbours.Clear();
@@ -625,7 +638,7 @@ namespace my
 
                 for (int i = 0; i < Count; i++)
                 {
-                    var other = list[i];
+                    var other = neighbours[i];
 
                     dx = x - other.x;
                     dy = y - other.y;
