@@ -34,10 +34,10 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
         public static System.Type Type => typeof(myObj_541);
 
-        private int yDist = 0, cnt;
+        private int yDist = 0, cnt, deadIndex;
         private float x, y, dy, angle, dAngle, sizeFactor;
         private float A, R, G, B;
 
@@ -157,6 +157,7 @@ angleMode = 0;
         {
             if (_symbols == null)
             {
+                deadIndex = -1;
                 _symbols = new List<symbolItem>();
             }
             else
@@ -168,6 +169,7 @@ angleMode = 0;
             y = -11;
 
             A = getOpacity(0.5f, 13);
+            A = 0.1f;
 
             // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
             {
@@ -207,13 +209,15 @@ angleMode = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // todo: removing items is very expensive
+        // need to work without 
         protected override void Move()
         {
             int Count = _symbols.Count;
 
             for (int i = 0; i < Count; i++)
             {
-                var item = _symbols[i] as symbolItem;
+                symbolItem item = _symbols[i];
                 item.y += dy;
 
                 if (myUtils.randomChance(rand, 1, 111))
@@ -230,6 +234,7 @@ angleMode = 0;
                 // Remove items that we can't see anymore
                 if (item.y > gl_Height)
                 {
+                    break;
                     _symbols.RemoveAt(i);
                     Count--;
                 }
@@ -251,7 +256,10 @@ angleMode = 0;
 
             for (int i = 0; i < Count; i++)
             {
-                var item = _symbols[i] as symbolItem;
+                symbolItem item = _symbols[i];
+
+                if (item.y > gl_Height)
+                    break;
 
                 if (doUseRGB)
                 {

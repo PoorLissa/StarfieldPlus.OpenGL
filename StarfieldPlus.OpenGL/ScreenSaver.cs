@@ -184,6 +184,11 @@ public class ScreenSaver
         register(my.myObj_999_test_002b.Type);
 #endif
 
+#if true
+        // TextTex test
+        register(my.myObj_999_test_003.Type);
+#endif
+
         _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);
 
         return;
