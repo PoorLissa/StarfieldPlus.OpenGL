@@ -40,7 +40,7 @@ class TexText
     // -------------------------------------------------------------------------------------------------------------------
 
     // Use a random set of characters
-    public TexText(int size, bool customColor)
+    public TexText(int size, bool customColor, int alphabetId = -1)
     {
         System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
 
@@ -49,7 +49,7 @@ class TexText
         string str = "";
         
         getFont(ref _fontFamily);
-        getAlphabet(ref str);
+        getAlphabet(ref str, alphabetId);
 
         _Length = str.Length;
 
@@ -97,6 +97,20 @@ class TexText
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    public int getFieldWidth(int charIndex)
+    {
+        return _map[charIndex].width;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public int getFieldHeight()
+    {
+        return _texHeight;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     public void Draw(float x, float y, int charIndex, float opacity, float angle, float sizeFactor)
     {
         Draw((int)x, (int)y, charIndex, opacity, angle, sizeFactor);
@@ -139,13 +153,11 @@ class TexText
     // -------------------------------------------------------------------------------------------------------------------
 
     // Return random set of characters made of a random sum of defined sets
-    private void getAlphabet(ref string str)
+    private void getAlphabet(ref string str, int id = -1)
     {
         Random rand = new Random((int)DateTime.Now.Ticks);
 
-        if (rand.Next(2) == 0)
-        {
-            string[] arr = new string[] {
+        string[] arr1 = new string[] {
                 "Hello World",
                 "To be or not to be",
                 "I have a dream",
@@ -157,14 +169,8 @@ class TexText
                 "Hasta la vista baby"
             };
 
-            str = arr[rand.Next(arr.Length)];
-        }
-        else
-        {
-            const int N = 7;
-            str = "";
-
-            string[] arr = new string[N] {
+        const int N = 7;
+        string[] arr2 = new string[N] {
                 "абвгдеёжзийклмнопрстуфхцчшщъыьэюя",
                 "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
                 "abcdefghijklmnopqrstuvwxyz",
@@ -174,18 +180,33 @@ class TexText
                 "!@#$%^&*()[]{}<>-+=/?~;:'"
             };
 
-            // Get random number from [1 .. (2^N)-1]
-            uint n = (uint)Math.Pow(2, N) - 1;
-
-            n = (uint)rand.Next((int)n) + 1;
-
-            for (int i = 0; i < N; i++)
+        if (id < 0)
+        {
+            if (rand.Next(2) == 0)
             {
-                if (((uint)(1 << i) & n) != 0)
+                str = arr1[rand.Next(arr1.Length)];
+            }
+            else
+            {
+                str = "";
+
+                // Get random number from [1 .. (2^N)-1]
+                uint n = (uint)Math.Pow(2, N) - 1;
+
+                n = (uint)rand.Next((int)n) + 1;
+
+                for (int i = 0; i < N; i++)
                 {
-                    str += arr[i];
+                    if (((uint)(1 << i) & n) != 0)
+                    {
+                        str += arr2[i];
+                    }
                 }
             }
+        }
+        else
+        {
+            str = arr2[id];
         }
 
         return;
@@ -288,7 +309,6 @@ class TexText
                             var size = gr.MeasureString(str[i].ToString(), font, 300, StringFormat.GenericDefault);
 
                             rect.Width = (int)(size.Width + 0.5f);
-
                             gr.DrawString(str[i].ToString(), font, br, rect);
 
                             field fld = new field();

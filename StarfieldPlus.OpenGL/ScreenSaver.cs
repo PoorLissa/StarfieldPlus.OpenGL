@@ -156,6 +156,7 @@ public class ScreenSaver
         register(my.myObj_520.Type);      // Static pulsating shapes
         register(my.myObj_530.Type);      // A ring of moving particles
         register(my.myObj_540.Type);      // Falling alphabet letters (Matrix style)
+        register(my.myObj_541.Type);      // Falling alphabet letters (Matrix style), ver2
         register(my.myObj_550.Type);      // Orbits of different size + a small planet is moving along each orbit
         register(my.myObj_560.Type);      // Pixelating an image with average colors
         register(my.myObj_570.Type);      // ...
@@ -177,7 +178,7 @@ public class ScreenSaver
         register(my.myObj_999_test_001.Type);
 #endif
 
-#if true
+#if false
         //register(my.myObj_999_test_002.Type);
         register(my.myObj_999_test_002a.Type);
         register(my.myObj_999_test_002b.Type);
