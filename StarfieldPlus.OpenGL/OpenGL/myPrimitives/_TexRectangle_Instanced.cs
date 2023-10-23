@@ -15,7 +15,7 @@ public class myTexRectangleInst : myInstancedPrimitive
     private static uint ebo = 0, instVbo = 0, quadVbo = 0;
 
     private static uint[] shaderProg = null;
-    private static int[] locationColor = null, locationScrSize = null;
+    private static int[] locationColor = null;
 
     private int rotationMode;
 
@@ -30,7 +30,7 @@ public class myTexRectangleInst : myInstancedPrimitive
         // - 4 floats for Texture Coordinates
         // - 4 floats for RGBA
         // - 1 float for Angle
-        n = 9;
+        n = 9 + 4;
 
         if (vertices == null)
         {
@@ -41,7 +41,6 @@ public class myTexRectangleInst : myInstancedPrimitive
 
             shaderProg = new uint[3];
             locationColor = new int[3];
-            locationScrSize = new int[3];
 
             CreateProgram();
 
@@ -83,7 +82,6 @@ public class myTexRectangleInst : myInstancedPrimitive
                 glUseProgram(shaderProg[0]);
 
                 // Update uniforms:
-                glUniform2i(locationScrSize[0], Width, Height);
                 break;
 
             case drawMode.OWN_COLOR_CUSTOM_OPACITY:
@@ -91,7 +89,6 @@ public class myTexRectangleInst : myInstancedPrimitive
 
                 // Update uniforms:
                 glUniform1f(locationColor[1], _a);
-                glUniform2i(locationScrSize[1], Width, Height);
                 break;
 
             case drawMode.CUSTOM_COLOR_CUSTOM_OPACITY:
@@ -99,7 +96,6 @@ public class myTexRectangleInst : myInstancedPrimitive
 
                 // Update uniforms:
                 glUniform4f(locationColor[2], _r, _g, _b, _a);
-                glUniform2i(locationScrSize[2], Width, Height);
                 break;
         }
 
@@ -117,30 +113,34 @@ public class myTexRectangleInst : myInstancedPrimitive
 
     private static void CreateProgram()
     {
-        // mat2x4 mData is a [2 x 4] matrix of floats, where:
-        // - first  4 floats are [x, y, w, h];
-        // - second 4 floats are [r, g, b, a]
+        // mat3x4 mData is a [3 x 4] matrix of floats, where:
+        // - 1st 4 floats are [x, y, w, h] for onscreen coordinates;
+        // - 2nd 4 floats are [x, y, w, h] for texture sample coordinates;
+        // - 3rd 4 floats are [r, g, b, a]
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
-              layout (location = 1) in mat2x4 mData;
-              // 2 for 2nd mat row
-              layout (location = 3) in float angle;
+              layout (location = 1) in mat3x4 mData;
+              layout (location = 4) in float angle;
                 uniform ivec2 myScrSize;
                 out vec4 rgbaColor;
                 out vec2 fragTxCoord;
             ",
 
-                main: @"rgbaColor = mData[1];
+                main: $@"rgbaColor = mData[2];
 
                         if (angle == 0)
-                        {
+                        {{
                             // Rectangle onscreen coordinates
                             gl_Position = vec4(pos.x * mData[0].z, pos.y * mData[0].w, 1.0, 1.0);
-                        }
 
-                        // Adjust for pixel density and move into final position
-                        gl_Position.x += +2.0 / myScrSize.x * (mData[0].x + mData[0].z/2) - 1.0;
-                        gl_Position.y += -2.0 / myScrSize.y * (mData[0].y + mData[0].w/2) + 1.0;
+                            // Adjust for pixel density and move into final position
+                            gl_Position.x += { +2.0 / Width  } * (mData[0].x + mData[0].z/2) - 1.0;
+                            gl_Position.y += { -2.0 / Height } * (mData[0].y + mData[0].w/2) + 1.0;
+                        }}
+
+                        //gl_Position = vec4(1, 1, 1, 1);
+                        //gl_Position.x = { +2.0 / Width  } * (mData[0].x + mData[0].z) - 1.0;
+                        //gl_Position.y = { -2.0 / Height } * (mData[0].y + mData[0].w) + 1.0;
 
                         fragTxCoord = vec2(gl_Position.x/2, -gl_Position.y/2);
                 "
@@ -171,7 +171,6 @@ public class myTexRectangleInst : myInstancedPrimitive
             glDeleteShader(fragment);
 
             glUseProgram(shaderProg[0]);
-            locationScrSize[0] = glGetUniformLocation(shaderProg[0], "myScrSize");
         }
 
         shaderProg[1] = glCreateProgram();
@@ -195,8 +194,8 @@ public class myTexRectangleInst : myInstancedPrimitive
     {
         glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
         {
-            fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+            fixed (float* vertData = &vertices[0])
+                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, vertData, GL_DYNAMIC_DRAW);
 
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
             glEnableVertexAttribArray(0);
@@ -219,8 +218,8 @@ public class myTexRectangleInst : myInstancedPrimitive
                 1, 2, 3    // second triangle
             };
 
-            fixed (uint* i = &indicesFill[0])
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, usage);
+            fixed (uint* indicesData = &indicesFill[0])
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, indicesData, usage);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
@@ -234,13 +233,13 @@ public class myTexRectangleInst : myInstancedPrimitive
         instanceArray[instArrayPosition + 1] = y;
         instanceArray[instArrayPosition + 2] = w;
         instanceArray[instArrayPosition + 3] = h;
-/*
+
         instanceArray[instArrayPosition + 4] = tx;
         instanceArray[instArrayPosition + 5] = ty;
         instanceArray[instArrayPosition + 6] = tw;
-        instanceArray[instArrayPosition + 7] = th;*/
+        instanceArray[instArrayPosition + 7] = th;
 
-        instArrayPosition += 4;
+        instArrayPosition += 8;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -286,6 +285,8 @@ public class myTexRectangleInst : myInstancedPrimitive
                 fixed (float* arrayData = &instanceArray[0])
                     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, arrayData, GL_DYNAMIC_COPY);
 
+                // glEnableVertexAttribArray(0) is taken by pos (see updateVertices())
+
                 glEnableVertexAttribArray(1);
                 glVertexAttribPointer(1, 4, GL_FLOAT, false, n * sizeof(float), NULL);
 
@@ -293,12 +294,16 @@ public class myTexRectangleInst : myInstancedPrimitive
                 glVertexAttribPointer(2, 4, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
 
                 glEnableVertexAttribArray(3);
-                glVertexAttribPointer(3, 1, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 8 * sizeof(float)));
+                glVertexAttribPointer(3, 4, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 8 * sizeof(float)));
+
+                glEnableVertexAttribArray(4);
+                glVertexAttribPointer(4, 1, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 12 * sizeof(float)));
 
                 // Tell OpenGL this is an instanced vertex attribute
                 glVertexAttribDivisor(1, 1);
                 glVertexAttribDivisor(2, 1);
                 glVertexAttribDivisor(3, 1);
+                glVertexAttribDivisor(4, 1);
 
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
             }
