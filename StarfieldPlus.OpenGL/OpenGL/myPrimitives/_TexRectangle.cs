@@ -317,7 +317,7 @@ public class myTexRectangle : myPrimitive
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(3 * sizeof(float)));
 
-            // layout (location = 2) -- texture coordinate attribute
+            // layout (location = 2) -- texture coordinate attribute (txCoord)
             glEnableVertexAttribArray(2);
             glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * sizeof(float), new IntPtr(6 * sizeof(float)));
         }

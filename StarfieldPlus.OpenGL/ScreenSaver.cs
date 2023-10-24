@@ -184,7 +184,7 @@ public class ScreenSaver
         register(my.myObj_999_test_002b.Type);
 #endif
 
-#if true
+#if !false
         // TextTex test
         register(my.myObj_999_test_003.Type);
 #endif

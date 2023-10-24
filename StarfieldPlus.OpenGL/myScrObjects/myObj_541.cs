@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 /*
     - Falling alphabet letters (Matrix style), ver2
+
+    // todo: too few symbols. need to use instancing
 */
 
 
@@ -15,13 +17,14 @@ namespace my
         class symbolItem
         {
             public int index;
-            public float x, y;
+            public float x, y, a;
 
-            public symbolItem(float X, float Y)
+            public symbolItem(float X, float Y, float A)
             {
                 index = rand.Next(tTex.Lengh());
                 x = X - tTex.getFieldWidth(index) / 2;
                 y = Y;
+                a = A + myUtils.randFloatSigned(rand) * 0.25f;
             }
 
             public void getRandomSymbol(float X)
@@ -70,8 +73,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 7;
-                N = 333;
+                N = 234;
 
                 // If true, paint alphabet in white and then set custom color for each particle
                 doUseRGB = myUtils.randomChance(rand, 1, 2);
@@ -125,8 +127,16 @@ angleMode = 0;
             string nStr(int   n) { return n.ToString("N0");    }
             //string fStr(float f) { return f.ToString("0.000"); }
 
+            int nSymbols = 0;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                nSymbols += (list[i] as myObj_541)._symbols.Count;
+            }
+
             string str = $"Obj = {Type}\n\n"                           	  +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"      +
+                            $"nSymbols = {nSymbols}\n"                    +
                             $"doClearBuffer = {doClearBuffer}\n"          +
                             $"renderDelay = {renderDelay}\n"              +
                             $"font = '{tTex.FontFamily()}'\n"             +
@@ -168,8 +178,8 @@ angleMode = 0;
             x = rand.Next(gl_Width);
             y = -11;
 
-            A = getOpacity(0.5f, 13);
             A = 0.1f;
+            A = getOpacity(0.5f, 13);
 
             // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
             {
@@ -184,7 +194,7 @@ angleMode = 0;
 
             dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(maxSpeed) + 1);
 
-            yDist = (int)(sizeFactor * tTex.getFieldHeight() + 3);
+            yDist = (int)(sizeFactor * tTex.getFieldHeight());
 
             // Set up letter rotation
             {
@@ -199,7 +209,7 @@ angleMode = 0;
 
             }
 
-            _symbols.Add(new symbolItem(x, y));
+            _symbols.Add(new symbolItem(x, y, A));
 
             // Total number of characters generated before the object dies
             cnt = 10 + rand.Next(100);
@@ -220,21 +230,20 @@ angleMode = 0;
                 symbolItem item = _symbols[i];
                 item.y += dy;
 
-                if (myUtils.randomChance(rand, 1, 111))
+                if (myUtils.randomChance(rand, 1, 333))
                 {
                     item.getRandomSymbol(x);
                 }
 
                 if (i == Count - 1 && cnt > 0 && item.y - y > yDist)
                 {
-                    _symbols.Add(new symbolItem(x, y));
+                    _symbols.Add(new symbolItem(x, y, A));
                     cnt--;
                 }
 
                 // Remove items that we can't see anymore
                 if (item.y > gl_Height)
                 {
-                    break;
                     _symbols.RemoveAt(i);
                     Count--;
                 }
@@ -258,17 +267,17 @@ angleMode = 0;
             {
                 symbolItem item = _symbols[i];
 
-                if (item.y > gl_Height)
-                    break;
-
-                if (doUseRGB)
+                //if (myUtils.randomChance(rand, 1, 11))
                 {
-                    //colorPicker.getColor(item.x, item.y, ref R, ref G, ref B);
-                    tTex.Draw(item.x, item.y, item.index, A, angle, sizeFactor, R, G, B);
-                }
-                else
-                {
-                    tTex.Draw(item.x, item.y, item.index, A, angle, sizeFactor);
+                    if (doUseRGB)
+                    {
+                        //colorPicker.getColor(item.x, item.y, ref R, ref G, ref B);
+                        tTex.Draw(item.x, item.y, item.index, item.a, angle, sizeFactor, R, G, B);
+                    }
+                    else
+                    {
+                        tTex.Draw(item.x, item.y, item.index, item.a, angle, sizeFactor);
+                    }
                 }
             }
 
@@ -301,7 +310,8 @@ angleMode = 0;
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        bgrTex.Draw(0, 0, gl_Width, gl_Height);
+                        //bgrTex.Draw(0, 0, gl_Width, gl_Height);
+                        grad.Draw();
                     }
                     else
                     {
@@ -336,7 +346,7 @@ angleMode = 0;
         private void initShapes()
         {
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, doUseRGB, 5);
+            tTex = new TexText(size, doUseRGB, -1);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);

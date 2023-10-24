@@ -159,6 +159,7 @@ lenMode = 0;
             dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
             dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
 
+            if(false)
             if (myUtils.randomChance(rand, 33, 35))
             {
                 dx *= myUtils.randFloat(rand) * 0.1f;
@@ -573,7 +574,7 @@ A /= 10;
         {
             float dx, dy, distSquared, a;
 
-            if (myUtils.randomChance(rand, 1, 1333))
+            if (myUtils.randomChance(rand, 1, 111))
             {
                 // Do a honest search for neighbours
                 neighbours.Clear();
@@ -600,8 +601,16 @@ A /= 10;
                     {
                         a = (1.0f - distSquared * maxDistSquared_Inverted) * opacityFactor;
 
-                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                        if (id < 10)
+                        {
+                            myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                            myPrimitive._LineInst.setInstanceColor(1, 0, 0, a * 11);
+                        }
+                        else
+                        {
+                            myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                        }
 
                         neighbours.Add(other);
                     }
@@ -624,8 +633,16 @@ A /= 10;
                     {
                         a = (1.0f - distSquared * maxDistSquared_Inverted) * opacityFactor;
 
-                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                        if (id < 10)
+                        {
+                            myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                            myPrimitive._LineInst.setInstanceColor(1, 0, 0, a * 11);
+                        }
+                        else
+                        {
+                            myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                        }
 
                         neighbours.Add(other);
                     }
@@ -649,8 +666,16 @@ A /= 10;
                     {
                         a = (1.0f - distSquared * maxDistSquared_Inverted) * opacityFactor;
 
-                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                        if (id < 10)
+                        {
+                            myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                            myPrimitive._LineInst.setInstanceColor(1, 0, 0, a * 11);
+                        }
+                        else
+                        {
+                            myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
+                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                        }
                     }
                 }
             }

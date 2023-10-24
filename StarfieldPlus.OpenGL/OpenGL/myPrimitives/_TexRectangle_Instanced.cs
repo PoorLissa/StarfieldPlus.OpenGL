@@ -37,6 +37,18 @@ public class myTexRectangleInst : myInstancedPrimitive
             N = 0;
 
             vertices = new float[12];
+            {
+                // These values will be interpolated and passed into Vertex Shader as 'vec3 pos':
+                vertices[00] = +pixelX;
+                vertices[01] = +pixelY;
+                vertices[03] = +pixelX;
+                vertices[04] = -pixelY;
+                vertices[06] = -pixelX;
+                vertices[07] = -pixelY;
+                vertices[09] = -pixelX;
+                vertices[10] = +pixelY;
+            }
+
             instanceArray = new float[maxInstCount * n];
 
             shaderProg = new uint[3];
@@ -62,15 +74,6 @@ public class myTexRectangleInst : myInstancedPrimitive
     {
         // Our initial square is located at the center of coordinates: [x = -pixel/2, y = pixel/2, w = 1*pixel, h = 1*pixel];
         // It will be scaled and moved into position by the shader
-
-        vertices[00] = +pixelX;
-        vertices[01] = +pixelY;
-        vertices[03] = +pixelX;
-        vertices[04] = -pixelY;
-        vertices[06] = -pixelX;
-        vertices[07] = -pixelY;
-        vertices[09] = -pixelX;
-        vertices[10] = +pixelY;
 
         // todo: check later, if it is possible to do this only once
         updateInstances();
@@ -132,17 +135,24 @@ public class myTexRectangleInst : myInstancedPrimitive
                         {{
                             // Rectangle onscreen coordinates
                             gl_Position = vec4(pos.x * mData[0].z, pos.y * mData[0].w, 1.0, 1.0);
-
-                            // Adjust for pixel density and move into final position
-                            gl_Position.x += { +2.0 / Width  } * (mData[0].x + mData[0].z/2) - 1.0;
-                            gl_Position.y += { -2.0 / Height } * (mData[0].y + mData[0].w/2) + 1.0;
                         }}
 
-                        //gl_Position = vec4(1, 1, 1, 1);
-                        //gl_Position.x = { +2.0 / Width  } * (mData[0].x + mData[0].z) - 1.0;
-                        //gl_Position.y = { -2.0 / Height } * (mData[0].y + mData[0].w) + 1.0;
+                        // Adjust for pixel density and move into final position
+                        gl_Position.x += {+2.0 / Width } * (mData[0].x + mData[0].z/2) - 1.0;
+                        gl_Position.y += {-2.0 / Height} * (mData[0].y + mData[0].w/2) + 1.0;
 
                         fragTxCoord = vec2(gl_Position.x/2, -gl_Position.y/2);
+
+
+/*
+                        vec2 myScrDxDy = vec2({1.0f / Width}, {1.0f / Height});
+
+                        {"" /* This way, we are able to render just a part of a texture */ }
+                        {"" /* There's a problem, however: this does not really work if the texture's size is less than the screen size */ }
+                        {"" /* In this case, we can do it like that: tex.Draw(0, 0, 33, bmpHeight, 0, 0, 33 * gl_Width / bmpWidth, bmpHeight * gl_Height / bmpHeight); */ }
+
+                        fragTxCoord = vec2(myScrDxDy.x * (mData[1].x + txCoord.x * mData[1].z), myScrDxDy.y * (mData[1].y + txCoord.y * mData[1].w));
+*/
                 "
         );
 
