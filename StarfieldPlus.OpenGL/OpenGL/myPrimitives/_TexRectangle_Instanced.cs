@@ -36,18 +36,14 @@ public class myTexRectangleInst : myInstancedPrimitive
         {
             N = 0;
 
-            vertices = new float[12];
-            {
-                // These values will be interpolated and passed into Vertex Shader as 'vec3 pos':
-                vertices[00] = +pixelX;
-                vertices[01] = +pixelY;
-                vertices[03] = +pixelX;
-                vertices[04] = -pixelY;
-                vertices[06] = -pixelX;
-                vertices[07] = -pixelY;
-                vertices[09] = -pixelX;
-                vertices[10] = +pixelY;
-            }
+            // These values will be interpolated and passed into Vertex Shader as 'vec3 pos':
+            vertices = new float[] {
+                // positions              // texture coords
+                +pixelX, +pixelY, 0.0f,   1.0f, 0.0f,           // top right
+                +pixelX, -pixelY, 0.0f,   1.0f, 1.0f,           // bottom right
+                -pixelX, -pixelY, 0.0f,   0.0f, 1.0f,           // bottom left
+                -pixelX, +pixelY, 0.0f,   0.0f, 0.0f            // top left 
+            };
 
             instanceArray = new float[maxInstCount * n];
 
@@ -121,10 +117,11 @@ public class myTexRectangleInst : myInstancedPrimitive
         // - 2nd 4 floats are [x, y, w, h] for texture sample coordinates;
         // - 3rd 4 floats are [r, g, b, a]
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-            @"layout (location = 0) in vec3 pos;
-              layout (location = 1) in mat3x4 mData;
-              layout (location = 4) in float angle;
-                uniform ivec2 myScrSize;
+            $@"layout (location = 0) in vec3 pos;
+               layout (location = 1) in mat3x4 mData;
+               layout (location = 4) in float angle;
+               layout (location = 5) in vec2 txCoord;
+                vec2 myScrDxDy = vec2({1.0f / Width}, {1.0f / Height});
                 out vec4 rgbaColor;
                 out vec2 fragTxCoord;
             ",
@@ -141,18 +138,11 @@ public class myTexRectangleInst : myInstancedPrimitive
                         gl_Position.x += {+2.0 / Width } * (mData[0].x + mData[0].z/2) - 1.0;
                         gl_Position.y += {-2.0 / Height} * (mData[0].y + mData[0].w/2) + 1.0;
 
-                        fragTxCoord = vec2(gl_Position.x/2, -gl_Position.y/2);
-
-
-/*
-                        vec2 myScrDxDy = vec2({1.0f / Width}, {1.0f / Height});
-
                         {"" /* This way, we are able to render just a part of a texture */ }
                         {"" /* There's a problem, however: this does not really work if the texture's size is less than the screen size */ }
                         {"" /* In this case, we can do it like that: tex.Draw(0, 0, 33, bmpHeight, 0, 0, 33 * gl_Width / bmpWidth, bmpHeight * gl_Height / bmpHeight); */ }
 
                         fragTxCoord = vec2(myScrDxDy.x * (mData[1].x + txCoord.x * mData[1].z), myScrDxDy.y * (mData[1].y + txCoord.y * mData[1].w));
-*/
                 "
         );
 
@@ -169,7 +159,7 @@ public class myTexRectangleInst : myInstancedPrimitive
                     ",
 
                 main:
-                    $@"result = texture(myTexture, fragTxCoord) * rgbaColor * vec4(1, 0, 1, 1);"
+                    $@"result = texture(myTexture, fragTxCoord) * rgbaColor;"
             );
 
             glAttachShader(shaderProg[0], vertex);
@@ -207,8 +197,14 @@ public class myTexRectangleInst : myInstancedPrimitive
             fixed (float* vertData = &vertices[0])
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, vertData, GL_DYNAMIC_DRAW);
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
+            glVertexAttribDivisor(0, 0);
+            glVertexAttribDivisor(5, 0);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float), NULL);
             glEnableVertexAttribArray(0);
+
+            glVertexAttribPointer(5, 2, GL_FLOAT, false, 5 * sizeof(float), new IntPtr(3 * sizeof(float)));
+            glEnableVertexAttribArray(5);
         }
     }
 

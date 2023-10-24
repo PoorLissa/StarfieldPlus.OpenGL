@@ -13,6 +13,11 @@ using System.Drawing.Drawing2D;
     This way, we can output text in OpenGL
 
     https://learnopengl.com/In-Practice/Text-Rendering
+
+    Update:
+    Now this class also can work with instanced testure as well.
+    For this, we have a different constructor and different Draw methods.
+    Also, don't forget to access _texInst to ResetBuffer and Draw the whole thing later on.
 */
 
 
@@ -26,6 +31,7 @@ class TexText
     };
 
     private myTexRectangle _tex = null;
+    private myTexRectangleInst _texInst = null;
     private Dictionary<int, field> _map = null;
 
     private static int _scrWidth = 0, _scrHeight = 0;
@@ -54,6 +60,25 @@ class TexText
         _Length = str.Length;
 
         getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, str);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Use a random set of characters -- Instanced mode
+    public TexText(int size, bool customColor, int instancesNo, int alphabetId = -1)
+    {
+        System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
+
+        doUseCustomColor = customColor;
+
+        string str = "";
+
+        getFont(ref _fontFamily);
+        getAlphabet(ref str, alphabetId);
+
+        _Length = str.Length;
+
+        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, str, instancesNo);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -152,6 +177,36 @@ class TexText
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Instanced mode
+    public void Draw(float x, float y, int charIndex, float sizeFactor)
+    {
+        Draw((int)x, (int)y, charIndex, sizeFactor);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Instanced mode
+    public void Draw(float x, float y, int charIndex, float sizeFactor, float R, float G, float B, float A)
+    {
+        Draw((int)x, (int)y, charIndex, sizeFactor, R, G, B, A);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Instanced mode
+    public void Draw(int x, int y, int charIndex, float sizeFactor, float R = 1, float G = 1, float B = 1, float A = 1)
+    {
+        var fld = _map[charIndex];
+
+        _texInst.setInstanceCoords(x, y, (int)(fld.width * sizeFactor), (int)(_texHeight * sizeFactor),
+                        fld.offset * _scrWidth / _texWidth, 0, fld.width * _scrWidth / _texWidth, _scrHeight);
+
+        _texInst.setInstanceColor(R, G, B, A);
+        _texInst.setInstanceAngle(0);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     // Return random set of characters made of a random sum of defined sets
     private void getAlphabet(ref string str, int id = -1)
     {
@@ -241,7 +296,7 @@ class TexText
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create a texture with symbols on it
-    private void getFontTexture(string fontName, int fontSize, ref int Width, ref int Height, string str)
+    private void getFontTexture(string fontName, int fontSize, ref int Width, ref int Height, string str, int instancesNo = 0)
     {
         int totalWidth = 0;
         int maxHeight  = 0;
@@ -328,9 +383,23 @@ class TexText
             throw ex;
         }
 
-        _tex = new myTexRectangle(bmp);
+        if (instancesNo == 0)
+        {
+            _tex = new myTexRectangle(bmp);
+        }
+        else
+        {
+            _texInst = new myTexRectangleInst(bmp, instancesNo);
+        }
 
         return;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public myTexRectangleInst getTexInst()
+    {
+        return _texInst;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

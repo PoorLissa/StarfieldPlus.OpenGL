@@ -1,6 +1,7 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System.Collections.Generic;
+using System.Reflection;
 
 
 /*
@@ -37,10 +38,10 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
         public static System.Type Type => typeof(myObj_541);
 
-        private int yDist = 0, cnt, deadIndex;
+        private int yDist = 0, cnt;
         private float x, y, dy, angle, dAngle, sizeFactor;
         private float A, R, G, B;
 
@@ -73,7 +74,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 234;
+                N = 3333;
 
                 // If true, paint alphabet in white and then set custom color for each particle
                 doUseRGB = myUtils.randomChance(rand, 1, 2);
@@ -167,7 +168,6 @@ angleMode = 0;
         {
             if (_symbols == null)
             {
-                deadIndex = -1;
                 _symbols = new List<symbolItem>();
             }
             else
@@ -179,7 +179,7 @@ angleMode = 0;
             y = -11;
 
             A = 0.1f;
-            A = getOpacity(0.5f, 13);
+            A = getOpacity(0.25f, 11);
 
             // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
             {
@@ -188,6 +188,8 @@ angleMode = 0;
                 sizeFactor = tTex.getFieldHeight() > maxSize
                     ? 1.0f * maxSize / tTex.getFieldHeight()
                     : 1.0f;
+
+                sizeFactor = 0.5f + A;
             }
 
             colorPicker.getColor(rand.Next(gl_Width), rand.Next(gl_Height), ref R, ref G, ref B);
@@ -212,7 +214,7 @@ angleMode = 0;
             _symbols.Add(new symbolItem(x, y, A));
 
             // Total number of characters generated before the object dies
-            cnt = 10 + rand.Next(100);
+            cnt = 10 + rand.Next(50);
 
             return;
         }
@@ -267,7 +269,9 @@ angleMode = 0;
             {
                 symbolItem item = _symbols[i];
 
-                //if (myUtils.randomChance(rand, 1, 11))
+                tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, A);
+
+                if (false)
                 {
                     if (doUseRGB)
                     {
@@ -310,8 +314,8 @@ angleMode = 0;
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        //bgrTex.Draw(0, 0, gl_Width, gl_Height);
-                        grad.Draw();
+                        bgrTex.Draw(0, 0, gl_Width, gl_Height);
+                        //grad.Draw();
                     }
                     else
                     {
@@ -321,6 +325,8 @@ angleMode = 0;
 
                 // Render Frame
                 {
+                    tTex.getTexInst().ResetBuffer();
+
                     for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_541;
@@ -328,6 +334,8 @@ angleMode = 0;
                         obj.Show();
                         obj.Move();
                     }
+
+                    tTex.getTexInst().Draw();
                 }
 
                 if (Count < N)
@@ -346,7 +354,7 @@ angleMode = 0;
         private void initShapes()
         {
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, doUseRGB, -1);
+            tTex = new TexText(size, doUseRGB, 150000, -5);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);

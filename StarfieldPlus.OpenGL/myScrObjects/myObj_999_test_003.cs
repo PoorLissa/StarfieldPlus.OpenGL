@@ -13,7 +13,7 @@ namespace my
     public class myObj_999_test_003 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 99910;
         public static System.Type Type => typeof(myObj_999_test_003);
 
         private int index, cnt;
@@ -24,8 +24,6 @@ namespace my
 
         private static TexText tTex = null;
         private static myScreenGradient grad = null;
-
-        private myTexRectangleInst tTexInst = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -46,6 +44,8 @@ namespace my
             // Global unmutable constants
             {
                 N = 10000;
+
+                size = 33;
 
                 renderDelay = 0;
             }
@@ -97,14 +97,14 @@ namespace my
         {
             index = rand.Next(tTex.Lengh());
 
-            x = gl_x0 + rand.Next(gl_x0) - gl_x0/2;
-            y = gl_y0 + rand.Next(gl_y0) - gl_y0/2;
+            x = gl_x0 + rand.Next(gl_Width ) - gl_x0;
+            y = gl_y0 + rand.Next(gl_Height) - gl_y0;
 
             A = 0.25f;
 
             // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
             {
-                int maxSize = 33;
+                int maxSize = 20;
 
                 sizeFactor = tTex.getFieldHeight() > maxSize
                     ? 1.0f * maxSize / tTex.getFieldHeight()
@@ -121,8 +121,6 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // todo: removing items is very expensive
-        // need to work without 
         protected override void Move()
         {
             x += myUtils.randFloatSigned(rand) * 0.25f;
@@ -140,7 +138,7 @@ namespace my
 
         protected override void Show()
         {
-            tTex.Draw(x, y, index, A, angle, sizeFactor);
+            tTex.Draw(x, y, index, sizeFactor);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -166,21 +164,13 @@ namespace my
                 // Dim screen
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
-                    //grad.Draw();
-                    bgrTex.Draw(0, 0, gl_Width, gl_Height);
+                    grad.Draw();
+                    //bgrTex.Draw(0, 0, gl_Width, gl_Height);
                 }
 
                 // Render Frame
                 {
-                    tTexInst.ResetBuffer();
-
-                    tTexInst.setInstanceCoords(100, 100, 300, 200, 0, 0, 0, 0);
-                    tTexInst.setInstanceColor(1, 1, 1, 1);
-                    tTexInst.setInstanceAngle(0);
-
-                    tTexInst.setInstanceCoords(100, 400, 400, 100, 0, 0, 0, 0);
-                    tTexInst.setInstanceColor(1, 1, 1, 1);
-                    tTexInst.setInstanceAngle(0);
+                    tTex.getTexInst().ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
                     {
@@ -190,7 +180,7 @@ namespace my
                         obj.Move();
                     }
 
-                    tTexInst.Draw();
+                    tTex.getTexInst().Draw();
                 }
 
                 if (Count < N)
@@ -207,12 +197,12 @@ namespace my
         private void initShapes()
         {
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, false, alphabetId: 5);
+            //tTex = new TexText(size, false, alphabetId: 5);
+
+            tTex = new TexText(size, false, N, alphabetId: 5);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
-
-            tTexInst = new myTexRectangleInst(colorPicker.getImg(), 2);
 
             return;
         }
