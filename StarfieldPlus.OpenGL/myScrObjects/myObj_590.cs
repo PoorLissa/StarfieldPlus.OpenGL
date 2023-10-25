@@ -14,7 +14,8 @@ namespace my
     public class myObj_590 : myObject
     {
         // Data item class
-        private class data {
+        private class data
+        {
             public float x, y, z, dx, dy, dz;
         };
 
@@ -36,6 +37,8 @@ namespace my
         private static myFreeShader shader = null;
 
         private List<data> dataList = null;
+
+        private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -294,8 +297,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            myTexRectangle tex = new myTexRectangle(myUtils.getGradientBgr(ref rand, gl_Width, gl_Height));
-
             uint cnt = 0;
             initShapes();
 
@@ -332,8 +333,7 @@ namespace my
                         dimScreen(dimAlpha);
                     }
 
-                    tex.setOpacity(0.25f);
-                    tex.Draw(0, 0, gl_Width, gl_Height);
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -387,6 +387,9 @@ namespace my
             string h = "", m = "";
             my.myShaderHelpers.Shapes.getShader_000(ref rand, ref h, ref m);
             shader = new myFreeShader(h, m);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f, 0);
 
             return;
         }
