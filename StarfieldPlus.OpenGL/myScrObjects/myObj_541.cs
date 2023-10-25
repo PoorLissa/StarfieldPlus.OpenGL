@@ -6,8 +6,6 @@ using System.Reflection;
 
 /*
     - Falling alphabet letters (Matrix style), ver2
-
-    // todo: too few symbols. need to use instancing
 */
 
 
@@ -25,7 +23,7 @@ namespace my
                 index = rand.Next(tTex.Lengh());
                 x = X - tTex.getFieldWidth(index) / 2;
                 y = Y;
-                a = A + myUtils.randFloatSigned(rand) * 0.25f;
+                a = A + myUtils.randFloatSigned(rand) * 0.15f;
             }
 
             public void getRandomSymbol(float X)
@@ -47,7 +45,7 @@ namespace my
 
         private List<symbolItem> _symbols = null;
 
-        private static int N = 0;
+        private static int N = 0, drawMode = 0;
         private static bool doUseRGB = false;
 
         private static int maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0, size = 20;
@@ -68,8 +66,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            //colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
             // Global unmutable constants
@@ -111,6 +108,7 @@ namespace my
             posXGenMode = rand.Next(3);                 // where the particles are generated along the X-axis
             posYGenMode = rand.Next(3);                 // where the particles are generated along the Y-axis
             angleMode = rand.Next(4);                   // symbol rotation mode
+            drawMode = rand.Next(5);                    // drawing mode
 
             modX = rand.Next(333) + 11;
 
@@ -143,6 +141,7 @@ angleMode = 0;
                             $"font = '{tTex.FontFamily()}'\n"             +
                             $"size = {size}\n"                            +
                             $"doUseRGB = {doUseRGB}\n"                    +
+                            $"drawMode = {drawMode}\n"                    +
                             $"maxSpeed = {maxSpeed}\n"                    +
                             $"xGenMode = {posXGenMode} (modX = {modX})\n" +
                             $"yGenMode = {posYGenMode}\n"                 +
@@ -176,7 +175,7 @@ angleMode = 0;
             }
 
             x = rand.Next(gl_Width);
-            y = -11;
+            y = -133;
 
             A = 0.1f;
             A = getOpacity(0.25f, 11);
@@ -222,7 +221,6 @@ angleMode = 0;
         // ---------------------------------------------------------------------------------------------------------------
 
         // todo: removing items is very expensive
-        // need to work without 
         protected override void Move()
         {
             int Count = _symbols.Count;
@@ -269,8 +267,31 @@ angleMode = 0;
             {
                 symbolItem item = _symbols[i];
 
-                tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, A);
+                switch (drawMode)
+                {
+                    case 0:
+                        tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, A);
+                        break;
 
+                    case 1:
+                        tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, item.a);
+                        break;
+
+                    case 2:
+                        tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, A);
+                        break;
+
+                    case 3:
+                        tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, item.a);
+                        break;
+
+                    case 4:
+                        colorPicker.getColor(item.x, item.y, ref R, ref G, ref B);
+                        tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, item.a);
+                        break;
+                }
+
+/*
                 if (false)
                 {
                     if (doUseRGB)
@@ -283,6 +304,7 @@ angleMode = 0;
                         tTex.Draw(item.x, item.y, item.index, item.a, angle, sizeFactor);
                     }
                 }
+*/
             }
 
             return;
@@ -314,8 +336,8 @@ angleMode = 0;
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        bgrTex.Draw(0, 0, gl_Width, gl_Height);
-                        //grad.Draw();
+                        //bgrTex.Draw(0, 0, gl_Width, gl_Height);
+                        grad.Draw();
                     }
                     else
                     {

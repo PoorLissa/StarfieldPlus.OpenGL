@@ -203,6 +203,12 @@ namespace my
                 setNextMode();
                 return;
             }
+
+            // Print screen
+            if (Glfw.GetKey(window, GLFW.Keys.PrintScreen) == GLFW.InputState.Press)
+            {
+                return;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------

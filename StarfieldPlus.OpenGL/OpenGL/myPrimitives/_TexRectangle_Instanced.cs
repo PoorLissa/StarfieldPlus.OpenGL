@@ -10,12 +10,12 @@ using System;
 
 public class myTexRectangleInst : myInstancedPrimitive
 {
-    private static float[] vertices = null;
+    private float[] vertices = null;
 
-    private static uint ebo = 0, instVbo = 0, quadVbo = 0;
+    private uint ebo = 0, instVbo = 0, quadVbo = 0;
 
-    private static uint[] shaderProg = null;
-    private static int[] locationColor = null;
+    private uint[] shaderProg = null;
+    private int[] locationColor = null;
 
     private int rotationMode;
 
@@ -110,7 +110,7 @@ public class myTexRectangleInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static void CreateProgram()
+    private void CreateProgram()
     {
         // mat3x4 mData is a [3 x 4] matrix of floats, where:
         // - 1st 4 floats are [x, y, w, h] for onscreen coordinates;
@@ -212,7 +212,7 @@ public class myTexRectangleInst : myInstancedPrimitive
 
     // Move indices data from CPU to GPU -- needs to be called only once, as we have 2 different EBOs, and they are not going to change;
     // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, doFill ? ebo1 : ebo2);
-    private static unsafe void updateIndices()
+    private unsafe void updateIndices()
     {
         int usage = GL_STATIC_DRAW;
 
