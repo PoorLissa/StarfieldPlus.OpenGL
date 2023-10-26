@@ -7,7 +7,27 @@ using System;
     https://learnopengl.com/Advanced-OpenGL/Framebuffers
 
     Texture attached to a framebuffer;
-    Let's the user render to a off-screen texture, instead of the actual screen
+    ALlows rendering to an off-screen texture, instead of the actual screen
+
+    Known issues:
+    Does not really render anything until an existing texture is rendered to it.
+    The workaround will be to do this before acually using the offscreen renderer:
+    
+        offScrRenderer.startRendering();
+        {
+            glDrawBuffer(GL_BACK);
+            glClearColor(0, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            var tex = new myTexRectangle(new System.Drawing.Bitmap(gl_Width, gl_Height));
+
+            tex.setOpacity(0);
+            tex.Draw(0, 0, gl_Width, gl_Height, 0, 0, gl_Width, gl_Height);
+
+            myPrimitive._Rectangle.SetColor(0.1f, 0.1f, 0.1f, 1);
+            myPrimitive._Rectangle.Draw(0, 0, gl_Width, gl_Height, true);
+        }
+        offScrRenderer.stopRendering();
 */
 
 
@@ -18,9 +38,9 @@ public class myTexRectangle_Renderer : myPrimitive
     // Fbo (Frame Buffer Object ) -- provides an additional target to render to
 
     private uint fbo = 0, tex = 0;
-    private static uint vbo = 0, ebo = 0, shaderProgram = 0;
+    private uint vbo = 0, ebo = 0, shaderProgram = 0;
 
-    private static float[] vertices = null;
+    private float[] vertices = null;
 
     private const int verticesLength = 12;
     private const int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
@@ -174,7 +194,7 @@ public class myTexRectangle_Renderer : myPrimitive
 
     // Move indices data from CPU to GPU -- needs to be called only once, as we have 1 EBO, and it is not going to change;
     // The EBO must be activated prior to drawing the shape: glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    private static unsafe void updateIndices()
+    private unsafe void updateIndices()
     {
         int usage = GL_STATIC_DRAW;
 
