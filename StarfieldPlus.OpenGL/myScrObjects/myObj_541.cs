@@ -15,15 +15,23 @@ namespace my
     {
         class symbolItem
         {
+            public bool isDead;
             public int index;
             public float x, y, a;
+            public float r, g, b;
 
             public symbolItem(float X, float Y, float A)
+            {
+                updateItem(X, Y, A);
+            }
+
+            public void updateItem(float X, float Y, float A)
             {
                 index = rand.Next(tTex.Lengh());
                 x = X - tTex.getFieldWidth(index) / 2;
                 y = Y;
                 a = A + myUtils.randFloatSigned(rand) * 0.15f;
+                isDead = false;
             }
 
             public void getRandomSymbol(float X)
@@ -36,10 +44,10 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99910;
         public static System.Type Type => typeof(myObj_541);
 
-        private int yDist = 0, cnt;
+        private int yDist = 0, cnt, deadCnt, lastIndex;
         private float x, y, dy, angle, dAngle, sizeFactor;
         private float A, R, G, B;
 
@@ -66,7 +74,10 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            var mode = myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
+            mode = myColorPicker.colorMode.SNAPSHOT;
+
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: mode);
             list = new List<myObject>();
 
             // Global unmutable constants
@@ -79,7 +90,7 @@ namespace my
                 // todo: fix and test this
                 // When true, the screen will flicker because TexText inherits myTexRectangle, which has static color components;
                 // We change color of a symbol, and it also changes the color of a bgrTex
-                doUseRGB = false;
+                doUseRGB = true;
 
                 // Size
                 switch (rand.Next(4))
@@ -112,7 +123,9 @@ namespace my
 
             modX = rand.Next(333) + 11;
 
-angleMode = 0;
+            angleMode = 0;
+
+drawMode = 4;
 
             return;
         }
@@ -165,15 +178,6 @@ angleMode = 0;
 
         protected override void generateNew()
         {
-            if (_symbols == null)
-            {
-                _symbols = new List<symbolItem>();
-            }
-            else
-            {
-                //_symbols.Clear();
-            }
-
             x = rand.Next(gl_Width);
             y = -133;
 
@@ -191,7 +195,7 @@ angleMode = 0;
                 sizeFactor = 0.5f + A;
             }
 
-            colorPicker.getColor(rand.Next(gl_Width), rand.Next(gl_Height), ref R, ref G, ref B);
+            colorPicker.getColorRand(ref R, ref G, ref B);
 
             dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(maxSpeed) + 1);
 
@@ -210,10 +214,28 @@ angleMode = 0;
 
             }
 
-            _symbols.Add(new symbolItem(x, y, A));
+            // Create/clear the list and insert one item into it
+            {
+                if (_symbols == null)
+                {
+                    lastIndex = 0;
+                    deadCnt = 0;
+                    _symbols = new List<symbolItem>();
+                }
+                else
+                {
+                    lastIndex = 0;
+                    deadCnt = 0;
+                    _symbols.Clear();
+                }
+
+                _symbols.Add(new symbolItem(x, y, A));
+            }
 
             // Total number of characters generated before the object dies
             cnt = 10 + rand.Next(50);
+
+            cnt = 75;
 
             return;
         }
@@ -228,28 +250,51 @@ angleMode = 0;
             for (int i = 0; i < Count; i++)
             {
                 symbolItem item = _symbols[i];
-                item.y += dy;
 
-                if (myUtils.randomChance(rand, 1, 333))
+                if (!item.isDead)
                 {
-                    item.getRandomSymbol(x);
-                }
+                    item.y += dy;
 
-                if (i == Count - 1 && cnt > 0 && item.y - y > yDist)
-                {
-                    _symbols.Add(new symbolItem(x, y, A));
-                    cnt--;
-                }
+                    if (myUtils.randomChance(rand, 1, 333))
+                    {
+                        //item.getRandomSymbol(x);
+                    }
 
-                // Remove items that we can't see anymore
-                if (item.y > gl_Height)
-                {
-                    _symbols.RemoveAt(i);
-                    Count--;
+                    if (i == lastIndex && cnt > 0 && item.y - y > yDist)
+                    {
+                        cnt--;
+
+                        if (deadCnt == 0)
+                        {
+                            lastIndex = Count;
+                            _symbols.Add(new symbolItem(x, y, A));
+                        }
+                        else
+                        {
+                            for (int j = 0; j < Count; j++)
+                            {
+                                if (_symbols[j].isDead)
+                                {
+                                    _symbols[j].updateItem(x, y, A);
+
+                                    lastIndex = j;
+                                    deadCnt--;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Remove items that we can't see anymore
+                    if (item.y > gl_Height)
+                    {
+                        deadCnt++;
+                        item.isDead = true;
+                    }
                 }
             }
 
-            if (Count == 0)
+            if (deadCnt == Count)
             {
                 generateNew();
             }
@@ -263,10 +308,19 @@ angleMode = 0;
         {
             int Count = _symbols.Count;
 
+            float r = 0, g = 0, b = 0;
+
             for (int i = 0; i < Count; i++)
             {
                 symbolItem item = _symbols[i];
 
+                if (item.isDead)
+                    continue;
+
+#if false
+                tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, 0.25f);
+                continue;
+#endif
                 switch (drawMode)
                 {
                     case 0:
@@ -286,8 +340,12 @@ angleMode = 0;
                         break;
 
                     case 4:
-                        colorPicker.getColor(item.x, item.y, ref R, ref G, ref B);
-                        tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, item.a);
+                        {
+                            if (rand.Next(11) == 1)
+                                colorPicker.getColor(item.x, item.y, ref item.r, ref item.g, ref item.b);
+
+                            tTex.Draw(item.x, item.y, item.index, sizeFactor, item.r, item.g, item.b, item.a);
+                        }
                         break;
                 }
 
@@ -312,8 +370,11 @@ angleMode = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        uint CNT = 0;
+
         protected override void Process(Window window)
         {
+            CNT++;
             uint cnt = 0;
             initShapes();
 
@@ -376,7 +437,7 @@ angleMode = 0;
         private void initShapes()
         {
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, doUseRGB, 150000, -5);
+            tTex = new TexText(size, doUseRGB, 150000, 5);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
