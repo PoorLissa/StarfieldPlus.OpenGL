@@ -65,36 +65,44 @@ class TexText
     // -------------------------------------------------------------------------------------------------------------------
 
     // Use a random set of characters -- Instanced mode
-    public TexText(int size, bool customColor, int instancesNo, int alphabetId = -1)
+    public TexText(int size, bool customColor, int instancesNo, int alphabetId = -1, string fontFamily = "")
     {
         System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
 
         doUseCustomColor = customColor;
 
-        string str = "";
+        string alphabet = "";
 
-        getFont(ref _fontFamily);
-        getAlphabet(ref str, alphabetId);
+        if (fontFamily.Length > 0)
+        {
+            _fontFamily = fontFamily;
+        }
+        else
+        {
+            getFont(ref _fontFamily);
+        }
 
-        _Length = str.Length;
+        getAlphabet(ref alphabet , alphabetId);
 
-        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, str, instancesNo);
+        _Length = alphabet.Length;
+
+        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, alphabet, instancesNo);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     // Use a user-defined set of characters
-    public TexText(int size, string text, bool customColor)
+    public TexText(int size, string customAlphabet, bool customColor)
     {
         System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
 
         doUseCustomColor = customColor;
 
-        _Length = text.Length;
+        _Length = customAlphabet.Length;
 
         getFont(ref _fontFamily);
 
-        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, text);
+        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, customAlphabet);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -274,12 +282,13 @@ class TexText
     {
         Random rand = new Random((int)DateTime.Now.Ticks);
 
-        switch (rand.Next(7))
+        switch (rand.Next(8))
         {
-            case 0: font = "Tahoma";   break;
-            case 1: font = "Arial";    break;
-            case 2: font = "Consolas"; break;
-            case 3: font = "Calibri";  break;
+            case 0: font = "Tahoma";    break;
+            case 1: font = "Arial";     break;
+            case 2: font = "Calibri";   break;
+            case 3: font = "Calibri";   break;
+            case 4: font = "Agency FB"; break;
 
             default:
                 using (System.Drawing.Text.InstalledFontCollection col = new System.Drawing.Text.InstalledFontCollection())

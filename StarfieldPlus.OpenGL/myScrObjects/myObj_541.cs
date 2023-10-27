@@ -5,7 +5,11 @@ using System.Reflection;
 
 
 /*
-    - Falling alphabet letters (Matrix style), ver2
+    - Falling ASKII characters (Matrix style), ver2
+
+    todo: fix and test this (might not be the case already)
+        When true, the screen will flicker because TexText inherits myTexRectangle, which has static color components;
+        We change color of a symbol, and it also changes the color of a bgrTex
 */
 
 
@@ -20,24 +24,24 @@ namespace my
             public float x, y, a;
             public float r, g, b;
 
-            public symbolItem(float X, float Y, float A)
+            public symbolItem(float rowX, float rowY, float rowA, float rowSizeFactor)
             {
-                updateItem(X, Y, A);
+                updateItem(rowX, rowY, rowA, rowSizeFactor);
             }
 
-            public void updateItem(float X, float Y, float A)
+            public void updateItem(float rowX, float rowY, float rowA, float rowSizeFactor)
             {
                 index = rand.Next(tTex.Lengh());
-                x = X - tTex.getFieldWidth(index) / 2;
-                y = Y;
-                a = A + myUtils.randFloatSigned(rand) * 0.15f;
+                x = rowX - tTex.getFieldWidth(index) * rowSizeFactor / 2;
+                y = rowY;
+                a = rowA + myUtils.randFloatSigned(rand) * 0.15f;
                 isDead = false;
             }
 
-            public void getRandomSymbol(float X)
+            public void getRandomSymbol(float rowX, float rowSizeFactor)
             {
                 index = rand.Next(tTex.Lengh());
-                x = X - tTex.getFieldWidth(index) / 2;
+                x = rowX - tTex.getFieldWidth(index) * rowSizeFactor / 2;
             }
         };
 
@@ -48,16 +52,18 @@ namespace my
         public static System.Type Type => typeof(myObj_541);
 
         private int yDist = 0, cnt, deadCnt, lastIndex;
-        private float x, y, dy, angle, dAngle, sizeFactor;
+        private float x, y, dy, sizeFactor;
         private float A, R, G, B;
 
         private List<symbolItem> _symbols = null;
 
         private static int N = 0, drawMode = 0;
-        private static bool doUseRGB = false, doChangeSymbols = false;
+        private static bool doUseCustomRGB = false, doChangeSymbols = false, isConstSizeFactor = false;
+        private static float sR = 0, sG = 0, sB = 0;
 
-        private static int maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0, size = 20;
+        private static int maxSpeed = 0, angleMode = 0, modX = 0, size = 20;
 
+        private static myTexRectangle bgrTex = null;
         private static TexText tTex = null;
         private static myScreenGradient grad = null;
 
@@ -83,14 +89,10 @@ namespace my
             // Global unmutable constants
             {
                 N = 3333;
+                //N = 1;
 
-                // If true, paint alphabet in white and then set custom color for each particle
-                doUseRGB = myUtils.randomChance(rand, 1, 2);
-
-                // todo: fix and test this
-                // When true, the screen will flicker because TexText inherits myTexRectangle, which has static color components;
-                // We change color of a symbol, and it also changes the color of a bgrTex
-                doUseRGB = true;
+                doClearBuffer = true;
+                doUseCustomRGB = true;      // If true, paint the alphabet in white and then set custom color for each particle
 
                 // Size
                 switch (rand.Next(4))
@@ -112,18 +114,23 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = true;
             doChangeSymbols = myUtils.randomChance(rand, 1, 3);
+            isConstSizeFactor = myUtils.randomChance(rand, 1, 2);
 
             maxSpeed = 3 + rand.Next(13);               // max falling speed
-            posXGenMode = rand.Next(3);                 // where the particles are generated along the X-axis
-            posYGenMode = rand.Next(3);                 // where the particles are generated along the Y-axis
             angleMode = rand.Next(4);                   // symbol rotation mode
-            drawMode = rand.Next(5);                    // drawing mode
+            angleMode = 0;
+            drawMode = rand.Next(6);                    // drawing mode
 
             modX = rand.Next(333) + 11;
 
-            angleMode = 0;
+            do
+            {
+                sR = myUtils.randFloat(rand);
+                sG = myUtils.randFloat(rand);
+                sB = myUtils.randFloat(rand);
+            }
+            while (sR + sG + sB < 1.0f);
 
             return;
         }
@@ -151,11 +158,10 @@ namespace my
                             $"renderDelay = {renderDelay}\n"              +
                             $"font = '{tTex.FontFamily()}'\n"             +
                             $"size = {size}\n"                            +
-                            $"doUseRGB = {doUseRGB}\n"                    +
+                            $"isConstSizeFactor = {isConstSizeFactor}\n"  +
+                            $"doUseCustomRGB = {doUseCustomRGB}\n"        +
                             $"drawMode = {drawMode}\n"                    +
                             $"maxSpeed = {maxSpeed}\n"                    +
-                            $"xGenMode = {posXGenMode} (modX = {modX})\n" +
-                            $"yGenMode = {posYGenMode}\n"                 +
                             $"angleMode = {angleMode}\n"                  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -167,9 +173,9 @@ namespace my
         // 
         protected override void setNextMode()
         {
-            return;
             initLocal();
-            clearScreenSetup(doClearBuffer, 0.2f);
+
+            System.Threading.Thread.Sleep(333);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -179,18 +185,27 @@ namespace my
             x = rand.Next(gl_Width);
             y = -133;
 
-            A = 0.1f;
             A = getOpacity(0.25f, 11);
 
             // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
             {
-                int maxSize = 33;
+                if (isConstSizeFactor == false)
+                {
+                    // The less is opacity, the less is size
+                    sizeFactor = 0.5f + A;                                  // ver1
 
-                sizeFactor = tTex.getFieldHeight() > maxSize
-                    ? 1.0f * maxSize / tTex.getFieldHeight()
-                    : 1.0f;
+                    sizeFactor = 0.25f + A;
+                    sizeFactor = sizeFactor > 1.0f ? 1.0f : sizeFactor;     // ver2
 
-                sizeFactor = 0.5f + A;
+                    sizeFactor = A > 0.25f ? A : A + 0.25f;                 // ver3
+                }
+                else
+                {
+                    int maxSize = 33;
+                    sizeFactor = tTex.getFieldHeight() > maxSize
+                        ? 1.0f * maxSize / tTex.getFieldHeight()
+                        : 1.0f;
+                }
             }
 
             colorPicker.getColorRand(ref R, ref G, ref B);
@@ -200,6 +215,7 @@ namespace my
             yDist = (int)(sizeFactor * tTex.getFieldHeight());
 
             // Set up letter rotation
+/*
             {
                 angle = 0;
                 dAngle = myUtils.randFloat(rand) * 0.001f * myUtils.randomSign(rand);
@@ -209,10 +225,9 @@ namespace my
 
                 if (angleMode == 3)
                     dAngle *= rand.Next(13) + 10;
+            }*/
 
-            }
-
-            // Create/clear the list and insert one item into it
+            // Create/clear the list and insert a single item into it
             {
                 if (_symbols == null)
                 {
@@ -227,7 +242,7 @@ namespace my
                     _symbols.Clear();
                 }
 
-                _symbols.Add(new symbolItem(x, y, A));
+                _symbols.Add(new symbolItem(x, y, A, sizeFactor));
             }
 
             // Total number of characters generated before the object dies
@@ -252,7 +267,7 @@ namespace my
 
                     if (doChangeSymbols && myUtils.randomChance(rand, 1, 666))
                     {
-                        item.getRandomSymbol(x);
+                        item.getRandomSymbol(x, sizeFactor);
                     }
 
                     // Insert new or reuse dead items
@@ -263,7 +278,7 @@ namespace my
                         if (deadCnt == 0)
                         {
                             lastIndex = Count;
-                            _symbols.Add(new symbolItem(x, y, A));
+                            _symbols.Add(new symbolItem(x, y, A, sizeFactor));
                         }
                         else
                         {
@@ -271,7 +286,7 @@ namespace my
                             {
                                 if (_symbols[j].isDead)
                                 {
-                                    _symbols[j].updateItem(x, y, A);
+                                    _symbols[j].updateItem(x, y, A, sizeFactor);
 
                                     lastIndex = j;
                                     deadCnt--;
@@ -306,6 +321,8 @@ namespace my
 
             float r = 0, g = 0, b = 0;
 
+            bool doPickColor = myUtils.randomChance(rand, 1, 11);
+
             for (int i = 0; i < Count; i++)
             {
                 symbolItem item = _symbols[i];
@@ -315,7 +332,7 @@ namespace my
                     switch (drawMode)
                     {
                         case 0:
-                            tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, A);
+                            tTex.Draw(item.x, item.y, item.index, sizeFactor, sR, sG, sB, A);
                             break;
 
                         case 1:
@@ -330,6 +347,7 @@ namespace my
                             tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, item.a);
                             break;
 
+                        // Separate particles will pick their bgr color with some probability
                         case 4:
                             {
                                 if (rand.Next(11) == 1)
@@ -338,23 +356,18 @@ namespace my
                                 tTex.Draw(item.x, item.y, item.index, sizeFactor, item.r, item.g, item.b, item.a);
                             }
                             break;
-                    }
-                }
 
-/*
-                if (false)
-                {
-                    if (doUseRGB)
-                    {
-                        //colorPicker.getColor(item.x, item.y, ref R, ref G, ref B);
-                        tTex.Draw(item.x, item.y, item.index, item.a, angle, sizeFactor, R, G, B);
-                    }
-                    else
-                    {
-                        tTex.Draw(item.x, item.y, item.index, item.a, angle, sizeFactor);
+                        // The whole row will pick bgr color with some probability
+                        case 5:
+                            {
+                                if (doPickColor)
+                                    colorPicker.getColor(item.x, item.y, ref item.r, ref item.g, ref item.b);
+
+                                tTex.Draw(item.x, item.y, item.index, sizeFactor, item.r, item.g, item.b, item.a);
+                            }
+                            break;
                     }
                 }
-*/
             }
 
             return;
@@ -366,8 +379,6 @@ namespace my
         {
             uint cnt = 0;
             initShapes();
-
-            var bgrTex = new myTexRectangle(colorPicker.getImg());
 
             clearScreenSetup(doClearBuffer, 0.2f);
 
@@ -383,16 +394,9 @@ namespace my
 
                 // Dim screen
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                        //bgrTex.Draw(0, 0, gl_Width, gl_Height);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        grad.Draw();
-                    }
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    //bgrTex.Draw(0, 0, gl_Width, gl_Height);
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -426,7 +430,9 @@ namespace my
         private void initShapes()
         {
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, doUseRGB, 150000, -5);
+            tTex = new TexText(size, doUseCustomRGB, 150000, -5);
+
+            //bgrTex = new myTexRectangle(colorPicker.getImg());
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
