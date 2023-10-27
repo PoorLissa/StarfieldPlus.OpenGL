@@ -319,8 +319,6 @@ namespace my
         {
             int Count = _symbols.Count;
 
-            float r = 0, g = 0, b = 0;
-
             bool doPickColor = myUtils.randomChance(rand, 1, 11);
 
             for (int i = 0; i < Count; i++)
