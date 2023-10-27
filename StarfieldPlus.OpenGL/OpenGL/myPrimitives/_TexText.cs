@@ -46,7 +46,7 @@ class TexText
     // -------------------------------------------------------------------------------------------------------------------
 
     // Use a random set of characters
-    public TexText(int size, bool customColor, int alphabetId = -1)
+    public TexText(int size, bool customColor, int fontStyle, int alphabetId = -1)
     {
         System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
 
@@ -59,13 +59,13 @@ class TexText
 
         _Length = str.Length;
 
-        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, str);
+        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, fontStyle, str);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     // Use a random set of characters -- Instanced mode
-    public TexText(int size, bool customColor, int instancesNo, int alphabetId = -1, string fontFamily = "")
+    public TexText(int size, bool customColor, int instancesNo, int fontStyle, int alphabetId = -1, string fontFamily = "")
     {
         System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
 
@@ -86,13 +86,13 @@ class TexText
 
         _Length = alphabet.Length;
 
-        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, alphabet, instancesNo);
+        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, fontStyle, alphabet, instancesNo);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
 
     // Use a user-defined set of characters
-    public TexText(int size, string customAlphabet, bool customColor)
+    public TexText(int size, int fontStyle, string customAlphabet, bool customColor)
     {
         System.Diagnostics.Debug.Assert(_scrWidth > 0 && _scrHeight > 0, "Screen Dimensions are not set.");
 
@@ -102,7 +102,7 @@ class TexText
 
         getFont(ref _fontFamily);
 
-        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, customAlphabet);
+        getFontTexture(_fontFamily, size, ref _texWidth, ref _texHeight, fontStyle, customAlphabet);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -305,16 +305,29 @@ class TexText
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create a texture with symbols on it
-    private void getFontTexture(string fontName, int fontSize, ref int Width, ref int Height, string str, int instancesNo = 0)
+    private void getFontTexture(string fontName, int fontSize, ref int Width, ref int Height, int fontStyle, string str, int instancesNo = 0)
     {
         int totalWidth = 0;
         int maxHeight  = 0;
 
         Bitmap bmp = new Bitmap(100, 100);
 
+        var thisFontStyle = FontStyle.Regular;
+
+        switch (fontStyle)
+        {
+            case 1:
+                thisFontStyle = FontStyle.Bold;
+                break;
+
+            case 2:
+                thisFontStyle = FontStyle.Italic;
+                break;
+        }
+
         using (var gr = Graphics.FromImage(bmp))
         using (var br = new SolidBrush(Color.FromArgb(255, 255, 255, 255)))
-        using (var font = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
+        using (var font = new Font(fontName, fontSize, thisFontStyle, GraphicsUnit.Pixel))
         {
             gr.SmoothingMode = SmoothingMode.AntiAlias;
             gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
@@ -362,7 +375,7 @@ class TexText
 
                 using (var br = new SolidBrush(Color.FromArgb(255, r, g, b)))
                 {
-                    using (var font = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
+                    using (var font = new Font(fontName, fontSize, thisFontStyle, GraphicsUnit.Pixel))
                     {
                         gr.SmoothingMode = SmoothingMode.AntiAlias;
                         gr.InterpolationMode = InterpolationMode.HighQualityBicubic;

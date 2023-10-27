@@ -259,7 +259,7 @@ namespace my
             myPrimitive.init_ScrDimmer();
 
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, true);
+            tTex = new TexText(size, true, fontStyle: 0);
 
             return;
         }

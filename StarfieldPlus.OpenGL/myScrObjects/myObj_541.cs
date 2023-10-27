@@ -427,8 +427,10 @@ namespace my
 
         private void initShapes()
         {
+            int fontStyle = rand.Next(2);
+
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, doUseCustomRGB, 150000, -5);
+            tTex = new TexText(size, doUseCustomRGB, 150000, fontStyle, -5);
 
             //bgrTex = new myTexRectangle(colorPicker.getImg());
 

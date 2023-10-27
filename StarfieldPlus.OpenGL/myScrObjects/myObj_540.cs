@@ -419,7 +419,7 @@ namespace my
             myPrimitive.init_Line();
 
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, doUseRGB);
+            tTex = new TexText(size, doUseRGB, fontStyle: 0);
 
             return;
         }
