@@ -54,7 +54,7 @@ namespace my
         private List<symbolItem> _symbols = null;
 
         private static int N = 0, drawMode = 0;
-        private static bool doUseRGB = false;
+        private static bool doUseRGB = false, doChangeSymbols = false;
 
         private static int maxSpeed = 0, posXGenMode = 0, posYGenMode = 0, angleMode = 0, modX = 0, size = 20;
 
@@ -75,7 +75,7 @@ namespace my
         protected override void initGlobal()
         {
             var mode = myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
-            mode = myColorPicker.colorMode.SNAPSHOT;
+            //mode = myColorPicker.colorMode.SNAPSHOT;
 
             colorPicker = new myColorPicker(gl_Width, gl_Height, mode: mode);
             list = new List<myObject>();
@@ -112,8 +112,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doClearBuffer = true;
+            doChangeSymbols = myUtils.randomChance(rand, 1, 3);
 
             maxSpeed = 3 + rand.Next(13);               // max falling speed
             posXGenMode = rand.Next(3);                 // where the particles are generated along the X-axis
@@ -124,8 +124,6 @@ namespace my
             modX = rand.Next(333) + 11;
 
             angleMode = 0;
-
-drawMode = 4;
 
             return;
         }
@@ -235,14 +233,11 @@ drawMode = 4;
             // Total number of characters generated before the object dies
             cnt = 10 + rand.Next(50);
 
-            cnt = 75;
-
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // todo: removing items is very expensive
         protected override void Move()
         {
             int Count = _symbols.Count;
@@ -255,11 +250,12 @@ drawMode = 4;
                 {
                     item.y += dy;
 
-                    if (myUtils.randomChance(rand, 1, 333))
+                    if (doChangeSymbols && myUtils.randomChance(rand, 1, 666))
                     {
-                        //item.getRandomSymbol(x);
+                        item.getRandomSymbol(x);
                     }
 
+                    // Insert new or reuse dead items
                     if (i == lastIndex && cnt > 0 && item.y - y > yDist)
                     {
                         cnt--;
@@ -285,7 +281,7 @@ drawMode = 4;
                         }
                     }
 
-                    // Remove items that we can't see anymore
+                    // Mark as dead
                     if (item.y > gl_Height)
                     {
                         deadCnt++;
@@ -314,39 +310,35 @@ drawMode = 4;
             {
                 symbolItem item = _symbols[i];
 
-                if (item.isDead)
-                    continue;
-
-#if false
-                tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, 0.25f);
-                continue;
-#endif
-                switch (drawMode)
+                if (!item.isDead)
                 {
-                    case 0:
-                        tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, A);
-                        break;
+                    switch (drawMode)
+                    {
+                        case 0:
+                            tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, A);
+                            break;
 
-                    case 1:
-                        tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, item.a);
-                        break;
+                        case 1:
+                            tTex.Draw(item.x, item.y, item.index, sizeFactor, 1, 1, 1, item.a);
+                            break;
 
-                    case 2:
-                        tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, A);
-                        break;
+                        case 2:
+                            tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, A);
+                            break;
 
-                    case 3:
-                        tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, item.a);
-                        break;
+                        case 3:
+                            tTex.Draw(item.x, item.y, item.index, sizeFactor, R, G, B, item.a);
+                            break;
 
-                    case 4:
-                        {
-                            if (rand.Next(11) == 1)
-                                colorPicker.getColor(item.x, item.y, ref item.r, ref item.g, ref item.b);
+                        case 4:
+                            {
+                                if (rand.Next(11) == 1)
+                                    colorPicker.getColor(item.x, item.y, ref item.r, ref item.g, ref item.b);
 
-                            tTex.Draw(item.x, item.y, item.index, sizeFactor, item.r, item.g, item.b, item.a);
-                        }
-                        break;
+                                tTex.Draw(item.x, item.y, item.index, sizeFactor, item.r, item.g, item.b, item.a);
+                            }
+                            break;
+                    }
                 }
 
 /*
@@ -370,11 +362,8 @@ drawMode = 4;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        uint CNT = 0;
-
         protected override void Process(Window window)
         {
-            CNT++;
             uint cnt = 0;
             initShapes();
 
@@ -437,7 +426,7 @@ drawMode = 4;
         private void initShapes()
         {
             TexText.setScrDimensions(gl_Width, gl_Height);
-            tTex = new TexText(size, doUseRGB, 150000, 5);
+            tTex = new TexText(size, doUseRGB, 150000, -5);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
