@@ -32,7 +32,16 @@ namespace my
             public void updateItem(float rowX, float rowY, float rowA, float rowSizeFactor)
             {
                 index = rand.Next(tTex.Lengh());
-                x = rowX - tTex.getFieldWidth(index) * rowSizeFactor / 2;
+
+                if (doUseRandomX)
+                {
+                    x = rand.Next(gl_Width);
+                }
+                else
+                {
+                    x = rowX - tTex.getFieldWidth(index) * rowSizeFactor / 2;
+                }
+
                 y = rowY;
                 a = rowA + myUtils.randFloatSigned(rand) * 0.15f;
                 isDead = false;
@@ -58,10 +67,10 @@ namespace my
         private List<symbolItem> _symbols = null;
 
         private static int N = 0, drawMode = 0;
-        private static bool doUseCustomRGB = false, doChangeSymbols = false, isConstSizeFactor = false;
+        private static bool doUseCustomRGB = false, doChangeSymbols = false, isConstSizeFactor = false, doUseRandomX = false;
         private static float sR = 0, sG = 0, sB = 0;
 
-        private static int maxSpeed = 0, angleMode = 0, modX = 0, size = 20;
+        private static int maxSpeed = 0, angleMode = 0, modX = 0, size = 20, sfMode = 0;
 
         private static myTexRectangle bgrTex = null;
         private static TexText tTex = null;
@@ -116,6 +125,9 @@ namespace my
         {
             doChangeSymbols = myUtils.randomChance(rand, 1, 3);
             isConstSizeFactor = myUtils.randomChance(rand, 1, 2);
+            doUseRandomX = myUtils.randomChance(rand, 1, 4);
+
+            sfMode = rand.Next(3);
 
             maxSpeed = 3 + rand.Next(13);               // max falling speed
             angleMode = rand.Next(4);                   // symbol rotation mode
@@ -192,12 +204,22 @@ namespace my
                 if (isConstSizeFactor == false)
                 {
                     // The less is opacity, the less is size
-                    sizeFactor = 0.5f + A;                                  // ver1
 
-                    sizeFactor = 0.25f + A;
-                    sizeFactor = sizeFactor > 1.0f ? 1.0f : sizeFactor;     // ver2
+                    switch (sfMode)
+                    {
+                        case 0:
+                            sizeFactor = 0.5f + A;                                  // ver1
+                            break;
 
-                    sizeFactor = A > 0.25f ? A : A + 0.25f;                 // ver3
+                        case 1:
+                            sizeFactor = 0.25f + A;
+                            sizeFactor = sizeFactor > 1.0f ? 1.0f : sizeFactor;     // ver2
+                            break;
+
+                        case 2:
+                            sizeFactor = A > 0.25f ? A : A + 0.25f;                 // ver3
+                            break;
+                    }
                 }
                 else
                 {
