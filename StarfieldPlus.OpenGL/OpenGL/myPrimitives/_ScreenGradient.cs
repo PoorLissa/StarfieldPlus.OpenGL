@@ -1,4 +1,6 @@
-﻿using my;
+﻿using System;
+using my;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using static OpenGL.GL;
 
 /*
@@ -7,6 +9,8 @@ using static OpenGL.GL;
 
 public class myScreenGradient : myPrimitive
 {
+    private long tBegin;
+
     private static uint vbo = 0, ebo = 0, shaderProgram = 0;
     private static float[] vertices = null;
 
@@ -14,6 +18,7 @@ public class myScreenGradient : myPrimitive
 
     // Uniform ids:
     private static int _myColor1 = 0, _myColor2 = 0;
+    private static int _uTime = 0;
 
     private static int verticesLength = 12;
     private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
@@ -23,6 +28,9 @@ public class myScreenGradient : myPrimitive
 
     public myScreenGradient(int mode = -1)
     {
+        // Start the timer
+        tBegin = DateTime.Now.Ticks;
+
         _mode = mode < 0
             ? new System.Random().Next(2)
             : mode;
@@ -35,6 +43,7 @@ public class myScreenGradient : myPrimitive
             glUseProgram(shaderProgram);
 
             // Uniforms
+            _uTime    = glGetUniformLocation(shaderProgram, "uTime");
             _myColor1 = glGetUniformLocation(shaderProgram, "myColor1");
             _myColor2 = glGetUniformLocation(shaderProgram, "myColor2");
 
@@ -114,6 +123,9 @@ public class myScreenGradient : myPrimitive
         {
             glUniform4f(_myColor1, _r, _g, _b, _a);
             glUniform4f(_myColor2, _r1, _g1, _b1, _a1);
+
+            // Update uniforms:
+            glUniform1f(_uTime, (float)(TimeSpan.FromTicks(DateTime.Now.Ticks - tBegin).TotalSeconds));
         }
 
         // Move vertices data from CPU to GPU
@@ -157,7 +169,7 @@ public class myScreenGradient : myPrimitive
         // To avoid that, use dithering: https://shader-tutorial.dev/advanced/color-banding-dithering/
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
 
-            header: $@"out vec4 result; uniform vec4 myColor1; uniform vec4 myColor2;
+            header: $@"out vec4 result; uniform vec4 myColor1; uniform vec4 myColor2; uniform float uTime;
                                 float hInv = 1.0 / {Height}; float wInv = 1.0 / {Width};
                 {myShaderHelpers.Generic.noiseFunc12_v1}
                 {myShaderHelpers.Generic.randFunc}",
@@ -218,7 +230,8 @@ public class myScreenGradient : myPrimitive
                     float mixValue = distance(st, vec2(0, 1));
                     float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
 
-                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
+                    //float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue * sin(uTime)) * 0.1;
+                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;
                     mixValue *= noise;
 
                     vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
@@ -236,7 +249,8 @@ public class myScreenGradient : myPrimitive
                     float mixValue = distance(st, vec2({myUtils.randFloat(r)}, {myUtils.randFloat(r)}));
                     float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
 
-                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
+                    //float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
+                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;
                     mixValue *= noise;
 
                     vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
