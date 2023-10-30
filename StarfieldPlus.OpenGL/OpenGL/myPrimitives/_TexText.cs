@@ -4,6 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static my.myObj_540;
+using static System.Collections.Specialized.BitVector32;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
+using System.Runtime.ConstrainedExecution;
+using System.Security.Cryptography;
+using System.Security.Policy;
+using System.Windows.Forms;
 
 
 /*
@@ -35,6 +44,7 @@ class TexText
     private Dictionary<int, field> _map = null;
 
     private static int _scrWidth = 0, _scrHeight = 0;
+    private static float _scrToTexRatio = 0;
 
     private int _texWidth = 0, _texHeight = 0;
     private int _Length = 0;
@@ -205,12 +215,39 @@ class TexText
     public void Draw(int x, int y, int charIndex, float sizeFactor, float R = 1, float G = 1, float B = 1, float A = 1)
     {
         var fld = _map[charIndex];
-
+/*
         _texInst.setInstanceCoords(x, y, (int)(fld.width * sizeFactor), (int)(_texHeight * sizeFactor),
-                        fld.offset * _scrWidth / _texWidth, 0, fld.width * _scrWidth / _texWidth, _scrHeight);
+            fld.offset * _scrWidth / _texWidth, 0, fld.width * _scrWidth / _texWidth, _scrHeight);*/
+
+        // Slightly optimized call with less calculations
+        _texInst.setInstanceCoords(x, y, (int)(fld.width * sizeFactor), (int)(_texHeight * sizeFactor),
+                                                fld.offset * _scrToTexRatio, 0, fld.width * _scrToTexRatio, _scrHeight);
 
         _texInst.setInstanceColor(R, G, B, A);
         _texInst.setInstanceAngle(0);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Get a string consisting of random elements of the array
+    private void getRandomArrayStrings(Random rand, int N, ref string str, string[] arr)
+    {
+        str = "";
+
+        // Get the total number of permutations (the range of [1 .. (2^N)-1])
+        uint nTotal = (uint)Math.Pow(2, N) - 1;
+
+        // Get a random permutation
+        uint n = (uint)rand.Next((int)nTotal) + 1;
+
+        // Get array elements corresponding to the selected permutation
+        for (int i = 0; i < N; i++)
+        {
+            if (((uint)(1 << i) & n) != 0)
+            {
+                str += arr[i];
+            }
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -232,7 +269,7 @@ class TexText
                 "Hasta la vista baby"
             };
 
-        const int N = 7;
+        const int N = 8;
         string[] arr2 = new string[N] {
                 "абвгдеёжзийклмнопрстуфхцчшщъыьэюя",
                 "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
@@ -240,36 +277,44 @@ class TexText
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                 "0123456789",
                 "01",
-                "!@#$%^&*()[]{}<>-+=/?~;:'"
+                "!@#$%^&*()[]{}<>-+=/?~;:'",
+                "極珠輸雄熊清兵強日大年中会人本月長国出上十生子分東三行同今高金時手見市力米自前円合立内二事社者地京間田体学下目五後新明方部八心四民対主正代言九小思七山実入回場野開万全定家北六問話文動度県水安氏和政保表道相意発不党"
             };
 
-        if (id < 0)
+        if (id >= 0)
         {
-            if (rand.Next(2) == 0)
-            {
-                str = arr1[rand.Next(arr1.Length)];
-            }
-            else
-            {
-                str = "";
-
-                // Get random number from [1 .. (2^N)-1]
-                uint n = (uint)Math.Pow(2, N) - 1;
-
-                n = (uint)rand.Next((int)n) + 1;
-
-                for (int i = 0; i < N; i++)
-                {
-                    if (((uint)(1 << i) & n) != 0)
-                    {
-                        str += arr2[i];
-                    }
-                }
-            }
+            // One of the predefined alphabets (user selected)
+            str = arr2[id];
         }
         else
         {
-            str = arr2[id];
+            switch (rand.Next(5))
+            {
+                // One of the predefined phrases
+                case 0:
+                    str = arr1[rand.Next(arr1.Length)];
+                    break;
+
+                // One of the predefined alphabets
+                case 1:
+                    str = arr2[rand.Next(arr2.Length)];
+                    break;
+
+                // Japanese Kanji
+                case 2:
+                    str = arr2[7];
+                    break;
+
+                // One or more random alphabets from arr2 (excluding Kanji)
+                case 3:
+                    getRandomArrayStrings(rand, N - 1, ref str, arr2);
+                    break;
+
+                // One or more random alphabets from arr2 (including Kanji)
+                case 4:
+                    getRandomArrayStrings(rand, N, ref str, arr2);
+                    break;
+            }
         }
 
         return;
@@ -413,6 +458,8 @@ class TexText
         {
             _texInst = new myTexRectangleInst(bmp, instancesNo);
         }
+
+        _scrToTexRatio = 1.0f * _scrWidth / _texWidth;
 
         return;
     }
