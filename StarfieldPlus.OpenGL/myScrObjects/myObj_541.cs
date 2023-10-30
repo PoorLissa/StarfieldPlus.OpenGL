@@ -60,17 +60,17 @@ namespace my
         public static int Priority => 99910;
         public static System.Type Type => typeof(myObj_541);
 
-        private int yDist = 0, cnt, deadCnt, lastIndex;
+        private int yOffset = 0, cnt, deadCnt, lastIndex;
         private float x, y, dy, sizeFactor;
         private float A, R, G, B;
 
         private List<symbolItem> _symbols = null;
 
         private static int N = 0, drawMode = 0;
-        private static bool doUseCustomRGB = false, doChangeSymbols = false, isConstSizeFactor = false, doUseRandomX = false;
+        private static bool doUseCustomRGB = false, doChangeSymbols = false, doUseRandomX = false;
         private static float sR = 0, sG = 0, sB = 0;
 
-        private static int maxSpeed = 0, angleMode = 0, modX = 0, size = 20, sfMode = 0;
+        private static int maxSpeed = 0, angleMode = 0, modX = 0, size = 20, sizeFactorMode = 0, rowSizeMode = 0;
 
         private static myTexRectangle bgrTex = null;
         private static TexText tTex = null;
@@ -124,10 +124,10 @@ namespace my
         private void initLocal()
         {
             doChangeSymbols = myUtils.randomChance(rand, 1, 3);
-            isConstSizeFactor = myUtils.randomChance(rand, 1, 2);
             doUseRandomX = myUtils.randomChance(rand, 1, 4);
 
-            sfMode = rand.Next(3);
+            sizeFactorMode = rand.Next(6);              // How the size is changed
+            rowSizeMode = rand.Next(6);                 // Mode for the number of symbols in a single row
 
             maxSpeed = 3 + rand.Next(13);               // max falling speed
             angleMode = rand.Next(4);                   // symbol rotation mode
@@ -163,18 +163,19 @@ namespace my
                 nSymbols += (list[i] as myObj_541)._symbols.Count;
             }
 
-            string str = $"Obj = {Type}\n\n"                           	  +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"      +
-                            $"nSymbols = {nSymbols}\n"                    +
-                            $"doClearBuffer = {doClearBuffer}\n"          +
-                            $"renderDelay = {renderDelay}\n"              +
-                            $"font = '{tTex.FontFamily()}'\n"             +
-                            $"size = {size}\n"                            +
-                            $"isConstSizeFactor = {isConstSizeFactor}\n"  +
-                            $"doUseCustomRGB = {doUseCustomRGB}\n"        +
-                            $"drawMode = {drawMode}\n"                    +
-                            $"maxSpeed = {maxSpeed}\n"                    +
-                            $"angleMode = {angleMode}\n"                  +
+            string str = $"Obj = {Type}\n\n"                         +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"nSymbols = {nSymbols}\n"               +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"renderDelay = {renderDelay}\n"         +
+                            $"font = '{tTex.FontFamily()}'\n"        +
+                            $"size = {size}\n"                       +
+                            $"sizeFactorMode = {sizeFactorMode}\n"   +
+                            $"rowSizeMode = {rowSizeMode}\n"         +
+                            $"doUseCustomRGB = {doUseCustomRGB}\n"   +
+                            $"drawMode = {drawMode}\n"               +
+                            $"maxSpeed = {maxSpeed}\n"               +
+                            $"angleMode = {angleMode}\n"             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -200,41 +201,43 @@ namespace my
             A = getOpacity(0.25f, 11);
 
             // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
+            switch (sizeFactorMode)
             {
-                if (isConstSizeFactor == false)
-                {
-                    // The less is opacity, the less is size
+                // Const size factor:
+                case 0:
+                    sizeFactor = 0.5f + A;                                  // ver1
+                    break;
 
-                    switch (sfMode)
+                // Const size factor:
+                case 1:
+                    sizeFactor = 0.25f + A;
+                    sizeFactor = sizeFactor > 1.0f ? 1.0f : sizeFactor;     // ver2
+                    break;
+
+                // Const size factor:
+                case 2:
+                    sizeFactor = A > 0.25f ? A : A + 0.25f;                 // ver3
+                    break;
+
+                // Size factor depends on the actual onscreen size of symbols;
+                // Different fonts will produce symbols of different actual onscreen size;
+                // In this mode, the size is scaled down in case the symbols are larger than allowed
+                default:
                     {
-                        case 0:
-                            sizeFactor = 0.5f + A;                                  // ver1
-                            break;
-
-                        case 1:
-                            sizeFactor = 0.25f + A;
-                            sizeFactor = sizeFactor > 1.0f ? 1.0f : sizeFactor;     // ver2
-                            break;
-
-                        case 2:
-                            sizeFactor = A > 0.25f ? A : A + 0.25f;                 // ver3
-                            break;
+                        int maxSize = 33;
+                        sizeFactor = tTex.getFieldHeight() > maxSize
+                            ? 1.0f * maxSize / tTex.getFieldHeight()
+                            : 1.0f;
                     }
-                }
-                else
-                {
-                    int maxSize = 33;
-                    sizeFactor = tTex.getFieldHeight() > maxSize
-                        ? 1.0f * maxSize / tTex.getFieldHeight()
-                        : 1.0f;
-                }
+                    break;
             }
 
             colorPicker.getColorRand(ref R, ref G, ref B);
 
             dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(maxSpeed) + 1);
 
-            yDist = (int)(sizeFactor * tTex.getFieldHeight());
+            // Distance between 2 neighbouring symbols in a row
+            yOffset = (int)(sizeFactor * tTex.getFieldHeight());
 
             // Set up letter rotation
 /*
@@ -253,22 +256,39 @@ namespace my
             {
                 if (_symbols == null)
                 {
-                    lastIndex = 0;
-                    deadCnt = 0;
                     _symbols = new List<symbolItem>();
                 }
                 else
                 {
-                    lastIndex = 0;
-                    deadCnt = 0;
                     _symbols.Clear();
                 }
 
+                lastIndex = 0;
+                deadCnt = 0;
                 _symbols.Add(new symbolItem(x, y, A, sizeFactor));
             }
 
             // Total number of characters generated before the object dies
-            cnt = 10 + rand.Next(50);
+            switch (rowSizeMode)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    cnt = 10 + rand.Next(50);
+                    break;
+
+                case 3:
+                    cnt = 10;
+                    break;
+
+                case 4:
+                    cnt = 50;
+                    break;
+
+                case 5:
+                    cnt = 100;
+                    break;
+            }
 
             return;
         }
@@ -293,7 +313,7 @@ namespace my
                     }
 
                     // Insert new or reuse dead items
-                    if (i == lastIndex && cnt > 0 && item.y - y > yDist)
+                    if (i == lastIndex && cnt > 0 && item.y - y > yOffset)
                     {
                         cnt--;
 
