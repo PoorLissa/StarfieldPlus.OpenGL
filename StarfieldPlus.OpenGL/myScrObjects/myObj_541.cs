@@ -57,7 +57,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 30;
         public static System.Type Type => typeof(myObj_541);
 
         private int yOffset = 0, cnt, deadCnt, lastIndex;
@@ -278,15 +278,15 @@ namespace my
                     break;
 
                 case 3:
-                    cnt = 10;
+                    cnt = 10 + rand.Next(25);
                     break;
 
                 case 4:
-                    cnt = 50;
+                    cnt = 20 + rand.Next(33);
                     break;
 
                 case 5:
-                    cnt = 100;
+                    cnt = 30 + rand.Next(33);
                     break;
             }
 
@@ -469,6 +469,7 @@ namespace my
 
         private void initShapes()
         {
+            // Normal vs Bold font
             int fontStyle = rand.Next(2);
 
             TexText.setScrDimensions(gl_Width, gl_Height);
