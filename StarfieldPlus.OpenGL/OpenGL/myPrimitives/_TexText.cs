@@ -1,18 +1,8 @@
-﻿using GLFW;
-using static OpenGL.GL;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static my.myObj_540;
-using static System.Collections.Specialized.BitVector32;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Cryptography;
-using System.Security.Policy;
-using System.Windows.Forms;
+using System.Text;
 
 
 /*
@@ -232,7 +222,7 @@ class TexText
     // Get a string consisting of random elements of the array
     private void getRandomArrayStrings(Random rand, int N, ref string str, string[] arr)
     {
-        str = "";
+        var bld = new StringBuilder();
 
         // Get the total number of permutations (the range of [1 .. (2^N)-1])
         uint nTotal = (uint)Math.Pow(2, N) - 1;
@@ -245,9 +235,25 @@ class TexText
         {
             if (((uint)(1 << i) & n) != 0)
             {
-                str += arr[i];
+                bld.Append(arr[i]);
             }
         }
+
+        str = bld.ToString();
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Get a random length string consisting of random Unicode characters
+    private void getRandomUnicodeString(Random rand, ref string str)
+    {
+        var bld = new StringBuilder();
+        int len = 33 + rand.Next(22);
+
+        for (int i = 0; i < len; i++)
+            bld.Append((char)rand.Next(0xFFFF));
+
+        str = bld.ToString();
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -288,7 +294,7 @@ class TexText
         }
         else
         {
-            switch (rand.Next(5))
+            switch (rand.Next(6))
             {
                 // One of the predefined phrases
                 case 0:
@@ -313,6 +319,11 @@ class TexText
                 // One or more random alphabets from arr2 (including Kanji)
                 case 4:
                     getRandomArrayStrings(rand, N, ref str, arr2);
+                    break;
+
+                // Random set of Unicode characters
+                case 5:
+                    getRandomUnicodeString(rand, ref str);
                     break;
             }
         }

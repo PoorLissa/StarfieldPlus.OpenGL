@@ -222,8 +222,8 @@ namespace my
 
             header = stdHeader;
 
-            main = $@"
-                    uv *= 12.5;
+            main =
+                 $@"uv *= 12.5;
 
                     myColor.x += abs(uv.x + t);
                     myColor.y *= abs(uv.y + t);
