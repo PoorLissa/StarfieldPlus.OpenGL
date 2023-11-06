@@ -258,15 +258,15 @@ class TexText
         Random rand = new Random((int)DateTime.Now.Ticks);
 
         string[] arr1 = new string[] {
-                "Hello World",
-                "To be or not to be",
-                "I have a dream",
-                "Just do it",
-                "May the Force be with you",
-                "Houston we have a problem",
-                "I'll be back",
-                "The truth is out there",
-                "Hasta la vista baby"
+                "HelloWorld",
+                "Tobeornottobe",
+                "Ihaveadream",
+                "Justdoit",
+                "MaytheForcebewithyou",
+                "Houstonwehaveaproblem",
+                "I'llbeback",
+                "Thetruthisoutthere",
+                "Hastalavistababy"
             };
 
         const int N = 8;
