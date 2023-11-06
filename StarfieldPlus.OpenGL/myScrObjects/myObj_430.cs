@@ -14,12 +14,12 @@ namespace my
     public class myObj_430 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99910;
 		public static System.Type Type => typeof(myObj_430);
 
         private myObj_430 owner = null;
 
-        private int bulletSpeed, closestTarget, trailLengthFactor;
+        private int bulletSpeed, closestTarget, trailLengthFactor, lifeCnt;
         private bool alive;
         private float x, y, X, Y, dx, dy;
         private float size, A, R, G, B, angle, dAngle, r, g, b;
@@ -27,7 +27,7 @@ namespace my
 
         private static int N = 0, n = 0, shape = 0, trailMode = 0, specialMode = 0;
         private static int shooterSpdFactor = 1;
-        private static int bulletSize = 0, shooterSize = 0;
+        private static int bulletSize = 0, shooterSize = 0, bulletMoveMode = 0;
         private static int bulletMinX = 0, bulletMaxX = 0, bulletMinY = 0, bulletMaxY = 0;
         private static bool doFillShapes = false, doUseRandomSpeed = true, doUseBulletSpread = true;
         private static float dimAlpha = 0.05f;
@@ -99,6 +99,9 @@ namespace my
                 : rand.Next(10) + 1;
 
             renderDelay = rand.Next(11) + 5;
+
+            bulletMoveMode = rand.Next(2);
+            bulletMoveMode = 1;
 
             return;
         }
@@ -180,11 +183,13 @@ namespace my
                     alive = true;
                     size = bulletSize;
 
+                    lifeCnt = 333;
+
                     // Get random shooter and its target;
                     // Shoot the target
                     {
                         owner = list[rand.Next(n)] as myObj_430;
-                        var target  = list[owner.closestTarget] as myObj_430;
+                        var target = list[owner.closestTarget] as myObj_430;
 
                         x = owner.x;
                         y = owner.y;
@@ -248,6 +253,8 @@ namespace my
                 }
             }
 
+            A /= 3;
+
             return;
         }
 
@@ -291,12 +298,64 @@ namespace my
                 x += dx;
                 y += dy;
 
+                switch (bulletMoveMode)
+                {
+                    case 0:
+                        {
+                            if (x < bulletMinX || y < bulletMinY || x > bulletMaxX || y > bulletMaxY)
+                                generateNew();
+                        }
+                        break;
+
+                    case 1:
+                        {
+                            if (--lifeCnt == 0)
+                            {
+                                generateNew();
+                            }
+                            else
+                            {
+                                if (dx < 0 && x < 0)
+                                    dx *= -1;
+
+                                if (dy < 0 && y < 0)
+                                    dy *= -1;
+
+                                if (dx > 0 && x > gl_Width)
+                                    dx *= -1;
+
+                                if (dy > 0 && y > gl_Height)
+                                    dy *= -1;
+                            }
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            if (--lifeCnt == 0)
+                            {
+                                generateNew();
+                            }
+                            else
+                            {
+                                if (rand.Next(13) == 1)
+                                {
+                                    dx *= -1;
+                                    break;
+                                }
+
+                                if (rand.Next(13) == 1)
+                                {
+                                    dy *= -1;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                }
+
                 if (alive)
                 {
-                    if (x < bulletMinX || y < bulletMinY || x > bulletMaxX|| y > bulletMaxY)
-                    {
-                        generateNew();
-                    }
                 }
             }
 
