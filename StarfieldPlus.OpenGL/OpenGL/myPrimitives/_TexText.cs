@@ -14,7 +14,7 @@ using System.Text;
     https://learnopengl.com/In-Practice/Text-Rendering
 
     Update:
-    Now this class also can work with instanced testure as well.
+    Now this class also can work with instanced texture as well.
     For this, we have a different constructor and different Draw methods.
     Also, don't forget to access _texInst to ResetBuffer and Draw the whole thing later on.
 */
@@ -31,7 +31,8 @@ class TexText
 
     private myTexRectangle _tex = null;
     private myTexRectangleInst _texInst = null;
-    private Dictionary<int, field> _map = null;
+    private Dictionary<int, field> _map_index = null;
+    private Dictionary<char, field> _map_char = null;
 
     private static int _scrWidth = 0, _scrHeight = 0;
     private static float _scrToTexRatio = 0;
@@ -132,7 +133,7 @@ class TexText
 
     public int getFieldWidth(int charIndex)
     {
-        return _map[charIndex].width;
+        return _map_index[charIndex].width;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -160,6 +161,7 @@ class TexText
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Simple non-instanced mode
     public void Draw(int x, int y, int charIndex, float opacity, float angle, float sizeFactor, float R, float G, float B)
     {
         _tex.setColor(R, G, B);
@@ -169,12 +171,13 @@ class TexText
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Simple non-instanced mode
     public void Draw(int x, int y, int charIndex, float opacity, float angle, float sizeFactor)
     {
         _tex.setOpacity(opacity);
         _tex.setAngle(angle);
 
-        var fld = _map[charIndex];
+        var fld = _map_index[charIndex];
 
         // tex.Draw((int)x, (int)y, size, texHeight, offset * gl_Width / texWidth, 0, size * gl_Width / texWidth, texHeight * gl_Height / texHeight);
 
@@ -185,7 +188,7 @@ class TexText
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Instanced mode
+    // Instanced mode, index-based
     public void Draw(float x, float y, int charIndex, float sizeFactor)
     {
         Draw((int)x, (int)y, charIndex, sizeFactor);
@@ -193,7 +196,15 @@ class TexText
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Instanced mode
+    // Instanced mode, char-based
+    public void Draw(float x, float y, char ch, float sizeFactor)
+    {
+        Draw((int)x, (int)y, ch, sizeFactor);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Instanced mode, index-based
     public void Draw(float x, float y, int charIndex, float sizeFactor, float R, float G, float B, float A)
     {
         Draw((int)x, (int)y, charIndex, sizeFactor, R, G, B, A);
@@ -201,10 +212,18 @@ class TexText
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Instanced mode
+    // Instanced mode, char-based
+    public void Draw(float x, float y, char ch, float sizeFactor, float R, float G, float B, float A)
+    {
+        Draw((int)x, (int)y, ch, sizeFactor, R, G, B, A);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Instanced mode, index-based
     public void Draw(int x, int y, int charIndex, float sizeFactor, float R = 1, float G = 1, float B = 1, float A = 1)
     {
-        var fld = _map[charIndex];
+        var fld = _map_index[charIndex];
 /*
         _texInst.setInstanceCoords(x, y, (int)(fld.width * sizeFactor), (int)(_texHeight * sizeFactor),
             fld.offset * _scrWidth / _texWidth, 0, fld.width * _scrWidth / _texWidth, _scrHeight);*/
@@ -215,6 +234,24 @@ class TexText
 
         _texInst.setInstanceColor(R, G, B, A);
         _texInst.setInstanceAngle(0);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Instanced mode, char-based
+    public void Draw(int x, int y, char ch, float sizeFactor, float R = 1, float G = 1, float B = 1, float A = 1)
+    {
+        if (_map_char.ContainsKey(ch))
+        {
+            var fld = _map_char[ch];
+
+            // Slightly optimized call with less calculations
+            _texInst.setInstanceCoords(x, y, (int)(fld.width * sizeFactor), (int)(_texHeight * sizeFactor),
+                                                    fld.offset * _scrToTexRatio, 0, fld.width * _scrToTexRatio, _scrHeight);
+
+            _texInst.setInstanceColor(R, G, B, A);
+            _texInst.setInstanceAngle(0);
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -261,6 +298,9 @@ class TexText
     // Return random set of characters made of a random sum of defined sets
     private void getAlphabet(ref string str, int id = -1)
     {
+        str = "abcdefj123;";
+        return;
+
         Random rand = new Random((int)DateTime.Now.Ticks);
 
         string[] arr1 = new string[] {
@@ -360,7 +400,7 @@ class TexText
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Create a texture with symbols on it
+    // Create a texture with all the characters printed upon it
     private void getFontTexture(string fontName, int fontSize, ref int Width, ref int Height, int fontStyle, string str, int instancesNo = 0)
     {
         int totalWidth = 0;
@@ -404,7 +444,8 @@ class TexText
 
         _texHeight = maxHeight;
 
-        _map = new Dictionary<int, field>();
+        _map_index = new Dictionary<int, field>();
+        _map_char  = new Dictionary<char, field>();
 
         Width = totalWidth;
         Height = maxHeight;
@@ -448,7 +489,12 @@ class TexText
                             fld.offset = (int)rect.X;
                             fld.width  = (int)rect.Width;
 
-                            _map.Add(i, fld);
+                            // Store fld index-based
+                            _map_index.Add(i, fld);
+
+                            // Store the same fld char-based
+                            if (!_map_char.ContainsKey(str[i]))
+                                _map_char.Add(str[i], fld);
 
                             rect.X += rect.Width;
                         }
