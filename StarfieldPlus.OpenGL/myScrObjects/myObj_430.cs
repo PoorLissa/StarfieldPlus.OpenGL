@@ -14,7 +14,7 @@ namespace my
     public class myObj_430 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_430);
 
         private myObj_430 owner = null;
@@ -101,7 +101,7 @@ namespace my
             renderDelay = rand.Next(11) + 5;
 
             bulletMoveMode = rand.Next(2);
-            bulletMoveMode = 1;
+            //bulletMoveMode = 2;
 
             return;
         }
@@ -253,8 +253,6 @@ namespace my
                 }
             }
 
-            A /= 3;
-
             return;
         }
 
@@ -338,13 +336,13 @@ namespace my
                             }
                             else
                             {
-                                if (rand.Next(13) == 1)
+                                if (rand.Next(133) == 1)
                                 {
                                     dx *= -1;
                                     break;
                                 }
 
-                                if (rand.Next(13) == 1)
+                                if (rand.Next(133) == 1)
                                 {
                                     dy *= -1;
                                     break;
