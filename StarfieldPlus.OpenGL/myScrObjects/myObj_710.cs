@@ -11,27 +11,24 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_700 : myObject
+    public class myObj_710 : myObject
     {
         // Priority
         public static int Priority => 999910;
-		public static System.Type Type => typeof(myObj_700);
+		public static System.Type Type => typeof(myObj_710);
 
-        private int cnt;
-        private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float x, y;
+        private float size, dSize, A, dA, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, shape = 0, nTrail = 0;
+        private static int N = 0, shape = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
-
-        private myParticleTrail trail = null;
 
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_700()
+        public myObj_710()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -42,17 +39,14 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-                N = 1111;
+                N = rand.Next(1000) + 10000;
 
                 shape = rand.Next(5);
-
-                nTrail = 300 + rand.Next(111);
             }
 
             initLocal();
@@ -65,8 +59,9 @@ namespace my
         {
             doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = true;
+            doFillShapes = myUtils.randomChance(rand, 1, 2);
 
-            renderDelay = 1;
+            renderDelay = rand.Next(11) + 3;
 
             return;
         }
@@ -100,32 +95,18 @@ namespace my
 
         protected override void generateNew()
         {
-            cnt = 0;
-
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            dx = myUtils.randFloatSigned(rand) * (rand.Next(23) + 3);
-            dy = myUtils.randFloatSigned(rand) * (rand.Next(23) + 3);
+            dAngle = myUtils.randFloatSigned(rand) * 0.01f;
 
-            size = 3;
+            size = 1;
+            dSize = myUtils.randFloat(rand) * 0.1f;
 
-            A = myUtils.randFloat(rand, 0.1f) * 0.85f;
+            A = 0.5f + myUtils.randFloat(rand) * 0.5f;
+            dA = myUtils.randFloat(rand) * 0.05f;
+
             colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            // Initialize Trail
-            {
-                if (trail == null)
-                {
-                    trail = new myParticleTrail(nTrail, x, y);
-                }
-                else
-                {
-                    trail.reset(x, y);
-                }
-
-                trail.updateDa(A * 1);
-            }
 
             return;
         }
@@ -134,52 +115,13 @@ namespace my
 
         protected override void Move()
         {
-            if (trail != null)
+            size += dSize;
+            A -= dA;
+            angle += dAngle;
+
+            if (A < 0)
             {
-                trail.update(x, y);
-            }
-
-            x += dx;
-            y += dy;
-
-            if (x < 0 && dx < 0)
-            {
-                dx *= -1 + myUtils.randFloatSigned(rand) * 0.0001f;
-                dy *= -1 + myUtils.randFloatSigned(rand) * 0.0001f;
-            }
-
-            if (y < 0 && dy < 0)
-            {
-                dx *= -1 + myUtils.randFloatSigned(rand) * 0.0001f;
-                dy *= -1 + myUtils.randFloatSigned(rand) * 0.0001f;
-            }
-
-            if (x > gl_Width && dx > 0)
-            {
-                dx *= -1 + myUtils.randFloatSigned(rand) * 0.0001f;
-                dy *= -1 + myUtils.randFloatSigned(rand) * 0.0001f;
-            }
-
-            if (y > gl_Height && dy > 0)
-            {
-                dx *= -1 + myUtils.randFloatSigned(rand) * 0.0001f;
-                dy *= -1 + myUtils.randFloatSigned(rand) * 0.0001f;
-            }
-
-            if (cnt == 0 && myUtils.randomChance(rand, 1, 999))
-            {
-                cnt = 100 + rand.Next(123);
-            }
-
-            if (cnt > 0)
-            {
-                cnt--;
-
-                if (myUtils.randomChance(rand, 1, 23))
-                    dx *= -1;
-
-                if (myUtils.randomChance(rand, 1, 23))
-                    dy *= -1;
+                generateNew();
             }
 
             return;
@@ -189,11 +131,6 @@ namespace my
 
         protected override void Show()
         {
-            if (trail != null)
-            {
-                trail.Show(R, G, B, A);
-            }
-
             float size2x = size * 2;
 
             switch (shape)
@@ -250,9 +187,6 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
             clearScreenSetup(doClearBuffer, 0.1f);
 
             while (!Glfw.WindowShouldClose(window))
@@ -281,17 +215,14 @@ namespace my
                 // Render Frame
                 {
                     inst.ResetBuffer();
-                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_700;
+                        var obj = list[i] as myObj_710;
 
                         obj.Show();
                         obj.Move();
                     }
-
-                    myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
                     {
@@ -305,9 +236,9 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (Count < N && myUtils.randomChance(rand, 1, 23))
+                if (Count < N)
                 {
-                    list.Add(new myObj_700());
+                    list.Add(new myObj_710());
                 }
 
                 cnt++;
@@ -321,13 +252,10 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
-
-            myPrimitive.init_LineInst(N * nTrail);
 
             return;
         }
