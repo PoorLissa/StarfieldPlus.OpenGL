@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Static growing shapes of the color of the underlying image
 */
 
 
@@ -14,7 +14,7 @@ namespace my
     public class myObj_710 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_710);
 
         private float x, y;
@@ -61,7 +61,7 @@ namespace my
             doClearBuffer = true;
             doFillShapes = myUtils.randomChance(rand, 1, 2);
 
-            renderDelay = rand.Next(11) + 3;
+            renderDelay = rand.Next(2);
 
             return;
         }
@@ -101,10 +101,10 @@ namespace my
             dAngle = myUtils.randFloatSigned(rand) * 0.01f;
 
             size = 1;
-            dSize = myUtils.randFloat(rand) * 0.1f;
+            dSize = myUtils.randFloat(rand) * 0.05f;
 
             A = 0.5f + myUtils.randFloat(rand) * 0.5f;
-            dA = myUtils.randFloat(rand) * 0.05f;
+            dA = myUtils.randFloat(rand, 0.01f) * 0.05f;
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -188,6 +188,14 @@ namespace my
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+            if (false)
+            {
+                while (list.Count < 2 * N / 3)
+                {
+                    list.Add(new myObj_710());
+                }
+            }
 
             while (!Glfw.WindowShouldClose(window))
             {

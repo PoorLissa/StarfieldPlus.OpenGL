@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Straight lines that reflect backwards
 */
 
 
@@ -14,7 +14,7 @@ namespace my
     public class myObj_700 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_700);
 
         private int cnt;
