@@ -115,7 +115,7 @@ public class ScreenSaver
         register(my.myObj_101.Type);      // Desktop 1: - Random pieces of the screen are shown at their own slightly offset locations
         register(my.myObj_102.Type);      // Desktop 2: - Random shapes with a color from the underlying image (point-based or average)
         register(my.myObj_103.Type);      // Desktop 3: - Random shapes with a color from the underlying image (point-based or average) -- uses custom shader
-        register(my.myObj_110.Type);      // Desktop 4: Puts random colored shapes all over the screen
+        register(my.myObj_110.Type);      // Desktop 4: - Puts random colored shapes all over the screen
         register(my.myObj_120.Type);      // Moving Lines (4 directions, straight lines or sin/cos curves)
         register(my.myObj_130.Type);      // Growing shapes -- Rain circles alike -- no buffer clearing
         register(my.myObj_131.Type);      // Growing shapes -- Rain circles alike
