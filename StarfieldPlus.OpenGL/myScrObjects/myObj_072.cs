@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Desktop pieces move from the offscreen postion into their original positions
+    - Desktop pieces move from the offscreen positions into their original positions
 */
 
 
@@ -19,13 +19,13 @@ namespace my
 
         private int cnt;
         private float x, y, X, Y, dx, dy;
-        private float size, A, R, G, B;
+        private float size, aMax, A, R, G, B;
 
         private static int N = 0, mode = 0, sizeMode = 0;
         private static int maxSize = 0;
         private static float dimAlpha = 0.05f;
 
-        static myTexRectangle tex = null;
+        private static myTexRectangle tex = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -177,6 +177,7 @@ namespace my
         {
             if (cnt == 0)
             {
+                // Moving into place:
                 x += dx;
                 y += dy;
 
@@ -197,30 +198,40 @@ namespace my
             {
                 if (cnt == -10)
                 {
+                    // First in-place iteration:
                     x = X;
                     y = Y;
 
                     dx = dy = 0;
 
-                    A = 0.85f + myUtils.randFloat(rand) * 0.15f;
+                    aMax = 0.85f + myUtils.randFloat(rand) * 0.15f;
+                    A = 0;
 
                     cnt = rand.Next(100) + 100;
                 }
                 else
                 {
-                    if (cnt > 1)
+                    // In-place waiting:
+                    if (A < aMax)
                     {
-                        cnt--;
+                        A += myUtils.randFloat(rand) * 0.05f;
                     }
                     else
                     {
-                        if (A > 0)
+                        if (cnt > 1)
                         {
-                            A -= myUtils.randFloat(rand) * 0.05f;
+                            cnt--;
                         }
                         else
                         {
-                            generateNew();
+                            if (A > 0)
+                            {
+                                A -= myUtils.randFloat(rand) * 0.05f;
+                            }
+                            else
+                            {
+                                generateNew();
+                            }
                         }
                     }
                 }
@@ -233,10 +244,6 @@ namespace my
 
         protected override void Show()
         {
-            float size2x = size * 2;
-
-            mode = 0;
-
             switch (mode)
             {
                 case 0:
@@ -256,8 +263,19 @@ namespace my
 
                 case 1:
                     {
-                        tex.setOpacity(A);
-                        tex.Draw((int)x, (int)y, (int)size, (int)size, (int)X, (int)Y, (int)size, (int)size);
+                        if (cnt == 0)
+                        {
+                            myPrimitive._Rectangle.SetColor(R, G, B, A * 2);
+                            myPrimitive._Rectangle.Draw(x, y, size, size, false);
+                        }
+                        else
+                        {
+                            tex.setOpacity(A);
+                            tex.Draw((int)X, (int)Y, (int)size, (int)size, (int)x, (int)y, (int)size, (int)size);
+
+                            myPrimitive._Rectangle.SetColor(R, G, B, 0.5f);
+                            myPrimitive._Rectangle.Draw(x, y, size, size, false);
+                        }
                     }
                     break;
             }
@@ -278,6 +296,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -298,7 +318,7 @@ namespace my
 
                 // Render Frame
                 {
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_072;
 
@@ -307,7 +327,7 @@ namespace my
                     }
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_072());
                 }
