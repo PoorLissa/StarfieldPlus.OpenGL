@@ -174,6 +174,7 @@ public class ScreenSaver
         register(my.myObj_690.Type);      // ...
         register(my.myObj_700.Type);      // Straight lines that reflect backwards
         register(my.myObj_710.Type);      // Static growing shapes of the color of the underlying image
+        register(my.myObj_720.Type);      // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 

@@ -100,8 +100,8 @@ namespace my
                 N = 3333;
                 //N = 1;
 
-                doClearBuffer = true;
-                doUseCustomRGB = true;      // If true, paint the alphabet in white and then set custom color for each particle
+                doUseCustomRGB = true;                              // If true, paint the alphabet in white and then set custom color for each particle
+                doClearBuffer = myUtils.randomChance(rand, 1, 2);
 
                 // Size
                 switch (rand.Next(4))
@@ -433,10 +433,15 @@ namespace my
                 Glfw.PollEvents();
 
                 // Dim screen
+                if (doClearBuffer)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
                     //bgrTex.Draw(0, 0, gl_Width, gl_Height);
                     grad.Draw();
+                }
+                else
+                {
+                    dimScreen(0.5f);
                 }
 
                 // Render Frame
@@ -469,6 +474,8 @@ namespace my
 
         private void initShapes()
         {
+            myPrimitive.init_ScrDimmer();
+
             // Normal vs Bold font
             int fontStyle = rand.Next(2);
 
