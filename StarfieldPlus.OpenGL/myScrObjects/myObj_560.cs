@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 /*
     - Pixelating an image with average colors
+    - As on option, posterization of color is applied
 */
 
 
@@ -14,15 +15,16 @@ namespace my
     public class myObj_560 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 11;
         public static System.Type Type => typeof(myObj_560);
 
         private float x, y;
         private float A, R, G, B;
 
         private static int N = 0, size = 0, offset = 0, offset2x = 0, genMode = 0, getColorMode = 0, mode1Divider = 0;
+        private static int[] posterization = new int[3];
         private static float dimAlpha = 0.05f, maxA = 0;
-        private static bool doFill = true;
+        private static bool doFill = true, doUsePosterization = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -56,8 +58,9 @@ namespace my
             doClearBuffer = false;
 
             doFill = myUtils.randomChance(rand, 5, 7);
+            doUsePosterization = myUtils.randomChance(rand, 1, 2);
 
-            genMode = rand.Next(3);
+            genMode = rand.Next(4);
             getColorMode = rand.Next(2);
 
             size = rand.Next(30) + 2;
@@ -77,6 +80,16 @@ namespace my
             renderDelay = rand.Next(11) + 3;
 
             dimAlpha = 0.001f + myUtils.randFloat(rand) * 0.002f;
+
+            // Posterization factor
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    posterization[i] = 2 + rand.Next(50);
+
+                    posterization[i] = 50;
+                }
+            }
 
             return;
         }
@@ -143,6 +156,11 @@ namespace my
                     y -= y % size;
                     x -= x % size + (int)(Math.Sin(y/100) * 5);
                     break;
+
+                case 3:
+                    y -= y % size;
+                    x -= x % size;
+                    break;
             }
 
             if (getColorMode == 1)
@@ -151,6 +169,22 @@ namespace my
             }
 
             A = maxA;
+
+            // Apply posterization
+            if (doUsePosterization)
+            {
+                R *= 255;
+                G *= 255;
+                B *= 255;
+
+                R -= R % posterization[0];
+                G -= G % posterization[0];
+                B -= B % posterization[0];
+
+                R /= 255.0f;
+                G /= 255.0f;
+                B /= 255.0f;
+            }
 
             return;
         }

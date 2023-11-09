@@ -60,20 +60,17 @@ public class ScreenSaver
     // - gravity towards center, but the particles also bounce off the borders of the screen
     // - sort all the screen pixels
     // - gravity, where the color of a pixel is its mass
-    // - posterization (color % int)
     // - divide in squares and each square gets its own blur factor
     // - sperm floating towards the center
     // - cover everything in spiralling traingles
     // - try bezier curves: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
     // - something like myObj_101, but the pieces are moved via sine/cosine function (up-down or elliptically)
-    // - randomly generate points. Every point grows its own square (with increasing or decreasing opacity).
-    // Grown squares stay a while then fade away.
-    // Example: myobj040 + moveType = 1 + shape = 0 + Show == g.FillRectangle(br, X, Y, Size, Size);
+    // - randomly generate points. Every point grows its own square (with increasing or decreasing opacity). Grown squares stay a while then fade away.
+    //      Example: myobj040 + moveType = 1 + shape = 0 + Show == g.FillRectangle(br, X, Y, Size, Size);
     // - bouncing ball, but its trajctory is not straight line, but curved like in obj_040
     // - moving ponts generator, where the moment of generation depends on sin(time)
     // - battle ships
     // - grid over an image. grid pulses, increasing and decreasing its cells size. each cell is displaying average img color
-    // - mandlebrot (can i calculate the color of pixels in the shader?..)
 
     // todo:
     // - number of rotating lines. the length of each line is changing over time
@@ -175,6 +172,7 @@ public class ScreenSaver
         register(my.myObj_700.Type);      // Straight lines that reflect backwards
         register(my.myObj_710.Type);      // Static growing shapes of the color of the underlying image
         register(my.myObj_720.Type);      // ...
+        register(my.myObj_730.Type);      // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
