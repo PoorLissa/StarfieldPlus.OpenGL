@@ -14,9 +14,10 @@ namespace my
     public class myObj_720 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_720);
 
+        private int cnt, dir;
         private float x, y;
         private float size, A, R, G, B;
 
@@ -44,7 +45,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(3) + 1;
+                N = rand.Next(25) + 1;
             }
 
             initLocal();
@@ -62,6 +63,8 @@ namespace my
             maxSize = 1 + rand.Next(3);
 
             renderDelay = rand.Next(11) + 3;
+
+            dimAlpha = 0.05f + myUtils.randFloat(rand) * 0.5f;
 
             return;
         }
@@ -116,6 +119,9 @@ namespace my
             A = myUtils.randFloat(rand) * 0.33f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
+            cnt = 333 + rand.Next(666);
+            dir = rand.Next(2);
+
             return;
         }
 
@@ -123,7 +129,8 @@ namespace my
 
         protected override void Move()
         {
-            generateNew();
+            if (--cnt == 0)
+                generateNew();
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -133,7 +140,7 @@ namespace my
             myPrimitive._Rectangle.SetColor(R, G, B, A);
             myPrimitive._Rectangle.SetAngle(0);
 
-            if (rand.Next(2) == 0)
+            if (dir == 0)
             {
                 myPrimitive._Rectangle.Draw(x, 0, size, gl_Height, doFillShapes);
             }
@@ -152,7 +159,9 @@ namespace my
             uint cnt = 0;
             initShapes();
 
+
             clearScreenSetup(doClearBuffer, 0.1f);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
