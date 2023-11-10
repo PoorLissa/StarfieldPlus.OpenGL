@@ -64,6 +64,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
+            doFillShapes  = myUtils.randomBool(rand);
             doClearBuffer = true;
 
             renderDelay = rand.Next(11) + 3;
