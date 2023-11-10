@@ -74,7 +74,6 @@ public class ScreenSaver
 
     // todo:
     // - number of rotating lines. the length of each line is changing over time
-    // - lots of triangles, where each vertice is moving like a bouncing ball
     // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
@@ -172,7 +171,7 @@ public class ScreenSaver
         register(my.myObj_700.Type);      // Straight lines that reflect backwards
         register(my.myObj_710.Type);      // Static growing shapes of the color of the underlying image
         register(my.myObj_720.Type);      // ...
-        register(my.myObj_730.Type);      // ...
+        register(my.myObj_730.Type);      // Lots of triangles, where each vertice is moving like a bouncing ball
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 

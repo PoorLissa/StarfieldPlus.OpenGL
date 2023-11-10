@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Lots of triangles, where each vertice is moving like a bouncing ball
 */
 
 
@@ -14,14 +14,15 @@ namespace my
     public class myObj_730 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_730);
 
         private float x, y, dx, dy;
         private float A, R, G, B;
 
-        private static int N = 0, i = 0;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, i = 0, mode = 0;
+        private static float dimAlpha = 0.05f, aMax = 1;
+        private static bool doPreallocate = false;
 
         private static myScreenGradient grad = null;
 
@@ -44,7 +45,9 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 1111;
+                N = 33333;
+
+                doPreallocate = myUtils.randomChance(rand, 1, 2);
             }
 
             initLocal();
@@ -56,6 +59,10 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
+
+            mode = rand.Next(3);
+
+            aMax = 0.025f + myUtils.randFloat(rand) * 0.03f;
 
             renderDelay = 1;
 
@@ -69,10 +76,12 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"mode = {mode}\n"                       +
+                            $"aMax = {fStr(aMax)}\n"                 +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -94,10 +103,25 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            dx = myUtils.randFloatSigned(rand);
-            dy = myUtils.randFloatSigned(rand);
+            switch (mode)
+            {
+                case 0:
+                    dx = myUtils.randFloatSigned(rand);
+                    dy = myUtils.randFloatSigned(rand);
+                    break;
 
-            A = 0.1f;
+                case 1:
+                    dx = 0;
+                    dy = myUtils.randFloatSigned(rand);
+                    break;
+
+                case 2:
+                    dx = myUtils.randFloatSigned(rand);
+                    dy = 0;
+                    break;
+            }
+
+            A = myUtils.randFloat(rand) * aMax;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -122,7 +146,10 @@ namespace my
             if (y > gl_Height && dy > 0)
                 dy *= -1;
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            if (myUtils.randomChance(rand, 1, 13))
+            {
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+            }
 
             return;
         }
@@ -136,13 +163,13 @@ namespace my
             var obj3 = list[i+2] as myObj_730;
 
             myPrimitive._LineInst.setInstanceCoords(obj1.x, obj1.y, obj2.x, obj2.y);
-            myPrimitive._LineInst.setInstanceColor((obj1.R + obj2.R)/2, (obj1.G + obj2.G)/2, (obj1.B + obj2.B)/2, A);
+            myPrimitive._LineInst.setInstanceColor((obj1.R + obj2.R)/2, (obj1.G + obj2.G)/2, (obj1.B + obj2.B)/2, (obj1.A + obj2.A)/2);
 
             myPrimitive._LineInst.setInstanceCoords(obj2.x, obj2.y, obj3.x, obj3.y);
-            myPrimitive._LineInst.setInstanceColor((obj2.R + obj3.R)/2, (obj2.G + obj3.G)/2, (obj2.B + obj3.B)/2, A);
+            myPrimitive._LineInst.setInstanceColor((obj2.R + obj3.R)/2, (obj2.G + obj3.G)/2, (obj2.B + obj3.B)/2, (obj2.A + obj3.A)/2);
 
             myPrimitive._LineInst.setInstanceCoords(obj3.x, obj3.y, obj1.x, obj1.y);
-            myPrimitive._LineInst.setInstanceColor((obj1.R + obj3.R)/2, (obj1.G + obj3.G)/2, (obj1.B + obj3.B)/2, A);
+            myPrimitive._LineInst.setInstanceColor((obj1.R + obj3.R)/2, (obj1.G + obj3.G)/2, (obj1.B + obj3.B)/2, (obj1.A + obj3.A)/2);
 
             return;
         }
@@ -156,6 +183,19 @@ namespace my
 
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+
+            if (doPreallocate)
+            {
+                int n = N / 10 + rand.Next(N/3);
+
+                while (list.Count < n)
+                {
+                    list.Add(new myObj_730());
+                    list.Add(new myObj_730());
+                    list.Add(new myObj_730());
+                }
+            }
 
 
             while (!Glfw.WindowShouldClose(window))
