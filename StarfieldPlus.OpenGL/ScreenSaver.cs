@@ -173,6 +173,7 @@ public class ScreenSaver
         register(my.myObj_730.Type);      // Lots of triangles, where each vertice is moving like a bouncing ball
         register(my.myObj_740.Type);      // Periodic vertical or horizontal waves of particles
         register(my.myObj_750.Type);      // Particles generated with the same movement direction, bouncing off the walls
+        register(my.myObj_760.Type);      // Graph test
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
