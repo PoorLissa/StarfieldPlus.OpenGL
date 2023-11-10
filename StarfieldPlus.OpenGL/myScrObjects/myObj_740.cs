@@ -5,30 +5,30 @@ using System.Collections.Generic;
 
 
 /*
-    - Lots of triangles, where each vertice is moving like a bouncing ball
+    - Periodic vertical or horizontal waves of particles
 */
 
 
 namespace my
 {
-    public class myObj_730 : myObject
+    public class myObj_740 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_730);
+		public static System.Type Type => typeof(myObj_740);
 
         private float x, y, dx, dy;
-        private float A, R, G, B;
+        private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, i = 0, mode = 0;
-        private static float dimAlpha = 0.05f, aMax = 1;
-        private static bool doPreallocate = false;
+        private static int N = 0, n = 0, shape = 0, mode = 0, startMode = 0;
+        private static bool doFillShapes = false;
+        private static float dimAlpha = 0.05f, step = 1;
 
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_730()
+        public myObj_740()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -39,7 +39,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            int mode = myUtils.randomChance(rand, 1, 2)
+            int mode = myUtils.randomChance(rand, 1, 3)
                 ? -1
                 : (int)myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
 
@@ -48,9 +48,18 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 33333;
+                N = rand.Next(10) + 99999;
 
-                doPreallocate = myUtils.randomChance(rand, 1, 2);
+                shape = rand.Next(5);
+
+                mode = rand.Next(2);
+                startMode = rand.Next(2);
+
+                n = 10 + rand.Next(99);
+
+                step = 0.05f + myUtils.randFloat(rand) * 0.075f;
+
+                dimAlpha = 0.1f;
             }
 
             initLocal();
@@ -61,13 +70,9 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 1, 2);
 
-            mode = rand.Next(3);
-
-            aMax = 0.05f + myUtils.randFloat(rand) * 0.05f;
-
-            renderDelay = 1;
+            renderDelay = rand.Next(1) + 1;
 
             return;
         }
@@ -83,8 +88,9 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"mode = {mode}\n"                       +
-                            $"aMax = {fStr(aMax)}\n"                 +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"n = {n}\n"                             +
+                            $"step = {fStr(step)}\n"                 +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -103,29 +109,34 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
-
             switch (mode)
             {
                 case 0:
-                    dx = myUtils.randFloatSigned(rand);
-                    dy = myUtils.randFloatSigned(rand);
+                    x = startMode == 0 ? gl_x0 : rand.Next(gl_Width);
+                    y = gl_y0;
+
+                    dy = step * (rand.Next(n) + 1) * myUtils.randomSign(rand);
+
+                    dx = startMode == 0
+                        ? 0.01f * (rand.Next(111)) * myUtils.randomSign(rand)
+                        : 0.01f * (rand.Next( 11)) * myUtils.randomSign(rand);
                     break;
 
                 case 1:
-                    dx = 0;
-                    dy = myUtils.randFloatSigned(rand);
-                    break;
+                    x = gl_x0;
+                    y = startMode == 0 ? gl_y0 : rand.Next(gl_Height);
 
-                case 2:
-                    dx = myUtils.randFloatSigned(rand);
-                    dy = 0;
+                    dx = step * (rand.Next(n) + 1) * myUtils.randomSign(rand);
+
+                    dy = startMode == 0
+                        ? 0.01f * (rand.Next(111)) * myUtils.randomSign(rand)
+                        : 0.01f * (rand.Next( 11)) * myUtils.randomSign(rand);
                     break;
             }
 
-            A = myUtils.randFloat(rand) * aMax;
-            
+            size = rand.Next(3) + 3;
+
+            A = 0.1f + myUtils.randFloat(rand) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -139,18 +150,26 @@ namespace my
             y += dy;
 
             if (x < 0 && dx < 0)
+            {
                 dx *= -1;
+            }
 
             if (y < 0 && dy < 0)
+            {
                 dy *= -1;
+            }
 
             if (x > gl_Width && dx > 0)
+            {
                 dx *= -1;
+            }
 
             if (y > gl_Height && dy > 0)
+            {
                 dy *= -1;
+            }
 
-            if (myUtils.randomChance(rand, 1, 13))
+            if (myUtils.randomChance(rand, 1, 23))
             {
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
             }
@@ -162,18 +181,51 @@ namespace my
 
         protected override void Show()
         {
-            var obj1 = list[i+0] as myObj_730;
-            var obj2 = list[i+1] as myObj_730;
-            var obj3 = list[i+2] as myObj_730;
+            float size2x = size * 2;
 
-            myPrimitive._LineInst.setInstanceCoords(obj1.x, obj1.y, obj2.x, obj2.y);
-            myPrimitive._LineInst.setInstanceColor((obj1.R + obj2.R)/2, (obj1.G + obj2.G)/2, (obj1.B + obj2.B)/2, (obj1.A + obj2.A)/2);
+            switch (shape)
+            {
+                // Instanced squares
+                case 0:
+                    var rectInst = inst as myRectangleInst;
 
-            myPrimitive._LineInst.setInstanceCoords(obj2.x, obj2.y, obj3.x, obj3.y);
-            myPrimitive._LineInst.setInstanceColor((obj2.R + obj3.R)/2, (obj2.G + obj3.G)/2, (obj2.B + obj3.B)/2, (obj2.A + obj3.A)/2);
+                    rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                    rectInst.setInstanceColor(R, G, B, A);
+                    rectInst.setInstanceAngle(angle);
+                    break;
 
-            myPrimitive._LineInst.setInstanceCoords(obj3.x, obj3.y, obj1.x, obj1.y);
-            myPrimitive._LineInst.setInstanceColor((obj1.R + obj3.R)/2, (obj1.G + obj3.G)/2, (obj1.B + obj3.B)/2, (obj1.A + obj3.A)/2);
+                // Instanced triangles
+                case 1:
+                    var triangleInst = inst as myTriangleInst;
+
+                    triangleInst.setInstanceCoords(x, y, size2x, angle);
+                    triangleInst.setInstanceColor(R, G, B, A);
+                    break;
+
+                // Instanced circles
+                case 2:
+                    var ellipseInst = inst as myEllipseInst;
+
+                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
+                    ellipseInst.setInstanceColor(R, G, B, A);
+                    break;
+
+                // Instanced pentagons
+                case 3:
+                    var pentagonInst = inst as myPentagonInst;
+
+                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
+                    pentagonInst.setInstanceColor(R, G, B, A);
+                    break;
+
+                // Instanced hexagons
+                case 4:
+                    var hexagonInst = inst as myHexagonInst;
+
+                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
+                    hexagonInst.setInstanceColor(R, G, B, A);
+                    break;
+            }
 
             return;
         }
@@ -189,17 +241,8 @@ namespace my
             clearScreenSetup(doClearBuffer, 0.1f);
 
 
-            if (doPreallocate)
-            {
-                int n = N / 10 + rand.Next(N/3);
-
-                while (list.Count < n)
-                {
-                    list.Add(new myObj_730());
-                    list.Add(new myObj_730());
-                    list.Add(new myObj_730());
-                }
-            }
+            while (list.Count < N)
+                list.Add(new myObj_740());
 
 
             while (!Glfw.WindowShouldClose(window))
@@ -227,28 +270,33 @@ namespace my
 
                 // Render Frame
                 {
-                    myPrimitive._LineInst.ResetBuffer();
+                    inst.ResetBuffer();
 
-                    for (i = 0; i != Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_730;
+                        var obj = list[i] as myObj_740;
+
+                        obj.Show();
                         obj.Move();
                     }
 
-                    for (i = 0; i != Count; i += 3)
+                    if (doFillShapes)
                     {
-                        var obj = list[i] as myObj_730;
-                        obj.Show();
+                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                        inst.SetColorA(-0.5f);
+                        inst.Draw(true);
                     }
 
-                    myPrimitive._LineInst.Draw();
+                    // Tell the fragment shader to do nothing with the existing instance opacity:
+                    inst.SetColorA(0);
+                    inst.Draw(false);
                 }
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_730());
-                    list.Add(new myObj_730());
-                    list.Add(new myObj_730());
+                    for (int i = 0; i < 10; i++)
+                        if (list.Count < N)
+                            list.Add(new myObj_740());
                 }
 
                 cnt++;
@@ -262,7 +310,8 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_LineInst(N * 3);
+            myPrimitive.init_ScrDimmer();
+            base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
