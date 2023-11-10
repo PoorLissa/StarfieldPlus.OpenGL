@@ -63,7 +63,6 @@ public class ScreenSaver
     // - divide in squares and each square gets its own blur factor
     // - sperm floating towards the center
     // - cover everything in spiralling traingles
-    // - try bezier curves: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
     // - something like myObj_101, but the pieces are moved via sine/cosine function (up-down or elliptically)
     // - randomly generate points. Every point grows its own square (with increasing or decreasing opacity). Grown squares stay a while then fade away.
     //      Example: myobj040 + moveType = 1 + shape = 0 + Show == g.FillRectangle(br, X, Y, Size, Size);
@@ -73,12 +72,12 @@ public class ScreenSaver
     // - grid over an image. grid pulses, increasing and decreasing its cells size. each cell is displaying average img color
 
     // todo:
+    // - try bezier curves: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
+    // - try neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - number of rotating lines. the length of each line is changing over time
-    // - neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
-    // - several rectangles, one inside the other, and moving particles that can't cross the border of a rectangle
 
 
 
