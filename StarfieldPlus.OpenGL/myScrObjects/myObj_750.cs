@@ -18,11 +18,11 @@ namespace my
 		public static System.Type Type => typeof(myObj_750);
 
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, a, A, R, G, B, angle = 0, dAngle;
 
-        private static int N = 0, shape = 0, X, Y, moveMode = 0, genMode = 0, speedMode = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, DX, DY;
+        private static int N = 0, shape = 0, offset, X, Y, moveMode = 0, genMode = 0, speedMode = 0, angleMode = 0;
+        private static bool doFillShapes = false, doAllocateAll = false;
+        private static float dimAlpha = 0.05f, DX, DY, speedFactor;
 
         private static myScreenGradient grad = null;
 
@@ -48,9 +48,10 @@ namespace my
 
                 shape = rand.Next(5);
 
-                moveMode = rand.Next(2);
+                moveMode = rand.Next(3);
                 genMode = rand.Next(2);
-                speedMode = rand.Next(2);
+                speedMode = rand.Next(3);
+                angleMode = rand.Next(3);
             }
 
             initLocal();
@@ -62,14 +63,19 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
+            doAllocateAll = speedMode > 0 && myUtils.randomChance(rand, 1, 3);
 
-            renderDelay = rand.Next(2) + 1;
+            renderDelay = rand.Next(2);
 
             X = rand.Next(gl_Width);
             Y = rand.Next(gl_Height);
 
-            DX = 0.01f + myUtils.randFloatSigned(rand) * 13.0f;
-            DY = 0.01f + myUtils.randFloatSigned(rand) * 13.0f;
+            speedFactor = 11.0f + myUtils.randFloat(rand) * 22.0f;
+
+            DX = 0.01f + myUtils.randFloatSigned(rand) * speedFactor;
+            DY = 0.01f + myUtils.randFloatSigned(rand) * speedFactor;
+
+            offset = rand.Next(gl_y0/2);
 
             return;
         }
@@ -81,13 +87,19 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
                             $"genMode = {genMode}\n"                 +
                             $"moveMode = {moveMode}\n"               +
                             $"speedMode = {speedMode}\n"             +
+                            $"angleMode = {angleMode}\n"             +
+                            $"DX = {fStr(Math.Abs(DX))}\n"           +
+                            $"DY = {fStr(Math.Abs(DY))}\n"           +
+                            $"offset = {offset}\n"                   +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -122,23 +134,46 @@ namespace my
                     break;
             }
 
+            float spd = 1.0f;
+
             switch (speedMode)
             {
                 case 0:
+                    spd = 1.0f;
                     break;
 
                 case 1:
-                    {
-                        float spd = 0.5f + myUtils.randFloat(rand) * 0.5f;
-                        dx *= spd;
-                        dy *= spd;
-                    }
+                    spd = 0.5f + myUtils.randFloat(rand) * 0.5f;
+                    break;
+
+                case 2:
+                    spd = 0.1f * (rand.Next(11) + 1);
+                    break;
+            }
+
+            dx *= spd;
+            dy *= spd;
+
+            switch (angleMode)
+            {
+                case 0:
+                    angle = 0;
+                    break;
+
+                case 1:
+                    angle = myUtils.randFloatSigned(rand) * rand.Next(123);
+                    break;
+
+                case 2:
+                    angle = 0;
+                    dAngle = myUtils.randFloatSigned(rand) * 0.01f;
                     break;
             }
 
             size = rand.Next(3) + 3;
 
             A = 0.1f + myUtils.randFloat(rand) * 0.5f;
+            a = 0;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -150,6 +185,7 @@ namespace my
         {
             x += dx;
             y += dy;
+            angle += dAngle;
 
             switch (moveMode)
             {
@@ -173,17 +209,45 @@ namespace my
                     {
                         float dd = 0.1f;
 
-                        if (x < 0)
+                        if (x < offset)
                             dx += dd;
 
-                        if (y < 0)
+                        if (y < offset)
                             dy += dd;
 
-                        if (x > gl_Width)
+                        if (x > gl_Width - offset)
                             dx -= dd;
 
-                        if (y > gl_Height)
+                        if (y > gl_Height - offset)
                             dy -= dd;
+                    }
+                    break;
+
+                case 2:
+                    {
+                        if (x < 0)
+                        {
+                            x = gl_Width;
+                            y += y % 100;
+                        }
+
+                        if (y < 0)
+                        {
+                            y = gl_Height;
+                            x += x % 100;
+                        }
+
+                        if (x > gl_Width)
+                        {
+                            x = 0;
+                            y -= y % 100;
+                        }
+
+                        if (y > gl_Height)
+                        {
+                            y = 0;
+                            x -= x % 100;
+                        }
                     }
                     break;
             }
@@ -191,6 +255,11 @@ namespace my
             if (myUtils.randomChance(rand, 1, 23))
             {
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
+            }
+
+            if (a < A)
+            {
+                a += myUtils.randFloat(rand) * 0.005f;
             }
 
             return;
@@ -209,7 +278,7 @@ namespace my
                     var rectInst = inst as myRectangleInst;
 
                     rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    rectInst.setInstanceColor(R, G, B, A);
+                    rectInst.setInstanceColor(R, G, B, a);
                     rectInst.setInstanceAngle(angle);
                     break;
 
@@ -218,7 +287,7 @@ namespace my
                     var triangleInst = inst as myTriangleInst;
 
                     triangleInst.setInstanceCoords(x, y, size2x, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
+                    triangleInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced circles
@@ -226,7 +295,7 @@ namespace my
                     var ellipseInst = inst as myEllipseInst;
 
                     ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
+                    ellipseInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced pentagons
@@ -234,7 +303,7 @@ namespace my
                     var pentagonInst = inst as myPentagonInst;
 
                     pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
+                    pentagonInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced hexagons
@@ -242,7 +311,7 @@ namespace my
                     var hexagonInst = inst as myHexagonInst;
 
                     hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
+                    hexagonInst.setInstanceColor(R, G, B, a);
                     break;
             }
 
@@ -258,6 +327,11 @@ namespace my
 
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+
+            if (doAllocateAll)
+                while (list.Count < N)
+                    list.Add(new myObj_750());
 
 
             while (!Glfw.WindowShouldClose(window))
