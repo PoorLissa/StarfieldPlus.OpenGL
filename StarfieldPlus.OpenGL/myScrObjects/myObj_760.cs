@@ -3,10 +3,11 @@ using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Text;
+using System.Reflection;
 
 
 /*
-    - Graph test
+    - Points randomly travelling over a graph
 */
 
 
@@ -24,12 +25,14 @@ namespace my
         private float size, A, R, G, B, angle = 0, dAngle;
 
         private List<myObj_760> neighbours = null;
+        private myParticleTrail trail = null;
 
-        private static int N = 0, n = 0, shape = 0;
+        private static int N = 0, n = 0, shape = 0, nTrail = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
+        private static myFreeShader shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -49,10 +52,12 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 333 + rand.Next(3333);
-                n = 33;
+                n = 333;
+                N = 333 + rand.Next(3333) + n;
 
                 shape = rand.Next(5);
+
+                nTrail = 123 + rand.Next(333);
             }
 
             initLocal();
@@ -67,7 +72,7 @@ namespace my
             doFillShapes  = myUtils.randomBool(rand);
             doClearBuffer = true;
 
-            renderDelay = rand.Next(11) + 3;
+            renderDelay = rand.Next(3) + 3;
 
             return;
         }
@@ -83,6 +88,9 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"n = {n}\n"                             +
+                            $"nTrail = {nTrail}\n"                   +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -123,7 +131,19 @@ namespace my
                 G = 0.5f;
                 B = 0.5f;
                 A = 0.9f;
-                size = 5;
+                size = 10;
+
+                // Initialize Trail
+                if (trail == null)
+                {
+                    trail = new myParticleTrail(nTrail, x, y);
+                }
+                else
+                {
+                    trail.reset(x, y);
+                }
+
+                trail.updateDa(1);
             }
             else
             {
@@ -141,10 +161,10 @@ namespace my
             {
                 switch (state)
                 {
-                    // Wait until it decides to start moving around
+                    // Wait until the point decides to start moving around for the first time
                     case 0:
                         {
-                            if (myUtils.randomChance(rand, 1, 123))
+                            if (myUtils.randomChance(rand, 1, 3333))
                             {
                                 state = 1;
                                 var start = list[rand.Next(list.Count - 1 - n) + n] as myObj_760;
@@ -161,12 +181,16 @@ namespace my
 
                                 dx = (float)(dx / dist);
                                 dy = (float)(dy / dist);
+
+                                trail.reset(x, y);
                             }
                         }
                         break;
 
                     case 1:
                         {
+                            trail.update(x, y);
+
                             x += dx;
                             y += dy;
 
@@ -248,8 +272,15 @@ namespace my
         {
             if (id < n)
             {
-                if (state == 0)
-                    return;
+                if (state != 0)
+                {
+                    trail.Show(R, G, B, A > 1 ? 1 : A);
+
+                    shader.SetColor(R, G, B, A);
+                    shader.Draw(x, y, size, size, 10);
+                }
+
+                return;
             }
             else
             {
@@ -399,9 +430,22 @@ namespace my
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
 
-            myPrimitive.init_LineInst(N * 10);
+            myPrimitive.init_LineInst(N * 10 + N * nTrail);
+
+            getShader();
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            string header = "", main = "";
+
+            my.myShaderHelpers.Shapes.getShader_000_circle(ref rand, ref header, ref main);
+
+            shader = new myFreeShader(header, main);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -411,20 +455,6 @@ namespace my
             public int index;
             public float dist;
         };
-
-        private void findNeighboursRand(int numConnections)
-        {
-            for (int i = n; i < list.Count; i++)
-            {
-                var obj1 = list[i] as myObj_760;
-
-                for (int j = 0; j < numConnections; j++)
-                {
-                    int index = n + rand.Next(list.Count - n - 1);
-                    obj1.neighbours.Add(list[index] as myObj_760);
-                }
-            }
-        }
 
         private void findNeighbours(int numConnections)
         {
@@ -467,6 +497,12 @@ namespace my
                 for (int index = 0; index < numConnections; index++)
                 {
                     obj1.neighbours.Add(list[listFData[index].index] as myObj_760);
+                }
+
+                if (myUtils.randomChance(rand, 1, 111))
+                {
+                    int idx = rand.Next(listFData.Count);
+                    obj1.neighbours.Add(list[listFData[idx].index] as myObj_760);
                 }
 
                 listFData.Clear();
