@@ -78,8 +78,11 @@ public class ScreenSaver
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
+    // - several layers of mutually repellent particles simulating liquid;
+    //      'air' bubbles are raising from the bottom, moving the particles apart, and eventually reaching the surface
+    // - snake that does not cross itself (use lists of vertical and horizontal lines the snake consists of)
 
-
+    // -------------------------------------------------------------------------------------------------------------------
 
     public void selectObject()
     {
