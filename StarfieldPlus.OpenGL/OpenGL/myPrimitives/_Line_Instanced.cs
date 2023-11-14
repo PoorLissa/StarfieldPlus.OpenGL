@@ -217,4 +217,27 @@ public class myLineInst : myInstancedPrimitive
     }
 
     // -------------------------------------------------------------------------------------------------------------------
+
+    // https://vitaliburkov.wordpress.com/2016/09/17/simple-and-fast-high-quality-antialiased-lines-with-opengl/
+    public void setAntialized(bool antialized)
+    {
+        if (antialized)
+        {
+            glEnable(GL_LINE_SMOOTH);
+            glEnable(GL_POLYGON_SMOOTH);
+            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+            glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+        }
+        else
+        {
+            glDisable(GL_LINE_SMOOTH);
+            glDisable(GL_POLYGON_SMOOTH);
+            glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
+            glHint(GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
+        }
+
+        //glDepthMask(!antialized);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
 };

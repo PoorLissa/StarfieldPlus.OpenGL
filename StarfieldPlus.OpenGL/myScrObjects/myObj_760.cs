@@ -16,7 +16,13 @@ namespace my
     public class myObj_760 : myObject
     {
         // Priority
-        public static int Priority => 10;
+
+
+        // see todo down below
+        // |||
+        // VVV
+
+        public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_760);
 
         private int state;
@@ -431,6 +437,10 @@ namespace my
             grad.SetRandomColors(rand, 0.2f, 0);
 
             myPrimitive.init_LineInst(N * 10 + N * nTrail);
+
+            // todo: test performance with and without this option
+            // also test performance with vertex shader changed to float realSizeX = {+2.0 / Width};
+            myPrimitive._LineInst.setAntialized(true);
 
             getShader();
 
