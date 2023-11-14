@@ -26,7 +26,7 @@ namespace my
 		public static System.Type Type => typeof(myObj_760);
 
         private int state;
-        private uint targetId;
+        private uint targetId, startId;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle;
 
@@ -174,6 +174,7 @@ namespace my
                             {
                                 state = 1;
                                 var start = list[rand.Next(list.Count - 1 - n) + n] as myObj_760;
+                                startId = start.id;
                                 x = start.x;
                                 y = start.y;
 
@@ -193,29 +194,28 @@ namespace my
                         }
                         break;
 
+                    // Move from point to point
                     case 1:
                         {
                             trail.update(x, y);
 
-                            x += dx;
-                            y += dy;
-
                             var target = list[(int)targetId] as myObj_760;
 
-                            float tmpdx = x - target.x;
-                            float tmpdy = y - target.y;
-
-                            double dist = Math.Sqrt(tmpdx * tmpdx + tmpdy * tmpdy);
-
-                            if (dist < 3)
+                            if (Math.Abs(dx) >= Math.Abs(x - target.x) || Math.Abs(dy) >= Math.Abs(y - target.y))
                             {
                                 x = target.x;
                                 y = target.y;
                                 state = 2;
                             }
+                            else
+                            {
+                                x += dx;
+                                y += dy;
+                            }
                         }
                         break;
 
+                    // Wait at the target point and eventually find the next target
                     case 2:
                         {
                             if (myUtils.randomChance(rand, 1, 123))
@@ -223,7 +223,23 @@ namespace my
                                 state = 1;
                                 var start = list[(int)targetId] as myObj_760;
 
-                                var target = start.neighbours[rand.Next(start.neighbours.Count)];
+                                int next = -1;
+
+                                if (start.neighbours.Count > 1)
+                                {
+                                    // Make sure we don't go back to where we just came from
+                                    do
+                                        next = rand.Next(start.neighbours.Count);
+                                    while (start.neighbours[next].id == startId);
+                                }
+                                else
+                                {
+                                    next = 0;
+                                }
+
+                                startId = start.id;
+
+                                var target = start.neighbours[next];
                                 targetId = target.id;
 
                                 dx = target.x - start.x;
