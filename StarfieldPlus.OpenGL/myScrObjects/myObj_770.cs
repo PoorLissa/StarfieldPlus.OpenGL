@@ -22,7 +22,7 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, n = 0, shape = 0;
         private static bool doFillShapes = false;
         private static float maxRepelDistSquared = 1000;
 
@@ -46,8 +46,9 @@ namespace my
 
             // Global unmutable constants
             {
+                n = 3;
                 N = rand.Next(10) + 10;
-                N = 1111;
+                N = 2345;
 
                 shape = rand.Next(5);
             }
@@ -96,16 +97,32 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            if (id < n)
+            {
+                size = 33 + rand.Next(66);
 
-            dx = myUtils.randFloatSigned(rand, 0.1f) * 0.1f;
-            dy = myUtils.randFloatSigned(rand, 0.1f) * 0.1f;
+                x = rand.Next(gl_Width);
+                y = gl_Height + size * 2;
 
-            size = 3;
+                dx = 0;
+                dy = -0.75f - myUtils.randFloat(rand) * 0.25f;
 
-            A = 0.33f;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+                A = 0.5f;
+                R = G = B = 1;
+            }
+            else
+            {
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
+
+                dx = myUtils.randFloatSigned(rand, 0.1f) * 0.1f;
+                dy = myUtils.randFloatSigned(rand, 0.1f) * 0.1f;
+
+                size = 3;
+
+                A = 0.33f;
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+            }
 
             return;
         }
@@ -114,14 +131,25 @@ namespace my
 
         protected override void Move()
         {
+            if (id < n)
+            {
+                x += dx;
+                y += dy;
+
+                if (y < -size)
+                    generateNew();
+
+                return;
+            }
+
             int Count = list.Count;
 
-            float factor = 0.01f;
+            float factor = 0.9f;
 
             // Repelling by borders
             {
-                int offset = 100;
-                float repelForce = 2 * factor;
+                int offset = 10;
+                float repelForce = factor;
 
                 if (x < offset)
                     dx += repelForce;
@@ -136,8 +164,28 @@ namespace my
                     dy -= repelForce;
             }
 
+            // Repelling by bubbles
+            for (int i = 0; i < n; i++)
+            {
+                var bubble = list[i] as myObj_770;
+
+                float DX = x - bubble.x;
+                float DY = y - bubble.y;
+                float d2 = DX * DX + DY * DY;
+
+                if (d2 < bubble.size * bubble.size)
+                {
+                    float dist = (float)Math.Sqrt(d2) + 0.0001f;
+
+                    float F = 5.0f / dist;
+
+                    dx += F * DX;
+                    dy += F * DY;
+                }
+            }
+
             // Repelling by each other
-            for (int i = 0; i != Count; i++)
+            for (int i = n; i != Count; i++)
             {
                 var other = list[i] as myObj_770;
 
@@ -160,7 +208,7 @@ namespace my
             }
 
             // Apply gravity force
-            dy += 0.0025f;
+            dy += 0.005f;
 
             // Apply resisting force of the medium
             dx *= 1.0f - 0.001f;
@@ -194,7 +242,7 @@ namespace my
                 case 1:
                     var triangleInst = inst as myTriangleInst;
 
-                    triangleInst.setInstanceCoords(x, y, size2x, angle);
+                    triangleInst.setInstanceCoords(x, y, size, angle);
                     triangleInst.setInstanceColor(R, G, B, A);
                     break;
 
