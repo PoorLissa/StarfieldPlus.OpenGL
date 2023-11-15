@@ -24,6 +24,7 @@ namespace my
 
         private static int N = 0, shape = 0;
         private static bool doFillShapes = false;
+        private static float maxRepelDistSquared = 1000;
 
         private static myScreenGradient grad = null;
 
@@ -146,7 +147,7 @@ namespace my
                     float DY = y - other.y;
                     float d2 = DX * DX + DY * DY;
 
-                    if (d2 < 1000)
+                    if (d2 < maxRepelDistSquared)
                     {
                         float dist = (float)Math.Sqrt(d2) + 0.0001f;
 
