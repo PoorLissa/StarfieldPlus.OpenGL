@@ -10,7 +10,6 @@ public class myLineInst : myInstancedPrimitive
     private static float[] vertices = null;
 
     private static uint vbo = 0, instVbo = 0, shaderProgram = 0;
-    private static int locationScrSize = 0;
     private static int floatTimesN = 0;
 
     private float _lineWidth;
@@ -43,7 +42,6 @@ public class myLineInst : myInstancedPrimitive
 
             CreateProgram();
             glUseProgram(shaderProgram);
-            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
             vbo = glGenBuffer();
             instVbo = glGenBuffer();
@@ -60,7 +58,6 @@ public class myLineInst : myInstancedPrimitive
         updateVertices();
 
         glUseProgram(shaderProgram);
-        glUniform2i(locationScrSize, Width, Height);            // updUniformScreenSize(locationScrSize, Width, Height);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawArraysInstanced(GL_LINES, 0, 2, N);
@@ -77,12 +74,12 @@ public class myLineInst : myInstancedPrimitive
                 uniform ivec2 myScrSize;
                 out vec4 rgbaColor;",
 
-                    main: @"rgbaColor = mData[1];
+                    main: $@"rgbaColor = mData[1];
 
                             int idx = gl_VertexID * 2;
 
-                            float realSizeX = +2.0 / myScrSize.x;
-                            float realSizeY = -2.0 / myScrSize.y;
+                            float realSizeX = { +2.0 / Width  };
+                            float realSizeY = { -2.0 / Height };
 
                             gl_Position = vec4(realSizeX * mData[0][idx] - 1.0, realSizeY * mData[0][idx+1] + 1.0, 1.0, 1.0);"
         );
@@ -218,6 +215,10 @@ public class myLineInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Make lines antialized;
+    // Be careful, this decreases performance greatly!
+    // 
+    // Also, there might be a less expensive way of doing this (see the link)
     // https://vitaliburkov.wordpress.com/2016/09/17/simple-and-fast-high-quality-antialiased-lines-with-opengl/
     public void setAntialized(bool antialized)
     {
