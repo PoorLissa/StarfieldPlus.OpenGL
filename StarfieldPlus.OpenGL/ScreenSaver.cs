@@ -78,8 +78,6 @@ public class ScreenSaver
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
-    // - several layers of mutually repellent particles simulating liquid;
-    //      'air' bubbles are raising from the bottom, moving the particles apart, and eventually reaching the surface
     // - snake that does not cross itself (use lists of vertical and horizontal lines the snake consists of)
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -177,6 +175,7 @@ public class ScreenSaver
         register(my.myObj_740.Type);      // Periodic vertical or horizontal waves of particles
         register(my.myObj_750.Type);      // Particles generated with the same movement direction, bouncing off the walls
         register(my.myObj_760.Type);      // Points randomly travelling over a graph
+        register(my.myObj_770.Type);      // Bubbles through mutually repellent particles
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 

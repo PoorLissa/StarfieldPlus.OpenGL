@@ -15,6 +15,13 @@ namespace my
 {
     public class myObj_760 : myObject
     {
+        private class findData {
+            public int index;
+            public float dist;
+        };
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         // Priority
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_760);
@@ -465,12 +472,6 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
-        private class findData
-        {
-            public int index;
-            public float dist;
-        };
 
         private void findNeighbours(int numConnections)
         {
