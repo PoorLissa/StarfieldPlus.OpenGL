@@ -105,9 +105,9 @@ namespace my
                 y = gl_Height + size * 2;
 
                 dx = 0;
-                dy = -0.75f - myUtils.randFloat(rand) * 0.25f;
+                dy = (0.75f + myUtils.randFloat(rand) * 0.25f) * -1.0f;
 
-                A = 0.5f;
+                A = 0.1f;
                 R = G = B = 1;
             }
             else
@@ -120,7 +120,7 @@ namespace my
 
                 size = 3;
 
-                A = 0.33f;
+                A = 0.2f;
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
             }
 
@@ -184,6 +184,8 @@ namespace my
                 }
             }
 
+            maxRepelDistSquared = 3333;
+
             // Repelling by each other
             for (int i = n; i != Count; i++)
             {
@@ -211,8 +213,8 @@ namespace my
             dy += 0.005f;
 
             // Apply resisting force of the medium
-            dx *= 1.0f - 0.001f;
-            dy *= 1.0f - 0.001f;
+            dx *= 1.0f - 0.1f;
+            dy *= 1.0f - 0.1f;
 
             return;
         }
