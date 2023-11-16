@@ -19,10 +19,11 @@ namespace my
 
         private int cnt;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, angle = 0, dAngle;
 
         private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
+        private static bool doFillShapes = false, doRotate = false;
+        private static float maxSpeed = 1;
 
         private static myScreenGradient grad = null;
 
@@ -39,7 +40,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            int mode = myUtils.randomChance(rand, 1, 2)
+            int mode = myUtils.randomChance(rand, 1, 3)
                 ? -1
                 : (int)myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
 
@@ -48,7 +49,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 111111;
+                N = 100000 + rand.Next(333000);
                 shape = 1;
             }
 
@@ -61,6 +62,9 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
+            doRotate = myUtils.randomChance(rand, 1, 2);
+
+            maxSpeed = myUtils.randFloat(rand, 0.1f) * 0.5f;
 
             renderDelay = 0;
 
@@ -74,11 +78,12 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"maxSpeed = {fStr(maxSpeed)}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -100,12 +105,16 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            dx = myUtils.randFloatSigned(rand, 0.1f) * 0.25f;
-            dy = myUtils.randFloatSigned(rand, 0.1f) * 0.25f;
+            dx = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
+            dy = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
 
             size = rand.Next(11) + 3;
 
             angle = myUtils.randFloat(rand) * rand.Next(123);
+
+            dAngle = doRotate
+                ? myUtils.randFloatSigned(rand) * 0.1f
+                : 0;
 
             A = myUtils.randFloat(rand);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -121,6 +130,7 @@ namespace my
         {
             x += dx;
             y += dy;
+            angle += dAngle;
 
             if (--cnt < 0)
             {
@@ -192,6 +202,8 @@ namespace my
         {
             uint cnt = 0;
             initShapes();
+
+            //Glfw.SwapInterval(1);
 
             clearScreenSetup(doClearBuffer, 0.1f);
 

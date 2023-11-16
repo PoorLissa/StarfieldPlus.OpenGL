@@ -12,7 +12,7 @@ public class myTriangleInst : myInstancedPrimitive
     private static float[] vertices = null;
 
     private static uint shaderProgram = 0, instVbo = 0, triVbo = 0;
-    private static int locationColor = 0, locationScrSize = 0, locationRotateMode = 0;
+    private static int locationColor = 0, locationRotateMode = 0;
 
     private int rotationMode;
 
@@ -36,7 +36,6 @@ public class myTriangleInst : myInstancedPrimitive
                 vertices[i] = 0.0f;
 
             // Coordinates of an equilateral triangle, inscribed in a circle of raduis 1.0
-            // todo: precalc cos
             vertices[0] = +0.0f;
             vertices[1] = +1.0f;
             vertices[3] = +(float)Math.Cos(Math.PI/6);
@@ -48,7 +47,6 @@ public class myTriangleInst : myInstancedPrimitive
             glUseProgram(shaderProgram);
 
             locationColor      = glGetUniformLocation(shaderProgram, "myColor");
-            locationScrSize    = glGetUniformLocation(shaderProgram, "myScrSize");
             locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
 
             instVbo = glGenBuffer();
@@ -67,7 +65,6 @@ public class myTriangleInst : myInstancedPrimitive
 
         glUseProgram(shaderProgram);
         setColor(locationColor, _r, _g, _b, _a);
-        glUniform2i(locationScrSize, Width, Height);
         glUniform1i(locationRotateMode, rotationMode);
 
         // Draw only outline or fill the whole polygon with color
@@ -79,49 +76,6 @@ public class myTriangleInst : myInstancedPrimitive
 
     private static uint CreateShader()
     {
-#if true
-        string vertHead =
-            @"layout (location = 0) in vec3 pos;
-              layout (location = 1) in mat2x4 mData;
-                uniform ivec2 myScrSize; uniform int myRttMode;
-                out vec4 rgbaColor;
-            ";
-
-        string vertMain =
-            $@"  rgbaColor = mData[1];
-
-                float realSizeY = 2.0 / myScrSize.y * mData[0].z;
-                float realSizeX = 2.0 / myScrSize.x * mData[0].z;
-            
-                if (mData[0].w == 0)
-                {{
-                    gl_Position = vec4(pos.x * realSizeX, pos.y * realSizeY, 1.0, 1.0);
-                }}
-                else
-                {{
-                    float sin_a = sin(mData[0].w);
-                    float cos_a = cos(mData[0].w);
-
-                    // Rotate
-                    float x = pos.x * cos_a - pos.y * sin_a;
-                    float y = pos.y * cos_a + pos.x * sin_a;
-
-                    // Additional pseudo-3d rotation:
-                    switch (myRttMode)
-                    {{
-                        case 1: x *= sin_a; break;
-                        case 2: y *= cos_a; break;
-                        case 3: x *= sin_a; y *= cos_a; break;
-                    }}
-
-                    gl_Position = vec4(x * realSizeX, y * realSizeY, 1.0, 1.0);
-                }}
-
-                // Adjust for pixel density and move into final position
-                gl_Position.x += +2.0 / myScrSize.x * (mData[0].x) - 1.0;
-                gl_Position.y += -2.0 / myScrSize.y * (mData[0].y) + 1.0;
-            ";
-#else
         string vertHead =
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
@@ -163,7 +117,7 @@ public class myTriangleInst : myInstancedPrimitive
                 gl_Position.x += { +2.0 / Width  } * mData[0].x - 1.0;
                 gl_Position.y += { -2.0 / Height } * mData[0].y + 1.0;
             ";
-#endif
+
         string fragHead =
             "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;";
 
