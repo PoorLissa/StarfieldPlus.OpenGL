@@ -180,8 +180,7 @@ public class ScreenSaver
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
 #if false
-        // Trails test
-        register(my.myObj_999_test_001.Type);
+        register(my.myObj_999_test_001.Type);       // Trails test
 #endif
 
 #if false
@@ -191,8 +190,11 @@ public class ScreenSaver
 #endif
 
 #if false
-        // TextTex test
-        register(my.myObj_999_test_003.Type);
+        register(my.myObj_999_test_003.Type);       // TextTex test
+#endif
+
+#if true
+        register(my.myObj_999_test_004.Type);       // Instanced Shapes Test
 #endif
 
         _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);

@@ -39,7 +39,7 @@ public class myScreenGradient : myPrimitive
         {
             vertices = new float[verticesLength];
 
-            CreateProgram();
+            shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
 
             // Uniforms
@@ -156,38 +156,30 @@ public class myScreenGradient : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create a shader program
-    private static void CreateProgram()
+    private static uint CreateShader()
     {
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+        string vertHead =
+            "layout (location = 0) in vec3 pos;";
 
-            header: @"layout (location = 0) in vec3 pos;",
-
-                main: "gl_Position = vec4(pos, 1.0);"
-        );
+        string vertMain =
+            "gl_Position = vec4(pos, 1.0);";
 
         // Gradient appears to be banded (distinct steps of color can be seen)
         // To avoid that, use dithering: https://shader-tutorial.dev/advanced/color-banding-dithering/
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
 
-            header: $@"out vec4 result; uniform vec4 myColor1; uniform vec4 myColor2; uniform float uTime;
-                                float hInv = 1.0 / {Height}; float wInv = 1.0 / {Width};
+        string fragHead =
+            $@" out vec4 result;
+                uniform vec4 myColor1; uniform vec4 myColor2; uniform float uTime;
+                float hInv = { 1.0 / Height };
+                float wInv = { 1.0 / Width };
                 {myShaderHelpers.Generic.noiseFunc12_v1}
-                {myShaderHelpers.Generic.randFunc}",
+                {myShaderHelpers.Generic.randFunc}
+            ";
 
-                main: getMainFunc()
-        );
+        string fragMain =
+            getMainFunc();
 
-        shaderProgram = glCreateProgram();
-
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
-
-        glLinkProgram(shaderProgram);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-
-        return;
+        return CreateProgram(vertHead, vertMain, fragHead, fragMain);
     }
 
     // -------------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,8 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System;
+using System.Diagnostics;
+using System.Windows.Forms;
 
 
 /*
@@ -84,6 +86,39 @@ public class myPrimitive
             static_vao = glGenVertexArray();
             glBindVertexArray(static_vao);
         }
+    }
+
+    // ---------------------------------------------------------------------------------------
+
+    // Common method to create shader programs
+    protected static uint CreateProgram(string vertexShaderHeader, string vertexShaderMain, string fragmentShaderHeader, string fragmentShaderMain)
+    {
+        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER, vertexShaderHeader, vertexShaderMain);
+
+        // Check for Vertex Shader Errors
+        if (glGetShaderiv(vertex, GL_COMPILE_STATUS, 1)[0] == 0)
+            MessageBox.Show(glGetShaderInfoLog(vertex), "", MessageBoxButtons.OK);
+
+        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER, fragmentShaderHeader, fragmentShaderMain);
+
+        // Check for Fragment Shader Errors
+        if (glGetShaderiv(fragment, GL_COMPILE_STATUS, 1)[0] == 0)
+            MessageBox.Show(glGetShaderInfoLog(fragment), "", MessageBoxButtons.OK);
+
+        uint program = glCreateProgram();
+
+        glAttachShader(program, vertex);
+        glAttachShader(program, fragment);
+
+        glLinkProgram(program);
+
+        glDetachShader(program, vertex);
+        glDetachShader(program, fragment);
+
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+
+        return program;
     }
 
     // ---------------------------------------------------------------------------------------

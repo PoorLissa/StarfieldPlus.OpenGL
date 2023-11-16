@@ -44,8 +44,9 @@ public class myTriangleInst : myInstancedPrimitive
             vertices[6] = -(float)Math.Cos(Math.PI/6);
             vertices[7] = -0.5f;
 
-            CreateProgram();
+            shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
+
             locationColor      = glGetUniformLocation(shaderProgram, "myColor");
             locationScrSize    = glGetUniformLocation(shaderProgram, "myScrSize");
             locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
@@ -66,7 +67,8 @@ public class myTriangleInst : myInstancedPrimitive
 
         glUseProgram(shaderProgram);
         setColor(locationColor, _r, _g, _b, _a);
-        updUniformScreenSize(locationScrSize, Width, Height);
+        glUniform2i(locationScrSize, Width, Height);
+        glUniform1i(locationRotateMode, rotationMode);
 
         // Draw only outline or fill the whole polygon with color
         glPolygonMode(GL_FRONT_AND_BACK, doFill ? GL_FILL : GL_LINE);
@@ -75,71 +77,104 @@ public class myTriangleInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static void CreateProgram()
+    private static uint CreateShader()
     {
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+#if true
+        string vertHead =
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in mat2x4 mData;
-                uniform ivec2 myScrSize;
-                uniform int myRttMode;
-                out vec4 rgbaColor;",
+                uniform ivec2 myScrSize; uniform int myRttMode;
+                out vec4 rgbaColor;
+            ";
 
-            main: @"rgbaColor = mData[1];
+        string vertMain =
+            $@"  rgbaColor = mData[1];
 
-                    float realSizeY = 2.0 / myScrSize.y * mData[0].z;
-                    float realSizeX = 2.0 / myScrSize.x * mData[0].z;
+                float realSizeY = 2.0 / myScrSize.y * mData[0].z;
+                float realSizeX = 2.0 / myScrSize.x * mData[0].z;
             
-                    if (mData[0].w == 0)
-                    {
-                        gl_Position = vec4(pos.x * realSizeX, pos.y * realSizeY, 1.0, 1.0);
-                    }
-                    else
-                    {
-                        float sin_a = sin(mData[0].w);
-                        float cos_a = cos(mData[0].w);
+                if (mData[0].w == 0)
+                {{
+                    gl_Position = vec4(pos.x * realSizeX, pos.y * realSizeY, 1.0, 1.0);
+                }}
+                else
+                {{
+                    float sin_a = sin(mData[0].w);
+                    float cos_a = cos(mData[0].w);
 
-                        // Rotate
-                        float x = pos.x * cos_a - pos.y * sin_a;
-                        float y = pos.y * cos_a + pos.x * sin_a;
+                    // Rotate
+                    float x = pos.x * cos_a - pos.y * sin_a;
+                    float y = pos.y * cos_a + pos.x * sin_a;
 
-                        // Additional pseudo-3d rotation:
-                        switch (myRttMode)
-                        {
-                            case 1: x *= sin_a; break;
-                            case 2: y *= cos_a; break;
-                            case 3: x *= sin_a; y *= cos_a; break;
-                        }
+                    // Additional pseudo-3d rotation:
+                    switch (myRttMode)
+                    {{
+                        case 1: x *= sin_a; break;
+                        case 2: y *= cos_a; break;
+                        case 3: x *= sin_a; y *= cos_a; break;
+                    }}
 
-                        gl_Position = vec4(x * realSizeX, y * realSizeY, 1.0, 1.0);
-                    }
+                    gl_Position = vec4(x * realSizeX, y * realSizeY, 1.0, 1.0);
+                }}
 
-                    // Adjust for pixel density and move into final position
-                    gl_Position.x += +2.0 / myScrSize.x * (mData[0].x) - 1.0;
-                    gl_Position.y += -2.0 / myScrSize.y * (mData[0].y) + 1.0;"
-        );
+                // Adjust for pixel density and move into final position
+                gl_Position.x += +2.0 / myScrSize.x * (mData[0].x) - 1.0;
+                gl_Position.y += -2.0 / myScrSize.y * (mData[0].y) + 1.0;
+            ";
+#else
+        string vertHead =
+            @"layout (location = 0) in vec3 pos;
+              layout (location = 1) in mat2x4 mData;
+                uniform int myRttMode;
+                out vec4 rgbaColor;
+            ";
 
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-            "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;",
+        string vertMain =
+            $@"  rgbaColor = mData[1];
 
-                main: @"result = rgbaColor;
+                float realSizeY = { 2.0 / Height } * mData[0].z;
+                float realSizeX = { 2.0 / Width  } * mData[0].z;
+            
+                if (mData[0].w == 0)
+                {{
+                    gl_Position = vec4(pos.x * realSizeX, pos.y * realSizeY, 1.0, 1.0);
+                }}
+                else
+                {{
+                    vec2 sc = vec2(sin(mData[0].w), cos(mData[0].w));
 
-                        if (myColor.w < 0)
-                        {
-                            result.w *= -myColor.w;
-                        }"
-        );
+                    // Rotate
+                    float x = pos.x * sc.y - pos.y * sc.x;
+                    float y = pos.y * sc.y + pos.x * sc.x;
 
-        shaderProgram = glCreateProgram();
+                    // Additional pseudo-3d rotation:
+                    switch (myRttMode)
+                    {{
+                        case 1: x *= sc.x; break;
+                        case 2: y *= sc.y; break;
+                        case 3: x *= sc.x;
+                                y *= sc.y; break;
+                    }}
 
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
+                    gl_Position = vec4(x * realSizeX, y * realSizeY, 1.0, 1.0);
+                }}
 
-        glLinkProgram(shaderProgram);
+                // Adjust for pixel density and move into final position
+                gl_Position.x += { +2.0 / Width  } * mData[0].x - 1.0;
+                gl_Position.y += { -2.0 / Height } * mData[0].y + 1.0;
+            ";
+#endif
+        string fragHead =
+            "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;";
 
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
+        string fragMain =
+            @"  result = rgbaColor;
 
-        return;
+                if (myColor.w < 0)
+                    result.w *= -myColor.w;
+            ";
+
+        return CreateProgram(vertHead, vertMain, fragHead, fragMain);
     }
 
     // -------------------------------------------------------------------------------------------------------------------

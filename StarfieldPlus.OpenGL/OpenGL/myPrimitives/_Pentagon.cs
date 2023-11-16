@@ -30,8 +30,9 @@ public class myPentagon : myPrimitive
             for (int i = 0; i < 15; i++)
                 vertices[i] = 0.0f;
 
-            CreateProgram();
+            shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
+
             locationColor   = glGetUniformLocation(shaderProgram, "myColor");
             locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
             locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
@@ -49,23 +50,6 @@ public class myPentagon : myPrimitive
 
     public void Draw(float x, float y, float r, bool doFill = false)
     {
-        unsafe void __draw(bool fill)
-        {
-            if (fill)
-            {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
-                glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, NULL);
-            }
-            else
-            {
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
-                glDrawElements(GL_LINES, 15, GL_UNSIGNED_INT, NULL);
-            }
-        }
-
-        // ---------------------------------------------------------------------------------------
-
         float fx = x, fy = y;
 
         if (_angle == 0)
@@ -124,7 +108,20 @@ public class myPentagon : myPrimitive
             updUniformScreenSize(locationScrSize, Width, Height);
         }
 
-        __draw(doFill);
+        unsafe
+        {
+            if (doFill)
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_fill);
+                glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, NULL);
+            }
+            else
+            {
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_outline);
+                glDrawElements(GL_LINES, 15, GL_UNSIGNED_INT, NULL);
+            }
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -136,47 +133,40 @@ public class myPentagon : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static void CreateProgram()
+    private static uint CreateShader()
     {
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+        string vertHead =
             @"layout (location = 0) in vec3 pos;
-                uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+                uniform float myAngle; uniform vec2 myCenter;
+                vec2 sc = vec2(sin(myAngle), cos(myAngle));
+            ";
 
-                main: @"if (myAngle == 0)
-                        {
-                            gl_Position = vec4(pos, 1.0);
-                        }
-                        else
-                        {
-                            float X = pos.x - myCenter.x;
-                            float Y = pos.y - myCenter.y;
+        string vertMain =
+            $@" if (myAngle == 0)
+                {{
+                    gl_Position = vec4(pos, 1.0);
+                }}
+                else
+                {{
+                    vec2 POS = vec2(pos.x - myCenter.x, pos.y - myCenter.y);
 
-                            gl_Position = vec4(X * cos(myAngle) - Y * sin(myAngle), Y * cos(myAngle) + X * sin(myAngle), pos.z, 1.0);
+                    gl_Position = vec4(POS.x * sc.y - POS.y * sc.x, POS.y * sc.y + POS.x * sc.x, pos.z, 1.0);
 
-                            gl_Position.x += myCenter.x;
-                            gl_Position.y += myCenter.y;
+                    gl_Position.x += myCenter.x;
+                    gl_Position.y += myCenter.y;
 
-                            gl_Position.x = 2.0f * gl_Position.x / (myScrSize.x + 1) - 1.0f;
-                            gl_Position.y = 1.0f - 2.0f * gl_Position.y / myScrSize.y;
-                        }"
-        );
+                    gl_Position.x = gl_Position.x * {2.0 / (Width + 1)} - 1.0f;
+                    gl_Position.y = 1.0f - gl_Position.y * {2.0 / Height};
+                }}
+            ";
 
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-            "out vec4 result; uniform vec4 myColor;",
-                main: "result = myColor;"
-        );
+        string fragHead =
+            "out vec4 result; uniform vec4 myColor;";
 
-        shaderProgram = glCreateProgram();
+        string fragMain =
+            "result = myColor;";
 
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
-
-        glLinkProgram(shaderProgram);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-
-        return;
+        return CreateProgram(vertHead, vertMain, fragHead, fragMain);
     }
 
     // -------------------------------------------------------------------------------------------------------------------

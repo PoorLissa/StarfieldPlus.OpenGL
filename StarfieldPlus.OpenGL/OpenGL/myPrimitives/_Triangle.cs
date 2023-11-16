@@ -7,7 +7,7 @@ public class myTriangle : myPrimitive
 {
     private static uint vbo = 0, shaderProgram = 0;
     private static float[] vertices = null;
-    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationScrSize = 0;
+    private static int locationColor = 0, locationAngle = 0, locationCenter = 0;
     private static float _angle = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -21,12 +21,12 @@ public class myTriangle : myPrimitive
             for (int i = 0; i < 9; i++)
                 vertices[i] = 0.0f;
 
-            CreateProgram();
+            shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
+
             locationColor   = glGetUniformLocation(shaderProgram, "myColor");
             locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
             locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
-            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
 
             vbo = glGenBuffer();
         }
@@ -72,7 +72,6 @@ public class myTriangle : myPrimitive
         if (_angle != 0.0f)
         {
             glUniform2f(locationCenter, (x1+x2+x3)/3, (y1+y2+y3)/3);
-            updUniformScreenSize(locationScrSize, Width, Height);
         }
 
         // Draw only outline or fill the whole polygon with color
@@ -89,58 +88,39 @@ public class myTriangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    private static void CreateProgram()
+    private static uint CreateShader()
     {
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+        string vertHead =
             @"layout (location = 0) in vec3 pos;
-                uniform float myAngle; uniform vec2 myCenter; uniform ivec2 myScrSize;",
+                uniform float myAngle; uniform vec2 myCenter;
+                vec2 sc = vec2(sin(myAngle), cos(myAngle));
+            ";
 
-                main: @"if (myAngle == 0)
-                        {
-                            gl_Position = vec4(pos, 1.0);
-                        }
-                        else
-                        {
-                            float X = pos.x - myCenter.x;
-                            float Y = pos.y - myCenter.y;
+        string vertMain =
+            $@"if (myAngle == 0)
+            {{
+                gl_Position = vec4(pos, 1.0);
+            }}
+            else
+            {{
+                vec2 POS = vec2(pos.x - myCenter.x, pos.y - myCenter.y);
 
-                            gl_Position = vec4(X * cos(myAngle) - Y * sin(myAngle), Y * cos(myAngle) + X * sin(myAngle), pos.z, 1.0);
+                gl_Position = vec4(POS.x * sc.y - POS.y * sc.x, POS.y * sc.y + POS.x * sc.x, pos.z, 1.0);
 
-                            gl_Position.x += myCenter.x;
-                            gl_Position.y += myCenter.y1;
+                gl_Position.x += myCenter.x;
+                gl_Position.y += myCenter.y;
 
-                            gl_Position.x = 2.0f * gl_Position.x / myScrSize.x - 1.0f;
-                            gl_Position.y = 1.0f - 2.0f * gl_Position.y / myScrSize.y;
-                        }"
-        );
+                gl_Position.x = gl_Position.x * { 2.0 / Width } - 1.0f;
+                gl_Position.y = 1.0f - gl_Position.y * { 2.0 / Height };
+            }}";
 
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-                "out vec4 result; uniform vec4 myColor;",
-                    main: "result = myColor;"
-        );
+        string fragHead =
+            "out vec4 result; uniform vec4 myColor;";
 
-        int[] status = glGetShaderiv(vertex, GL_COMPILE_STATUS, 1);
+        string fragMain =
+            "result = myColor;";
 
-        if (status[0] == 0)
-        {
-            string error = glGetShaderInfoLog(vertex);
-            Debug.Assert(false, error);
-        }
-
-        shaderProgram = glCreateProgram();
-
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
-
-        glLinkProgram(shaderProgram);
-
-        glDetachShader(shaderProgram, vertex);
-        glDetachShader(shaderProgram, fragment);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-
-        return;
+        return CreateProgram(vertHead, vertMain, fragHead, fragMain);
     }
 
     // -------------------------------------------------------------------------------------------------------------------

@@ -23,7 +23,7 @@ public class myScrDimmer : myPrimitive
         {
             vertices = new float[verticesLength];
 
-            CreateProgram();
+            shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
 
             // Uniforms
@@ -87,33 +87,21 @@ public class myScrDimmer : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create a shader program
-    private static void CreateProgram()
+    private static uint CreateShader()
     {
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+        string vertHead =
+            "layout (location = 0) in vec3 pos;";
 
-            header: @"layout (location = 0) in vec3 pos;",
+        string vertMain =
+            "gl_Position = vec4(pos, 1.0);";
 
-                main: @"gl_Position = vec4(pos, 1.0);"
-        );
+        string fragHead =
+            "out vec4 result; uniform vec4 myColor;";
 
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
+        string fragMain =
+            "result = myColor;";
 
-            header: "out vec4 result; uniform vec4 myColor;",
-
-                main: "result = myColor;"
-        );
-
-        shaderProgram = glCreateProgram();
-
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
-
-        glLinkProgram(shaderProgram);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-
-        return;
+        return CreateProgram(vertHead, vertMain, fragHead, fragMain);
     }
 
     // -------------------------------------------------------------------------------------------------------------------

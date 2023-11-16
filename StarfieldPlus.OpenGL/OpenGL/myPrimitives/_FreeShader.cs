@@ -59,7 +59,7 @@ public class myFreeShader : myPrimitive
         {
             vertices = new float[verticesLength];
 
-            CreateProgram(fHeader, fMain);
+            shaderProgram = CreateShader(fHeader, fMain);
             glUseProgram(shaderProgram);
 
             // Uniforms
@@ -125,7 +125,7 @@ public class myFreeShader : myPrimitive
     // Create a shader program:
     // - Vertex shader uses the default implementation
     // - Fragment shader code must be supplied by the user
-    private void CreateProgram(string fHeader, string fMain)
+    private uint CreateShader(string fHeader, string fMain)
     {
         string vHeader, vMain;
 
@@ -215,27 +215,7 @@ public class myFreeShader : myPrimitive
             }
         }
 
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-            header : vHeader,
-                main : vMain
-        );
-
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-            header : fHeader,
-                main : fMain
-        );
-
-        shaderProgram = glCreateProgram();
-
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
-
-        glLinkProgram(shaderProgram);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-
-        return;
+        return CreateProgram(vHeader, vMain, fHeader, fMain);
     }
 
     // -------------------------------------------------------------------------------------------------------------------

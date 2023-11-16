@@ -17,7 +17,7 @@ public class myTexRectangle : myPrimitive
     private static uint vbo = 0, ebo = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static float _angle = 0, dx = 0, dy = 0;
-    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationOpacity = 0, locationScrSize = 0, locationPart = 0;
+    private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationOpacity = 0, locationPart = 0;
 
     private uint tex = 0;
     private float _opacity = 1.0f;
@@ -33,15 +33,15 @@ public class myTexRectangle : myPrimitive
             dx = 1.0f / Width;
             dy = 1.0f / Height;
 
-            CreateProgram();
+            shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
-            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
-            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
+
+            locationColor = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter = glGetUniformLocation(shaderProgram, "myCenter");
             locationOpacity = glGetUniformLocation(shaderProgram, "myOpacity");
 
-            locationPart    = glGetUniformLocation(shaderProgram, "myPart");
-            locationScrSize = glGetUniformLocation(shaderProgram, "myScrDxDy");
+            locationPart = glGetUniformLocation(shaderProgram, "myPart");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();
@@ -64,15 +64,15 @@ public class myTexRectangle : myPrimitive
             dx = 1.0f / Width;
             dy = 1.0f / Height;
 
-            CreateProgram();
+            shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
-            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
-            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
+
+            locationColor = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter = glGetUniformLocation(shaderProgram, "myCenter");
             locationOpacity = glGetUniformLocation(shaderProgram, "myOpacity");
 
-            locationPart    = glGetUniformLocation(shaderProgram, "myPart");
-            locationScrSize = glGetUniformLocation(shaderProgram, "myScrDxDy");
+            locationPart = glGetUniformLocation(shaderProgram, "myPart");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();
@@ -156,14 +156,13 @@ public class myTexRectangle : myPrimitive
         glUseProgram(shaderProgram);
 
         glUniform4f(locationPart, ptx, pty, ptw, pth);
-        glUniform2f(locationScrSize, dx, dy);
         glUniform1f(locationOpacity, _opacity);
         glUniform1f(locationAngle, _angle);
 
         // Set the center of rotation
         if (_angle != 0.0f)
         {
-            glUniform2f(locationCenter, x + w/2, y + h/2);
+            glUniform2f(locationCenter, x + w / 2, y + h / 2);
         }
 
         unsafe
@@ -227,64 +226,54 @@ public class myTexRectangle : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create a shader program
-    private void CreateProgram()
+    private uint CreateShader()
     {
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+        string vertHead =
             @"layout (location = 0) in vec3 pos;
               layout (location = 1) in vec3 color;
               layout (location = 2) in vec2 txCoord;
                 out vec4 fragColor; out vec2 fragTxCoord;
-                uniform vec4 myPart; uniform vec2 myScrDxDy; uniform float myOpacity; uniform float myAngle; uniform vec2 myCenter;",
+                uniform vec4 myPart; uniform float myOpacity; uniform float myAngle; uniform vec2 myCenter;
+                vec2 sc = vec2(sin(myAngle), cos(myAngle));
+            ";
 
-                main: $@"fragColor = vec4(color, myOpacity);
+        string vertMain =
+            $@" fragColor = vec4(color, myOpacity);
 
-                        if (myAngle == 0)
-                        {{
-                            gl_Position = vec4(pos, 1.0);
-                        }}
-                        else
-                        {{
-                            vec2 p = pos.xy - myCenter;
-                            vec2 sc = vec2(sin(myAngle), cos(myAngle));
+                if (myAngle == 0)
+                {{
+                    gl_Position = vec4(pos, 1.0);
+                }}
+                else
+                {{
+                    vec2 p = pos.xy - myCenter;
 
-                            gl_Position = vec4(p.x * sc.y - p.y * sc.x, p.y * sc.y + p.x * sc.x, pos.z, 1.0);
-                            gl_Position.xy += myCenter.xy;
+                    gl_Position = vec4(p.x * sc.y - p.y * sc.x, p.y * sc.y + p.x * sc.x, pos.z, 1.0);
+                    gl_Position.xy += myCenter.xy;
 
-                            gl_Position.x = 2.0f * gl_Position.x * myScrDxDy.x - 1.0f;
-                            gl_Position.y = 1.0f - 2.0f * gl_Position.y * myScrDxDy.y;
-                        }}
+                    gl_Position.x = gl_Position.x * {2.0 / Width} - 1.0f;
+                    gl_Position.y = 1.0f - gl_Position.y * {2.0 / Height};
+                }}
 
-                        fragTxCoord = myPart.z == 0
-                            ? txCoord
-                            { "" /* This way, we are able to render just a part of a texture */ }
-                            { "" /* There's a problem, however: this does not really work if the texture's size is less than the screen size */ }
-                            { "" /* In this case, we can do it like that: tex.Draw(0, 0, 33, bmpHeight, 0, 0, 33 * gl_Width / bmpWidth, bmpHeight * gl_Height / bmpHeight); */ }
-                            : vec2(myScrDxDy.x * (myPart.x + txCoord.x * myPart.z), myScrDxDy.y * (myPart.y + txCoord.y * myPart.w));
-                "
-        );
+                fragTxCoord = myPart.z == 0
+                    ? txCoord
+                    {"" /* This way, we are able to render just a part of a texture */ }
+                    {"" /* There's a problem, however: this does not really work if the texture's size is less than the screen size */ }
+                    {"" /* In this case, we can do it like that: tex.Draw(0, 0, 33, bmpHeight, 0, 0, 33 * gl_Width / bmpWidth, bmpHeight * gl_Height / bmpHeight); */ }
+                    : vec2({Width} * (myPart.x + txCoord.x * myPart.z), {Height} * (myPart.y + txCoord.y * myPart.w));
+                ";
 
-        var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
-
-            header:
+        string fragHead =
                 $@"out vec4 result;
                     in vec4 fragColor;
                     in vec2 fragTxCoord;
-                    uniform sampler2D myTexture;",
-            main:
-                $@"result = texture(myTexture, fragTxCoord) * fragColor;"
-        );
+                    uniform sampler2D myTexture;
+            ";
 
-        shaderProgram = glCreateProgram();
+        string fragMain =
+            "result = texture(myTexture, fragTxCoord) * fragColor;";
 
-        glAttachShader(shaderProgram, vertex);
-        glAttachShader(shaderProgram, fragment);
-
-        glLinkProgram(shaderProgram);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-
-        return;
+        return CreateProgram(vertHead, vertMain, fragHead, fragMain);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
