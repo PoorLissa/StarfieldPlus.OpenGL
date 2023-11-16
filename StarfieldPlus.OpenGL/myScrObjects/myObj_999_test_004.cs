@@ -62,6 +62,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
+            doFillShapes = myUtils.randomChance(rand, 1, 3);
             doRotate = myUtils.randomChance(rand, 1, 2);
 
             maxSpeed = myUtils.randFloat(rand, 0.1f) * 0.5f;
@@ -83,6 +84,8 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doFillShapes = {doFillShapes}\n"       +
+                            $"doRotate = {doRotate}\n"               +
                             $"maxSpeed = {fStr(maxSpeed)}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -116,7 +119,7 @@ namespace my
                 ? myUtils.randFloatSigned(rand) * 0.1f
                 : 0;
 
-            A = myUtils.randFloat(rand);
+            A = myUtils.randFloat(rand) * 0.85f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             cnt = 111 + rand.Next(333);
