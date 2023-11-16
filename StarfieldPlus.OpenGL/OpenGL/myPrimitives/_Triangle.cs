@@ -1,7 +1,7 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System;
-
+using System.Diagnostics;
 
 public class myTriangle : myPrimitive
 {
@@ -107,7 +107,7 @@ public class myTriangle : myPrimitive
                             gl_Position = vec4(X * cos(myAngle) - Y * sin(myAngle), Y * cos(myAngle) + X * sin(myAngle), pos.z, 1.0);
 
                             gl_Position.x += myCenter.x;
-                            gl_Position.y += myCenter.y;
+                            gl_Position.y += myCenter.y1;
 
                             gl_Position.x = 2.0f * gl_Position.x / myScrSize.x - 1.0f;
                             gl_Position.y = 1.0f - 2.0f * gl_Position.y / myScrSize.y;
@@ -119,12 +119,23 @@ public class myTriangle : myPrimitive
                     main: "result = myColor;"
         );
 
+        int[] status = glGetShaderiv(vertex, GL_COMPILE_STATUS, 1);
+
+        if (status[0] == 0)
+        {
+            string error = glGetShaderInfoLog(vertex);
+            Debug.Assert(false, error);
+        }
+
         shaderProgram = glCreateProgram();
 
         glAttachShader(shaderProgram, vertex);
         glAttachShader(shaderProgram, fragment);
 
         glLinkProgram(shaderProgram);
+
+        glDetachShader(shaderProgram, vertex);
+        glDetachShader(shaderProgram, fragment);
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
