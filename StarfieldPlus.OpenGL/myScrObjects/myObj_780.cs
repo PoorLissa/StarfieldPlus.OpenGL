@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 /*
     - Instanced shapes in a large quantity revealing an underlying image
+
+    todo:
+        Test rendering instanced primitives more than once pef frame (see Process func for that)
 */
 
 
@@ -73,6 +76,15 @@ namespace my
             dirMode = rand.Next(7);
 
             renderDelay = 0;
+
+#if false
+            doClearBuffer = true;
+            doFillShapes = false;
+            doRotate = false;
+            maxSpeed = 0.25f;
+            maxSize = 5;
+            dirMode = 3;
+#endif
 
             return;
         }
@@ -261,6 +273,50 @@ namespace my
                 }
 
                 // Render Frame
+#if false
+                // Render instanced primitives several times per frame (test this)
+                {
+                    inst.ResetBuffer();
+
+                    int itemCnt = 0;
+
+                    for (int i = 0; i != Count; i++)
+                    {
+                        var obj = list[i] as myObj_780;
+
+                        obj.Show();
+                        obj.Move();
+
+                        if (++itemCnt == 100000)
+                        {
+                            if (doFillShapes)
+                            {
+                                // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                                inst.SetColorA(-0.5f);
+                                inst.Draw(true);
+                            }
+
+                            // Tell the fragment shader to do nothing with the existing instance opacity:
+                            inst.SetColorA(0);
+                            inst.Draw(false);
+
+                            itemCnt = 0;
+                            inst.ResetBuffer();
+                        }
+                    }
+
+                    if (doFillShapes)
+                    {
+                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                        inst.SetColorA(-0.5f);
+                        inst.Draw(true);
+                    }
+
+                    // Tell the fragment shader to do nothing with the existing instance opacity:
+                    inst.SetColorA(0);
+                    inst.Draw(false);
+                }
+#else
                 {
                     inst.ResetBuffer();
 
@@ -283,7 +339,7 @@ namespace my
                     inst.SetColorA(0);
                     inst.Draw(false);
                 }
-
+#endif
                 cnt++;
                 System.Threading.Thread.Sleep(renderDelay);
             }
