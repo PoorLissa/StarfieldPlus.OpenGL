@@ -176,6 +176,7 @@ public class ScreenSaver
         register(my.myObj_750.Type);      // Particles generated with the same movement direction, bouncing off the walls
         register(my.myObj_760.Type);      // Points randomly travelling over a graph
         register(my.myObj_770.Type);      // Bubbles through mutually repellent particles
+        register(my.myObj_780.Type);      // Instanced shapes in a large quantity
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
@@ -191,10 +192,6 @@ public class ScreenSaver
 
 #if false
         register(my.myObj_999_test_003.Type);       // TextTex test
-#endif
-
-#if true
-        register(my.myObj_999_test_004.Type);       // Instanced Shapes Test
 #endif
 
         _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);

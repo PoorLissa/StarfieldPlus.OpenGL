@@ -11,11 +11,11 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_999_test_004 : myObject
+    public class myObj_780 : myObject
     {
         // Priority
         public static int Priority => 999910;
-		public static System.Type Type => typeof(myObj_999_test_004);
+		public static System.Type Type => typeof(myObj_780);
 
         private int cnt;
         private float x, y, dx, dy;
@@ -29,7 +29,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_999_test_004()
+        public myObj_780()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -40,7 +40,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            int mode = myUtils.randomChance(rand, 1, 3)
+            int mode = myUtils.randomChance(rand, 1, 5)
                 ? -1
                 : (int)myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
 
@@ -49,8 +49,11 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 100000 + rand.Next(333000);
-                shape = 1;
+                N = colorPicker.getMode() < 2
+                    ? 100000 + rand.Next(333000)        // for a picture
+                    :  50000 + rand.Next(75000);        // for a non-picture
+
+                shape = rand.Next(5);
             }
 
             initLocal();
@@ -212,7 +215,7 @@ namespace my
 
             while (list.Count < N)
             {
-                list.Add(new myObj_999_test_004());
+                list.Add(new myObj_780());
             }
 
             while (!Glfw.WindowShouldClose(window))
@@ -244,7 +247,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_999_test_004;
+                        var obj = list[i] as myObj_780;
 
                         obj.Show();
                         obj.Move();
