@@ -113,8 +113,10 @@ class myOGL
     public static uint CreateShader(int type, string source)
     {
         var shader = glCreateShader(type);
+
         glShaderSource(shader, source);
         glCompileShader(shader);
+
         return shader;
     }
 
@@ -128,14 +130,18 @@ class myOGL
     /// <returns>The created shader. No error checking is performed for this basic example.</returns>
     public static uint CreateShaderEx(int type, string header, string main)
     {
-        string src = "#version 330 core\n";
+        string src = $@"
 
-        src += header;
-        src += "void main(){";
-        src += main;
-        src += "}";
+            #version 330 core
+            {header}
+            void main()
+            {{
+                {main}
+            }}
+        ";
 
         var shader = glCreateShader(type);
+
         glShaderSource(shader, src);
         glCompileShader(shader);
 
@@ -162,7 +168,7 @@ class myOGL
 
         // Turn off MipMaps
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,  0);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
