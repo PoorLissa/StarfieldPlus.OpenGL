@@ -129,6 +129,9 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
+            //x -= x % 33;
+            //y -= y % 33;
+
             switch (dirMode)
             {
                 case 0:
@@ -363,6 +366,9 @@ namespace my
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
+
+            //grad.SetColor (1, 1, 1, 1);
+            //grad.SetColor2(0, 0, 0, 1);
 
             return;
         }

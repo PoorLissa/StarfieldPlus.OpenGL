@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using my;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using static OpenGL.GL;
@@ -32,7 +33,7 @@ public class myScreenGradient : myPrimitive
         tBegin = DateTime.Now.Ticks;
 
         _mode = mode < 0
-            ? new System.Random().Next(2)
+            ? new System.Random().Next(7)
             : mode;
 
         // Initial opacity is 1
@@ -173,14 +174,9 @@ public class myScreenGradient : myPrimitive
         string vertMain =
             "gl_Position = vec4(pos, 1.0);";
 
-        // Gradient appears to be banded (distinct steps of color can be seen)
-        // To avoid that, use dithering: https://shader-tutorial.dev/advanced/color-banding-dithering/
-
         string fragHead =
             $@" out vec4 result;
                 uniform vec4 myColor1; uniform vec4 myColor2; uniform float uTime; uniform float myOpacity;
-                float hInv = { 1.0 / Height };
-                float wInv = { 1.0 / Width  };
                 {myShaderHelpers.Generic.noiseFunc12_v1}
                 {myShaderHelpers.Generic.randFunc}
             ";
@@ -215,11 +211,12 @@ public class myScreenGradient : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Gradient appears to be banded (distinct color steps can be seen)
+    // To avoid that, use dithering: https://shader-tutorial.dev/advanced/color-banding-dithering/
     private static string getMainFunc()
     {
         string res = null;
-
-        _mode = 0;
+        string addNoise = "mixValue *= 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;";
 
         switch (_mode)
         {
@@ -227,38 +224,67 @@ public class myScreenGradient : myPrimitive
             case 0:
                 {
                     res =
-                        $@"vec2 st = vec2(0, gl_FragCoord.y * hInv);
-
+                        $@"vec2 st = vec2(0, gl_FragCoord.y * { 1.0 / Height });
                         float mixValue = distance(st, vec2(0, 1));
-                        float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
+                        { addNoise }
+                    ";
+                }
+                break;
 
-                        //float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue * sin(uTime)) * 0.1;
-                        float noise = 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;
-                        mixValue *= noise;
+            // Simple horizontal gradient
+            case 1:
+                {
+                    res =
+                        $@"vec2 st = vec2(gl_FragCoord.x * { 1.0 / Width }, 0);
+                        float mixValue = distance(st, vec2(1, 0));
+                        { addNoise }
+                    ";
+                }
+                break;
 
-                        vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
-                        result = vec4(color, myOpacity);
+            // Simple vertical gradient (central)
+            case 2:
+                {
+                    res =
+                        $@"vec2 st = vec2(0, gl_FragCoord.y * { 2.0 / Height });
+                        float mixValue = distance(st, vec2(0.2, 0.95));
+                        { addNoise }
+                    ";
+                }
+                break;
+
+            // Simple horizontal gradient (central)
+            case 3:
+                {
+                    res =
+                        $@"vec2 st = vec2(gl_FragCoord.x * { 2.0 / Width }, 0);
+                        float mixValue = distance(st, vec2(0.95, 0.2));
+                        { addNoise }
                     ";
                 }
                 break;
 
             // Randomized gradient
-            case 1:
+            case 4:
+            case 5:
                 {
-                    var r = new System.Random();
+                    var rnd = new System.Random();
 
                     res =
-                        $@"vec2 st = vec2(gl_FragCoord.x * wInv, gl_FragCoord.y * hInv);
+                        $@"vec2 st = vec2(gl_FragCoord.x * { 1.0 / Width }, gl_FragCoord.y * { 1.0 / Height } );
+                        float mixValue = distance(st, vec2({myUtils.randFloat(rnd)}, {myUtils.randFloat(rnd)}));
+                        { addNoise }
+                    ";
+                }
+                break;
 
-                        float mixValue = distance(st, vec2({myUtils.randFloat(r)}, {myUtils.randFloat(r)}));
-                        float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
-
-                        //float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
-                        float noise = 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;
-                        mixValue *= noise;
-
-                        vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
-                        result = vec4(color, myOpacity);
+            // Radial gradient 
+            case 6:
+                {
+                    res =
+                        $@"vec2 st = vec2(gl_FragCoord.x * { 2.0 / Width }, gl_FragCoord.y * { 2.0 / Height } );
+                        float mixValue = distance(st, vec2(1, 1));
+                        { addNoise }
                     ";
                 }
                 break;
@@ -268,7 +294,8 @@ public class myScreenGradient : myPrimitive
                 break;
         }
 
-        return res;
+        return res + @"vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
+                       result = vec4(color, myOpacity);";
     }
 
     // -------------------------------------------------------------------------------------------------------------------
