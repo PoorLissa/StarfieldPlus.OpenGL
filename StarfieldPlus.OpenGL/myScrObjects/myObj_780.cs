@@ -14,14 +14,14 @@ namespace my
     public class myObj_780 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 9910;
 		public static System.Type Type => typeof(myObj_780);
 
         private int cnt;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, dirMode = 0, maxSize = 0;
         private static bool doFillShapes = false, doRotate = false;
         private static float maxSpeed = 1;
 
@@ -69,6 +69,9 @@ namespace my
             doRotate = myUtils.randomChance(rand, 1, 2);
 
             maxSpeed = myUtils.randFloat(rand, 0.1f) * 0.5f;
+            maxSize = 3 + rand.Next(11);
+
+            dirMode = rand.Next(7);
 
             renderDelay = 0;
 
@@ -89,6 +92,8 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doRotate = {doRotate}\n"               +
+                            $"dirMode = {dirMode}\n"                 +
+                            $"maxSize = {maxSize}\n"                 +
                             $"maxSpeed = {fStr(maxSpeed)}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -111,10 +116,25 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            dx = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
-            dy = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
+            switch (dirMode)
+            {
+                case 0:
+                    dx = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
+                    dy = 0;
+                    break;
 
-            size = rand.Next(11) + 3;
+                case 1:
+                    dx = 0;
+                    dy = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
+                    break;
+
+                default:
+                    dx = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
+                    dy = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
+                    break;
+            }
+
+            size = rand.Next(maxSize) + 3;
 
             angle = myUtils.randFloat(rand) * rand.Next(123);
 
