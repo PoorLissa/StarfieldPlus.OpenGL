@@ -15,10 +15,10 @@ public class myScreenGradient : myPrimitive
     private static float[] vertices = null;
 
     private float _r1, _g1, _b1, _a1;
+    private float _opacity;
 
     // Uniform ids:
-    private static int _myColor1 = 0, _myColor2 = 0;
-    private static int _uTime = 0;
+    private static int loc_myColor1 = 0, loc_myColor2 = 0, loc_uTime = 0, loc_myOpacity = 0;
 
     private static int verticesLength = 12;
     private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
@@ -35,6 +35,9 @@ public class myScreenGradient : myPrimitive
             ? new System.Random().Next(2)
             : mode;
 
+        // Initial opacity is 1
+        _opacity = 1.0f;
+
         if (vertices == null)
         {
             vertices = new float[verticesLength];
@@ -43,9 +46,10 @@ public class myScreenGradient : myPrimitive
             glUseProgram(shaderProgram);
 
             // Uniforms
-            _uTime    = glGetUniformLocation(shaderProgram, "uTime");
-            _myColor1 = glGetUniformLocation(shaderProgram, "myColor1");
-            _myColor2 = glGetUniformLocation(shaderProgram, "myColor2");
+            loc_uTime     = glGetUniformLocation(shaderProgram, "uTime");
+            loc_myOpacity = glGetUniformLocation(shaderProgram, "myOpacity");
+            loc_myColor1  = glGetUniformLocation(shaderProgram, "myColor1");
+            loc_myColor2  = glGetUniformLocation(shaderProgram, "myColor2");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();
@@ -76,6 +80,13 @@ public class myScreenGradient : myPrimitive
         _g1 = g;
         _b1 = b;
         _a1 = a;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void SetOpacity(float a)
+    {
+        _opacity = a;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -121,11 +132,10 @@ public class myScreenGradient : myPrimitive
 
         // Update uniforms:
         {
-            glUniform4f(_myColor1, _r, _g, _b, _a);
-            glUniform4f(_myColor2, _r1, _g1, _b1, _a1);
-
-            // Update uniforms:
-            glUniform1f(_uTime, (float)(TimeSpan.FromTicks(DateTime.Now.Ticks - tBegin).TotalSeconds));
+            glUniform4f(loc_myColor1, _r, _g, _b, _a);
+            glUniform4f(loc_myColor2, _r1, _g1, _b1, _a1);
+            glUniform1f(loc_uTime, (float)(TimeSpan.FromTicks(DateTime.Now.Ticks - tBegin).TotalSeconds));
+            glUniform1f(loc_myOpacity, _opacity);
         }
 
         // Move vertices data from CPU to GPU
@@ -140,15 +150,14 @@ public class myScreenGradient : myPrimitive
                     glBufferData(GL_ARRAY_BUFFER, sizeofFloat_x_verticesLength, v, GL_STREAM_DRAW);
             }
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeofFloat_x_3, NULL);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeofFloat_x_3, null);
             glEnableVertexAttribArray(0);
-
 
             // Draw
             {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null);
             }
         }
     }
@@ -169,9 +178,9 @@ public class myScreenGradient : myPrimitive
 
         string fragHead =
             $@" out vec4 result;
-                uniform vec4 myColor1; uniform vec4 myColor2; uniform float uTime;
+                uniform vec4 myColor1; uniform vec4 myColor2; uniform float uTime; uniform float myOpacity;
                 float hInv = { 1.0 / Height };
-                float wInv = { 1.0 / Width };
+                float wInv = { 1.0 / Width  };
                 {myShaderHelpers.Generic.noiseFunc12_v1}
                 {myShaderHelpers.Generic.randFunc}
             ";
@@ -200,10 +209,8 @@ public class myScreenGradient : myPrimitive
 
             fixed (uint* i = &indicesFill[0])
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, usage);
-
-            // Unbind current buffer
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -212,22 +219,26 @@ public class myScreenGradient : myPrimitive
     {
         string res = null;
 
+        _mode = 0;
+
         switch (_mode)
         {
             // Simple vertical gradient
             case 0:
                 {
-                    res = $@"vec2 st = vec2(0, gl_FragCoord.y * hInv);
+                    res =
+                        $@"vec2 st = vec2(0, gl_FragCoord.y * hInv);
 
-                    float mixValue = distance(st, vec2(0, 1));
-                    float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
+                        float mixValue = distance(st, vec2(0, 1));
+                        float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
 
-                    //float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue * sin(uTime)) * 0.1;
-                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;
-                    mixValue *= noise;
+                        //float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue * sin(uTime)) * 0.1;
+                        float noise = 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;
+                        mixValue *= noise;
 
-                    vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
-                    result = vec4(color, 1);";
+                        vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
+                        result = vec4(color, myOpacity);
+                    ";
                 }
                 break;
 
@@ -236,17 +247,19 @@ public class myScreenGradient : myPrimitive
                 {
                     var r = new System.Random();
 
-                    res = $@"vec2 st = vec2(gl_FragCoord.x * wInv, gl_FragCoord.y * hInv);
+                    res =
+                        $@"vec2 st = vec2(gl_FragCoord.x * wInv, gl_FragCoord.y * hInv);
 
-                    float mixValue = distance(st, vec2({myUtils.randFloat(r)}, {myUtils.randFloat(r)}));
-                    float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
+                        float mixValue = distance(st, vec2({myUtils.randFloat(r)}, {myUtils.randFloat(r)}));
+                        float randValue = rand(gl_FragCoord.x + gl_FragCoord.y);
 
-                    //float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
-                    float noise = 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;
-                    mixValue *= noise;
+                        //float noise = 0.9 + noise12_v1(gl_FragCoord.xy * randValue) * 0.1;
+                        float noise = 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;
+                        mixValue *= noise;
 
-                    vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
-                    result = vec4(color, 1);";
+                        vec3 color = mix(myColor1.xyz, myColor2.xyz, mixValue);
+                        result = vec4(color, myOpacity);
+                    ";
                 }
                 break;
 

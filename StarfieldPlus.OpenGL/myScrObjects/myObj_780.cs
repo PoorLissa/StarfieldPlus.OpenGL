@@ -5,9 +5,6 @@ using System.Collections.Generic;
 
 /*
     - Instanced shapes in a large quantity revealing an underlying image
-
-    todo:
-        Test rendering instanced primitives more than once pef frame (see Process func for that)
 */
 
 
@@ -16,6 +13,11 @@ namespace my
     public class myObj_780 : myObject
     {
         // Priority
+
+        // todo:
+        // Test rendering instanced primitives more than once pef frame(see Process func for that)
+
+
         public static int Priority => 999933;
 		public static System.Type Type => typeof(myObj_780);
 
@@ -244,6 +246,11 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
+            if (doClearBuffer == false)
+            {
+                grad.SetOpacity(0.25f);
+            }
+
             while (list.Count < N)
             {
                 list.Add(new myObj_780());
@@ -268,7 +275,7 @@ namespace my
                     }
                     else
                     {
-                        dimScreen(0.05f);
+                        grad.Draw();
                     }
                 }
 
