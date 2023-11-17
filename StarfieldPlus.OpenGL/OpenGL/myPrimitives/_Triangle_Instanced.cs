@@ -12,9 +12,13 @@ public class myTriangleInst : myInstancedPrimitive
     private static float[] vertices = null;
 
     private static uint shaderProgram = 0, instVbo = 0, triVbo = 0;
-    private static int locationColor = 0, locationRotateMode = 0;
+    private static int loc_myColor = 0, loc_myRttMode = 0;
 
     private int rotationMode;
+
+    private static int instArrayStride = 0;
+    private static int verticesStride = 0;
+    private static int verticesBufferSize = 0;
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -32,6 +36,15 @@ public class myTriangleInst : myInstancedPrimitive
             vertices = new float[9];
             instanceArray = new float[maxInstCount * n];
 
+            // Precalculated stride value to use in updateInstances()
+            instArrayStride = n * sizeof(float);
+
+            // Precalculated stride value to use in updateVertices()
+            verticesStride = 3 * sizeof(float);
+
+            // Precalculated vertices buffer size
+            verticesBufferSize = sizeof(float) * vertices.Length;
+
             for (int i = 0; i < 9; i++)
                 vertices[i] = 0.0f;
 
@@ -46,8 +59,8 @@ public class myTriangleInst : myInstancedPrimitive
             shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
 
-            locationColor      = glGetUniformLocation(shaderProgram, "myColor");
-            locationRotateMode = glGetUniformLocation(shaderProgram, "myRttMode");
+            loc_myColor   = glGetUniformLocation(shaderProgram, "myColor");
+            loc_myRttMode = glGetUniformLocation(shaderProgram, "myRttMode");
 
             instVbo = glGenBuffer();
             triVbo  = glGenBuffer();
@@ -64,8 +77,10 @@ public class myTriangleInst : myInstancedPrimitive
         updateVertices();
 
         glUseProgram(shaderProgram);
-        setColor(locationColor, _r, _g, _b, _a);
-        glUniform1i(locationRotateMode, rotationMode);
+
+        // Set uniforms
+        glUniform4f(loc_myColor, _r, _g, _b, _a);
+        glUniform1i(loc_myRttMode, rotationMode);
 
         // Draw only outline or fill the whole polygon with color
         glPolygonMode(GL_FRONT_AND_BACK, doFill ? GL_FILL : GL_LINE);
@@ -98,28 +113,29 @@ public class myTriangleInst : myInstancedPrimitive
                     vec2 sc = vec2(sin(mData[0].w), cos(mData[0].w));
 
                     // Rotate
-                    float x = pos.x * sc.y - pos.y * sc.x;
-                    float y = pos.y * sc.y + pos.x * sc.x;
+                    vec2 p = vec2(pos.x * sc.y - pos.y * sc.x, pos.y * sc.y + pos.x * sc.x);
 
                     // Additional pseudo-3d rotation:
                     switch (myRttMode)
                     {{
-                        case 1: x *= sc.x; break;
-                        case 2: y *= sc.y; break;
-                        case 3: x *= sc.x;
-                                y *= sc.y; break;
+                        case 1: p.x *= sc.x; break;
+                        case 2: p.y *= sc.y; break;
+                        case 3: p.x *= sc.x;
+                                p.y *= sc.y; break;
                     }}
 
-                    gl_Position = vec4(x * realSizeX, y * realSizeY, 1.0, 1.0);
+                    gl_Position = vec4(p.x * realSizeX, p.y * realSizeY, 1.0, 1.0);
                 }}
 
-                // Adjust for pixel density and move into final position
+                // Adjust for pixel density and move into the final position
                 gl_Position.x += { +2.0 / Width  } * mData[0].x - 1.0;
                 gl_Position.y += { -2.0 / Height } * mData[0].y + 1.0;
             ";
 
         string fragHead =
-            "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;";
+            @"in vec4 rgbaColor; out vec4 result;
+                uniform vec4 myColor;
+            ";
 
         string fragMain =
             @"  result = rgbaColor;
@@ -176,17 +192,17 @@ public class myTriangleInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // todo: check later, if it is possible to do this only once
     private unsafe void updateVertices()
     {
         glBindBuffer(GL_ARRAY_BUFFER, triVbo);
         {
-            fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_DYNAMIC_DRAW);
+            fixed (float* arrPtr = &vertices[0])
+                glBufferData(GL_ARRAY_BUFFER, verticesBufferSize, arrPtr, GL_DYNAMIC_DRAW);
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), NULL);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, verticesStride, null);
             glEnableVertexAttribArray(0);
         }
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -201,21 +217,20 @@ public class myTriangleInst : myInstancedPrimitive
             // Copy data to GPU:
             glBindBuffer(GL_ARRAY_BUFFER, instVbo);
             {
-                fixed (float* a = &instanceArray[0])
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, a, GL_DYNAMIC_COPY);
+                fixed (float* arrPtr = &instanceArray[0])
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, arrPtr, GL_DYNAMIC_COPY);
 
                 glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 4, GL_FLOAT, false, n * sizeof(float), NULL);
+                glVertexAttribPointer(1, 4, GL_FLOAT, false, instArrayStride, null);
 
                 glEnableVertexAttribArray(2);
-                glVertexAttribPointer(2, 4, GL_FLOAT, false, n * sizeof(float), new IntPtr(1 * 4 * sizeof(float)));
+                glVertexAttribPointer(2, 4, GL_FLOAT, false, instArrayStride, new IntPtr(1 * 4 * sizeof(float)));
 
                 // Tell OpenGL this is an instanced vertex attribute
                 glVertexAttribDivisor(1, 1);
                 glVertexAttribDivisor(2, 1);
-
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
             }
+            //glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 
         return;

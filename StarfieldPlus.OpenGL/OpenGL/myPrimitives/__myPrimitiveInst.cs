@@ -26,7 +26,9 @@ public class myInstancedPrimitive : myPrimitive
     {
         instArrayPosition = 0;
         N = 0;
-        n = 0;
+
+        // Number of elements in [instanceArray] that define one single instance
+        n = 0;  
 
         pixelX = 1.0f / Width;
         pixelY = 1.0f / Height;
