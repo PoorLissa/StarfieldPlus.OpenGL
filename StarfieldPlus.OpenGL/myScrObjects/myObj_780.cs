@@ -50,7 +50,7 @@ namespace my
             {
                 N = colorPicker.getMode() < 2
                     ? 100000 + rand.Next(333000)        // for a picture
-                    :  50000 + rand.Next(75000);        // for a non-picture
+                    :  50000 + rand.Next(50000);        // for a non-picture
 
                 shape = rand.Next(5);
             }
