@@ -1,11 +1,10 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
 
 
 /*
-    - Instanced triangles test
+    - Instanced shapes in a large quantity revealing an underlying image
 */
 
 
@@ -14,7 +13,7 @@ namespace my
     public class myObj_780 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 33;
 		public static System.Type Type => typeof(myObj_780);
 
         private int cnt;
@@ -143,7 +142,7 @@ namespace my
                 : 0;
 
             A = myUtils.randFloat(rand) * 0.85f;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            colorPicker.getColorSafe(x, y, ref R, ref G, ref B);
 
             cnt = 111 + rand.Next(333);
 

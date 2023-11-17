@@ -226,6 +226,18 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        // Get color at a point, as float R-G-B ([0..1]-[0..1]-[0..1])
+        public void getColorSafe(float x, float y, ref float R, ref float G, ref float B)
+        {
+            getColorSafe((int)x, (int)y, ref gl_r, ref gl_g, ref gl_b);
+
+            R = gl_r * color255f;
+            G = gl_g * color255f;
+            B = gl_b * color255f;
+        }
+
+        // -------------------------------------------------------------------------
+
         // Get average color at a rectangle, as float R-G-B ([0..1]-[0..1]-[0..1])
         public void getColorAverage(float x, float y, int width, int height, ref float R, ref float G, ref float B)
         {
@@ -236,15 +248,17 @@ namespace my
                 for (int j = 0; j < height; j++)
                 {
                     getColor((int)x + i, (int)y + j, ref gl_r, ref gl_g, ref gl_b);
-                    R += gl_r * color255f;
-                    G += gl_g * color255f;
-                    B += gl_b * color255f;
+                    R += gl_r;
+                    G += gl_g;
+                    B += gl_b;
                 }
             }
 
-            R /= (width * height);
-            G /= (width * height);
-            B /= (width * height);
+            float factor = color255f / (width * height);
+
+            R *= factor;
+            G *= factor;
+            B *= factor;
         }
 
         // -------------------------------------------------------------------------
@@ -330,6 +344,77 @@ namespace my
                     if (_img != null)
                     {
                         fixCoordinates(ref x, ref y);
+                        var pixel = _img.GetPixel(x, y);
+
+                        R = pixel.R;
+                        G = pixel.G;
+                        B = pixel.B;
+                    }
+                    break;
+
+                // Shades of Gray
+                default:
+                    R = _rand.Next(256);
+                    G = R;
+                    B = G;
+                    break;
+            }
+
+            return;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Get color at a point, as R-G-B
+        // The same as getColor, but does not perform coordinates check (assumes the coordinates are valid)
+        public void getColorSafe(int x, int y, ref int R, ref int G, ref int B)
+        {
+            switch (_mode)
+            {
+                // Get Color from Snapshot
+                case 0:
+                // Get Color from custom image
+                case 1:
+
+                    if (_img != null)
+                    {
+                        var pixel = _img.GetPixel(x, y);
+
+                        R = pixel.R;
+                        G = pixel.G;
+                        B = pixel.B;
+                    }
+                    break;
+
+                // Single Random Color -- to get different shades of this color, use Alpha channel
+                case 2:
+
+                    // Run once per session
+                    if (gl_R < 0 && gl_G < 0 && gl_B < 0)
+                    {
+                        while (gl_R + gl_G + gl_B < 500)
+                        {
+                            gl_R = _rand.Next(256);
+                            gl_G = _rand.Next(256);
+                            gl_B = _rand.Next(256);
+                        }
+                    }
+
+                    R = gl_R;
+                    G = gl_G;
+                    B = gl_B;
+                    break;
+
+                // Random Color (of 6 different types)
+                // todo: See if someting like that could be implemented: https://color.adobe.com/create/color-wheel
+                case 3:
+                    getRandomColor(ref R, ref G, ref B);
+                    break;
+
+                // Custom texture
+                case 4:
+                    if (_img != null)
+                    {
                         var pixel = _img.GetPixel(x, y);
 
                         R = pixel.R;
