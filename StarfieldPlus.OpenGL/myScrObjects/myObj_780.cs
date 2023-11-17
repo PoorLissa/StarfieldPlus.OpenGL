@@ -13,12 +13,7 @@ namespace my
     public class myObj_780 : myObject
     {
         // Priority
-
-        // todo:
-        // Test rendering instanced primitives more than once pef frame(see Process func for that)
-
-
-        public static int Priority => 999933;
+        public static int Priority => 33;
 		public static System.Type Type => typeof(myObj_780);
 
         private int cnt;
@@ -72,7 +67,7 @@ namespace my
             doFillShapes = myUtils.randomChance(rand, 1, 3);
             doRotate = myUtils.randomChance(rand, 1, 2);
 
-            maxSpeed = myUtils.randFloat(rand, 0.1f) * 0.5f;
+            maxSpeed = myUtils.randFloat(rand, 0.1f) * (myUtils.randomChance(rand, 4, 5)  ? 0.5f : 1.0f);
             maxSize = 3 + rand.Next(11);
 
             dirMode = rand.Next(7);
@@ -283,7 +278,7 @@ namespace my
                 }
 
                 // Render Frame
-#if false
+#if !false
                 // Render instanced primitives several times per frame (test this)
                 {
                     inst.ResetBuffer();
@@ -297,7 +292,7 @@ namespace my
                         obj.Show();
                         obj.Move();
 
-                        if (++itemCnt == 100000)
+                        if (++itemCnt == 10000)
                         {
                             if (doFillShapes)
                             {
