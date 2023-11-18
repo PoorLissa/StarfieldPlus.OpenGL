@@ -13,7 +13,7 @@ namespace my
     public class myObj_400 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 11;
 		public static System.Type Type => typeof(myObj_400);
 
         private int dir, size, cnt;
@@ -21,8 +21,10 @@ namespace my
         private float A;
 
         private static int N = 0, maxCnt = 0, maxSize = 0, mode = 0;
+        private static float speedFactor = 1.0f;
 
-        static myTexRectangle tex = null;
+        private static myTexRectangle tex = null;
+        private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -52,8 +54,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = false;
+            doClearBuffer = myUtils.randomChance(rand, 2, 7);
 
             mode = rand.Next(11);
             maxCnt = rand.Next(333) + 100;
@@ -61,7 +62,9 @@ namespace my
                 ? rand.Next(50) + 1
                 : rand.Next(10) + 1;
 
-            renderDelay = rand.Next(20);
+            speedFactor = 0.25f + myUtils.randFloat(rand) * 0.75f;
+
+            renderDelay = 1;
 
             return;
         }
@@ -73,15 +76,16 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = {Type}\n\n"                         	+
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"mode = {mode}\n"                          +
-                            $"doClearBuffer = {doClearBuffer}\n"        +
-                            $"maxCnt = {maxCnt}\n"                      +
-                            $"maxSize = {maxSize}\n"                    +
-                            $"renderDelay = {renderDelay}\n"            +
+            string str = $"Obj = {Type}\n\n"                         +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"mode = {mode}\n"                       +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"maxCnt = {maxCnt}\n"                   +
+                            $"maxSize = {maxSize}\n"                 +
+                            $"speedFactor = {fStr(speedFactor)}\n"   +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -132,8 +136,8 @@ namespace my
 
             size = rand.Next(maxSize) + 1;
 
-            dx = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
-            dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1);
+            dx = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1) * speedFactor;
+            dy = myUtils.randFloat(rand, 0.1f) * (rand.Next(5) + 1) * speedFactor;
 
             A = myUtils.randFloat(rand, 0.1f);
 
@@ -274,6 +278,7 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
+                        grad.Draw();
                     }
                     else
                     {
@@ -312,6 +317,9 @@ namespace my
             myPrimitive.init_ScrDimmer();
 
             tex = new myTexRectangle(colorPicker.getImg());
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f, 0);
 
             return;
         }
