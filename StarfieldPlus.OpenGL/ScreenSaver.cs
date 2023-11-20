@@ -177,6 +177,7 @@ public class ScreenSaver
         register(my.myObj_760.Type);      // Points randomly travelling over a graph
         register(my.myObj_770.Type);      // Bubbles through mutually repellent particles
         register(my.myObj_780.Type);      // Instanced shapes in a large quantity revealing an underlying image
+        register(my.myObj_790.Type);      // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
