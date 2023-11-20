@@ -12,6 +12,10 @@ using System.Collections.Generic;
         For the current particle, get its x % cellSize and y % cellSize => cellId
         For that cellId, find all neighbouring cells
         For every such neighbour, check its child particles vs the current one
+
+    3. Check this out, it looks promising (quad trees etc, people boast 100k particles intercations):
+       And even more in pt. 5: Loose/Tight Double-Grid With 500k Agents
+        https://stackoverflow.com/questions/41946007/efficient-and-well-explained-implementation-of-a-quadtree-for-2d-collision-det
 */
 
 
