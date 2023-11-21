@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Two-point swaps
 */
 
 
@@ -14,7 +14,7 @@ namespace my
     public class myObj_790 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_790);
 
         private float x, y, rad;
@@ -22,7 +22,7 @@ namespace my
 
         private static int N = 0, shape = 0, Size = 8;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, t = 0, dt = 0;
+        private static float dimAlpha = 0.15f, t = 0, dt = 0;
 
         private static myScreenGradient grad = null;
         private static myFreeShader shader = null;
@@ -46,7 +46,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 1000;
+                N = 2000;
 
                 shape = rand.Next(5);
             }
@@ -60,7 +60,6 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = true;
 
             t = 0;
             dt = 0.01f;
@@ -109,7 +108,7 @@ namespace my
             rad = 10 + rand.Next(66);
 
             phase = 0;
-            dPhase = myUtils.randFloatSigned(rand, 0.1f) * 0.01f;
+            dPhase = myUtils.randFloatSigned(rand, 0.1f) * 0.0123f;
 
             size = Size;
 
@@ -140,7 +139,6 @@ namespace my
             shader.SetColor(R, G, B, A);
             shader.Draw(x1, y, size, size, 10);
             shader.Draw(x2, y, size, size, 10);
-
             return;
 
             switch (shape)
@@ -260,8 +258,8 @@ namespace my
                     inst.Draw(false);
                 }
 
-                //if (Count < N && myUtils.randomChance(rand, 1, 111))
-                if (Count < N)
+                if (Count < N && myUtils.randomChance(rand, 1, 111))
+                //if (Count < N)
                 {
                     list.Add(new myObj_790());
                 }
