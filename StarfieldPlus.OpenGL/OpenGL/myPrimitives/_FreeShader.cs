@@ -157,10 +157,8 @@ public class myFreeShader : myPrimitive
                 fHeader = $@"
                           out vec4 result;
                           in vec4 Pos;
-                          uniform float uTime;
-                          uniform vec4 myColor;
-                          vec2 iResolution = vec2({Width}, {Height});
-                          vec2 aspect = vec2(1.0, {1.0 * Height / Width});
+                          uniform float uTime; uniform vec4 myColor;
+                          vec2 iResolution = vec2({Width}, {Height}); vec2 aspect = vec2(1.0, {1.0 * Height / Width});
                 ";
             }
             else
@@ -169,10 +167,8 @@ public class myFreeShader : myPrimitive
                 fHeader = $@"
                     out vec4 result;
                     in vec4 Pos;
-                    uniform float uTime;
-                    uniform vec4 myColor;
-                    vec2 iResolution = vec2({Width}, {Height});
-                    vec2 aspect = vec2(1.0, {1.0 * Height / Width});
+                    uniform float uTime; uniform vec4 myColor;
+                    vec2 iResolution = vec2({Width}, {Height}); vec2 aspect = vec2(1.0, {1.0 * Height / Width});
                     {fHeader}
                 ";
             }
