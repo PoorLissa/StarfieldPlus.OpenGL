@@ -182,6 +182,7 @@
     <Compile Include="OpenGL\myPrimitives\_Pentagon.cs" />
     <Compile Include="OpenGL\myPrimitives\_Ellipse_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_FreeShader_FullScreen.cs" />
+    <Compile Include="OpenGL\myPrimitives\_TexEllipse.cs" />
     <Compile Include="OpenGL\myPrimitives\_TexRectangle_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_ScreenGradient.cs" />
     <Compile Include="OpenGL\myPrimitives\_ScreenDimmer.cs" />
