@@ -92,6 +92,13 @@ public class myScreenGradient : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    public float GetOpacity()
+    {
+        return _opacity;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     // Set random RGB gradient colors
     public void SetRandomColors(System.Random r, float factor, int mode)
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using static OpenGL.GL;
 
 
 
@@ -10,14 +11,14 @@ namespace my
     {
         private static Random _rand = null;
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public static void setRand(Random r)
         {
             _rand = r;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Randomly return +1 or -1
         public static int randomSign(Random r)
@@ -25,7 +26,7 @@ namespace my
             return r.Next(2) == 0 ? 1 : -1;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Return +1 or -1, depending on the argument sign
         public static int signOf(int arg, bool reversed = false)
@@ -35,7 +36,7 @@ namespace my
                 : arg >= 0 ? +1 : -1;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Return +1 or -1, depending on the argument sign
         public static float signOf(float arg, bool reversed = false)
@@ -45,21 +46,21 @@ namespace my
                 : arg >= 0 ? +1 : -1;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public static float randFloat(Random r, float min = 0.0f)
         {
             return (float)r.NextDouble() + min;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public static float randFloatSigned(Random r, float min = 0.0f)
         {
             return (float)(r.NextDouble() + min) * (r.Next(2) == 0 ? 1 : -1);
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Randomly return -1, 0 or +1
         public static int random101(Random r)
@@ -67,7 +68,7 @@ namespace my
             return r.Next(3) - 1;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Randomly return true or false
         public static bool randomBool(Random r)
@@ -75,7 +76,7 @@ namespace my
             return r.Next(2) == 0;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Randomly return a chance: [min] out of [max]
         public static bool randomChance(Random r, int min, int max)
@@ -83,7 +84,7 @@ namespace my
             return r.Next(max) < min;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public static float getRandomNum(float min, float max, float step, Random r)
         {
@@ -94,7 +95,7 @@ namespace my
             return r.Next(2) == 0 ? 1 : -1;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public static void getRandomColor(Random r, ref float R, ref float G, ref float B, float min)
         {
@@ -107,7 +108,7 @@ namespace my
             while (R + G + B < min);
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         public static void swap<Type>(ref Type a, ref Type b)
         {
@@ -118,7 +119,7 @@ namespace my
             return;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
         // Get gradiend background
         public static Bitmap getGradientBgr(ref Random rand, int width, int height)
@@ -162,7 +163,33 @@ namespace my
             return bmp;
         }
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------
 
+        // Read a pixel from the current frame buffer
+        public static unsafe void readPixel(int x, int y)
+        {
+            float[] pixel = new float[4];
+
+            fixed (float* ppp = &pixel[0])
+            {
+                glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, ppp);
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Change global antializing mode
+        public static void SetAntializingMode(bool isSet)
+        {
+            if (isSet)
+            {
+                glEnable(GL_LINE_SMOOTH);
+                glEnable(GL_POLYGON_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+                glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
     };
 };

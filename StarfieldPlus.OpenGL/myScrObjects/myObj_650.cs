@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Drawing symbols using the color sampled from an image
+    - Drawing random symbols using the color sampled from an image
 */
 
 
@@ -22,6 +22,7 @@ namespace my
 
         private static int N = 0, size = 20, moveMode = 0, sizeMode = 0, angleMode = 0;
         private static float dimAlpha = 0.01f;
+        private static bool doGenerateFast = false;
 
         private static TexText tTex = null;
 
@@ -38,7 +39,12 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            int mode = -1;
+
+            if (myUtils.randomChance(rand, 1, 2))
+                mode = (int)myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
+
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode);
             list = new List<myObject>();
 
             // Global unmutable constants
@@ -54,8 +60,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = false;
+            doClearBuffer  = myUtils.randomChance(rand, 1, 3);
+            doGenerateFast = myUtils.randomChance(rand, 1, 2);
 
             switch (rand.Next(3))
             {
@@ -66,7 +72,7 @@ namespace my
 
             sizeMode = rand.Next(2);
             moveMode = rand.Next(2);
-            angleMode = rand.Next(5);
+            angleMode = rand.Next(6);
 
             renderDelay = rand.Next(31) + 3;
 
@@ -85,6 +91,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doGenerateFast = {doGenerateFast}\n"   +
                             $"size = {size}\n"                       +
                             $"moveMode = {moveMode}\n"               +
                             $"sizeMode = {sizeMode}\n"               +
@@ -125,13 +132,17 @@ namespace my
                     break;
 
                 case 3: angle = myUtils.randFloatSigned(rand) * 0.1f; break;
-                case 4: angle = myUtils.randFloatSigned(rand) * 1.0f; break;
+                case 4: angle = myUtils.randFloatSigned(rand) * 0.3f; break;
+                case 5: angle = myUtils.randFloatSigned(rand) * 1.0f; break;
             }
 
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            A = doClearBuffer ? 1.0f : myUtils.randFloat(rand, 0.1f);
+            A = doClearBuffer
+                ? myUtils.randFloat(rand, 0.5f)
+                : myUtils.randFloat(rand, 0.1f);
+
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             // Map the particle to a symbol
@@ -144,39 +155,43 @@ namespace my
 
         protected override void Move()
         {
-            generateNew();
-            return;
-
-            if (doClearBuffer)
+            if (doGenerateFast)
             {
-                if (--cnt < 0)
-                {
-                    A -= 0.01f;
-
-                    if (A < 0)
-                        generateNew();
-                }
+                generateNew();
             }
             else
             {
-                switch (moveMode)
+                if (doClearBuffer)
                 {
-                    case 0:
-                        if (--cnt < 0)
-                        {
-                            A -= 0.01f;
+                    if (--cnt < 0)
+                    {
+                        A -= 0.01f;
 
-                            if (A < 0)
-                                generateNew();
-                        }
-                        break;
-
-                    case 1:
-                        if (--cnt == 0)
-                        {
+                        if (A < 0)
                             generateNew();
-                        }
-                        break;
+                    }
+                }
+                else
+                {
+                    switch (moveMode)
+                    {
+                        case 0:
+                            if (--cnt < 0)
+                            {
+                                A -= 0.01f;
+
+                                if (A < 0)
+                                    generateNew();
+                            }
+                            break;
+
+                        case 1:
+                            if (--cnt == 0)
+                            {
+                                generateNew();
+                            }
+                            break;
+                    }
                 }
             }
 
@@ -199,6 +214,7 @@ namespace my
 
 
             clearScreenSetup(doClearBuffer, 0.1f, front_and_back: true);
+            glDrawBuffer(GL_FRONT_AND_BACK);
 
 
             while (!Glfw.WindowShouldClose(window))
@@ -213,20 +229,7 @@ namespace my
 
                 // Clear screen
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                    }
-                    else
-                    {
-                        //glDrawBuffer(false ? GL_FRONT_AND_BACK : GL_BACK);
-                        //glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
-
-                        dimScreen(dimAlpha);
-
-                        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                        //glDrawBuffer(true ? GL_FRONT_AND_BACK : GL_BACK);
-                    }
+                    dimScreen(doClearBuffer ? 0.05f : dimAlpha);
                 }
 
                 // Render Frame

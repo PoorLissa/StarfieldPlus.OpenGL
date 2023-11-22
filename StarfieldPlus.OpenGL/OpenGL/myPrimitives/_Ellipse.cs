@@ -11,7 +11,7 @@ public class myEllipse : myPrimitive
 {
     private static uint ebo = 0, vbo = 0, shaderProgram = 0;
     private static float[] vertices = null;
-    private static int locationColor = 0, locationCenter = 0, locationScrSize = 0, locationRadSq = 0, locationSize;
+    private static int loc_Color = 0, loc_Center = 0, loc_RadInfo = 0, loc_Size;
     private static float ptWidth = 0, ptHeight = 0, ptWH = 0;
 
     private float lineThickness = 0;
@@ -34,11 +34,10 @@ public class myEllipse : myPrimitive
             shaderProgram = CreateShader();
             glUseProgram(shaderProgram);
 
-            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
-            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
-            locationScrSize = glGetUniformLocation(shaderProgram, "myScrSize");
-            locationRadSq   = glGetUniformLocation(shaderProgram, "RadSq");
-            locationSize    = glGetUniformLocation(shaderProgram, "mySize");
+            loc_Color   = glGetUniformLocation(shaderProgram, "myColor");
+            loc_Center  = glGetUniformLocation(shaderProgram, "myCenter");
+            loc_RadInfo = glGetUniformLocation(shaderProgram, "radInfo");
+            loc_Size    = glGetUniformLocation(shaderProgram, "mySize");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();
@@ -55,7 +54,7 @@ public class myEllipse : myPrimitive
     // Change the thickness of the line (used only in non-filling mode)
     public void setLineThickness(float val)
     {
-        lineThickness = 2.0f * (val + 1) / Width;
+        lineThickness = 1.0f * (val + 1) / Width;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -85,11 +84,12 @@ public class myEllipse : myPrimitive
 
     public void Draw(int x, int y, int w, int h, bool doFill = false)
     {
+        int offset = 10;
+
         // Leave coordinates as they are, and recalc them in the shader
-        float fx = x;
-        float fy = y;
+        float fx = x - offset;
+        float fy = y - offset;
         float radx = ptWidth * w;
-        float radSquared = radx * radx;
 
         vertices[06] = fx;
         vertices[09] = fx;
@@ -98,11 +98,11 @@ public class myEllipse : myPrimitive
 
         // Use w for both width and height (for a circle they're equal, anyway)
 
-        fx = x + w;
+        fx = x + w + offset;
         vertices[00] = fx;
         vertices[03] = fx;
 
-        fy = y + w;
+        fy = y + w + offset;
         vertices[04] = fy;
         vertices[07] = fy;
 
@@ -110,20 +110,10 @@ public class myEllipse : myPrimitive
 
         glUseProgram(shaderProgram);
 
-        glUniform4f(locationColor, _r, _g, _b, _a);
-        glUniform2f(locationCenter, x + w/2, y + w/2);
-        glUniform3f(locationScrSize, ptWidth, ptHeight, ptWH);
-        glUniform2i(locationSize, w, h);
-
-        if (doFill)
-        {
-            glUniform3f(locationRadSq, radSquared, 0, radx);
-        }
-        else
-        {
-            // todo: [lineThickness] needs to be tested on different resolutions. Probably need some additional adjustments.
-            glUniform3f(locationRadSq, radSquared, radSquared - radx * lineThickness, radx);
-        }
+        glUniform4f(loc_Color, _r, _g, _b, _a);
+        glUniform2f(loc_Center, x + w/2, y + w/2);
+        glUniform2i(loc_Size, w, h);
+        glUniform3f(loc_RadInfo, radx, radx * radx, doFill ? 0 : lineThickness);
 
         // Draw a rectangle quad, but use the shader to hide everything except for the ellipse shape
         unsafe
@@ -141,39 +131,33 @@ public class myEllipse : myPrimitive
     {
         string vertHead =
             @"layout (location = 0) in vec3 pos;
-                uniform vec2 myCenter; uniform vec3 myScrSize; uniform ivec2 mySize;
-                out vec2 zzz;"
+                uniform vec2 myCenter; uniform ivec2 mySize;
+                out vec2 uv;"
             ;
 
         // Multiply either part of zzz in this shader by [float > 1.0f] to get an ellipse, not circle
         string vertMain =
-            @"  gl_Position.x = 2.0f * pos.x * myScrSize.x - 1.0f;
-                gl_Position.y = 1.0f - 2.0f * pos.y * myScrSize.y;
+            $@" float wInv = {2.0 / Width };
+                float hInv = {2.0 / Height};
 
-                zzz = vec2((gl_Position.x - (2.0f * myCenter.x * myScrSize.x - 1.0f)),
-                            ((gl_Position.y - (1.0f - 2.0f * myCenter.y * myScrSize.y)) * myScrSize.z));
+                gl_Position.x = pos.x * wInv - 1.0f;
+                gl_Position.y = 1.0f - pos.y * hInv;
+
+                uv = vec2((gl_Position.x - (myCenter.x * wInv - 1.0f)),
+                         ((gl_Position.y - (1.0f - myCenter.y * hInv)) * {1.0 * Height / Width}));
             ";
 
         string fragHead =
-            @"in vec2 zzz; out vec4 result;
-                uniform vec4 myColor; uniform vec3 RadSq;
-                float xySqd = zzz.x * zzz.x + zzz.y * zzz.y;
+            @"in vec2 uv; out vec4 result;
+                uniform vec4 myColor; uniform vec3 radInfo;
             ";
 
         string fragMain =
-            @"  if (xySqd <= RadSq.x)
-                {
-                    if (RadSq.y == 0.0) {
-                        result = myColor;
-                    }
-                    else {
-                        if (xySqd > RadSq.y)
-                            result = myColor;
-                    }
-                }
-                else {
-                    result = vec4(0, 0, 0, 0);
-                }
+            @"  float len = length(uv);
+                float circ = radInfo.z > 0
+                    ? 1.0 - smoothstep(0.0, radInfo.z, abs(len - radInfo.x))
+                    : smoothstep(radInfo.x, radInfo.x - 0.0025, len);
+                result = vec4(myColor.xyz, myColor.w * circ);
             ";
 
         return CreateProgram(vertHead, vertMain, fragHead, fragMain);
@@ -205,7 +189,7 @@ public class myEllipse : myPrimitive
     {
         int usage = GL_STATIC_DRAW;
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);     // bind
         {
             var indicesFill = new uint[]
             {
@@ -215,10 +199,8 @@ public class myEllipse : myPrimitive
 
             fixed (uint* i = &indicesFill[0])
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * indicesFill.Length, i, usage);
-
-            // Unbind current buffer
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);       // unbind
     }
 
     // -------------------------------------------------------------------------------------------------------------------

@@ -29,19 +29,20 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static bool doFillShapes = false, doUseCenterRepel = false,
-                            doUseBorderRepel = false, doGenerateAtCenter = false, doAddObjGradually = false, doShowConnections = false;
-        private static int x0, y0, N = 1, gravityRate = 0, maxParticles = 25, maxSize = 6;
-        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0, colorMode = 0;
-        private static float dimAlpha = 0.1f;
-
-        private static float const_f1 = 0, const_f2 = 0;
-        private static int   const_i1 = 0, const_i2 = 0;
-
         private float x, y, R, G, B, A, lineTh;
         private int shape = 0, lifeCounter = 0, lifeMax = 0, objN = 0;
 
         private List<myObj_300_Particle> structsList = null;
+
+        private static bool doFillShapes = false, doUseCenterRepel = false,
+                            doUseBorderRepel = false, doGenerateAtCenter = false, doAddObjGradually = false, doShowConnections = false;
+        private static int N = 1, gravityRate = 0, maxParticles = 25, maxSize = 6;
+        private static int shapeType = 0, moveType = 0, radiusMode = 0, fastExplosion = 0, rotationMode = 0, rotationSubMode = 0, colorMode = 0;
+
+        private static float const_f1 = 0, const_f2 = 0;
+        private static int   const_i1 = 0, const_i2 = 0;
+
+        private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -67,13 +68,10 @@ namespace my
         // One-time initialization
         private void init()
         {
-            x0 = gl_Width  / 2;
-            y0 = gl_Height / 2;
-
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
-            doClearBuffer      = myUtils.randomBool(rand);
+            doClearBuffer      = myUtils.randomChance(rand, 2, 3);
             doFillShapes       = myUtils.randomBool(rand);
             doAddObjGradually  = myUtils.randomBool(rand);
             doUseCenterRepel   = myUtils.randomChance(rand, 1, 11);
@@ -191,22 +189,27 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = {Type}\n\n"                             	+
-                            $"N = {list.Count} of {N} x {maxParticles}\n"   +
-                            $"doClearBuffer = {doClearBuffer}\n"            +
-                            $"doShowConnections = {doShowConnections}\n"    +
-                            $"moveType = {moveType}\n"                      +
-                            $"shapeType = {shapeType}\n"                    +
-                            $"rotationMode = {rotationMode}\n"              +
-                            $"rotationSubMode = {rotationSubMode}\n"        +
-                            $"colorMode = {colorMode}\n"                    +
-                            $"maxSize = {maxSize}\n"                        +
-                            $"doGenerateAtCenter = {doGenerateAtCenter}\n"  + 
-                            $"const_i1 = {const_i1}\n"                      +
-                            $"const_i2 = {const_i2}\n"                      +
-                            $"const_f1 = {const_f1}\n"                      +
-                            $"const_f2 = {const_f2}\n"                      +
-                            $"renderDelay = {renderDelay}\n"                +
+            height = 700;
+
+            string fStr(float f) { return f.ToString("0.000"); }
+
+            string str = $"Obj = {Type}\n\n"                             	              +
+                            $"N = {list.Count} of {N} x {maxParticles}\n"                 +
+                            $"doClearBuffer = {doClearBuffer}\n"                          +
+                            $"grad.Opacity = {fStr(grad.GetOpacity())}\n"                 +
+                            $"doShowConnections = {doShowConnections}\n"                  +
+                            $"moveType = {moveType}\n"                                    +
+                            $"shapeType = {shapeType}\n"                                  +
+                            $"rotationMode = {rotationMode}\n"                            +
+                            $"rotationSubMode = {rotationSubMode}\n"                      +
+                            $"colorMode = {colorMode}\n"                                  +
+                            $"maxSize = {maxSize}\n"                                      +
+                            $"doGenerateAtCenter = {doGenerateAtCenter}\n"                +
+                            $"const_i1 = {const_i1}\n"                                    +
+                            $"const_i2 = {const_i2}\n"                                    +
+                            $"const_f1 = {fStr(const_f1)}\n"                              +
+                            $"const_f2 = {fStr(const_f2)}\n"                              +
+                            $"renderDelay = {renderDelay}\n"                              +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -262,8 +265,8 @@ namespace my
                 // Generate every particle the the center of the screen or at the position of our object
                 if (doGenerateAtCenter)
                 {
-                    obj.x = x0;
-                    obj.y = y0;
+                    obj.x = gl_x0;
+                    obj.y = gl_y0;
 
                     if (moveType == 6)
                     {
@@ -540,12 +543,12 @@ namespace my
                         // Vertical oscillation -- global
                         case 39:
                             obj.dx *= 0.75f;
-                            obj.dy += (rand.Next(10) + 1) * (obj.y > y0 ? -0.1f : 0.1f);
+                            obj.dy += (rand.Next(10) + 1) * (obj.y > gl_y0 ? -0.1f : 0.1f);
                             break;
 
                         // Horizontal oscillation -- global
                         case 40:
-                            obj.dx += (rand.Next(10) + 1) * (obj.x > x0 ? -0.1f : 0.1f);
+                            obj.dx += (rand.Next(10) + 1) * (obj.x > gl_x0 ? -0.1f : 0.1f);
                             obj.dy *= 0.75f;
                             break;
 
@@ -553,13 +556,13 @@ namespace my
                         case 41:
                             if (doGenerateAtCenter)
                             {
-                                obj.dx += (rand.Next(1111) + 1) * (obj.x > x0 ? -0.01f : 0.01f);
-                                obj.dy += (rand.Next(1111) + 1) * (obj.y > y0 ? -0.01f : 0.01f);
+                                obj.dx += (rand.Next(1111) + 1) * (obj.x > gl_x0 ? -0.01f : 0.01f);
+                                obj.dy += (rand.Next(1111) + 1) * (obj.y > gl_y0 ? -0.01f : 0.01f);
                             }
                             else
                             {
-                                obj.dx += (rand.Next(100) + 1) * (obj.x > x0 ? -0.01f : 0.01f);
-                                obj.dy += (rand.Next(100) + 1) * (obj.y > y0 ? -0.01f : 0.01f);
+                                obj.dx += (rand.Next(100) + 1) * (obj.x > gl_x0 ? -0.01f : 0.01f);
+                                obj.dy += (rand.Next(100) + 1) * (obj.y > gl_y0 ? -0.01f : 0.01f);
                             }
                             renderDelay = 11;
                             break;
@@ -752,14 +755,14 @@ namespace my
                     {
                         float radius = 500.0f;
 
-                        if (obj.x > x0 - radius && obj.x < x0 + radius && obj.y > y0 - radius && obj.y < y0 + radius)
+                        if (obj.x > gl_x0 - radius && obj.x < gl_x0 + radius && obj.y > gl_y0 - radius && obj.y < gl_y0 + radius)
                         {
-                            float distSq = (x0 - obj.x) * (x0 - obj.x) + (y0 - obj.y) * (y0 - obj.y);
+                            float distSq = (gl_x0 - obj.x) * (gl_x0 - obj.x) + (gl_y0 - obj.y) * (gl_y0 - obj.y);
 
                             if (distSq < radius*radius)
                             {
-                                float dx = (obj.x - x0) / (distSq / 2 / radius);
-                                float dy = (obj.y - y0) / (distSq / 2 / radius);
+                                float dx = (obj.x - gl_x0) / (distSq / 2 / radius);
+                                float dy = (obj.y - gl_y0) / (distSq / 2 / radius);
 
                                 obj.x += dx;
                                 obj.y += dy;
@@ -951,22 +954,21 @@ namespace my
                 list.Add(new myObj_300());
             }
 
-            dimScreenRGB_SetRandom(0.1f);
 
-            if (doClearBuffer)
+            clearScreenSetup(doClearBuffer, 0.1f);
+
+            if (doClearBuffer == false)
             {
-                glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
-                glClearColor(myObject.bgrR, myObject.bgrG, myObject.bgrB, 1);
+                grad.SetOpacity(0.15f + myUtils.randFloat(rand) * 0.15f);
             }
-            else
-            {
-                glDrawBuffer(GL_BACK);
-            }
+
 
             // https://stackoverflow.com/questions/25548179/opengl-alpha-blending-suddenly-stops
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 cnt++;
 
                 processInput(window);
@@ -975,14 +977,8 @@ namespace my
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                if (doClearBuffer)
-                {
-                    glClear(GL_COLOR_BUFFER_BIT);
-                }
-                else
-                {
-                    dimScreen(dimAlpha);
-                }
+                // Clear or dim the screen
+                grad.Draw();
 
                 // Render Frame
                 {
@@ -992,8 +988,6 @@ namespace my
                     {
                         myPrimitive._LineInst.ResetBuffer();
                     }
-
-                    int Count = list.Count;
 
                     for (int i = 0; i != Count; i++)
                     {
@@ -1034,23 +1028,15 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(N * maxParticles);
             base.initShapes(shapeType, N * maxParticles, rotationSubMode);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f, 0);
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
-        unsafe void readPixel(int x, int y)
-        {
-            float[] pixel = new float[4];
-
-            fixed (float * ppp = &pixel[0])
-            {
-                glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, ppp);
-            }
-        }
     }
 };

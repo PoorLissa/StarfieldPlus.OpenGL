@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.ExceptionServices;
 using System.Text;
+using my;
 
 
 /*
@@ -298,9 +300,6 @@ class TexText
     // Return random set of characters made of a random sum of defined sets
     private void getAlphabet(ref string str, int id = -1)
     {
-        str = "abcdefj123;";
-        return;
-
         Random rand = new Random((int)DateTime.Now.Ticks);
 
         string[] arr1 = new string[] {
@@ -470,10 +469,24 @@ class TexText
                     b = rand.Next(255);
                 }
 
+                // todo: How do I antialize the fonts when rotated?
+                if (false)
+                {
+                    var rand = new Random((int)DateTime.Now.Ticks);
+                    var br = new SolidBrush(Color.FromArgb(1, r, g, b));
+
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        gr.FillRectangle(br, rand.Next(totalWidth), rand.Next(maxHeight), 2, 2);
+                    }
+                }
+
                 using (var br = new SolidBrush(Color.FromArgb(255, r, g, b)))
                 {
                     using (var font = new Font(fontName, fontSize, thisFontStyle, GraphicsUnit.Pixel))
                     {
+                        myUtils.SetAntializingMode(true);
+
                         gr.SmoothingMode = SmoothingMode.AntiAlias;
                         gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
                         gr.PixelOffsetMode = PixelOffsetMode.HighQuality;

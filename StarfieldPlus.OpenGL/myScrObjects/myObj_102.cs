@@ -1,12 +1,13 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System.Collections.Generic;
+using System.IO.Ports;
 
 
 /*
-    - Get a rectangle at the original screen
-    - Get color at a point / Calculate average color in this rectangle
-    - Put a shape filled with this average color at the same place
+    - Get a rectangle at the original screen;
+    - Get color at a point / Calculate average color in this rectangle;
+    - Put a shape filled with this average color at the same place;
 */
 
 
@@ -16,12 +17,12 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_102);
+        public static System.Type Type => typeof(myObj_102);
 
         private int x, y, size;
         private float R, G, B, angle;
 
-        private static bool doClearOnce = false, doUseGrid = false, doUseRandSize = false;
+        private static bool doClearOnce = false, doUseGrid = false, doUseRandSize = false, doUseAntializing = false;
         private static int N = 0, nObj = 0, angleMode = 0, gridSize = 0, baseSize = 0, shapeMode = 0, colorMode = 0,
                            borderMode = 0, borderOffset = 0, opacityMode = 0, randSizeFactor = 1, colorStep = 1;
         private static float A = 1, lineWidth = 1;
@@ -43,6 +44,7 @@ namespace my
 
             {
                 doClearBuffer = myUtils.randomChance(rand, 1, 7);
+                doUseAntializing = true;
 
                 // Reserve larger N, because in borderMode 7-8 we'll need more particles
                 N = 100 + rand.Next(100);
@@ -132,12 +134,10 @@ namespace my
             }
 
 #if false
-            angleMode = 10;
-            shapeMode = 0;
-            doUseGrid = false;
-            doUseRandSize = false;
+            shapeMode = 5;
+            borderMode = 7;
+            renderDelay = 1;
 #endif
-
             return;
         }
 
@@ -145,8 +145,10 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            width = 500;
-            height = 600;
+            width = 600;
+            height = 700;
+
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                         	+
                             $"N = {list.Count} of {N}; nObj = {nObj}\n" +
@@ -162,6 +164,7 @@ namespace my
                             $"borderOffset = {borderOffset}\n"          +
                             $"baseSize = {baseSize}\n"                  +
                             $"gridSize = {gridSize}\n"                  +
+                            $"lineWidth = {fStr(lineWidth)}\n"          +
                             $"opacity = {A.ToString("0.000")}\n"        +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
@@ -303,7 +306,12 @@ namespace my
         {
             int oldShapeMode = -1;
 
-randShape:
+            if (shapeMode == 5)
+            {
+                // Set random shapeMode:
+                oldShapeMode = shapeMode;
+                shapeMode = rand.Next(5);
+            }
 
             if (borderMode < 7)
             {
@@ -337,17 +345,12 @@ randShape:
                         myPrimitive._Pentagon.SetAngle(angle);
                         myPrimitive._Pentagon.Draw(x, y, size, true);
                         break;
-
-                    case 5:
-                        oldShapeMode = shapeMode;
-                        shapeMode = rand.Next(5);
-                        goto randShape;
-                        break;
                 }
             }
 
             drawBorder();
 
+            // Restore shapeMode (if changed)
             if (oldShapeMode != -1)
             {
                 shapeMode = oldShapeMode;
@@ -399,6 +402,11 @@ randShape:
                 }
             }
 
+
+            // Set antializing mode
+            myUtils.SetAntializingMode(doUseAntializing);
+
+
             while (!Glfw.WindowShouldClose(window))
             {
                 processInput(window);
@@ -421,6 +429,7 @@ randShape:
                 // Render Frame
                 {
                     glLineWidth(lineWidth);
+                    myPrimitive._Ellipse.setLineThickness(lineWidth);
 
                     int Count = list.Count < nObj ? list.Count : nObj;
 
@@ -536,7 +545,6 @@ randShape:
 
                     case 1:
                         myPrimitive._Ellipse.SetColor(r, g, b, a);
-                        myPrimitive._Ellipse.setLineThickness(1);
                         myPrimitive._Ellipse.Draw(x - bSize, y - bSize, bSize2x, bSize2x, false);
                         break;
 
