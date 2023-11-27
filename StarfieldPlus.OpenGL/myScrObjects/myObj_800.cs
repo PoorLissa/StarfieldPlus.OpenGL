@@ -21,8 +21,8 @@ namespace my
         private float x, y;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, sSize = 0;
-        private static bool doFillShapes = false, doUseRandOffsets = false;
+        private static int N = 0, sSize = 0, xOffsetMode = 0;
+        private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, sizeFactor = 1.0f;
 
         private static myScreenGradient grad = null;
@@ -58,14 +58,13 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = false;
-            doUseRandOffsets = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomChance(rand, 1, 5);
             doFillShapes = myUtils.randomChance(rand, 1, 3);
 
             sSize = 20 + rand.Next(30);
+            xOffsetMode = rand.Next(3);
 
-            sizeFactor = myUtils.randomChance(rand, 2, 3)
+            sizeFactor = myUtils.randomChance(rand, 4, 5)
                 ? 1.0f
                 : 1.0f + myUtils.randFloat(rand) * 0.5f;
 
@@ -83,12 +82,13 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = {Type}\n\n"                           +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
-                            $"sSize = {sSize}\n"                       +
-                            $"sizeFactor = {fStr(sizeFactor)}\n"       +
-                            $"doUseRandOffsets = {doUseRandOffsets}\n" +
-                            $"renderDelay = {renderDelay}\n"           +
+            string str = $"Obj = {Type}\n\n"                         +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"sSize = {sSize}\n"                     +
+                            $"sizeFactor = {fStr(sizeFactor)}\n"     +
+                            $"xOffsetMode = {xOffsetMode}\n"         +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -106,36 +106,54 @@ namespace my
 
         protected override void generateNew()
         {
-            size = sSize;
+            int ySize = (int)(sSize * 1.5f + 5);
 
             x = rand.Next(gl_Width);
-            x -= x % size;
+            x -= x % sSize;
 
-            bool isUp = (x / size) % 2 == 0;
+            bool isUp = (x / sSize) % 2 == 0;
 
             angle = isUp ? 0 : (float)Math.PI;
 
             y = rand.Next(gl_Height);
-            y -= y % (size * 1.5f + 5);
+            y -= y % ySize;
 
-            if (doUseRandOffsets)
+            switch (xOffsetMode)
             {
-                if (dic.ContainsKey((int)y))
-                {
-                    x += dic[(int)y];
-                }
-                else
-                {
-                    dic[(int)y] = rand.Next(33);
-                }
+                case 0:
+                    break;
+
+                // Every row has its own random offset
+                case 1:
+                    if (dic.ContainsKey((int)y))
+                    {
+                        x += dic[(int)y];
+                    }
+                    else
+                    {
+                        dic[(int)y] = rand.Next(33);
+                    }
+                    break;
+
+                // Every second row is offset by size
+                case 2:
+                    if ((y / ySize) % 2 == 0)
+                    {
+                        x -= sSize;
+                    }
+                    break;
             }
 
             if (!isUp)
             {
-                y -= size / 2;
+                y -= sSize / 2;
             }
 
-            A = 0.1f;
+            size = sSize;
+
+            //size = 10 + rand.Next(33);
+
+            A = myUtils.randFloat(rand, 0.1f) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             cnt = 100 + rand.Next(100);
@@ -164,7 +182,7 @@ namespace my
 
         protected override void Show()
         {
-            float Size = size * 1.33f;
+            float Size = size * sizeFactor;
 
             var triangleInst = inst as myTriangleInst;
 
