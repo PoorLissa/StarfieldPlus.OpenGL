@@ -157,6 +157,8 @@ namespace my
                 tmpx = x - centerX;
                 tmpy = y - centerY;
 
+                // todo: use Atan2, which is simpler and possibly faster; use threading to calculate angles
+
                 if (tmpx > 0)
                 {
                     angle = (float)(_1pi2 - Math.Atan(tmpy / tmpx));

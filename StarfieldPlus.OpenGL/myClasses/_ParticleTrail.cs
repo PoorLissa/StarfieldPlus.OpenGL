@@ -98,7 +98,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        unsafe float* getArray()
+        public unsafe float* getArray()
         {
             fixed (float *ptr = &_arr[0])
             {

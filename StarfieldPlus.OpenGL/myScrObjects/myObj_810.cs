@@ -5,33 +5,31 @@ using System.Collections.Generic;
 
 
 /*
-    - Rows of Triangles
+    - Raster scan of an image
 */
 
 
 namespace my
 {
-    public class myObj_800 : myObject
+    public class myObj_810 : myObject
     {
         // Priority
-        public static int Priority => 9910;
-		public static System.Type Type => typeof(myObj_800);
+        public static int Priority => 9999910;
+		public static System.Type Type => typeof(myObj_810);
 
-        private int cnt;
         private float x, y;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, dR, dG, dB;
 
-        private static int N = 0, sSize = 0, xOffsetMode = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, sizeFactor = 1.0f;
+        private static uint cnt = 0;
+        private static int N = 0, Y = 0, step = 10;
+        private static int yDir = 1;
+        private static float maxOpacity = 0, r = 0, g = 0, b = 0;
 
         private static myScreenGradient grad = null;
 
-        private static Dictionary<int, int> dic = new Dictionary<int, int>();
-
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_800()
+        public myObj_810()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -42,12 +40,12 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
             // Global unmutable constants
             {
-                N = rand.Next(666) + 1234;
+                N = gl_Width;
             }
 
             initLocal();
@@ -58,17 +56,15 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 1, 5);
-            doFillShapes = myUtils.randomChance(rand, 1, 3);
+            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = false;
 
-            sSize = 20 + rand.Next(30);
-            xOffsetMode = rand.Next(3);
+            maxOpacity = 0.05f + myUtils.randFloat(rand) * 0.25f;
 
-            sizeFactor = myUtils.randomChance(rand, 4, 5)
-                ? 1.0f
-                : 1.0f + myUtils.randFloat(rand) * 0.5f;
+            step = 5 + rand.Next(16);
+            renderDelay = 20 - step;
 
-            renderDelay = rand.Next(11) + 3;
+            renderDelay += 1;
 
             return;
         }
@@ -84,10 +80,8 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"sSize = {sSize}\n"                     +
-                            $"sizeFactor = {fStr(sizeFactor)}\n"     +
-                            $"xOffsetMode = {xOffsetMode}\n"         +
+                            $"step = {step }\n"                      +
+                            $"maxOpacity = {fStr(maxOpacity)}\n"     +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -106,101 +100,60 @@ namespace my
 
         protected override void generateNew()
         {
-            int ySize = (int)(sSize * 1.5f + 5);
+            x = id;
+            y = gl_y0;
+            size = 1;
 
-            x = rand.Next(gl_Width);
-            x -= x % sSize;
-
-            bool isUp = (x / sSize) % 2 == 0;
-
-            angle = isUp ? 0 : (float)Math.PI;
-
-            y = rand.Next(gl_Height);
-            y -= y % ySize;
-
-            switch (xOffsetMode)
-            {
-                case 0:
-                    break;
-
-                // Every row has its own random offset
-                case 1:
-                    if (dic.ContainsKey((int)y))
-                    {
-                        x += dic[(int)y];
-                    }
-                    else
-                    {
-                        dic[(int)y] = rand.Next(33);
-                    }
-                    break;
-
-                // Every second row is offset by size
-                case 2:
-                    if ((y / ySize) % 2 == 0)
-                    {
-                        x -= sSize;
-                    }
-                    break;
-            }
-
-            if (!isUp)
-            {
-                y -= sSize / 2;
-            }
-
-            size = sSize;
-
-            //size = 10 + rand.Next(33);
-
-            A = myUtils.randFloat(rand, 0.1f) * 0.5f;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            cnt = 100 + rand.Next(100);
-
-            return;
+            A = maxOpacity;
+            R = G = B = 0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Move()
         {
-            if (--cnt < 0)
+            if (cnt == 0)
             {
-                A -= 0.01f;
+                colorPicker.getColor(x, Y, ref r, ref g, ref b);
 
-                if (A <= 0)
-                {
-                    generateNew();
-                }
+                dR = (r - R) / step;
+                dG = (g - G) / step;
+                dB = (b - B) / step;
             }
 
-            return;
+            R += dR;
+            G += dG;
+            B += dB;
+
+            size = 5 + (R + G + B) * 333;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Show()
         {
-            float Size = size * sizeFactor;
-
-            var triangleInst = inst as myTriangleInst;
-
-            triangleInst.setInstanceCoords(x, y, Size, angle);
-            triangleInst.setInstanceColor(R, G, B, A);
-
-            return;
+            myPrimitive._LineInst.setInstanceCoords(x, y + size, x, y - size);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+            while (list.Count < N)
+            {
+                list.Add(new myObj_810());
+            }
+
+            if (doClearBuffer == false)
+            {
+                grad.SetOpacity(0.1f);
+            }
 
 
             while (!Glfw.WindowShouldClose(window))
@@ -218,45 +171,43 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
                     }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
                 }
 
                 // Render Frame
                 {
-                    inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_800;
+                        var obj = list[i] as myObj_810;
 
                         obj.Show();
                         obj.Move();
                     }
 
-                    if (doFillShapes)
+                    myPrimitive._LineInst.Draw();
+                }
+
+                System.Threading.Thread.Sleep(renderDelay);
+
+                if (++cnt == step)
+                {
+                    cnt = 0;
+                    Y += yDir;
+
+                    if (Y == gl_Height && yDir > 0)
                     {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
+                        yDir *= -1;
                     }
 
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
+                    if (Y == 0 && yDir < 0)
+                    {
+                        yDir *= -1;
+                    }
                 }
-
-                if (Count < N)
-                {
-                    list.Add(new myObj_800());
-                }
-
-                cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -266,13 +217,10 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
-            base.initShapes(1, N, 0);
+            myPrimitive.init_LineInst(N);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
-
-            myUtils.SetAntializingMode(true);
 
             return;
         }
