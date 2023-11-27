@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Instanced shapes in a large quantity revealing an underlying image
+    - Instanced shapes in large numbers revealing an underlying image
 */
 
 
