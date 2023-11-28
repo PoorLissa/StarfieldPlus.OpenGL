@@ -24,7 +24,7 @@ namespace my
         private static uint cnt = 0;
         private static int N = 0, Y = 0, step = 10, maxSize = 1, sizeMode = 0, drawMode = 0;
         private static int yDir = 1;
-        private static float maxOpacity = 0, r = 0, g = 0, b = 0, lineWidth = 1;
+        private static float maxOpacity = 0, r = 0, g = 0, b = 0, lineWidth = 1, fallingSpeed = 0, slowFactor = 1.0f;
 
         private static myScreenGradient grad = null;
 
@@ -60,13 +60,21 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 5);
+            doClearBuffer = true;
 
             sizeMode = rand.Next(2);
-            drawMode = rand.Next(10);
+            drawMode = rand.Next(12);
 
             maxOpacity = 0.05f + myUtils.randFloat(rand) * 0.25f;
 
             maxSize = (gl_y0/2 + rand.Next(gl_y0/2)) / 3;
+
+            fallingSpeed = 0.1f + myUtils.randFloat(rand) * 0.6f;
+
+            slowFactor = 1.0f;
+            slowFactor = 0.1f + myUtils.randFloat(rand) * 0.9f;
+            slowFactor = 0.75f;
+            slowFactor = 0.1f;
 
             step = 5 + rand.Next(16);
             renderDelay = 20 - step;
@@ -89,6 +97,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"step = {step}\n"                       +
+                            $"slowFactor = {fStr(slowFactor)}\n"     +
                             $"sizeMode = {sizeMode}\n"               +
                             $"drawMode = {drawMode}\n"               +
                             $"maxSize = {maxSize}\n"                 +
@@ -132,9 +141,9 @@ namespace my
             {
                 colorPicker.getColor(x, Y, ref r, ref g, ref b);
 
-                dR = (r - R) / step;
-                dG = (g - G) / step;
-                dB = (b - B) / step;
+                dR = (r - R) * slowFactor / step;
+                dG = (g - G) * slowFactor / step;
+                dB = (b - B) * slowFactor / step;
 
                 switch (sizeMode)
                 {
@@ -143,7 +152,7 @@ namespace my
                         break;
 
                     case 1:
-                        localMaxSize = maxSize + rand.Next(23);
+                        localMaxSize = maxSize + rand.Next(7);
                         break;
                 }
             }
@@ -152,31 +161,23 @@ namespace my
             G += dG;
             B += dB;
 
+            // Size is recalculated each frame, because it directly depends on R, G, B
             size = 5 + (R + G + B) * localMaxSize;
 
-            // Remember the highest point and its color
+            // Remember the highest point and its color (will be used to draw separate hovering dots)
             if (size > topY)
             {
-                topY = size;
+                topY = size + 33;
                 topR = r;
                 topG = g;
                 topB = b;
             }
-
-#if false
-            if (R + G + B < 0.3f)
-            {
-                size = -1 + (R + G + B) * localMaxSize / 5;
-            }
-#endif
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Show()
         {
-            //drawMode = 9;
-
             switch (drawMode)
             {
                 // Full height
@@ -274,12 +275,45 @@ namespace my
                     }
                     break;
 
-                // Sine of (R + G + B)
+                // Size height, top-down + falling dots at a 'maxY' height
                 case 009:
                     {
-                        float val = (float)Math.Sin(R + G + B) * 100;
+                        myPrimitive._LineInst.setInstanceCoords(x, 100, x, 100 + size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-                        myPrimitive._LineInst.setInstanceCoords(x, gl_y0 + val, x, gl_y0 - size/2 - val);
+                        var rectInst = inst as myRectangleInst;
+                        rectInst.setInstanceCoords(x - 3, 100 + topY - 2, 7, 2);
+                        rectInst.setInstanceColor(topR, topG, topB, 0.5f);
+                        rectInst.setInstanceAngle(0);
+
+                        topY -= fallingSpeed;
+                    }
+                    break;
+
+                // Size height, down-top + falling dots at a 'maxY' height
+                case 010:
+                    {
+                        float y = gl_Height - 100;
+
+                        myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+                        var rectInst = inst as myRectangleInst;
+                        rectInst.setInstanceCoords(x - 1, y - topY - 1, 3, 3);
+                        rectInst.setInstanceColor(topR, topG, topB, 0.5f);
+                        rectInst.setInstanceAngle(0);
+
+                        topY -= fallingSpeed;
+                    }
+                    break;
+
+                // Sine of (R + G + B)
+                case 011:
+                    {
+                        float val = (float)Math.Sin(R + G + B) * 333;
+
+                        //myPrimitive._LineInst.setInstanceCoords(x, gl_y0 + val, x, gl_y0 - size/2 - val);
+                        myPrimitive._LineInst.setInstanceCoords(x, gl_y0, x, gl_y0 + val);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
                     }
                     break;
