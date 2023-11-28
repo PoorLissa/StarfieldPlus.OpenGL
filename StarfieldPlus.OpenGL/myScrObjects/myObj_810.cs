@@ -13,7 +13,7 @@ namespace my
     public class myObj_810 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_810);
 
         private float x;
@@ -22,7 +22,7 @@ namespace my
         private static uint cnt = 0;
         private static int N = 0, Y = 0, step = 10, maxSize = 1, sizeMode = 0, drawMode = 0;
         private static int yDir = 1;
-        private static float maxOpacity = 0, r = 0, g = 0, b = 0;
+        private static float maxOpacity = 0, r = 0, g = 0, b = 0, lineWidth = 1;
 
         private static myScreenGradient grad = null;
 
@@ -45,6 +45,8 @@ namespace my
             // Global unmutable constants
             {
                 N = gl_Width;
+
+                lineWidth = 0.1f + myUtils.randFloat(rand) * rand.Next(5);
             }
 
             initLocal();
@@ -55,11 +57,10 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = false;
+            doClearBuffer = myUtils.randomChance(rand, 1, 5);
 
             sizeMode = rand.Next(2);
-            drawMode = rand.Next(3);
+            drawMode = rand.Next(6);
 
             maxOpacity = 0.05f + myUtils.randFloat(rand) * 0.25f;
 
@@ -84,11 +85,13 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
                             $"step = {step}\n"                       +
                             $"sizeMode = {sizeMode}\n"               +
                             $"drawMode = {drawMode}\n"               +
                             $"maxSize = {maxSize}\n"                 +
                             $"maxOpacity = {fStr(maxOpacity)}\n"     +
+                            $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -110,7 +113,7 @@ namespace my
             x = id;
             size = 1;
 
-            A = maxOpacity;
+            A = doClearBuffer ? maxOpacity * 3 : maxOpacity;
             R = G = B = 0;
         }
 
@@ -143,6 +146,13 @@ namespace my
             B += dB;
 
             size = 5 + (R + G + B) * localMaxSize;
+
+#if false
+            if (R + G + B < 0.3f)
+            {
+                size = -1 + (R + G + B) * localMaxSize / 5;
+            }
+#endif
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -158,15 +168,38 @@ namespace my
 
                 case 1:
                     {
-                        myPrimitive._LineInst.setInstanceCoords(x, 100, x, 100 + size);
+                        myPrimitive._LineInst.setInstanceCoords(x, 300, x, 300 + size);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                        myPrimitive._Rectangle.SetColor(R, G, B, 0.5f);
-                        myPrimitive._Rectangle.Draw(x - 1, 100 + size - 1, 2, 2);
                     }
                     break;
 
                 case 2:
+                    {
+                        float y = gl_Height - 100;
+                        myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    }
+                    break;
+
+                case 3:
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(x, 0, x, gl_Height);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    }
+                    break;
+
+                case 4:
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(x, 300, x, 300 + size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+                        myPrimitive._Rectangle.SetColor(R, G, B, 0.5f);
+                        myPrimitive._Rectangle.Draw(x - 1, 100 + size - 1, 2, 2);
+                        //myPrimitive._Rectangle.Draw(x - 1, 300 - size/5 - 1, 2, 2);
+                    }
+                    break;
+
+                case 5:
                     {
                         float y = gl_Height - 100;
 
@@ -263,6 +296,8 @@ namespace my
         {
             myPrimitive.init_Rectangle();
             myPrimitive.init_LineInst(N);
+
+            myPrimitive._LineInst.setLineWidth(lineWidth);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
