@@ -1,6 +1,7 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System.Collections.Generic;
+using System;
 
 
 /*
@@ -13,11 +14,12 @@ namespace my
     public class myObj_810 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_810);
 
         private float x;
         private float size, localMaxSize, A, R, G, B, dR, dG, dB;
+        private float topY, topR, topG, topB;
 
         private static uint cnt = 0;
         private static int N = 0, Y = 0, step = 10, maxSize = 1, sizeMode = 0, drawMode = 0;
@@ -60,7 +62,7 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 1, 5);
 
             sizeMode = rand.Next(2);
-            drawMode = rand.Next(6);
+            drawMode = rand.Next(10);
 
             maxOpacity = 0.05f + myUtils.randFloat(rand) * 0.25f;
 
@@ -115,6 +117,11 @@ namespace my
 
             A = doClearBuffer ? maxOpacity * 3 : maxOpacity;
             R = G = B = 0;
+
+            topY = 0;
+            topR = 0;
+            topG = 0;
+            topB = 0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -147,6 +154,15 @@ namespace my
 
             size = 5 + (R + G + B) * localMaxSize;
 
+            // Remember the highest point and its color
+            if (size > topY)
+            {
+                topY = size;
+                topR = r;
+                topG = g;
+                topB = b;
+            }
+
 #if false
             if (R + G + B < 0.3f)
             {
@@ -159,55 +175,112 @@ namespace my
 
         protected override void Show()
         {
+            //drawMode = 9;
+
             switch (drawMode)
             {
-                case 0:
-                    myPrimitive._LineInst.setInstanceCoords(x, gl_y0 + size, x, gl_y0 - size);
-                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                case 1:
-                    {
-                        myPrimitive._LineInst.setInstanceCoords(x, 300, x, 300 + size);
-                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-                    }
-                    break;
-
-                case 2:
-                    {
-                        float y = gl_Height - 100;
-                        myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
-                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-                    }
-                    break;
-
-                case 3:
+                // Full height
+                case 000:
                     {
                         myPrimitive._LineInst.setInstanceCoords(x, 0, x, gl_Height);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
                     }
                     break;
 
-                case 4:
+                // Partial constant height
+                case 001:
                     {
-                        myPrimitive._LineInst.setInstanceCoords(x, 300, x, 300 + size);
+                        myPrimitive._LineInst.setInstanceCoords(x, gl_y0 - maxSize, x, gl_y0 + maxSize);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
-
-                        myPrimitive._Rectangle.SetColor(R, G, B, 0.5f);
-                        myPrimitive._Rectangle.Draw(x - 1, 100 + size - 1, 2, 2);
-                        //myPrimitive._Rectangle.Draw(x - 1, 300 - size/5 - 1, 2, 2);
                     }
                     break;
 
-                case 5:
+                // Size height on both sides of central line
+                case 002:
+                    myPrimitive._LineInst.setInstanceCoords(x, gl_y0 + size, x, gl_y0 - size);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    break;
+
+                // Size height, top-down
+                case 003:
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(x, 100, x, 100 + size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    }
+                    break;
+
+                // Size height, down-top
+                case 004:
+                    {
+                        float y = gl_Height - 100;
+                        myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                    }
+                    break;
+
+                // Size height, top-down + dots at a 'size' height
+                case 005:
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(x, 100, x, 100 + size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+                        var rectInst = inst as myRectangleInst;
+                        rectInst.setInstanceCoords(x - 1, 100 + size - 1, 2, 2);
+                        rectInst.setInstanceColor(R, G, B, 0.5f);
+                        rectInst.setInstanceAngle(0);
+                    }
+                    break;
+
+                // Size height, down-top + dots at a 'size' height
+                case 006:
                     {
                         float y = gl_Height - 100;
 
                         myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-                        myPrimitive._Rectangle.SetColor(R, G, B, 0.5f);
-                        myPrimitive._Rectangle.Draw(x - 1, y - size - 1, 2, 2);
+                        var rectInst = inst as myRectangleInst;
+                        rectInst.setInstanceCoords(x - 1, y - size - 1, 2, 2);
+                        rectInst.setInstanceColor(R, G, B, 0.5f);
+                        rectInst.setInstanceAngle(0);
+                    }
+                    break;
+
+                // Size height, top-down + dots at a 'maxY' height
+                case 007:
+                    {
+                        myPrimitive._LineInst.setInstanceCoords(x, 100, x, 100 + size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+                        var rectInst = inst as myRectangleInst;
+                        rectInst.setInstanceCoords(x - 1, 100 + topY - 1, 2, 2);
+                        rectInst.setInstanceColor(topR, topG, topB, 0.5f);
+                        rectInst.setInstanceAngle(0);
+                    }
+                    break;
+
+                // Size height, down-top + dots at a 'maxY' height
+                case 008:
+                    {
+                        float y = gl_Height - 100;
+
+                        myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+                        var rectInst = inst as myRectangleInst;
+                        rectInst.setInstanceCoords(x - 1, y - topY - 1, 2, 2);
+                        rectInst.setInstanceColor(topR, topG, topB, 0.5f);
+                        rectInst.setInstanceAngle(0);
+                    }
+                    break;
+
+                // Sine of (R + G + B)
+                case 009:
+                    {
+                        float val = (float)Math.Sin(R + G + B) * 100;
+
+                        myPrimitive._LineInst.setInstanceCoords(x, gl_y0 + val, x, gl_y0 - size/2 - val);
+                        myPrimitive._LineInst.setInstanceColor(R, G, B, A);
                     }
                     break;
             }
@@ -255,6 +328,7 @@ namespace my
 
                 // Render Frame
                 {
+                    inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
@@ -266,10 +340,12 @@ namespace my
                     }
 
                     myPrimitive._LineInst.Draw();
+                    inst.Draw(false);
                 }
 
                 System.Threading.Thread.Sleep(renderDelay);
 
+                // Move Y one step further
                 if (++cnt == step)
                 {
                     cnt = 0;
@@ -294,7 +370,8 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_Rectangle();
+            base.initShapes(0, N, 0);
+
             myPrimitive.init_LineInst(N);
 
             myPrimitive._LineInst.setLineWidth(lineWidth);
