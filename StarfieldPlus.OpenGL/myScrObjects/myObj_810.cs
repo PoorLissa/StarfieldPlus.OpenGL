@@ -72,9 +72,9 @@ namespace my
             fallingSpeed = 0.1f + myUtils.randFloat(rand) * 0.6f;
 
             slowFactor = 1.0f;
-            slowFactor = 0.1f + myUtils.randFloat(rand) * 0.9f;
             slowFactor = 0.75f;
             slowFactor = 0.1f;
+            slowFactor = 0.1f + myUtils.randFloat(rand) * 0.9f;
 
             step = 5 + rand.Next(16);
             renderDelay = 20 - step;
