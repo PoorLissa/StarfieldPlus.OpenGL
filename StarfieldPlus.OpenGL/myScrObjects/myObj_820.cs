@@ -62,7 +62,6 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = true;
 
             //doFillShapes = true;
 
@@ -129,7 +128,11 @@ namespace my
             y += size * (float)Math.Cos(t / 10) * 0.01f;
             t += dt;
 
-            angle += dt / gl_dAngle;
+            //angle += dt / (gl_dAngle);
+
+            angle += dt / (gl_dAngle - (float)Math.Sin(t));
+
+            //dt += (float)Math.Cos(angle) * 0.001f;
 
             return;
         }
