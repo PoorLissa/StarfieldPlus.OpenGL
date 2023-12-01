@@ -490,43 +490,33 @@ namespace my
             {
                 // Instanced squares
                 case 0:
-                    var rectInst = inst as myRectangleInst;
-
-                    rectInst.setInstanceCoords(x, y, Size, Size);
-                    rectInst.setInstanceColor(R, G, B, a);
-                    rectInst.setInstanceAngle(angle);
+                    myPrimitive._RectangleInst.setInstanceCoords(x, y, Size, Size);
+                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, a);
+                    myPrimitive._RectangleInst.setInstanceAngle(angle);
                     break;
 
                 // Instanced triangles
                 case 1:
-                    var triangleInst = inst as myTriangleInst;
-
-                    triangleInst.setInstanceCoords(x, y, Size, angle);
-                    triangleInst.setInstanceColor(R, G, B, a);
+                    myPrimitive._TriangleInst.setInstanceCoords(x, y, Size, angle);
+                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced circles
                 case 2:
-                    var ellipseInst = inst as myEllipseInst;
-
-                    ellipseInst.setInstanceCoords(x, y, Size, 0);
-                    ellipseInst.setInstanceColor(R, G, B, a);
+                    myPrimitive._EllipseInst.setInstanceCoords(x, y, Size, 0);
+                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced pentagons
                 case 3:
-                    var pentagonInst = inst as myPentagonInst;
-
-                    pentagonInst.setInstanceCoords(x, y, Size, angle);
-                    pentagonInst.setInstanceColor(R, G, B, a);
+                    myPrimitive._PentagonInst.setInstanceCoords(x, y, Size, angle);
+                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced hexagons
                 case 4:
-                    var hexagonInst = inst as myHexagonInst;
-
-                    hexagonInst.setInstanceCoords(x, y, Size, angle);
-                    hexagonInst.setInstanceColor(R, G, B, a);
+                    myPrimitive._HexagonInst.setInstanceCoords(x, y, Size, angle);
+                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, a);
                     break;
             }
 

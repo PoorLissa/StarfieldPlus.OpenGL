@@ -205,11 +205,9 @@ namespace my
 
         protected override void Show()
         {
-            var rectInst = inst as myRectangleInst;
-
-            rectInst.setInstanceCoords(x - width, y - height, 2 * width, 2 * height);
-            rectInst.setInstanceColor(R, G, B, A);
-            rectInst.setInstanceAngle(0);
+            myPrimitive._RectangleInst.setInstanceCoords(x - width, y - height, 2 * width, 2 * height);
+            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+            myPrimitive._RectangleInst.setInstanceAngle(0);
 
             if (doShowDots)
             {

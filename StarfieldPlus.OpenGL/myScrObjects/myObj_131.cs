@@ -271,13 +271,11 @@ namespace my
                 // Instanced squares
                 case 0:
                     {
-                        var rectInst = inst as myRectangleInst;
-
                         for (int i = 1; i != shapeN; i++)
                         {
-                            rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                            rectInst.setInstanceColor(R, G, B, A);
-                            rectInst.setInstanceAngle(angle/i);
+                            myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                            myPrimitive._RectangleInst.setInstanceAngle(angle/i);
                         }
                     }
                     break;
@@ -285,12 +283,10 @@ namespace my
                 // Instanced triangles
                 case 1:
                     {
-                        var triangleInst = inst as myTriangleInst;
-
                         for (int i = 1; i != shapeN; i++)
                         {
-                            triangleInst.setInstanceCoords(x, y, size2x, angle/i);
-                            triangleInst.setInstanceColor(R, G, B, A);
+                            myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle/i);
+                            myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
                         }
                     }
                     break;
@@ -298,8 +294,6 @@ namespace my
                 // Instanced circles
                 case 2:
                     {
-                        var ellipseInst = inst as myEllipseInst;
-
                         for (int i = 1; i != shapeN; i++)
                         {
                             if (doShake)
@@ -307,13 +301,13 @@ namespace my
                                 float xx = x + rand.Next(3) - 1;
                                 float yy = y + rand.Next(3) - 1;
 
-                                ellipseInst.setInstanceCoords(xx, yy, size2x - i * sizeStep, 0);
-                                ellipseInst.setInstanceColor(R, G, B, A / i);
+                                myPrimitive._EllipseInst.setInstanceCoords(xx, yy, size2x - i * sizeStep, 0);
+                                myPrimitive._EllipseInst.setInstanceColor(R, G, B, A / i);
                             }
                             else
                             {
-                                ellipseInst.setInstanceCoords(x, y, size2x - i * sizeStep, 0);
-                                ellipseInst.setInstanceColor(R, G, B, A / i);
+                                myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x - i * sizeStep, 0);
+                                myPrimitive._EllipseInst.setInstanceColor(R, G, B, A / i);
                             }
                         }
                     }
@@ -322,12 +316,10 @@ namespace my
                 // Instanced pentagons
                 case 3:
                     {
-                        var pentagonInst = inst as myPentagonInst;
-
                         for (int i = 1; i != shapeN; i++)
                         {
-                            pentagonInst.setInstanceCoords(x, y, size2x, angle/i);
-                            pentagonInst.setInstanceColor(R, G, B, A);
+                            myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle/i);
+                            myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
                         }
                     }
                     break;
@@ -335,12 +327,10 @@ namespace my
                 // Instanced hexagons
                 case 4:
                     {
-                        var hexagonInst = inst as myHexagonInst;
-
                         for (int i = 1; i != shapeN; i++)
                         {
-                            hexagonInst.setInstanceCoords(x, y, size2x, angle/i);
-                            hexagonInst.setInstanceColor(R, G, B, A);
+                            myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle/i);
+                            myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
                         }
                     }
                     break;

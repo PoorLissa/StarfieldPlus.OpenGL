@@ -145,55 +145,45 @@ namespace my
             {
                 // Instanced squares
                 case 0:
-                    var rectInst = inst as myRectangleInst;
+                    myPrimitive._RectangleInst.setInstanceCoords(x1 - size, y - size, size2x, size2x);
+                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._RectangleInst.setInstanceAngle(angle);
 
-                    rectInst.setInstanceCoords(x1 - size, y - size, size2x, size2x);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-
-                    rectInst.setInstanceCoords(x2 - size, y - size, size2x, size2x);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
+                    myPrimitive._RectangleInst.setInstanceCoords(x2 - size, y - size, size2x, size2x);
+                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._RectangleInst.setInstanceAngle(angle);
                     break;
 
                 // Instanced triangles
                 case 1:
-                    var triangleInst = inst as myTriangleInst;
-
-                    triangleInst.setInstanceCoords(x1, y, size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
-                    triangleInst.setInstanceCoords(x2, y, size, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._TriangleInst.setInstanceCoords(x1, y, size, angle);
+                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._TriangleInst.setInstanceCoords(x2, y, size, angle);
+                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
                     break;
 
                 // Instanced circles
                 case 2:
-                    var ellipseInst = inst as myEllipseInst;
-
-                    ellipseInst.setInstanceCoords(x1, y, size2x, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
-                    ellipseInst.setInstanceCoords(x2, y, size2x, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._EllipseInst.setInstanceCoords(x1, y, size2x, angle);
+                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._EllipseInst.setInstanceCoords(x2, y, size2x, angle);
+                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
                     break;
 
                 // Instanced pentagons
                 case 3:
-                    var pentagonInst = inst as myPentagonInst;
-
-                    pentagonInst.setInstanceCoords(x1, y, size2x, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
-                    pentagonInst.setInstanceCoords(x2, y, size2x, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._PentagonInst.setInstanceCoords(x1, y, size2x, angle);
+                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._PentagonInst.setInstanceCoords(x2, y, size2x, angle);
+                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
                     break;
 
                 // Instanced hexagons
                 case 4:
-                    var hexagonInst = inst as myHexagonInst;
-
-                    hexagonInst.setInstanceCoords(x1, y, size2x, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
-                    hexagonInst.setInstanceCoords(x2, y, size2x, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._HexagonInst.setInstanceCoords(x1, y, size2x, angle);
+                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._HexagonInst.setInstanceCoords(x2, y, size2x, angle);
+                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
                     break;
             }
 

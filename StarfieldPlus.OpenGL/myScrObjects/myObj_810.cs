@@ -225,10 +225,9 @@ namespace my
                         myPrimitive._LineInst.setInstanceCoords(x, 100, x, 100 + size);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-                        var rectInst = inst as myRectangleInst;
-                        rectInst.setInstanceCoords(x - 1, 100 + size - 1, 2, 2);
-                        rectInst.setInstanceColor(R, G, B, 0.5f);
-                        rectInst.setInstanceAngle(0);
+                        myPrimitive._RectangleInst.setInstanceCoords(x - 1, 100 + size - 1, 2, 2);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, 0.5f);
+                        myPrimitive._RectangleInst.setInstanceAngle(0);
                     }
                     break;
 
@@ -240,10 +239,9 @@ namespace my
                         myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-                        var rectInst = inst as myRectangleInst;
-                        rectInst.setInstanceCoords(x - 1, y - size - 1, 2, 2);
-                        rectInst.setInstanceColor(R, G, B, 0.5f);
-                        rectInst.setInstanceAngle(0);
+                        myPrimitive._RectangleInst.setInstanceCoords(x - 1, y - size - 1, 2, 2);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, 0.5f);
+                        myPrimitive._RectangleInst.setInstanceAngle(0);
                     }
                     break;
 
@@ -253,10 +251,9 @@ namespace my
                         myPrimitive._LineInst.setInstanceCoords(x, 100, x, 100 + size);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-                        var rectInst = inst as myRectangleInst;
-                        rectInst.setInstanceCoords(x - 1, 100 + topY - 1, 2, 2);
-                        rectInst.setInstanceColor(topR, topG, topB, 0.5f);
-                        rectInst.setInstanceAngle(0);
+                        myPrimitive._RectangleInst.setInstanceCoords(x - 1, 100 + topY - 1, 2, 2);
+                        myPrimitive._RectangleInst.setInstanceColor(topR, topG, topB, 0.5f);
+                        myPrimitive._RectangleInst.setInstanceAngle(0);
                     }
                     break;
 
@@ -268,10 +265,9 @@ namespace my
                         myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-                        var rectInst = inst as myRectangleInst;
-                        rectInst.setInstanceCoords(x - 1, y - topY - 1, 2, 2);
-                        rectInst.setInstanceColor(topR, topG, topB, 0.5f);
-                        rectInst.setInstanceAngle(0);
+                        myPrimitive._RectangleInst.setInstanceCoords(x - 1, y - topY - 1, 2, 2);
+                        myPrimitive._RectangleInst.setInstanceColor(topR, topG, topB, 0.5f);
+                        myPrimitive._RectangleInst.setInstanceAngle(0);
                     }
                     break;
 
@@ -281,10 +277,9 @@ namespace my
                         myPrimitive._LineInst.setInstanceCoords(x, 100, x, 100 + size);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-                        var rectInst = inst as myRectangleInst;
-                        rectInst.setInstanceCoords(x - 3, 100 + topY - 2, 7, 2);
-                        rectInst.setInstanceColor(topR, topG, topB, 0.5f);
-                        rectInst.setInstanceAngle(0);
+                        myPrimitive._RectangleInst.setInstanceCoords(x - 3, 100 + topY - 2, 7, 2);
+                        myPrimitive._RectangleInst.setInstanceColor(topR, topG, topB, 0.5f);
+                        myPrimitive._RectangleInst.setInstanceAngle(0);
 
                         topY -= fallingSpeed;
                     }
@@ -298,10 +293,9 @@ namespace my
                         myPrimitive._LineInst.setInstanceCoords(x, y, x, y - size);
                         myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
-                        var rectInst = inst as myRectangleInst;
-                        rectInst.setInstanceCoords(x - 1, y - topY - 1, 3, 3);
-                        rectInst.setInstanceColor(topR, topG, topB, 0.5f);
-                        rectInst.setInstanceAngle(0);
+                        myPrimitive._RectangleInst.setInstanceCoords(x - 1, y - topY - 1, 3, 3);
+                        myPrimitive._RectangleInst.setInstanceColor(topR, topG, topB, 0.5f);
+                        myPrimitive._RectangleInst.setInstanceAngle(0);
 
                         topY -= fallingSpeed;
                     }

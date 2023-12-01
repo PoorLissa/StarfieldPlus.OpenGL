@@ -431,6 +431,15 @@ namespace my
                     myPrimitive._HexagonInst.setRotationMode(rotationSubMode);
                     inst = myPrimitive._HexagonInst;
                     break;
+
+                // Default implementation with minimal impact;
+                // In case we use the shapes other than [0-4], we still want our 'inst' object to be non-null;
+                // Then inst.ResetBuffer() will still work without additional checks
+                default:
+                    myPrimitive.init_TriangleInst(0);
+                    myPrimitive._TriangleInst.setRotationMode(0);
+                    inst = myPrimitive._TriangleInst;
+                    break;
             }
 
             return;

@@ -463,18 +463,16 @@ namespace my
                 // Instanced squares
                 case 0:
                     {
-                        var rectInst = inst as myRectangleInst;
-
-                        rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                        rectInst.setInstanceColor(r, g, b, a);
-                        rectInst.setInstanceAngle(angle);
+                        myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        myPrimitive._RectangleInst.setInstanceColor(r, g, b, a);
+                        myPrimitive._RectangleInst.setInstanceAngle(angle);
 
                         if (doDrawTwice)
                         {
                             size2x += 2;
-                            rectInst.setInstanceCoords(x - size - 1, y - size - 1, size2x, size2x);
-                            rectInst.setInstanceColor(r, g, b, a * 0.33f);
-                            rectInst.setInstanceAngle(angle);
+                            myPrimitive._RectangleInst.setInstanceCoords(x - size - 1, y - size - 1, size2x, size2x);
+                            myPrimitive._RectangleInst.setInstanceColor(r, g, b, a * 0.33f);
+                            myPrimitive._RectangleInst.setInstanceAngle(angle);
                         }
                     }
                     break;
@@ -482,15 +480,13 @@ namespace my
                 // Instanced triangles
                 case 1:
                     {
-                        var triangleInst = inst as myTriangleInst;
-
-                        triangleInst.setInstanceCoords(x, y, size2x, angle);
-                        triangleInst.setInstanceColor(r, g, b, a);
+                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._TriangleInst.setInstanceColor(r, g, b, a);
 
                         if (doDrawTwice)
                         {
-                            triangleInst.setInstanceCoords(x, y, size2x + 2, angle);
-                            triangleInst.setInstanceColor(r, g, b, a * 0.33f);
+                            myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            myPrimitive._TriangleInst.setInstanceColor(r, g, b, a * 0.33f);
                         }
                     }
                     break;
@@ -498,15 +494,13 @@ namespace my
                 // Instanced circles
                 case 2:
                     {
-                        var ellipseInst = inst as myEllipseInst;
-
-                        ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                        ellipseInst.setInstanceColor(r, g, b, a);
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._EllipseInst.setInstanceColor(r, g, b, a);
 
                         if (doDrawTwice)
                         {
-                            ellipseInst.setInstanceCoords(x, y, size2x + 2, angle);
-                            ellipseInst.setInstanceColor(r, g, b, a * 0.33);
+                            myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            myPrimitive._EllipseInst.setInstanceColor(r, g, b, a * 0.33);
                         }
                     }
                     break;
@@ -514,15 +508,13 @@ namespace my
                 // Instanced pentagons
                 case 3:
                     {
-                        var pentagonInst = inst as myPentagonInst;
-
-                        pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                        pentagonInst.setInstanceColor(r, g, b, a);
+                        myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._PentagonInst.setInstanceColor(r, g, b, a);
 
                         if (doDrawTwice)
                         {
-                            pentagonInst.setInstanceCoords(x, y, size2x + 2, angle);
-                            pentagonInst.setInstanceColor(r, g, b, a * 0.33f);
+                            myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            myPrimitive._PentagonInst.setInstanceColor(r, g, b, a * 0.33f);
                         }
                     }
                     break;
@@ -530,15 +522,13 @@ namespace my
                 // Instanced hexagons
                 case 4:
                     {
-                        var hexagonInst = inst as myHexagonInst;
-
-                        hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                        hexagonInst.setInstanceColor(r, g, b, a);
+                        myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._HexagonInst.setInstanceColor(r, g, b, a);
 
                         if (doDrawTwice)
                         {
-                            hexagonInst.setInstanceCoords(x, y, size2x + 2, angle);
-                            hexagonInst.setInstanceColor(r, g, b, a * 0.33f);
+                            myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x + 2, angle);
+                            myPrimitive._HexagonInst.setInstanceColor(r, g, b, a * 0.33f);
                         }
                     }
                     break;

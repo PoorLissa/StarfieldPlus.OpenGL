@@ -431,8 +431,6 @@ additiveFunc = 0;
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, n * n + 2, 0);
 
-            rectInst = inst as myRectangleInst;
-
             return;
         }
 

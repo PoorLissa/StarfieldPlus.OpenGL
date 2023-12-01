@@ -24,8 +24,6 @@ namespace my
         private static bool doFillShapes = true, doUseRotation = true, doReduceSize = true;
         private static float dimAlpha = 0.05f, t = 0, dt = 0, sinPi3 = 0, lineWidth = 1;
 
-        private static myHexagonInst hexInst = null;
-
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_340()
@@ -222,16 +220,8 @@ namespace my
 
         protected override void Show()
         {
-            if (doUseRotation)
-            {
-                hexInst.setInstanceCoords(x, y, size * 2, t);
-            }
-            else
-            {
-                hexInst.setInstanceCoords(x, y, size * 2, 0);
-            }
-
-            hexInst.setInstanceColor(R, G, B, A);
+            myPrimitive._HexagonInst.setInstanceCoords(x, y, size * 2, doUseRotation ? t : 0);
+            myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
 
             return;
         }
@@ -360,11 +350,6 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
-
-            // Only single shape is used
-            hexInst = inst as myHexagonInst;
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

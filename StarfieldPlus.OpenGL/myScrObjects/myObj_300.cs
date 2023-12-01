@@ -842,8 +842,6 @@ namespace my
                 {
                     // Instanced squares
                     case 0:
-                        var rectInst = inst as myRectangleInst;
-
                         for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
@@ -853,17 +851,15 @@ namespace my
                                 if (colorMode == 1)
                                     colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
 
-                                rectInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
-                                rectInst.setInstanceColor(R, G, B, obj.a);
-                                rectInst.setInstanceAngle(obj.angle);
+                                myPrimitive._RectangleInst.setInstanceCoords(obj.x - obj.r, obj.y - obj.r, 2*obj.r, 2*obj.r);
+                                myPrimitive._RectangleInst.setInstanceColor(R, G, B, obj.a);
+                                myPrimitive._RectangleInst.setInstanceAngle(obj.angle);
                             }
                         }
                         break;
 
                     // Instanced triangles
                     case 1:
-                        var triangleInst = inst as myTriangleInst;
-
                         for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
@@ -873,16 +869,14 @@ namespace my
                                 if (colorMode == 1)
                                     colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
 
-                                triangleInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
-                                triangleInst.setInstanceColor(R, G, B, obj.a);
+                                myPrimitive._TriangleInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
+                                myPrimitive._TriangleInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
                         break;
 
                     // Instanced circles
                     case 2:
-                        var ellipseInst = inst as myEllipseInst;
-
                         for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
@@ -892,16 +886,14 @@ namespace my
                                 if (colorMode == 1)
                                     colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
 
-                                ellipseInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
-                                ellipseInst.setInstanceColor(R, G, B, obj.a);
+                                myPrimitive._EllipseInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
+                                myPrimitive._EllipseInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
                         break;
 
                     // Instanced pentagons
                     case 3:
-                        var pentagonInst = inst as myPentagonInst;
-
                         for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
@@ -911,16 +903,14 @@ namespace my
                                 if (colorMode == 1)
                                     colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
 
-                                pentagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
-                                pentagonInst.setInstanceColor(R, G, B, obj.a);
+                                myPrimitive._PentagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
+                                myPrimitive._PentagonInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
                         break;
 
                     // Instanced hexagons
                     case 4:
-                        var hexagonInst = inst as myHexagonInst;
-
                         for (int i = 0; i != objN; i++)
                         {
                             var obj = structsList[i];
@@ -930,8 +920,8 @@ namespace my
                                 if (colorMode == 1)
                                     colorPicker.getColor(obj.x, obj.y, ref R, ref G, ref B);
 
-                                hexagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
-                                hexagonInst.setInstanceColor(R, G, B, obj.a);
+                                myPrimitive._HexagonInst.setInstanceCoords(obj.x, obj.y, 2*obj.r, obj.angle);
+                                myPrimitive._HexagonInst.setInstanceColor(R, G, B, obj.a);
                             }
                         }
                         break;

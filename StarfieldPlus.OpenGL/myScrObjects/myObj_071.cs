@@ -280,11 +280,9 @@ namespace my
             // Draw instanced squares (borders only)
             if (true)
             {
-                var rectInst = inst as myRectangleInst;
-
-                rectInst.setInstanceCoords(X, Y, size2x, size2x);
-                rectInst.setInstanceColor(R, G, B, a);
-                rectInst.setInstanceAngle(angle);
+                myPrimitive._RectangleInst.setInstanceCoords(X, Y, size2x, size2x);
+                myPrimitive._RectangleInst.setInstanceColor(R, G, B, a);
+                myPrimitive._RectangleInst.setInstanceAngle(angle);
             }
 
             // Draw texture pieces

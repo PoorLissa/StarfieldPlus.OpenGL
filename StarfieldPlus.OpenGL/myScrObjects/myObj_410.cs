@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Concentric vibrating circles around randomly moving center point
+    - Concentric vibrating circles around randomly moving central point
 */
 
 
@@ -19,8 +19,7 @@ namespace my
         int circCount;
         private float size, dSize, A, R, G, B;
 
-        private static int N = 0, shape = 0, lineTh = 9;
-        private static bool doFillShapes = false;
+        private static int N = 0, lineTh = 9;
         private static float dimAlpha = 0.05f;
 
         // The Center
@@ -84,6 +83,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"lineTh = {lineTh}\n"                   +
                             $"dimAlpha = {fStr(dimAlpha)}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -108,8 +108,6 @@ namespace my
 
             colorPicker.getColorRand(ref R, ref G, ref B);
             A = myUtils.randFloat(rand) * 0.123f;
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -158,61 +156,13 @@ namespace my
 
         protected override void Show()
         {
+            float size2x = size * 2;
+
             int x = (int)centerX + rand.Next(11) - 5;
             int y = (int)centerY + rand.Next(11) - 5;
 
             myPrimitive._Ellipse.SetColor(R, G, B, A);
-            myPrimitive._Ellipse.Draw(x - size, y - size, 2 * size, 2 * size);
-
-
-/*
-            float size2x = size * 2;
-
-            switch (shape)
-            {
-                // Instanced squares
-                case 0:
-                    var rectInst = inst as myRectangleInst;
-
-                    rectInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    rectInst.setInstanceColor(R, G, B, A);
-                    rectInst.setInstanceAngle(angle);
-                    break;
-
-                // Instanced triangles
-                case 1:
-                    var triangleInst = inst as myTriangleInst;
-
-                    triangleInst.setInstanceCoords(x, y, size2x, angle);
-                    triangleInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced circles
-                case 2:
-                    var ellipseInst = inst as myEllipseInst;
-
-                    ellipseInst.setInstanceCoords(x, y, size2x, angle);
-                    ellipseInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced pentagons
-                case 3:
-                    var pentagonInst = inst as myPentagonInst;
-
-                    pentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    pentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
-                case 4:
-                    var hexagonInst = inst as myHexagonInst;
-
-                    hexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    hexagonInst.setInstanceColor(R, G, B, A);
-                    break;
-            }
-*/
-            return;
+            myPrimitive._Ellipse.Draw(x - size, y - size, size2x, size2x);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -222,8 +172,6 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
 
             if (doClearBuffer)
             {
@@ -236,10 +184,14 @@ namespace my
                 glDrawBuffer(GL_BACK);
             }
 
+
             myPrimitive._Ellipse.setLineThickness(lineTh);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -260,29 +212,16 @@ namespace my
 
                 // Render Frame
                 {
-                    inst.ResetBuffer();
-
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_410;
 
                         obj.Show();
                         obj.Move();
                     }
-
-                    if (doFillShapes)
-                    {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
-                    }
-
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_410());
                 }
@@ -300,8 +239,6 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Ellipse();
-
-            base.initShapes(shape, N, 0);
 
             return;
         }

@@ -244,16 +244,14 @@ namespace my
 
         protected override void Show()
         {
-            var ellipseInst = inst as myEllipseInst;
-
             X = Y = Z = 0;
 
             for (int i = 0; i < n; i++)
             {
                 var d = dataList[i];
 
-                ellipseInst.setInstanceCoords(d.x, d.y, 10, 0);
-                ellipseInst.setInstanceColor(R, G, B, 0.5f);
+                myPrimitive._EllipseInst.setInstanceCoords(d.x, d.y, 10, 0);
+                myPrimitive._EllipseInst.setInstanceColor(R, G, B, 0.5f);
 
                 X += d.x;
                 Y += d.y;

@@ -339,10 +339,8 @@ namespace my
             }
             else
             {
-                var ellipseInst = inst as myEllipseInst;
-
-                ellipseInst.setInstanceCoords(x, y, 2 * size, angle);
-                ellipseInst.setInstanceColor(R, G, B, A);
+                myPrimitive._EllipseInst.setInstanceCoords(x, y, 2 * size, angle);
+                myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
             }
 
             return;

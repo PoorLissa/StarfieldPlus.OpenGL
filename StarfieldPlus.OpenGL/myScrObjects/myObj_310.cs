@@ -87,7 +87,7 @@ namespace my
             slowFactor = rand.Next(5) + 1;                                          // Slowness factor for dx and/or dy
             axisMode = rand.Next(7);                                                // In a number of modes, will cause only vertical and/or horizontal movement of particles
             max = rand.Next(11) + 3;                                                // Particle size
-            shape = rand.Next(5);
+            shape = rand.Next(13);
             lineMaxOpacity = 500 + rand.Next(20000);                                // Max opacity of the lines in lineMode == 1
             renderDelay = rand.Next(11) + 3;
 
@@ -1264,75 +1264,66 @@ namespace my
 
             if (doShowParticles)
             {
-                shader.SetColor(r, g, b, a);
-                shader.Draw(x, y, size * 2, size * 2, 10);
-/*
                 switch (shape)
                 {
                     // Instanced squares
                     case 0:
-                        var rectInst = inst as myRectangleInst;
-
                         for (int i = 0; i < 2; i++)
                         {
                             int val1 = (int)(size - 2 * i);
                             int val2 = val1 * 2;
 
-                            rectInst.setInstanceCoords(x - val1, y - val1, val2, val2);
-                            rectInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
-                            rectInst.setInstanceAngle(i == 0 ? t : 0);
+                            myPrimitive._RectangleInst.setInstanceCoords(x - val1, y - val1, val2, val2);
+                            myPrimitive._RectangleInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                            myPrimitive._RectangleInst.setInstanceAngle(i == 0 ? t : 0);
                         }
                         break;
 
                     case 1:
-                        var triangleInst = inst as myTriangleInst;
-
                         for (int i = 0; i < 2; i++)
                         {
                             int val1 = (int)(size - 2 * i);
 
-                            triangleInst.setInstanceCoords(x, y, val1, i == 0 ? t : 0);
-                            triangleInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                            myPrimitive._TriangleInst.setInstanceCoords(x, y, val1, i == 0 ? t : 0);
+                            myPrimitive._TriangleInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
                         }
                         break;
 
                     case 2:
-                        var ellipseInst = inst as myEllipseInst;
-
                         for (int i = 0; i < 2; i++)
                         {
                             int val1 = (int)(size - 2 * i);
 
-                            ellipseInst.setInstanceCoords(x, y, 2 * val1, 0);
-                            ellipseInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                            myPrimitive._EllipseInst.setInstanceCoords(x, y, 2 * val1, 0);
+                            myPrimitive._EllipseInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
                         }
                         break;
 
                     case 3:
-                        var pentagonInst = inst as myPentagonInst;
-
                         for (int i = 0; i < 2; i++)
                         {
                             int val1 = (int)(size - 2 * i);
 
-                            pentagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
-                            pentagonInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                            myPrimitive._PentagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
+                            myPrimitive._PentagonInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
                         }
                         break;
 
                     case 4:
-                        var hexagonInst = inst as myHexagonInst;
-
                         for (int i = 0; i < 2; i++)
                         {
                             int val1 = (int)(size - 2 * i);
 
-                            hexagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
-                            hexagonInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
+                            myPrimitive._HexagonInst.setInstanceCoords(x, y, 2 * val1, i == 0 ? t : 0);
+                            myPrimitive._HexagonInst.setInstanceColor(r, g, b, i == 0 ? a / 2 : a);
                         }
                         break;
+
+                    default:
+                        shader.SetColor(r, g, b, a);
+                        shader.Draw(x, y, size * 2, size * 2, 10);
+                        break;
                 }
-*/
             }
 
             return;
@@ -1383,6 +1374,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -1405,14 +1398,14 @@ namespace my
 
                     moveStep = true;
 
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i < Count; i++)
                     {
                         (list[i] as myObj_310).Move();
                     }
 
                     moveStep = false;
 
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i < Count; i++)
                     {
                         var obj = list[i] as myObj_310;
                         obj.Show();
@@ -1426,7 +1419,7 @@ namespace my
                 }
 
                 if (!doCreateAtOnce)
-                    if (list.Count < N)
+                    if (Count < N)
                         list.Add(new myObj_310());
 
                 System.Threading.Thread.Sleep(renderDelay);
@@ -1463,7 +1456,7 @@ namespace my
 
             getShader();
 
-            base.initShapes(shape, 2*N, 0);
+            base.initShapes(shape, 2 * N, 0);
 
             return;
         }

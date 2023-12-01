@@ -184,10 +184,8 @@ namespace my
         {
             float Size = size * sizeFactor;
 
-            var triangleInst = inst as myTriangleInst;
-
-            triangleInst.setInstanceCoords(x, y, Size, angle);
-            triangleInst.setInstanceColor(R, G, B, A);
+            myPrimitive._TriangleInst.setInstanceCoords(x, y, Size, angle);
+            myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
 
             return;
         }
