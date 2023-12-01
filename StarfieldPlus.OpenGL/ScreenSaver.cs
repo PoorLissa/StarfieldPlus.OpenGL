@@ -180,6 +180,7 @@ public class ScreenSaver
         register(my.myObj_790.Type);      // Two-point swaps
         register(my.myObj_800.Type);      // Rows of Triangles
         register(my.myObj_810.Type);      // Raster scan of an image
+        register(my.myObj_820.Type);      // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
