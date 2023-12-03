@@ -14,7 +14,7 @@ namespace my
     public class myObj_820 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_820);
 
         private float x, y, t, dt;
@@ -115,7 +115,7 @@ namespace my
             dt = tt;
 
             A = myUtils.randFloat(rand, 0.1f) * 0.75f;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            colorPicker.getColorRand(ref R, ref G, ref B);
 
             return;
         }
@@ -133,6 +133,8 @@ namespace my
             angle += dt / (gl_dAngle - (float)Math.Sin(t));
 
             //dt += (float)Math.Cos(angle) * 0.001f;
+
+            //size += (float)Math.Sin(t / 11);
 
             return;
         }
