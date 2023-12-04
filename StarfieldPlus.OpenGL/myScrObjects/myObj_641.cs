@@ -22,7 +22,7 @@ namespace my
         private float x, y;
         private float size, A, AFill, R, G, B;
 
-        private static int N = 0, maxSize = 1, fillMode = 0;
+        private static int N = 0, maxSize = 1, minSize = 1, fillMode = 0;
         private static float lineThickness = 1;
 
         private static myScreenGradient grad = null;
@@ -69,6 +69,7 @@ namespace my
 
             renderDelay = rand.Next(3);
 
+            minSize = 3;
             maxSize = 111 + rand.Next(123);
 
             return;
@@ -148,6 +149,7 @@ namespace my
             //  use sorted list;
             //  in this case we just need to check all the particles on the interval [-(maxRadius + thisRadius), +(maxRadius + thisRadius)]
             {
+                int numOfTries = 100;
                 int Count = list.Count;
                 bool isOk = false;
 
@@ -189,7 +191,7 @@ namespace my
                                     //size += isFilled ? 1 : -2;
                                     size -= lineThickness * 2;
 
-                                    if (size < 3)
+                                    if (size < minSize)
                                     {
                                         isOk = false;
                                         break;
@@ -197,6 +199,15 @@ namespace my
                                 }
                             }
                         }
+                    }
+
+                    // Don't spend an eternity here; try again next time
+                    if (--numOfTries == 0)
+                    {
+                        x = -1111;
+                        y = -1111;
+                        size = 0;
+                        return;
                     }
                 }
             }
