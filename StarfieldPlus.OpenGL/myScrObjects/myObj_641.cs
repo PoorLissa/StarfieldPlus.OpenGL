@@ -241,7 +241,7 @@ namespace my
             else
             {
                 myPrimitive._Ellipse.SetColor(R, G, B, A);
-                myPrimitive._Ellipse.Draw(x - size, y - size, size2x, size2x, isFilled);
+                myPrimitive._Ellipse.Draw(x - size, y - size, size2x, size2x, false);
             }
         }
 
