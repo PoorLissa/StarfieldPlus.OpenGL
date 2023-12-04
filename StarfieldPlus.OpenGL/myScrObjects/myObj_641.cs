@@ -22,8 +22,9 @@ namespace my
         private float x, y;
         private float size, A, AFill, R, G, B;
 
-        private static int N = 0, maxSize = 1, minSize = 1, fillMode = 0;
+        private static int N = 0, maxSize = 1, minSize = 1, fillMode = 0, totalFailsNum = 0;
         private static float lineThickness = 1;
+        private static bool doAllocateAtOnce = false;
 
         private static myScreenGradient grad = null;
 
@@ -64,6 +65,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
+            doAllocateAtOnce = myUtils.randomChance(rand, 1, 2);
 
             fillMode = rand.Next(7);
 
@@ -71,6 +73,8 @@ namespace my
 
             minSize = 3;
             maxSize = 111 + rand.Next(123);
+
+            totalFailsNum = 0;
 
             return;
         }
@@ -86,9 +90,11 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                           +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
+                            $"doAllocateAtOnce = {doAllocateAtOnce}\n" +
                             $"maxSize = {maxSize}\n"                   +
                             $"lineThickness = {fStr(lineThickness)}\n" +
                             $"fillMode = {fillMode}\n"                 +
+                            $"totalFailsNum = {totalFailsNum}\n"       +
                             $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -204,8 +210,8 @@ namespace my
                     // Don't spend an eternity here; try again next time
                     if (--numOfTries == 0)
                     {
-                        x = -1111;
-                        y = -1111;
+                        totalFailsNum++;
+                        x = y = -1111;
                         size = 0;
                         return;
                     }
@@ -265,6 +271,14 @@ namespace my
 
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+
+            if (doAllocateAtOnce)
+            {
+                int n = rand.Next(N);
+                while (list.Count < n)
+                    list.Add(new myObj_641());
+            }
 
 
             while (!Glfw.WindowShouldClose(window))
