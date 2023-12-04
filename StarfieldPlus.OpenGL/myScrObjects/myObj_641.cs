@@ -144,6 +144,9 @@ namespace my
             }
 
             // Must be true to continue: dist < (r1 + r2)
+            // todo:
+            //  use sorted list;
+            //  in this case we just need to check all the particles on the interval [-(maxRadius + thisRadius), +(maxRadius + thisRadius)]
             {
                 int Count = list.Count;
                 bool isOk = false;
@@ -165,19 +168,23 @@ namespace my
                         {
                             float dx = x - obj.x;
                             float dy = y - obj.y;
-                            float dist = (float)Math.Sqrt(dx * dx + dy * dy);
-                            float R = size + obj.size;
+                            float distSquared = (dx * dx + dy * dy);
+                            float rSquared = size + obj.size;
+                                 rSquared *= rSquared;
 
-                            if (dist < R)
+                            if (distSquared < rSquared)
                             {
-                                if (dist < obj.size)
+                                if (distSquared < obj.size * obj.size)
                                 {
                                     isOk = false;
                                     break;
                                 }
                                 else
                                 {
-                                    size = dist - obj.size;
+                                    float newSize = (float)Math.Sqrt(distSquared) - obj.size;
+
+                                    // The size only is allowed to reduce
+                                    size = newSize < size ? newSize : size;
 
                                     //size += isFilled ? 1 : -2;
                                     size -= lineThickness * 2;
