@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Create random circles, but put them on the screen only when they don't intersect any existing circles
 */
 
 
@@ -20,9 +20,10 @@ namespace my
         private bool isFilled;
         private int cnt;
         private float x, y;
-        private float size, A, R, G, B;
+        private float size, A, AFill, R, G, B;
 
         private static int N = 0, maxSize = 1, fillMode = 0;
+        private static float lineThickness = 1;
 
         private static myScreenGradient grad = null;
 
@@ -39,12 +40,19 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
+            int mode = myUtils.randomChance(rand, 1, 2)
+                ? (int)myColorPicker.colorMode.SNAPSHOT_OR_IMAGE
+                : -1;
+
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode);
             list = new List<myObject>();
 
             // Global unmutable constants
             {
                 N = 3333;
+
+                // For larger thicknesses, we need to adjust the size, as circles will start intersecting each other
+                lineThickness = 3 + rand.Next(9);
             }
 
             initLocal();
@@ -57,11 +65,11 @@ namespace my
         {
             doClearBuffer = true;
 
-            fillMode = rand.Next(3);
+            fillMode = rand.Next(7);
 
             renderDelay = rand.Next(3);
 
-            maxSize = 222;
+            maxSize = 111 + rand.Next(123);
 
             return;
         }
@@ -73,12 +81,14 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"fillMode = {fillMode}\n"               +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                           +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
+                            $"maxSize = {maxSize}\n"                   +
+                            $"lineThickness = {fStr(lineThickness)}\n" +
+                            $"fillMode = {fillMode}\n"                 +
+                            $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -98,22 +108,42 @@ namespace my
         {
             cnt = 666 + rand.Next(333);
 
+            A = 0.75f;
+
             switch (fillMode)
             {
                 case 0:
+                case 1:
                     isFilled = false;
                     break;
 
-                case 1:
+                case 2:
                     isFilled = true;
+                    AFill = A * 0.50f;
                     break;
 
-                case 2:
+                case 3:
+                    isFilled = true;
+                    AFill = A * 0.25f;
+                    break;
+
+                case 4:
+                    isFilled = true;
+                    AFill = A * 0.10f;
+                    break;
+
+                case 5:
                     isFilled = myUtils.randomChance(rand, 1, 2);
+                    AFill = A * 0.50f;
+                    break;
+
+                case 6:
+                    isFilled = myUtils.randomChance(rand, 1, 2);
+                    AFill = A * myUtils.randFloat(rand) * 0.5f;
                     break;
             }
 
-            // Must be true: dist < (r1 + r2)
+            // Must be true to continue: dist < (r1 + r2)
             {
                 int Count = list.Count;
                 bool isOk = false;
@@ -149,7 +179,8 @@ namespace my
                                 {
                                     size = dist - obj.size;
 
-                                    size += isFilled ? 1 : -2;
+                                    //size += isFilled ? 1 : -2;
+                                    size -= lineThickness * 2;
 
                                     if (size < 3)
                                     {
@@ -163,7 +194,6 @@ namespace my
                 }
             }
 
-            A = 0.75f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -176,6 +206,7 @@ namespace my
             if (--cnt < 0)
             {
                 A -= 0.005f;
+                AFill -= 0.005f;
 
                 if (A < 0)
                 {
@@ -190,8 +221,21 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._Ellipse.SetColor(R, G, B, A);
-            myPrimitive._Ellipse.Draw(x - size, y - size, size * 2, size * 2, isFilled);
+            float size2x = size * 2;
+
+            if (isFilled)
+            {
+                myPrimitive._Ellipse.SetColor(R, G, B, AFill);
+                myPrimitive._Ellipse.Draw(x - size, y - size, size2x, size2x, true);
+
+                myPrimitive._Ellipse.SetColor(R, G, B, A);
+                myPrimitive._Ellipse.Draw(x - size, y - size, size2x, size2x, false);
+            }
+            else
+            {
+                myPrimitive._Ellipse.SetColor(R, G, B, A);
+                myPrimitive._Ellipse.Draw(x - size, y - size, size2x, size2x, isFilled);
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -236,9 +280,10 @@ namespace my
                     }
                 }
 
-                if (cnt == 1 && Count < N)
+                //if (cnt == 1 && Count < N)
+                if (Count < N)
                 {
-                    cnt = 0;
+                    //cnt = 0;
                     list.Add(new myObj_641());
                 }
 
@@ -256,7 +301,7 @@ namespace my
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Ellipse();
 
-            myPrimitive._Ellipse.setLineThickness(3);
+            myPrimitive._Ellipse.setLineThickness(lineThickness);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f, 0);
