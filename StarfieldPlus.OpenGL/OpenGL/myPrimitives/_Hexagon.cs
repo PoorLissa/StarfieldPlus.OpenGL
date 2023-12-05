@@ -47,6 +47,7 @@ public class myHexagon : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // todo: optimize this call, at least precalc 1/Width, etc
     public void Draw(float x, float y, float r, bool doFill = false)
     {
         float fx, fy;
@@ -154,12 +155,9 @@ public class myHexagon : myPrimitive
                 }}
                 else
                 {{
-                    vec2 POS = vec2(pos.x - myCenter.x, pos.y - myCenter.y);
-
-                    gl_Position = vec4(POS.x * sc.y - POS.y * sc.x, POS.y * sc.y + POS.x * sc.x, pos.z, 1.0);
-
-                    gl_Position.x += myCenter.x;
-                    gl_Position.y += myCenter.y;
+                    vec2 p = pos.xy - myCenter.xy;
+                    gl_Position = vec4(p.x * sc.y - p.y * sc.x, p.y * sc.y + p.x * sc.x, pos.z, 1.0);
+                    gl_Position.xy += myCenter.xy;
 
                     gl_Position.x = gl_Position.x * { 2.0 / (Width + 1) } - 1.0f;
                     gl_Position.y = 1.0f - gl_Position.y * { 2.0 / Height };
