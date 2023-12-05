@@ -14,7 +14,7 @@ namespace my
     public class myObj_720 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_720);
 
         private int cnt, dir;
@@ -46,6 +46,11 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(25) + 1;
+
+                if (myUtils.randomChance(rand, 1, 13))
+                {
+                    N = 1111 + rand.Next(666);
+                }
             }
 
             initLocal();

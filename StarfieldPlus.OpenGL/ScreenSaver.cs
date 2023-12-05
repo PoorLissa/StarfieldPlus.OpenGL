@@ -151,7 +151,7 @@ public class ScreenSaver
         register(my.myObj_510.Type);      // Moving Shooters vs static Targets
         register(my.myObj_520.Type);      // Static pulsating shapes
         register(my.myObj_530.Type);      // A ring of moving particles
-        register(my.myObj_540.Type);      // Falling alphabet letters (Matrix style)
+        register(my.myObj_540.Type);      // Falling alphabet letters (Matrix style), ver1
         register(my.myObj_541.Type);      // Falling alphabet letters (Matrix style), ver2
         register(my.myObj_550.Type);      // Orbits of different size + a small planet is moving along each orbit
         register(my.myObj_560.Type);      // Pixelating an image with average colors
@@ -171,7 +171,7 @@ public class ScreenSaver
         register(my.myObj_690.Type);      // ...
         register(my.myObj_700.Type);      // Straight lines that reflect backwards
         register(my.myObj_710.Type);      // Static growing shapes of the color of the underlying image
-        register(my.myObj_720.Type);      // ...
+        register(my.myObj_720.Type);      // Drop a random point, get its underlying color, then draw a horizontal or vertical line through this point
         register(my.myObj_730.Type);      // Lots of triangles, where each vertice is moving like a bouncing ball
         register(my.myObj_740.Type);      // Periodic vertical or horizontal waves of particles
         register(my.myObj_750.Type);      // Particles generated with the same movement direction, bouncing off the walls

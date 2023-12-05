@@ -8,7 +8,7 @@ using System.Drawing.Drawing2D;
 
 
 /*
-    - Falling alphabet letters (Matrix style)
+    - Falling alphabet letters (Matrix style), ver1
 
     // Some reference (not really used here, jic)
     https://learnopengl.com/In-Practice/Text-Rendering
