@@ -23,7 +23,7 @@ public class myHexagon : myPrimitive
         if (vertices == null)
         {
             sqrt3_div2 = (float)(Math.Sqrt(3.0) / 2.0);
-            h_div_w    = (float)Height / (float)Width;
+            h_div_w    = 1.0f * Height / Width;
 
             vertices = new float[18];
 

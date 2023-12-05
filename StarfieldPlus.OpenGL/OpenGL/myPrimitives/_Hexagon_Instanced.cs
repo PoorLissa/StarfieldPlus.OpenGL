@@ -109,6 +109,7 @@ public class myHexagonInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // todo: optimize this
     private void CreateProgram()
     {
         // mat2x4 mData is a [2 x 4] matrix of floats, where:
@@ -161,15 +162,15 @@ public class myHexagonInst : myInstancedPrimitive
                         gl_Position.y += -2.0 / myScrSize.y * mData[0].y + 1.0;"
         );
 
+        // todo: test if "result.w *= myColor.w < 0 ? -myColor.w : 1" is faster
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
             "in vec4 rgbaColor; out vec4 result; uniform vec4 myColor;",
 
                 main: @"result = rgbaColor;
 
                         if (myColor.w < 0)
-                        {
                             result.w *= -myColor.w;
-                        }"
+                "
         );
 
         shaderProgram = glCreateProgram();
