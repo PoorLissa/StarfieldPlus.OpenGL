@@ -8,6 +8,8 @@ using System.IO.Ports;
     - Get a rectangle at the original screen;
     - Get color at a point / Calculate average color in this rectangle;
     - Put a shape filled with this average color at the same place;
+
+    - myObj_560 does the same
 */
 
 

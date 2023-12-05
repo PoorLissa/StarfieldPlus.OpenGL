@@ -7,6 +7,8 @@ using System.Collections.Generic;
 /*
     - Pixelating an image with average colors
     - As on option, posterization of color is applied
+
+    - myObj_102 does the same
 */
 
 
@@ -24,7 +26,8 @@ namespace my
         private static int N = 0, size = 0, offset = 0, offset2x = 0, genMode = 0, getColorMode = 0, mode1Divider = 0;
         private static int[] posterization = new int[3];
         private static float dimAlpha = 0.05f, maxA = 0;
-        private static bool doFill = true, doUsePosterization = false;
+        private static float targetR = 0, targetG = 0, targetB = 0;
+        private static bool doFill = true, doUsePosterization = false, doUseTargetColor = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -60,6 +63,8 @@ namespace my
             doFill = myUtils.randomChance(rand, 5, 7);
             doUsePosterization = myUtils.randomChance(rand, 1, 2);
 
+            doUseTargetColor = myUtils.randomChance(rand, 1, 3);
+
             genMode = rand.Next(4);
             getColorMode = rand.Next(2);
 
@@ -91,6 +96,14 @@ namespace my
                 }
             }
 
+            // Get a target color for a targetColor mode
+            do {
+                targetR = myUtils.randFloat(rand);
+                targetG = myUtils.randFloat(rand);
+                targetB = myUtils.randFloat(rand);
+            }
+            while (targetR + targetG + targetB < 1.66f);
+
             return;
         }
 
@@ -103,16 +116,17 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = {Type}\n\n"                         	+
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"size = {size}\n"                          +
-                            $"maxA = {fStr(maxA)}\n"                    +
-                            $"genMode = {genMode}\n"                    +
-                            $"getColorMode = {getColorMode}\n"          +
-                            $"offset = {offset}\n"                      +
-                            $"mode1Divider = {mode1Divider}\n"          +
-                            $"renderDelay = {renderDelay}\n"            +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"            +
+            string str = $"Obj = {Type}\n\n"                           +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
+                            $"size = {size}\n"                         +
+                            $"maxA = {fStr(maxA)}\n"                   +
+                            $"genMode = {genMode}\n"                   +
+                            $"getColorMode = {getColorMode}\n"         +
+                            $"doUseTargetColor = {doUseTargetColor}\n" +
+                            $"offset = {offset}\n"                     +
+                            $"mode1Divider = {mode1Divider}\n"         +
+                            $"renderDelay = {renderDelay}\n"           +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -184,6 +198,16 @@ namespace my
                 R /= 255.0f;
                 G /= 255.0f;
                 B /= 255.0f;
+            }
+
+            // Convert actual color to a shade of the target color
+            if (doUseTargetColor)
+            {
+                float factor = (R + G + B) / 3;
+
+                R = targetR * factor;
+                G = targetG * factor;
+                B = targetB * factor;
             }
 
             return;
