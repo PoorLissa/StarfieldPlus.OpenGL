@@ -202,7 +202,7 @@ namespace my
             tTex = new TexText(size, false, N, alphabetId: 5);
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             return;
         }

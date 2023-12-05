@@ -432,7 +432,7 @@ namespace my
             myPrimitive.init_LineInst(doUseTrails ? n * nTrail : N);
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, mode: 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             getShader();
 

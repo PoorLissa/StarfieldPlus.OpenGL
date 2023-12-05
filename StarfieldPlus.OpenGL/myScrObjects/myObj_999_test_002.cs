@@ -461,7 +461,7 @@ lenMode = 0;
             myPrimitive.init_LineInst(N * (N / 10));
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             return;
         }

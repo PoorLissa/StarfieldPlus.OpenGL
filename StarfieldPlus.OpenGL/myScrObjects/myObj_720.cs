@@ -14,7 +14,7 @@ namespace my
     public class myObj_720 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99910;
 		public static System.Type Type => typeof(myObj_720);
 
         private int cnt, dir;
@@ -64,7 +64,8 @@ namespace my
 
             renderDelay = rand.Next(11) + 3;
 
-            dimAlpha = 0.05f + myUtils.randFloat(rand) * 0.5f;
+            dimAlpha = 0.05f + myUtils.randFloat(rand) * 0.50f;
+            dimAlpha = 0.10f + myUtils.randFloat(rand) * 0.15f;
 
             return;
         }
@@ -178,12 +179,9 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
                     }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -213,11 +211,11 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
+            grad.SetOpacity(dimAlpha);
 
             return;
         }

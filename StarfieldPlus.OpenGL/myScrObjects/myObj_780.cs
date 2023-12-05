@@ -350,7 +350,7 @@ namespace my
             base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             //grad.SetColor (1, 1, 1, 1);
             //grad.SetColor2(0, 0, 0, 1);

@@ -405,7 +405,7 @@ namespace my
 
             grad = new myScreenGradient();
             float factor = myUtils.randFloat(rand) * 0.2f;
-            grad.SetRandomColors(rand, factor, mode: 0);
+            grad.SetRandomColors(rand, factor);
 
             return;
         }

@@ -336,7 +336,7 @@ namespace my
             myPrimitive._Ellipse.setLineThickness(lineThickness);
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             return;
         }

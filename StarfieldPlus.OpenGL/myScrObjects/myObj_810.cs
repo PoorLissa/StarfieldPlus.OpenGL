@@ -405,7 +405,7 @@ namespace my
             myPrimitive._LineInst.setLineWidth(lineWidth);
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             return;
         }

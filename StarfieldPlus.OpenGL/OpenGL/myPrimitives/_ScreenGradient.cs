@@ -100,34 +100,66 @@ public class myScreenGradient : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Set random RGB gradient colors
-    public void SetRandomColors(System.Random r, float factor, int mode)
+    public void SetRandomColors(System.Random rand, float factor, int mode = -1)
     {
+        // Set random color
         void rndColor(ref float R, ref float G, ref float B) {
-            R = myUtils.randFloat(r) * factor;
-            G = myUtils.randFloat(r) * factor;
-            B = myUtils.randFloat(r) * factor;
+            R = myUtils.randFloat(rand) * factor;
+            G = myUtils.randFloat(rand) * factor;
+            B = myUtils.randFloat(rand) * factor;
         }
+
+        // Get a color and apply the same factor to all its components;
+        // Should result is a different shade of the same initial color
+        void applyConstFactor(float r, float g, float b, ref float R, ref float G, ref float B)
+        {
+            float constFactor = 0.5f + myUtils.randFloat(rand) * 0.35f;     // factor of [0.50 .. 0.85]
+
+            if (myUtils.randomChance(rand, 1, 2))                           // factor of [1.15 .. 1.50]
+                constFactor = 2.0f - constFactor;
+
+            R = r * constFactor;
+            G = g * constFactor;
+            B = b * constFactor;
+        }
+
+        // -----------------------------------------------------------------------------
+
+        // The default mode translates into 0 or 1
+        mode = mode == -1 ? rand.Next(2) : mode;
 
         switch (mode)
         {
+            // 2 random colors
             case 0:
                 rndColor(ref _r, ref _g, ref _b);
                 rndColor(ref _r1, ref _g1, ref _b1);
                 break;
 
+            // The 1st color is random; the 2nd color is a shade of the 1st one
             case 1:
+                rndColor(ref _r, ref _g, ref _b);
+                applyConstFactor(_r, _g, _b, ref _r1, ref _g1, ref _b1);
+                break;
+
+            // The 1st color is random;
+            case 2:
                 rndColor(ref _r, ref _g, ref _b);
                 break;
 
-            case 2:
+            // The 2nd color is random;
+            case 3:
                 rndColor(ref _r1, ref _g1, ref _b1);
                 break;
 
-            case 3:
-                if (myUtils.randomChance(r, 1, 2))
-                    rndColor(ref _r, ref _g, ref _b);
-                else
-                    rndColor(ref _r1, ref _g1, ref _b1);
+            // One of the colors is random
+            case 4:
+                {
+                    if (myUtils.randomChance(rand, 1, 2))
+                        rndColor(ref _r, ref _g, ref _b);
+                    else
+                        rndColor(ref _r1, ref _g1, ref _b1);
+                }
                 break;
         }
     }

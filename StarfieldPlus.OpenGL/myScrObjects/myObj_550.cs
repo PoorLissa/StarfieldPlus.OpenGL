@@ -367,21 +367,21 @@ namespace my
             switch (rand.Next(4))
             {
                 case 0:
-                    grad.SetRandomColors(rand, 0.2f, mode: 0);
+                    grad.SetRandomColors(rand, 0.2f);
                     break;
 
                 case 1:
-                    grad.SetRandomColors(rand, 0.7f, mode: 0);
+                    grad.SetRandomColors(rand, 0.7f);
                     break;
 
                 case 2:
-                    grad.SetRandomColors(rand, 0.2f, mode: 1);
-                    grad.SetRandomColors(rand, 0.7f, mode: 2);
+                    grad.SetRandomColors(rand, 0.2f, mode: 2);
+                    grad.SetRandomColors(rand, 0.7f, mode: 3);
                     break;
 
                 case 3:
-                    grad.SetRandomColors(rand, 0.7f, mode: 1);
-                    grad.SetRandomColors(rand, 0.2f, mode: 2);
+                    grad.SetRandomColors(rand, 0.7f, mode: 2);
+                    grad.SetRandomColors(rand, 0.2f, mode: 3);
                     break;
             }
 

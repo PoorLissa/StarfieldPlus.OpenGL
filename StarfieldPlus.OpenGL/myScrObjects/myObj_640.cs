@@ -422,7 +422,7 @@ namespace my
         private void initShapes()
         {
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.23f, mode: 0);
+            grad.SetRandomColors(rand, 0.23f);
 
             myPrimitive.init_Rectangle();
             myPrimitive.init_Line();

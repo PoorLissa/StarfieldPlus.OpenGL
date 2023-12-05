@@ -308,7 +308,7 @@ namespace my
             tTex = new TexText(size, true, 100000, fontStyle, -5);
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             N = gl_Height / tTex.getFieldHeight() + 3;
 

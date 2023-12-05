@@ -319,7 +319,7 @@ namespace my
             tex = new myTexRectangle(colorPicker.getImg());
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             return;
         }

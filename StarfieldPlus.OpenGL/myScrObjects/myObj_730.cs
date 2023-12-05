@@ -265,7 +265,7 @@ namespace my
             myPrimitive.init_LineInst(N * 3);
 
             grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f, 0);
+            grad.SetRandomColors(rand, 0.2f);
 
             return;
         }
