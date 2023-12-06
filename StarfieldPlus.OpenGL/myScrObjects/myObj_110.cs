@@ -546,6 +546,8 @@ namespace my
             myPrimitive.init_Pentagon();
             myPrimitive.init_Hexagon();
 
+            myUtils.SetAntializingMode(true);
+
             return;
         }
 
