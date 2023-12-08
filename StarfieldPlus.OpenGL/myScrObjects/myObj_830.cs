@@ -14,13 +14,13 @@ namespace my
     public class myObj_830 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_830);
 
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, mode = 0;
+        private static int N = 0, mode = 0, maxSpeed = 0, maxSize = 0;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
@@ -44,8 +44,16 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 1 + rand.Next(10);
-                N = 1;
+                switch (rand.Next(5))
+                {
+                    case 0: N = 1; break;
+                    case 1: N = 1 + rand.Next(3); break;
+                    case 2: N = 1 + rand.Next(5); break;
+                    case 3: N = 1 + rand.Next(7); break;
+                    case 4: N = 1 + rand.Next(9); break;
+                }
+
+                dimAlpha = 0.025f + myUtils.randFloat(rand) * 0.075f;
             }
 
             initLocal();
@@ -58,7 +66,10 @@ namespace my
         {
             doClearBuffer = false;
 
-            mode = 0;
+            mode = rand.Next(4);
+
+            maxSize  = 2 + rand.Next(9);
+            maxSpeed = 2 + rand.Next(9);
 
             renderDelay = rand.Next(11) + 3;
 
@@ -72,11 +83,14 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"mode = {mode}\n"                       +
+                            $"maxSpeed = {maxSpeed}\n"               +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -98,17 +112,65 @@ namespace my
             switch (mode)
             {
                 case 0:
-                    x = 0;
-                    y = 0;
+                    {
+                        x = 0;
+                        dx = 0;
 
-                    dx = 0;
-                    dy = 0.25f + myUtils.randFloat(rand) * 3;
+                        y = 0;
+                        dy = 0.25f + myUtils.randFloat(rand) * maxSpeed;
+                    }
+                    break;
+
+                case 1:
+                    {
+                        x = 0;
+                        dx = 0;
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            y = 0;
+                            dy = 0.25f + myUtils.randFloat(rand) * maxSpeed;
+                        }
+                        else
+                        {
+                            y = gl_Height;
+                            dy = -(0.25f + myUtils.randFloat(rand) * maxSpeed);
+                        }
+                    }
+                    break;
+
+                case 2:
+                    {
+                        y = 0;
+                        dy = 0;
+
+                        x = 0;
+                        dx = 0.25f + myUtils.randFloat(rand) * maxSpeed;
+                    }
+                    break;
+
+                case 3:
+                    {
+                        y = 0;
+                        dy = 0;
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            x = 0;
+                            dx = 0.25f + myUtils.randFloat(rand) * maxSpeed;
+                        }
+                        else
+                        {
+                            x = gl_Width;
+                            dx = -(0.25f + myUtils.randFloat(rand) * maxSpeed);
+                        }
+                    }
                     break;
             }
 
-            size = 2;
+            size = maxSize;
 
-            A = 0.85f;
+            A = 0.75f + myUtils.randFloat(rand) * 0.15f;
 
             return;
         }
@@ -132,7 +194,18 @@ namespace my
 
         protected override void Show()
         {
-            tex.Draw((int)x, (int)y, gl_Width, (int)size, (int)x, (int)y, gl_Width, (int)size);
+            switch (mode)
+            {
+                case 0:
+                case 1:
+                    tex.Draw((int)x, (int)y, gl_Width, (int)size, (int)x, (int)y, gl_Width, (int)size);
+                    break;
+
+                case 2:
+                case 3:
+                    tex.Draw((int)x, (int)y, (int)size, gl_Height, (int)x, (int)y, (int)size, gl_Height);
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -201,7 +274,7 @@ namespace my
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
-            grad.SetOpacity(0.1f);
+            grad.SetOpacity(dimAlpha);
 
             tex = new myTexRectangle(colorPicker.getImg());
 
