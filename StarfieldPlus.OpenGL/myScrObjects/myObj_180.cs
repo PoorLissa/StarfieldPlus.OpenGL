@@ -40,6 +40,8 @@ namespace my
         static myFuncGenerator1.Funcs   f1, f2, f3, f4;
         static myFuncGenerator1.eqModes eqMode1, eqMode2;
 
+        private static myScreenGradient grad = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_180()
@@ -56,7 +58,7 @@ namespace my
             list = new List<myObject>();
             myFuncGenerator1.myExpr.rand = rand;
 
-            doClearBuffer = false;
+            dimAlpha = 0.01f + myUtils.randFloat(rand) * 0.09f;
 
             N = 1111 + rand.Next(2345);
             renderDelay = rand.Next(10);
@@ -255,13 +257,14 @@ namespace my
                 return $"\n Short: {res}";
             }
 
+            string fStr(float f) { return f.ToString("0.000"); }
+
             string str = $"Obj = {Type}\n\n"                                 	+
                             $"N = {N}\n"                                        +
                             $"deadCnt = {deadCnt}\n"                            +
                             $"doClearBuffer = {doClearBuffer}\n"                +
                             $"doUsePredefinedMode = {doUsePredefinedMode}\n"    +
                             $"doDrawTwice = {doDrawTwice}\n"                    +
-                            $"renderDelay = {renderDelay}\n"                    +
                             $"shapeType = {shapeType}\n"                        +
                             $"rotationMode = {rotationMode}\n"                  +
                             $"rotationSubMode = {rotationSubMode}\n"            +
@@ -276,6 +279,8 @@ namespace my
                             $"doUseIntConversion = {doUseIntConversion}\n"      +
                             $"doShowParticles = {doShowParticles}\n"            +
                             $"LifeCntBase = {LifeCntBase}\n"                    +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"                    +
+                            $"renderDelay = {renderDelay}\n"                    +
                             getFuncGeneratorParams() + "\n"                     +
                             getFuncGeneratorParamsShort()
                 ;
@@ -293,6 +298,8 @@ namespace my
             var oldConnectionMode = connectionMode;
 
             initLocal();
+
+            grad.SetOpacity(doClearBuffer ? 1 : dimAlpha);
 
             shapeType = oldShapeType;
             connectionMode = oldConnectionMode;
@@ -581,11 +588,13 @@ namespace my
                 if (doClearBuffer)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
+                    grad.Draw();
                 }
                 else
                 {
                     // Dim the screen constantly;
-                    dimScreen(dimAlpha);
+                    //dimScreen(dimAlpha);
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -707,12 +716,16 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
+            //myPrimitive.init_ScrDimmer();
 
             if (connectionMode > 2)
                 myPrimitive.init_LineInst(N);
 
             base.initShapes(shapeType, N * (doDrawTwice ? 2 : 1), rotationSubMode);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f);
+            grad.SetOpacity(doClearBuffer ? 1 : dimAlpha);
 
             return;
         }

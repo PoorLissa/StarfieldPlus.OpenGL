@@ -17,8 +17,8 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_830);
 
-        private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float x, y, dx, dy, A;
+        private float size1, size2;
 
         private static int N = 0, mode = 0, maxSpeed = 0, maxSize = 0;
         private static float dimAlpha = 0.05f;
@@ -44,15 +44,6 @@ namespace my
 
             // Global unmutable constants
             {
-                switch (rand.Next(5))
-                {
-                    case 0: N = 1; break;
-                    case 1: N = 1 + rand.Next(3); break;
-                    case 2: N = 1 + rand.Next(5); break;
-                    case 3: N = 1 + rand.Next(7); break;
-                    case 4: N = 1 + rand.Next(9); break;
-                }
-
                 dimAlpha = 0.025f + myUtils.randFloat(rand) * 0.075f;
             }
 
@@ -66,12 +57,38 @@ namespace my
         {
             doClearBuffer = false;
 
-            mode = rand.Next(4);
+            mode = rand.Next(6);
 
             maxSize  = 2 + rand.Next(9);
             maxSpeed = 2 + rand.Next(9);
 
             renderDelay = rand.Next(11) + 3;
+
+            switch (mode)
+            {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    {
+                        switch (rand.Next(5))
+                        {
+                            case 0: N = 1; break;
+                            case 1: N = 1 + rand.Next(3); break;
+                            case 2: N = 1 + rand.Next(5); break;
+                            case 3: N = 1 + rand.Next(7); break;
+                            case 4: N = 1 + rand.Next(9); break;
+                        }
+                    }
+                    break;
+
+                case 4:
+                case 5:
+                    {
+                        N = 123;
+                    }
+                    break;
+            }
 
             return;
         }
@@ -86,7 +103,7 @@ namespace my
             string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"N = {nStr(N)} of {nStr(list.Count)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"mode = {mode}\n"                       +
                             $"maxSpeed = {maxSpeed}\n"               +
@@ -109,68 +126,112 @@ namespace my
 
         protected override void generateNew()
         {
+            float getSpeed() {
+                return 0.25f + myUtils.randFloat(rand) * maxSpeed;
+            }
+
+            // -----------------------------------------------------------
+
+            A = 0.75f + myUtils.randFloat(rand) * 0.15f;
+
             switch (mode)
             {
                 case 0:
                     {
+                        size2 = gl_Width;
                         x = 0;
                         dx = 0;
 
                         y = 0;
-                        dy = 0.25f + myUtils.randFloat(rand) * maxSpeed;
+                        dy = getSpeed();
                     }
                     break;
 
                 case 1:
                     {
+                        size2 = gl_Width;
                         x = 0;
                         dx = 0;
 
                         if (myUtils.randomChance(rand, 1, 2))
                         {
                             y = 0;
-                            dy = 0.25f + myUtils.randFloat(rand) * maxSpeed;
+                            dy = getSpeed();
                         }
                         else
                         {
                             y = gl_Height;
-                            dy = -(0.25f + myUtils.randFloat(rand) * maxSpeed);
+                            dy = -getSpeed();
                         }
                     }
                     break;
 
                 case 2:
                     {
+                        size2 = gl_Height;
                         y = 0;
                         dy = 0;
 
                         x = 0;
-                        dx = 0.25f + myUtils.randFloat(rand) * maxSpeed;
+                        dx = getSpeed();
                     }
                     break;
 
                 case 3:
                     {
+                        size2 = gl_Height;
                         y = 0;
                         dy = 0;
 
                         if (myUtils.randomChance(rand, 1, 2))
                         {
                             x = 0;
-                            dx = 0.25f + myUtils.randFloat(rand) * maxSpeed;
+                            dx = getSpeed();
                         }
                         else
                         {
                             x = gl_Width;
-                            dx = -(0.25f + myUtils.randFloat(rand) * maxSpeed);
+                            dx = -getSpeed();
+                        }
+                    }
+                    break;
+
+                case 4:
+                    {
+                        A *= 0.5f;
+
+                        size2 = 50 + rand.Next(333);
+                        x = rand.Next(gl_Width);
+                        dx = 0;
+
+                        y = 0;
+                        dy = getSpeed();
+                    }
+                    break;
+
+                case 5:
+                    {
+                        A *= 0.5f;
+
+                        size2 = 50 + rand.Next(333);
+                        x = rand.Next(gl_Width);
+                        dx = 0;
+
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            y = 0;
+                            dy = getSpeed();
+                        }
+                        else
+                        {
+                            y = gl_Height;
+                            dy = -getSpeed();
                         }
                     }
                     break;
             }
 
-            size = maxSize;
-
-            A = 0.75f + myUtils.randFloat(rand) * 0.15f;
+            size1 = maxSize;
 
             return;
         }
@@ -194,16 +255,20 @@ namespace my
 
         protected override void Show()
         {
+            tex.setOpacity(A);
+
             switch (mode)
             {
                 case 0:
                 case 1:
-                    tex.Draw((int)x, (int)y, gl_Width, (int)size, (int)x, (int)y, gl_Width, (int)size);
+                case 4:
+                case 5:
+                    tex.Draw((int)x, (int)y, (int)size2, (int)size1, (int)x, (int)y, (int)size2, (int)size1);
                     break;
 
                 case 2:
                 case 3:
-                    tex.Draw((int)x, (int)y, (int)size, gl_Height, (int)x, (int)y, (int)size, gl_Height);
+                    tex.Draw((int)x, (int)y, (int)size1, (int)size2, (int)x, (int)y, (int)size1, (int)size2);
                     break;
             }
         }
@@ -219,9 +284,15 @@ namespace my
             clearScreenSetup(doClearBuffer, 0.1f, true);
 
 
+            while (list.Count < 123)
+            {
+                list.Add(new myObj_830());
+            }
+
+
             while (!Glfw.WindowShouldClose(window))
             {
-                int Count = list.Count;
+                int Count = N;
 
                 processInput(window);
 
@@ -252,11 +323,6 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
-                }
-
-                if (Count < N)
-                {
-                    list.Add(new myObj_830());
                 }
 
                 cnt++;
