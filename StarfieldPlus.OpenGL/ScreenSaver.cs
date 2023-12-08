@@ -183,6 +183,7 @@ public class ScreenSaver
         register(my.myObj_810.Type);      // Raster scan of an image
         register(my.myObj_820.Type);      // ...
         register(my.myObj_830.Type);      // Thin texture lines moving top to bottom of the screen
+        register(my.myObj_840.Type);      // Trains moving across the screen
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
