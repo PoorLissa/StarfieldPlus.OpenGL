@@ -20,16 +20,16 @@ namespace my
 		public static System.Type Type => typeof(myObj_840);
 
         private uint parentId;
+        private int direction;
         private float x, y, dx, dy;
         private float size, A, R, G, B;
         private bool isAlive;
 
         private List<myObj_840> train = null;
 
-        private static int N = 0, n = 0, cellSize = 1, cellGap = 1;
+        private static int N = 0, n = 0, dirMode = 0, cellSize = 1, cellGap = 1, deadCnt = 0, yOffset = 0;
 
         private static myScreenGradient grad = null;
-        private static Dictionary<int, int> trainMap = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -49,20 +49,18 @@ namespace my
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
-            trainMap = new Dictionary<int, int>();
 
             // Global unmutable constants
             {
-                cellSize = 50;
+                cellSize = 10 + rand.Next(50);
                 cellGap = 3;
 
-                N = 100;
+                N = 333 + rand.Next(1111);
                 n = gl_Height / (cellSize + cellGap);
 
-                for (int i = 0; i < gl_Height / (cellSize + cellGap); i += cellSize + cellGap)
-                {
-                    trainMap[i] = 0;
-                }
+                yOffset = (gl_Height - cellSize * n - cellGap * (n-1)) / 2;
+
+                deadCnt = N - n;
             }
 
             initLocal();
@@ -76,7 +74,9 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = true;
 
-            renderDelay = rand.Next(3) + 1;
+            dirMode = rand.Next(4);
+
+            renderDelay = rand.Next(2);
 
             return;
         }
@@ -92,6 +92,9 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"deadCnt = {deadCnt}\n"                 +
+                            $"dirMode = {dirMode}\n"                 +
+                            $"cellSize = {cellSize}\n"               +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -117,9 +120,19 @@ namespace my
                     train = new List<myObj_840>();
 
                     x = 0;
-                    y = id * (cellSize + cellGap * 2);
+                    y = id * (cellSize + cellGap * 2) - yOffset;
                     dy = size = 0;
                     dx = 0.25f + myUtils.randFloat(rand) * 7;
+
+                    switch (dirMode)
+                    {
+                        case 0: direction = +1; break;
+                        case 1: direction = -1; break;
+                        case 2:
+                        case 3:
+                            direction = myUtils.randomSign(rand);
+                            break;
+                    }    
                 }
             }
             else
@@ -128,7 +141,7 @@ namespace my
                 y = rand.Next(gl_Height);
                 y -= y % (cellSize + cellGap);
 
-                dx = 0.25f + myUtils.randFloat(rand) * 3;
+                dx = 0.5f + myUtils.randFloat(rand) * 3;
                 dy = 0;
 
                 size = 100;
@@ -146,48 +159,40 @@ namespace my
         {
             if (id < n)
             {
-                if (train.Count == 0 || train[train.Count - 1].x > 100)
+                if (train.Count == 0 ||
+                    (direction > 0 && train[train.Count - 1].x > 100) ||
+                    (direction < 0 && train[train.Count - 1].x < gl_Width - 100))
                 {
                     if (myUtils.randomChance(rand, 1, 333))
                     {
-                        int NUM = 3 + rand.Next(11);
-                        int num = 0;
+                        int num = 3 + rand.Next(11);
 
-                        // Check if there is enough dead objects to create a new train of NUM
-                        for (int i = n; i < list.Count; i++)
+                        if (num < deadCnt)
                         {
-                            var obj = list[i] as myObj_840;
-
-                            if (obj.isAlive == false)
-                            {
-                                if (++num == NUM)
-                                    break;
-                            }
-                        }
-
-                        if (num == NUM)
-                        {
-                            num = 0;
-
+                            int idx = 0;
                             colorPicker.getColorRand(ref R, ref G, ref B);
+                            size = 50 + rand.Next(100);
 
-                            for (int i = n; num != NUM && i < list.Count; i++)
+                            for (int i = n; idx != num && i < list.Count; i++)
                             {
                                 var obj = list[i] as myObj_840;
 
                                 if (obj.isAlive == false)
                                 {
-                                    num++;
+                                    idx++;
 
                                     obj.isAlive = true;
+                                    deadCnt--;
                                     obj.parentId = id;
 
-                                    obj.size = 100;
+                                    obj.size = size;
 
-                                    obj.x = num * (-obj.size - cellGap * 2);
+                                    obj.x = direction > 0
+                                        ? idx * (-obj.size - cellGap * 2)
+                                        : gl_Width + idx * (obj.size + cellGap * 2);
                                     obj.y = y;
 
-                                    obj.dx = dx;
+                                    obj.dx = direction > 0 ? dx : -dx;
 
                                     obj.R = R;
                                     obj.G = G;
@@ -207,13 +212,15 @@ namespace my
                     x += dx;
                     y += dy;
 
-                    if (x > gl_Width && dx > 0)
+                    if ((x > gl_Width && dx > 0) || (x < -size && dx < 0))
                     {
                         var parent = list[(int)parentId] as myObj_840;
                         parent.train.RemoveAt(0);
 
                         isAlive = false;
                         parentId = uint.MaxValue;
+
+                        deadCnt++;
                     }
                 }
             }
