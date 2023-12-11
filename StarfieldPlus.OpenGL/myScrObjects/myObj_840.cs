@@ -27,7 +27,7 @@ namespace my
 
         private List<myObj_840> train = null;
 
-        private static int N = 0, n = 0, dirMode = 0, colorMode = 0, cellSize = 1, cellGap = 1, deadCnt = 0, yOffset = 0;
+        private static int N = 0, n = 0, dirMode = 0, colorMode = 0, sizeMode = 0, cellSize = 1, cellGap = 1, deadCnt = 0, yOffset = 0;
 
         private static myScreenGradient grad = null;
         private static Dictionary<int, Tuple<float, float, float>> _colorMap;
@@ -98,6 +98,7 @@ namespace my
 
             dirMode = rand.Next(4);
             colorMode = rand.Next(3);
+            sizeMode = rand.Next(3);
 
             renderDelay = rand.Next(2);
 
@@ -117,6 +118,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"deadCnt = {deadCnt}\n"                 +
                             $"dirMode = {dirMode}\n"                 +
+                            $"sizeMode = {sizeMode}\n"               +
                             $"colorMode = {colorMode}\n"             +
                             $"cellSize = {cellSize}\n"               +
                             $"renderDelay = {renderDelay}\n"         +
@@ -197,6 +199,8 @@ namespace my
                             getColor();
                             size = 50 + rand.Next(100);
 
+                            float aggregateLength = 0;
+
                             for (int i = n; idx != num && i < list.Count; i++)
                             {
                                 var obj = list[i] as myObj_840;
@@ -209,14 +213,32 @@ namespace my
                                     deadCnt--;
                                     obj.parentId = id;
 
-                                    obj.size = size;
+                                    switch (sizeMode)
+                                    {
+                                        case 0:
+                                        case 1:
+                                            obj.size = size;
+                                            break;
 
-                                    obj.x = direction > 0
-                                        ? idx * (-obj.size - cellGap * 2)
-                                        : gl_Width + idx * (obj.size + cellGap * 2);
+                                        case 2:
+                                            obj.size = 50 + rand.Next(100);
+                                            break;
+                                    }
+
+                                    if (direction > 0)
+                                    {
+                                        aggregateLength += obj.size + cellGap * 2;
+                                        obj.x = -aggregateLength;
+                                        obj.dx = +dx;
+                                    }
+                                    else
+                                    {
+                                        obj.x = gl_Width + aggregateLength;
+                                        aggregateLength += obj.size + cellGap * 2;
+                                        obj.dx = -dx;
+                                    }
+
                                     obj.y = y;
-
-                                    obj.dx = direction > 0 ? dx : -dx;
 
                                     obj.R = R;
                                     obj.G = G;
