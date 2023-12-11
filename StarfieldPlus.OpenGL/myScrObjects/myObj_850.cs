@@ -60,6 +60,8 @@ namespace my
         {
             doClearBuffer = myUtils.randomBool(rand);
 
+            dimAlpha = 0.025f + myUtils.randFloat(rand) * 0.075f;
+
             renderDelay = rand.Next(3);
 
             return;
@@ -200,15 +202,7 @@ namespace my
 
                 // Dim screen
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -261,6 +255,9 @@ namespace my
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+
+            if (doClearBuffer == false)
+                grad.SetOpacity(dimAlpha);
 
             return;
         }
