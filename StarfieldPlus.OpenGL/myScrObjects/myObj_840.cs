@@ -27,9 +27,10 @@ namespace my
 
         private List<myObj_840> train = null;
 
-        private static int N = 0, n = 0, dirMode = 0, cellSize = 1, cellGap = 1, deadCnt = 0, yOffset = 0;
+        private static int N = 0, n = 0, dirMode = 0, colorMode = 0, cellSize = 1, cellGap = 1, deadCnt = 0, yOffset = 0;
 
         private static myScreenGradient grad = null;
+        private static Dictionary<int, Tuple<float, float, float>> _colorMap;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -49,6 +50,7 @@ namespace my
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
+            _colorMap = new Dictionary<int, Tuple<float, float, float>>();
 
             // Global unmutable constants
             {
@@ -61,6 +63,26 @@ namespace my
                 yOffset = (gl_Height - cellSize * n - cellGap * (n-1)) / 2;
 
                 deadCnt = N - n;
+
+                // Initialize color map
+                {
+                    int colorNum = 2 + rand.Next(5);
+
+                    float r, g, b;
+
+                    for (int i = 0; i < colorNum; i++)
+                    {
+                        do
+                        {
+                            r = myUtils.randFloat(rand);
+                            g = myUtils.randFloat(rand);
+                            b = myUtils.randFloat(rand);
+                        }
+                        while (r + g + b < 0.33f);
+
+                        _colorMap[i] = new Tuple<float, float, float>(r, g, b);
+                    }
+                }
             }
 
             initLocal();
@@ -75,6 +97,7 @@ namespace my
             doClearBuffer = true;
 
             dirMode = rand.Next(4);
+            colorMode = rand.Next(3);
 
             renderDelay = rand.Next(2);
 
@@ -94,6 +117,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"deadCnt = {deadCnt}\n"                 +
                             $"dirMode = {dirMode}\n"                 +
+                            $"colorMode = {colorMode}\n"             +
                             $"cellSize = {cellSize}\n"               +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -170,7 +194,7 @@ namespace my
                         if (num < deadCnt)
                         {
                             int idx = 0;
-                            colorPicker.getColorRand(ref R, ref G, ref B);
+                            getColor();
                             size = 50 + rand.Next(100);
 
                             for (int i = n; idx != num && i < list.Count; i++)
@@ -302,6 +326,29 @@ namespace my
             grad.SetRandomColors(rand, 0.2f);
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getColor()
+        {
+            switch (colorMode)
+            {
+                case 0:
+                case 1:
+                    colorPicker.getColorRand(ref R, ref G, ref B);
+                    break;
+
+                case 2:
+                    {
+                        var t = _colorMap[rand.Next(_colorMap.Count)];
+
+                        R = t.Item1;
+                        G = t.Item2;
+                        B = t.Item3;
+                    }
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
