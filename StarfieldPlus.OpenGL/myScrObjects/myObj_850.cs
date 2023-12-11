@@ -1,0 +1,270 @@
+﻿using GLFW;
+using static OpenGL.GL;
+using System;
+using System.Collections.Generic;
+
+
+/*
+    - 
+*/
+
+
+namespace my
+{
+    public class myObj_850 : myObject
+    {
+        // Priority
+        public static int Priority => 99910;
+		public static System.Type Type => typeof(myObj_850);
+
+        private float x, y, x1, y1, r1, a1, da1, x2, y2, r2, a2, da2, x3, y3, r3, a3, da3;
+        private float A, R, G, B, angle = 0;
+
+        private static int N = 0, shape = 0;
+        private static bool doFillShapes = false;
+        private static float dimAlpha = 0.05f;
+
+        private static myScreenGradient grad = null;
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        public myObj_850()
+        {
+            if (id != uint.MaxValue)
+                generateNew();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            // Global unmutable constants
+            {
+                N = rand.Next(10) + 10;
+                N = 11;
+
+                shape = 0;
+            }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            doClearBuffer = myUtils.randomBool(rand);
+
+            renderDelay = rand.Next(3);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override string CollectCurrentInfo(ref int width, ref int height)
+        {
+            height = 600;
+
+            string nStr(int   n) { return n.ToString("N0");    }
+            //string fStr(float f) { return f.ToString("0.000"); }
+
+            string str = $"Obj = {Type}\n\n"                         +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"renderDelay = {renderDelay}\n"         +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
+            return str;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // 
+        protected override void setNextMode()
+        {
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void generateNew()
+        {
+            int max = 333;
+
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
+
+            r1 = rand.Next(max);
+            r2 = rand.Next(max);
+            r3 = rand.Next(max);
+
+            a1 = myUtils.randFloat(rand) * rand.Next(11);
+            a2 = myUtils.randFloat(rand) * rand.Next(11);
+            a3 = myUtils.randFloat(rand) * rand.Next(11);
+
+            da1 = myUtils.randFloat(rand, 0.1f) * 0.02f;
+            da2 = myUtils.randFloat(rand, 0.1f) * 0.02f;
+            da3 = myUtils.randFloat(rand, 0.1f) * 0.02f;
+
+            x1 = x + r1 * (float)Math.Sin(a1);
+            y1 = y + r1 * (float)Math.Cos(a1);
+
+            x2 = x + r2 * (float)Math.Sin(a2);
+            y2 = y + r2 * (float)Math.Cos(a2);
+
+            x3 = x + r3 * (float)Math.Sin(a3);
+            y3 = y + r3 * (float)Math.Cos(a3);
+
+            A = 0.75f;
+            colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Move()
+        {
+            a1 += da1;
+            a2 += da2;
+            a3 += da3;
+
+            x1 = x + r1 * (float)Math.Sin(a1);
+            y1 = y + r1 * (float)Math.Cos(a1);
+
+            x2 = x + r2 * (float)Math.Sin(a2);
+            y2 = y + r2 * (float)Math.Cos(a2);
+
+            x3 = x + r3 * (float)Math.Sin(a3);
+            y3 = y + r3 * (float)Math.Cos(a3);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Show()
+        {
+            int size = 2;
+
+            myPrimitive._RectangleInst.setInstanceCoords(x1 - size, y1 - size, size * 2, size * 2);
+            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+            myPrimitive._RectangleInst.setInstanceAngle(0);
+
+            myPrimitive._RectangleInst.setInstanceCoords(x2 - size, y2 - size, size * 2, size * 2);
+            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+            myPrimitive._RectangleInst.setInstanceAngle(0);
+
+            myPrimitive._RectangleInst.setInstanceCoords(x3 - size, y3 - size, size * 2, size * 2);
+            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+            myPrimitive._RectangleInst.setInstanceAngle(0);
+
+            myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+            myPrimitive._LineInst.setInstanceCoords(x2, y2, x3, y3);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+            myPrimitive._LineInst.setInstanceCoords(x3, y3, x1, y1);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Process(Window window)
+        {
+            uint cnt = 0;
+            initShapes();
+
+            // Disable VSYNC if needed
+            // Glfw.SwapInterval(0);
+
+            clearScreenSetup(doClearBuffer, 0.1f);
+
+            while (!Glfw.WindowShouldClose(window))
+            {
+                int Count = list.Count;
+
+                processInput(window);
+
+                // Swap fore/back framebuffers, and poll for operating system events.
+                Glfw.SwapBuffers(window);
+                Glfw.PollEvents();
+
+                // Dim screen
+                {
+                    if (doClearBuffer)
+                    {
+                        glClear(GL_COLOR_BUFFER_BIT);
+                        grad.Draw();
+                    }
+                    else
+                    {
+                        dimScreen(dimAlpha);
+                    }
+                }
+
+                // Render Frame
+                {
+                    inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
+
+                    for (int i = 0; i != Count; i++)
+                    {
+                        var obj = list[i] as myObj_850;
+
+                        obj.Show();
+                        obj.Move();
+                    }
+
+                    myPrimitive._LineInst.Draw();
+
+                    if (doFillShapes)
+                    {
+                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                        inst.SetColorA(-0.5f);
+                        inst.Draw(true);
+                    }
+
+                    // Tell the fragment shader to do nothing with the existing instance opacity:
+                    inst.SetColorA(0);
+                    inst.Draw(false);
+                }
+
+                if (Count < N)
+                {
+                    list.Add(new myObj_850());
+                }
+
+                cnt++;
+                System.Threading.Thread.Sleep(renderDelay);
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void initShapes()
+        {
+            myPrimitive.init_ScrDimmer();
+            base.initShapes(shape, N * 3, 0);
+
+            myPrimitive.init_LineInst(N * 3);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+    }
+};
