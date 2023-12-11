@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - ...
 */
 
 
@@ -14,7 +14,7 @@ namespace my
     public class myObj_850 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_850);
 
         private float x, y, x1, y1, r1, a1, da1, x2, y2, r2, a2, da2, x3, y3, r3, a3, da3;
@@ -45,7 +45,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 11;
+                N = 33;
 
                 shape = 0;
             }
