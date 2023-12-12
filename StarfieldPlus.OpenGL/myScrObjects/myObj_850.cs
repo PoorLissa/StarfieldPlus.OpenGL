@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
+    - 3 rotating points making a triangle
 */
 
 
@@ -17,14 +17,17 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_850);
 
+        private int cnt;
         private float x, y, x1, y1, r1, a1, da1, x2, y2, r2, a2, da2, x3, y3, r3, a3, da3;
         private float A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, nTrail = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
+
+        private myParticleTrail [] trails = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -45,9 +48,11 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 33;
+                N = 11 + rand.Next(50);
 
                 shape = 0;
+
+                nTrail = 111;
             }
 
             initLocal();
@@ -58,7 +63,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomChance(rand, 2, 3);
 
             dimAlpha = 0.025f + myUtils.randFloat(rand) * 0.075f;
 
@@ -78,6 +83,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"nTrail = {nTrail}\n"                   +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -96,6 +102,8 @@ namespace my
 
         protected override void generateNew()
         {
+            cnt = 1111 + rand.Next(1111);
+
             int max = 333;
 
             x = rand.Next(gl_Width);
@@ -109,9 +117,9 @@ namespace my
             a2 = myUtils.randFloat(rand) * rand.Next(11);
             a3 = myUtils.randFloat(rand) * rand.Next(11);
 
-            da1 = myUtils.randFloat(rand, 0.1f) * 0.02f;
-            da2 = myUtils.randFloat(rand, 0.1f) * 0.02f;
-            da3 = myUtils.randFloat(rand, 0.1f) * 0.02f;
+            da1 = myUtils.randFloat(rand, 0.1f) * 0.02f * myUtils.randomSign(rand);
+            da2 = myUtils.randFloat(rand, 0.1f) * 0.02f * myUtils.randomSign(rand);
+            da3 = myUtils.randFloat(rand, 0.1f) * 0.02f * myUtils.randomSign(rand);
 
             x1 = x + r1 * (float)Math.Sin(a1);
             y1 = y + r1 * (float)Math.Cos(a1);
@@ -122,8 +130,27 @@ namespace my
             x3 = x + r3 * (float)Math.Sin(a3);
             y3 = y + r3 * (float)Math.Cos(a3);
 
-            A = 0.75f;
+            A = 0.33f + myUtils.randFloat(rand) * 0.5f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            if (trails == null)
+            {
+                trails = new myParticleTrail[3];
+
+                trails[0] = new myParticleTrail(nTrail, x1, y1);
+                trails[1] = new myParticleTrail(nTrail, x2, y2);
+                trails[2] = new myParticleTrail(nTrail, x3, y3);
+            }
+            else
+            {
+                trails[0].reset(x1, y1);
+                trails[1].reset(x2, y2);
+                trails[2].reset(x3, y3);
+            }
+
+            trails[0].updateDa(1);
+            trails[1].updateDa(1);
+            trails[2].updateDa(1);
 
             return;
         }
@@ -132,18 +159,29 @@ namespace my
 
         protected override void Move()
         {
-            a1 += da1;
-            a2 += da2;
-            a3 += da3;
+            if (--cnt == 0)
+            {
+                generateNew();
+            }
+            else
+            {
+                a1 += da1;
+                a2 += da2;
+                a3 += da3;
 
-            x1 = x + r1 * (float)Math.Sin(a1);
-            y1 = y + r1 * (float)Math.Cos(a1);
+                x1 = x + r1 * (float)Math.Sin(a1);
+                y1 = y + r1 * (float)Math.Cos(a1);
 
-            x2 = x + r2 * (float)Math.Sin(a2);
-            y2 = y + r2 * (float)Math.Cos(a2);
+                x2 = x + r2 * (float)Math.Sin(a2);
+                y2 = y + r2 * (float)Math.Cos(a2);
 
-            x3 = x + r3 * (float)Math.Sin(a3);
-            y3 = y + r3 * (float)Math.Cos(a3);
+                x3 = x + r3 * (float)Math.Sin(a3);
+                y3 = y + r3 * (float)Math.Cos(a3);
+
+                trails[0].update(x1, y1);
+                trails[1].update(x2, y2);
+                trails[2].update(x3, y3);
+            }
 
             return;
         }
@@ -153,6 +191,10 @@ namespace my
         protected override void Show()
         {
             int size = 2;
+
+            trails[0].Show(R, G, B, A > 1 ? 1 : A);
+            trails[1].Show(R, G, B, A > 1 ? 1 : A);
+            trails[2].Show(R, G, B, A > 1 ? 1 : A);
 
             myPrimitive._RectangleInst.setInstanceCoords(x1 - size, y1 - size, size * 2, size * 2);
             myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
@@ -166,14 +208,16 @@ namespace my
             myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
             myPrimitive._RectangleInst.setInstanceAngle(0);
 
+            float a = A * 0.333f;
+
             myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, a);
 
             myPrimitive._LineInst.setInstanceCoords(x2, y2, x3, y3);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, a);
 
             myPrimitive._LineInst.setInstanceCoords(x3, y3, x1, y1);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, a);
 
             return;
         }
@@ -248,10 +292,9 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N * 3, 0);
 
-            myPrimitive.init_LineInst(N * 3);
+            myPrimitive.init_LineInst(N * 3 + N * 3 * nTrail);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
