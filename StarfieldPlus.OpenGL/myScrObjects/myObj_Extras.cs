@@ -61,8 +61,17 @@ namespace my
             }
             else
             {
-                // No priority
+                // No priority: get an item by its index
                 objId = rand.Next(_dic.Count);
+
+                foreach (var obj in _dic)
+                {
+                    if (objId-- == 0)
+                    {
+                        objId = obj.Key;
+                        break;
+                    }
+                }
             }
 
             var typeToReturn = _dic[objId];
