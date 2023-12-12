@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 3 rotating points making a triangle
+    - 3 rotating points per particle, making a rotating triangle
 */
 
 
@@ -19,15 +19,14 @@ namespace my
 
         private int cnt;
         private float x, y, x1, y1, r1, a1, da1, x2, y2, r2, a2, da2, x3, y3, r3, a3, da3;
-        private float A, R, G, B, angle = 0;
+        private float A, R, G, B;
+        private myParticleTrail[] trails = null;
 
         private static int N = 0, shape = 0, nTrail = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
-
-        private myParticleTrail [] trails = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
