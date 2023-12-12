@@ -47,7 +47,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 11 + rand.Next(50);
+                N = 11 + rand.Next(150);
 
                 shape = 0;
 
