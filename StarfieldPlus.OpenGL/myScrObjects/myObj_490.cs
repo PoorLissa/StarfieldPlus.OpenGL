@@ -30,7 +30,6 @@ namespace my
         private static bool doUseVariations = true;
 
         private static ptrArray arrPtr = null;
-        private static myRectangleInst rectInst = null;
 
         private static int minx = 0, maxx = 0, miny = 0, maxy = 0;
         private static float stepx = 0, stepy = 0, fToScr = 0;
@@ -253,9 +252,9 @@ additiveFunc = 0;
                         if (true)
                         {
                             // Draw the point
-                            rectInst.setInstanceCoords(x - size1x, y - size1x, size2x, size2x);
-                            rectInst.setInstanceColor(R, G, B, A);
-                            rectInst.setInstanceAngle(angle);
+                            myPrimitive._RectangleInst.setInstanceCoords(x - size1x, y - size1x, size2x, size2x);
+                            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                            myPrimitive._RectangleInst.setInstanceAngle(angle);
                             angle += 0.0001f;
                         }
                         else
