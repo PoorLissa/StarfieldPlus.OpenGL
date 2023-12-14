@@ -14,19 +14,20 @@ namespace my
     public class myObj_480 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
         public static System.Type Type => typeof(myObj_480);
 
         private float x, y, oldx, oldy, dx;
         private float size, A, R, G, B;
 
         private static int N = 0, shape = 0, dtCount = 0, colorMode = 0, moveMode = 0, DX = 1;
-        private static bool doUseDdt = true, doUseNoise = true, doShowLine = true;
+        private static bool doUseDdt = true, doUseNoise = true, doShowLine = true, doUseShader = false;
         private static float dimAlpha = 0.05f, t = 0, dt = 0, ddt = 0, lineTh = 1;
 
         private static int[] prm_i = new int[5];
 
         private static myFreeShader_FullScreen shader = null;
+        private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -48,6 +49,8 @@ namespace my
                 N = rand.Next(3) + 1;
 
                 shape = rand.Next(6);
+
+                doUseShader = false;
             }
 
             initLocal();
@@ -105,19 +108,20 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = {Type}\n\n"                       	  +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"  +
-                            $"shape = {shape}\n"                      +
-                            $"moveMode = {moveMode}\n"                +
-                            $"colorMode = {colorMode}\n"              +
-                            $"doClearBuffer = {doClearBuffer}\n"      +
-                            $"doShowLine = {doShowLine}\n"            +
-                            $"doUseDdt = {doUseDdt}\n"                +
-                            $"doUseNoise = {doUseNoise}\n"            +
-                            $"lineTh = {fStr(lineTh)}\n"              +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"          +
-                            $"dx = {DX}\n"                            +
-                            $"renderDelay = {renderDelay}\n"          +
+            string str = $"Obj = {Type}\n\n"                       	 +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"shape = {shape}\n"                     +
+                            $"moveMode = {moveMode}\n"               +
+                            $"colorMode = {colorMode}\n"             +
+                            $"doUseShader = {doUseShader}\n"         +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doShowLine = {doShowLine}\n"           +
+                            $"doUseDdt = {doUseDdt}\n"               +
+                            $"doUseNoise = {doUseNoise}\n"           +
+                            $"lineTh = {fStr(lineTh)}\n"             +
+                            $"dimAlpha = {fStr(dimAlpha)}\n"         +
+                            $"dx = {DX}\n"                           +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -358,9 +362,6 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
             if (doClearBuffer)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK | GL_DEPTH_BUFFER_BIT);
@@ -375,13 +376,15 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
                 Glfw.SwapBuffers(window);
                 Glfw.PollEvents();
 
-                if (false)
+                if (doUseShader)
                 {
                     glDrawBuffer(GL_BACK);
                     shader.Draw();
@@ -393,10 +396,12 @@ namespace my
                         if (doClearBuffer)
                         {
                             glClear(GL_COLOR_BUFFER_BIT);
+                            grad.Draw();
                         }
                         else
                         {
                             dimScreen(dimAlpha);
+                            grad.Draw();
                         }
                     }
 
@@ -404,7 +409,7 @@ namespace my
                     {
                         glLineWidth(lineTh);
 
-                        for (int i = 0; i != list.Count; i++)
+                        for (int i = 0; i != Count; i++)
                         {
                             var obj = list[i] as myObj_480;
 
@@ -413,7 +418,7 @@ namespace my
                         }
                     }
 
-                    if (list.Count < N)
+                    if (Count < N)
                     {
                         list.Add(new myObj_480());
                     }
@@ -439,7 +444,15 @@ namespace my
                 base.initShapes(shape, gl_Width + 1, 0);
             }
 
-            if (false)
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f);
+
+            if (doClearBuffer == false)
+            {
+                grad.SetOpacity(0.05f);
+            }
+
+            if (doUseShader)
             {
                 string fHeader = "", fMain = "";
 
@@ -468,9 +481,8 @@ namespace my
                     float s2 = cos(uv.x + t * 0.5) * 0.25;
 
                     float color = 0;
-
-                    color = sin(uv.x * 15);
-
+                    color = sin(uv.x * 25);
+                    color = 1 - smoothstep(0, 0.1, abs(uv.y * 20 - color));
                     //color = 1 - smoothstep(0, 0.5, abs(color));
 
                     result = vec4(myColor.xyz * color, 1);
