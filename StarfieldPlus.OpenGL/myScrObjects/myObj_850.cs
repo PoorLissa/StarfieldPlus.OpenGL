@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, shape = 0, nTrail = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.05f, lineWidth = 1.0f;
 
         private static myScreenGradient grad = null;
 
@@ -47,11 +47,13 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 11 + rand.Next(50);
+                N = 11 + rand.Next(150);
 
                 shape = 0;
 
                 nTrail = 111;
+
+                lineWidth = 0.5f + myUtils.randFloat(rand) * rand.Next(7);
             }
 
             initLocal();
@@ -78,11 +80,12 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"nTrail = {nTrail}\n"                   +
+                            $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -158,28 +161,29 @@ namespace my
 
         protected override void Move()
         {
-            if (--cnt == 0)
+            a1 += da1;
+            a2 += da2;
+            a3 += da3;
+
+            x1 = x + r1 * (float)Math.Sin(a1);
+            y1 = y + r1 * (float)Math.Cos(a1);
+
+            x2 = x + r2 * (float)Math.Sin(a2);
+            y2 = y + r2 * (float)Math.Cos(a2);
+
+            x3 = x + r3 * (float)Math.Sin(a3);
+            y3 = y + r3 * (float)Math.Cos(a3);
+
+            trails[0].update(x1, y1);
+            trails[1].update(x2, y2);
+            trails[2].update(x3, y3);
+
+            if (--cnt < 0)
             {
-                generateNew();
-            }
-            else
-            {
-                a1 += da1;
-                a2 += da2;
-                a3 += da3;
+                A -= myUtils.randFloat(rand) * 0.0025f;
 
-                x1 = x + r1 * (float)Math.Sin(a1);
-                y1 = y + r1 * (float)Math.Cos(a1);
-
-                x2 = x + r2 * (float)Math.Sin(a2);
-                y2 = y + r2 * (float)Math.Cos(a2);
-
-                x3 = x + r3 * (float)Math.Sin(a3);
-                y3 = y + r3 * (float)Math.Cos(a3);
-
-                trails[0].update(x1, y1);
-                trails[1].update(x2, y2);
-                trails[2].update(x3, y3);
+                if (A < 0)
+                    generateNew();
             }
 
             return;
@@ -209,6 +213,8 @@ namespace my
 
             float a = A * 0.333f;
 
+            myPrimitive._LineInst.setLineWidth(lineWidth);
+
             myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
             myPrimitive._LineInst.setInstanceColor(R, G, B, a);
 
@@ -217,6 +223,8 @@ namespace my
 
             myPrimitive._LineInst.setInstanceCoords(x3, y3, x1, y1);
             myPrimitive._LineInst.setInstanceColor(R, G, B, a);
+
+            myPrimitive._LineInst.setLineWidth(1);
 
             return;
         }
