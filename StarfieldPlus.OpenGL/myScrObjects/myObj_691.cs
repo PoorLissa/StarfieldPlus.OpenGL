@@ -17,12 +17,12 @@ namespace my
         public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_691);
 
-        private int cnt, dir;
-        private float x, y, r, angle, dAngle;
+        private int dir;
+        private float x, y, r, yRad, angle, dAngle;
         private float size, A, R, G, B;
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrail = 10, rMin = 1, rMax = 100, rStep = 1, angleMode = 0, dAngleMode = 0, colorMode = 0, cntMode = 0, addMode = 0, gl_Dir = 0;
+        private static int N = 0, shape = 0, nTrail = 10, rMin = 1, rMax = 100, rStep = 1, angleMode = 0, dAngleMode1 = 0, dAngleMode2 = 0, colorMode = 0, cntMode = 0, addMode = 0, gl_Dir = 0;
         private static bool doFillShapes = false, doUseTrails = false;
         private static float dimAlpha = 0.05f, gl_R = 1, gl_G = 1, gl_B = 1, dAngleStatic = 1;
 
@@ -73,8 +73,9 @@ namespace my
             nTrail = 66 + rand.Next(333);
 
             colorMode = rand.Next(3);
-            angleMode = rand.Next(6);
-            dAngleMode = rand.Next(2);
+            angleMode = rand.Next(2);
+            dAngleMode1 = rand.Next(2);
+            dAngleMode2 = rand.Next(6);
             cntMode = rand.Next(3);
             addMode = rand.Next(5);
 
@@ -112,7 +113,8 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"doUseTrails = {doUseTrails}\n"         +
                             $"angleMode = {angleMode}\n"             +
-                            $"dAngleMode = {dAngleMode}\n"           +
+                            $"dAngleMode1 = {dAngleMode1}\n"         +
+                            $"dAngleMode2 = {dAngleMode2}\n"         +
                             $"colorMode = {colorMode}\n"             +
                             $"cntMode = {cntMode}\n"                 +
                             $"addMode = {addMode}\n"                 +
@@ -140,16 +142,26 @@ namespace my
         protected override void generateNew()
         {
             r = rMin + rand.Next(rMax);
-            angle = myUtils.randFloatSigned(rand) * rand.Next(123);
+
+            switch (angleMode)
+            {
+                case 0:
+                    angle = 0;
+                    break;
+
+                case 1:
+                    angle = myUtils.randFloatSigned(rand) * rand.Next(123);
+                    break;
+            }
 
             x = gl_x0 + r * (float)Math.Sin(angle);
             y = gl_y0 + r * (float)Math.Cos(angle);
 
-            angle = 0;
             r = rMax;
             y = gl_y0 + rand.Next(rMax) * myUtils.randomSign(rand);
+            yRad = (float)Math.Sqrt(r * r - (gl_y0 - y) * (gl_y0 - y));
 
-            switch (dAngleMode)
+            switch (dAngleMode1)
             {
                 case 0:
                     dAngle = dAngleStatic;
@@ -160,7 +172,7 @@ namespace my
                     break;
             }
 
-            switch (angleMode)
+            switch (dAngleMode2)
             {
                 case 0:
                 case 1:
@@ -174,13 +186,6 @@ namespace my
                 case 5:
                     dAngle *= ((((int)r / rStep) % 2) == 0) ? +1 : -1;
                     break;
-            }
-
-            switch (cntMode)
-            {
-                case 0: cnt = 100 + rand.Next(100);   break;
-                case 1: cnt =  50 + (int)(r * 0.10f); break;
-                case 2: cnt =  50 + (int)(r * 0.11f); break;
             }
 
             size = 3;
@@ -227,14 +232,8 @@ namespace my
 
             angle += dAngle;
 
-            float dy = gl_y0 - y;
-
-            float yRad = (float)Math.Sqrt(r * r - dy * dy);
-
             float xNew = gl_x0 + (float)Math.Sin(angle) * yRad;
-
             dir = xNew > x ? 1 : -1;
-
             x = xNew;
 
             return;
