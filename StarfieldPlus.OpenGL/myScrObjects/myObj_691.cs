@@ -188,7 +188,9 @@ namespace my
                     break;
             }
 
-            size = 3;
+            size = doUseTrails
+                ? 3
+                : 3 + rand.Next(23);
 
             A = 0.33f + myUtils.randFloat(rand) * 0.33f;
 
