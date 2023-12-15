@@ -168,7 +168,8 @@ public class ScreenSaver
         register(my.myObj_660.Type);      // ...
         register(my.myObj_670.Type);      // ...
         register(my.myObj_680.Type);      // Scrolling wall of "text"
-        register(my.myObj_690.Type);      // ...
+        register(my.myObj_690.Type);      // Circularly moving particles with discrete curvature
+        register(my.myObj_691.Type);      // Pseudo 3d based off myObj_690
         register(my.myObj_700.Type);      // Straight lines that reflect backwards
         register(my.myObj_710.Type);      // Static growing shapes of the color of the underlying image
         register(my.myObj_720.Type);      // Drop a random point, get its underlying color, then draw a horizontal or vertical line through this point

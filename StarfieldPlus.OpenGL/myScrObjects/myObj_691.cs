@@ -11,18 +11,18 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_690 : myObject
+    public class myObj_691 : myObject
     {
         // Priority
-        public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_690);
+        public static int Priority => 999910;
+		public static System.Type Type => typeof(myObj_691);
 
-        private int cnt;
-        private float x, y, r, angle, dx, dy, dAngle;
+        private int cnt, dir;
+        private float x, y, r, angle, dAngle;
         private float size, A, R, G, B;
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrail = 10, rMin = 1, rMax = 100, rStep = 1, angleMode = 0, dAngleMode = 0, colorMode = 0, cntMode = 0, addMode = 0;
+        private static int N = 0, shape = 0, nTrail = 10, rMin = 1, rMax = 100, rStep = 1, angleMode = 0, dAngleMode = 0, colorMode = 0, cntMode = 0, addMode = 0, gl_Dir = 0;
         private static bool doFillShapes = false, doUseTrails = false;
         private static float dimAlpha = 0.05f, gl_R = 1, gl_G = 1, gl_B = 1, dAngleStatic = 1;
 
@@ -30,7 +30,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_690()
+        public myObj_691()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -77,6 +77,8 @@ namespace my
             dAngleMode = rand.Next(2);
             cntMode = rand.Next(3);
             addMode = rand.Next(5);
+
+            gl_Dir = myUtils.randomSign(rand);
 
             dAngleStatic = 0.001f + myUtils.randFloat(rand) * 0.004f;
 
@@ -143,6 +145,10 @@ namespace my
             x = gl_x0 + r * (float)Math.Sin(angle);
             y = gl_y0 + r * (float)Math.Cos(angle);
 
+            angle = 0;
+            r = rMax;
+            y = gl_y0 + rand.Next(rMax) * myUtils.randomSign(rand);
+
             switch (dAngleMode)
             {
                 case 0:
@@ -176,15 +182,6 @@ namespace my
                 case 1: cnt =  50 + (int)(r * 0.10f); break;
                 case 2: cnt =  50 + (int)(r * 0.11f); break;
             }
-
-            float x2 = gl_x0 + r * (float)Math.Sin(angle + cnt * dAngle);
-            float y2 = gl_y0 + r * (float)Math.Cos(angle + cnt * dAngle);
-
-            float DX = x2 - x;
-            float DY = y2 - y;
-
-            dx = DX / cnt;
-            dy = DY / cnt;
 
             size = 3;
 
@@ -228,40 +225,17 @@ namespace my
                 trail.update(x, y);
             }
 
-            // Add some extra moving pattern:
-            switch (addMode)
-            {
-                case 0:
-                    x += (float)Math.Cos(angle) * 1;
-                    break;
-            }
-
-            x += dx;
-            y += dy;
             angle += dAngle;
 
-            if (--cnt == 0)
-            {
-                switch (cntMode)
-                {
-                    case 0: cnt = 100 + rand.Next(100); break;
-                    case 1: cnt = 50 + (int)(r * 0.1f); break;
-                    case 2:
-                        dx *= -1;
-                        dy *= -1;
-                        cnt = 50 + (int)(r * 0.25f);
-                        return;
-                }
+            float dy = gl_y0 - y;
 
-                float x2 = gl_x0 + r * (float)Math.Sin(angle + cnt * dAngle);
-                float y2 = gl_y0 + r * (float)Math.Cos(angle + cnt * dAngle);
+            float yRad = (float)Math.Sqrt(r * r - dy * dy);
 
-                float DX = x2 - x;
-                float DY = y2 - y;
+            float xNew = gl_x0 + (float)Math.Sin(angle) * yRad;
 
-                dx = DX / cnt;
-                dy = DY / cnt;
-            }
+            dir = xNew > x ? 1 : -1;
+
+            x = xNew;
 
             return;
         }
@@ -270,10 +244,12 @@ namespace my
 
         protected override void Show()
         {
+            float a = dir == gl_Dir ? A : A/2;
+
             // Draw the trail
             if (doUseTrails)
             {
-                trail.Show(R, G, B, A);
+                trail.Show(R, G, B, a);
             }
 
             float size2x = size * 2;
@@ -283,32 +259,32 @@ namespace my
                 // Instanced squares
                 case 0:
                     myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, a);
                     myPrimitive._RectangleInst.setInstanceAngle(angle);
                     break;
 
                 // Instanced triangles
                 case 1:
                     myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced circles
                 case 2:
                     myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced pentagons
                 case 3:
                     myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, a);
                     break;
 
                 // Instanced hexagons
                 case 4:
                     myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, a);
                     break;
             }
 
@@ -353,7 +329,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_690;
+                        var obj = list[i] as myObj_691;
 
                         obj.Show();
                         obj.Move();
@@ -376,7 +352,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_690());
+                    list.Add(new myObj_691());
                 }
 
                 cnt++;

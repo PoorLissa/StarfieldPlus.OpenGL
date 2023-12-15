@@ -257,11 +257,14 @@ public class myScreenGradient : myPrimitive
         string res = null;
         string addNoise = "mixValue *= 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;";
 
+        _mode = 0;
+
         switch (_mode)
         {
             // Simple vertical gradient
             case 0:
                 {
+                    // float mixValue = distance(st, vec2(0, 1 + sin(uTime / 33) / 5));
                     res =
                         $@"vec2 st = vec2(0, gl_FragCoord.y * { 1.0 / Height });
                         float mixValue = distance(st, vec2(0, 1));
