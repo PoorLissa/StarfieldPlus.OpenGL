@@ -67,8 +67,8 @@ namespace my
         {
             dimAlpha = 0.1f;
 
-            rMin = 100 + rand.Next(333);
-            rMax = 500 + rand.Next(500);
+            rMin = 100;
+            rMax = 333 + gl_y0 / (myUtils.randomChance(rand, 1, 2) ? 1 : 2);
             rStep = 50 + rand.Next(250);
             nTrail = 66 + rand.Next(333);
 
@@ -141,8 +141,6 @@ namespace my
 
         protected override void generateNew()
         {
-            r = rMin + rand.Next(rMax);
-
             switch (angleMode)
             {
                 case 0:
@@ -158,7 +156,7 @@ namespace my
             y = gl_y0 + r * (float)Math.Cos(angle);
 
             r = rMax;
-            y = gl_y0 + rand.Next(rMax) * myUtils.randomSign(rand);
+            y = gl_y0 + rand.Next((int)r) * myUtils.randomSign(rand);
             yRad = (float)Math.Sqrt(r * r - (gl_y0 - y) * (gl_y0 - y));
 
             switch (dAngleMode1)
