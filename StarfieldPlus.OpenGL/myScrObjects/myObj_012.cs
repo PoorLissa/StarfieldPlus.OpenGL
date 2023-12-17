@@ -25,6 +25,8 @@ namespace my
         private static bool doFillShapes = false, doTraceColor = false, doUseBaseMove = true;
         private static float dimAlpha = 0.05f, sAngle = 0, dimRate = 0;
 
+        private static myScreenGradient grad = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_012()
@@ -102,12 +104,16 @@ namespace my
             string nStr(int   n) { return n.ToString("N0");    }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = {Type}\n\n"                         	+
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"rotateMode = {rotateMode}\n"              +
-                            $"offset = {minX}\n"                        +
-                            $"dimRate = {fStr(dimRate)}\n"              +
-                            $"renderDelay = {renderDelay}\n"            +
+            string str = $"Obj = {Type}\n\n"                         +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doFillShapes = {doFillShapes}\n"       +
+                            $"doTraceColor = {doTraceColor}\n"       +
+                            $"rotateMode = {rotateMode}\n"           +
+                            $"mode = {mode}\n"                       +
+                            $"offset = {minX}\n"                     +
+                            $"dimRate = {fStr(dimRate)}\n"           +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -767,7 +773,7 @@ namespace my
 
             A -= dimRate;
 
-            if (doTraceColor)
+            if (doTraceColor && rand.Next(3) == 0)
             {
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
             }
@@ -864,6 +870,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -876,17 +884,15 @@ namespace my
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
                     }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
                 }
 
                 // Render Frame
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i != list.Count; i++)
+                    for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_012;
 
@@ -906,7 +912,7 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (list.Count < N)
+                if (Count < N)
                 {
                     list.Add(new myObj_012());
                 }
@@ -922,8 +928,15 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.23f);
+
+            if (doClearBuffer == false)
+            {
+                grad.SetOpacity(0.05f);
+            }
 
             return;
         }
