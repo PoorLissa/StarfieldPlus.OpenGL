@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Circularly moving particles with discrete curvature
+    - Pseudo 3d based off myObj_690
 */
 
 
@@ -22,8 +22,9 @@ namespace my
         private float size, A, R, G, B;
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrail = 10, rMin = 1, rMax = 100, rStep = 1, angleMode = 0, dAngleMode1 = 0, dAngleMode2 = 0, colorMode = 0, cntMode = 0, addMode = 0, gl_Dir = 0;
-        private static bool doFillShapes = false, doUseTrails = false;
+        private static int N = 0, shape = 0, nTrail = 10, rMin = 1, rMax = 100, rStep = 1, gl_Dir = 0;
+        private static int angleMode = 0, dAngleMode1 = 0, dAngleMode2 = 0, colorMode = 0, cntMode = 0, addMode = 0, drawMode = 0;
+        private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, gl_R = 1, gl_G = 1, gl_B = 1, dAngleStatic = 1;
 
         private static myScreenGradient grad = null;
@@ -47,12 +48,32 @@ namespace my
             // Global unmutable constants
             {
                 doClearBuffer = myUtils.randomChance(rand, 2, 3);
-                doUseTrails   = myUtils.randomChance(rand, 2, 3);
                 doFillShapes  = myUtils.randomChance(rand, 1, 3);
 
-                N = doUseTrails
-                    ? 222 + rand.Next(1111)
-                    : 333 + rand.Next(3333);
+                drawMode = rand.Next(8);
+
+                switch (drawMode)
+                {
+                    // No trail modes:
+                    case 00:
+                    case 01:
+                    case 02:
+                        N = 333 + rand.Next(3333);
+                        break;
+
+                    // Trail modes:
+                    case 03:
+                    case 04:
+                    case 05:
+                        N = 222 + rand.Next(1111);
+                        break;
+
+                    // Ray modes:
+                    case 06:
+                    case 07:
+                        N = 666 + rand.Next(3333);
+                        break;
+                }
 
                 shape = rand.Next(5);
             }
@@ -111,7 +132,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"doUseTrails = {doUseTrails}\n"         +
+                            $"drawMode = {drawMode}\n"               +
                             $"angleMode = {angleMode}\n"             +
                             $"dAngleMode1 = {dAngleMode1}\n"         +
                             $"dAngleMode2 = {dAngleMode2}\n"         +
@@ -186,9 +207,34 @@ namespace my
                     break;
             }
 
-            size = doUseTrails
-                ? 3
-                : 3 + rand.Next(23);
+            switch (drawMode)
+            {
+                // No trail modes:
+                case 00:
+                    size = 3;
+                    break;
+
+                case 01:
+                    size = 3 + rand.Next(13);
+                    break;
+
+                case 02:
+                    size = 3 + rand.Next(23);
+                    break;
+
+                // Trail modes:
+                case 03:
+                case 04:
+                case 05:
+                    size = 3;
+                    break;
+
+                // Ray modes:
+                case 06:
+                case 07:
+                    size = 2;
+                    break;
+            }
 
             A = 0.33f + myUtils.randFloat(rand) * 0.33f;
 
@@ -210,12 +256,19 @@ namespace my
             }
 
             // Initialize Trail
-            if (doUseTrails)
+            switch (drawMode)
             {
-                if (trail == null)
-                    trail = new myParticleTrail(nTrail, x, y);
+                // Trail modes:
+                case 03:
+                case 04:
+                case 05:
+                    {
+                        if (trail == null)
+                            trail = new myParticleTrail(nTrail, x, y);
 
-                trail.updateDa(A);
+                        trail.updateDa(A);
+                    }
+                    break;
             }
 
             return;
@@ -225,9 +278,14 @@ namespace my
 
         protected override void Move()
         {
-            if (doUseTrails)
+            switch (drawMode)
             {
-                trail.update(x, y);
+                // Trail modes:
+                case 03:
+                case 04:
+                case 05:
+                    trail.update(x, y);
+                    break;
             }
 
             angle += dAngle;
@@ -245,10 +303,31 @@ namespace my
         {
             float a = dir == gl_Dir ? A : A/2;
 
-            // Draw the trail
-            if (doUseTrails)
+            switch (drawMode)
             {
-                trail.Show(R, G, B, a);
+                // No trail modes:
+                case 00:
+                case 01:
+                case 02:
+                    break;
+
+                // Trail modes:
+                case 03:
+                case 04:
+                case 05:
+                    trail.Show(R, G, B, a);
+                    break;
+
+                // Ray modes:
+                case 06:
+                    myPrimitive._LineInst.setInstanceCoords(x, y, gl_x0, gl_y0);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, a * 0.2f);
+                    break;
+
+                case 07:
+                    myPrimitive._LineInst.setInstanceCoords(x, y, gl_x0, gl_y0);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, a * 0.2f);
+                    return;
             }
 
             float size2x = size * 2;
@@ -322,9 +401,7 @@ namespace my
                 // Render Frame
                 {
                     inst.ResetBuffer();
-
-                    if (doUseTrails)
-                        myPrimitive._LineInst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
                     {
@@ -334,8 +411,7 @@ namespace my
                         obj.Move();
                     }
 
-                    if (doUseTrails)
-                        myPrimitive._LineInst.Draw();
+                    myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
                     {
@@ -367,17 +443,35 @@ namespace my
         {
             base.initShapes(shape, N, 0);
 
-            if (doUseTrails)
+            switch (drawMode)
             {
-                myPrimitive.init_LineInst(N * nTrail);
+                // No trail modes:
+                case 00:
+                case 01:
+                case 02:
+                    myPrimitive.init_LineInst(1);
+                    break;
+
+                // Trail modes:
+                case 03:
+                case 04:
+                case 05:
+                    myPrimitive.init_LineInst(N * nTrail);
+                    break;
+
+                // Ray modes:
+                case 06:
+                case 07:
+                    myPrimitive.init_LineInst(N);
+                    break;
             }
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
             grad.SetOpacity(doClearBuffer ? 1 : dimAlpha);
 
-            // grad.SetColor (0.8f, 0.8f, 0.8f, 1);
-            // grad.SetColor2(0.2f, 0.2f, 0.2f, 1);
+            // grad.SetColor (0.9f, 0.9f, 0.9f, 1);
+            // grad.SetColor2(0.1f, 0.1f, 0.1f, 1);
 
             return;
         }

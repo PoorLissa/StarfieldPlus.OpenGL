@@ -33,7 +33,7 @@ public class myScreenGradient : myPrimitive
         tBegin = DateTime.Now.Ticks;
 
         _mode = mode < 0
-            ? new System.Random().Next(7)
+            ? new System.Random().Next(13)
             : mode;
 
         // Initial opacity is 1
@@ -254,17 +254,16 @@ public class myScreenGradient : myPrimitive
     // To avoid that, use dithering: https://shader-tutorial.dev/advanced/color-banding-dithering/
     private static string getMainFunc()
     {
+        var rnd = new System.Random();
+
         string res = null;
         string addNoise = "mixValue *= 0.9 + noise12_v1(gl_FragCoord.xy * sin(uTime)) * 0.1;";
-
-        _mode = 0;
 
         switch (_mode)
         {
             // Simple vertical gradient
-            case 0:
+            case 00:
                 {
-                    // float mixValue = distance(st, vec2(0, 1 + sin(uTime / 33) / 5));
                     res =
                         $@"vec2 st = vec2(0, gl_FragCoord.y * { 1.0 / Height });
                         float mixValue = distance(st, vec2(0, 1));
@@ -273,8 +272,20 @@ public class myScreenGradient : myPrimitive
                 }
                 break;
 
+            // Swaying vertical gradient
+            case 01:
+                {
+                    res =
+                        $@"vec2 st = vec2(0, gl_FragCoord.y * {1.0 / Height});
+                        float val = 0.025 * (1 + sin(uTime + gl_FragCoord.x * {1.0 / (200 + rnd.Next(123))}) + cos(uTime/3) * 0.5);
+                        float mixValue = distance(st, vec2(0, val));
+                        {addNoise}
+                    ";
+                }
+                break;
+
             // Simple horizontal gradient
-            case 1:
+            case 02:
                 {
                     res =
                         $@"vec2 st = vec2(gl_FragCoord.x * { 1.0 / Width }, 0);
@@ -284,8 +295,20 @@ public class myScreenGradient : myPrimitive
                 }
                 break;
 
+            // Swaying horizontal gradient
+            case 03:
+                {
+                    res =
+                        $@"vec2 st = vec2(gl_FragCoord.x * {1.0 / Width}, 0);
+                        float val = 0.025 * (1 + sin(uTime + gl_FragCoord.y * {1.0 / (200 + rnd.Next(123))}) + cos(uTime/3) * 0.5);
+                        float mixValue = distance(st, vec2(val, 0));
+                        {addNoise}
+                    ";
+                }
+                break;
+
             // Simple vertical gradient (central)
-            case 2:
+            case 04:
                 {
                     res =
                         $@"vec2 st = vec2(0, gl_FragCoord.y * { 2.0 / Height });
@@ -295,8 +318,20 @@ public class myScreenGradient : myPrimitive
                 }
                 break;
 
+            // Swaying vertical gradient (central)
+            case 05:
+                {
+                    res =
+                        $@"vec2 st = vec2(0, gl_FragCoord.y * {2.0 / Height});
+                        float val = 0.025 * (1 + sin(uTime + gl_FragCoord.x * {1.0 / (200 + rnd.Next(123))}) + cos(uTime/3) * 0.5);
+                        float mixValue = distance(st, vec2(0.1 + val, 0.95 - val));
+                        {addNoise}
+                    ";
+                }
+                break;
+
             // Simple horizontal gradient (central)
-            case 3:
+            case 06:
                 {
                     res =
                         $@"vec2 st = vec2(gl_FragCoord.x * { 2.0 / Width }, 0);
@@ -306,12 +341,23 @@ public class myScreenGradient : myPrimitive
                 }
                 break;
 
-            // Randomized gradient
-            case 4:
-            case 5:
+            // Swaying horizontal gradient (central)
+            case 07:
                 {
-                    var rnd = new System.Random();
+                    res =
+                        $@"vec2 st = vec2(gl_FragCoord.x * {2.0 / Width}, 0);
+                        float val = 0.025 * (1 + sin(uTime + gl_FragCoord.y * {1.0 / (200 + rnd.Next(123))}) + cos(uTime/3) * 0.5);
+                        float mixValue = distance(st, vec2(0.95 - val, 0.1 - val));
+                        {addNoise}
+                    ";
+                }
+                break;
 
+            // Randomized gradient
+            case 08:
+            case 09:
+            case 10:
+                {
                     res =
                         $@"vec2 st = vec2(gl_FragCoord.x * { 1.0 / Width }, gl_FragCoord.y * { 1.0 / Height } );
                         float mixValue = distance(st, vec2({myUtils.randFloat(rnd)}, {myUtils.randFloat(rnd)}));
@@ -320,13 +366,25 @@ public class myScreenGradient : myPrimitive
                 }
                 break;
 
-            // Radial gradient 
-            case 6:
+            // Simple radial gradient 
+            case 11:
                 {
                     res =
                         $@"vec2 st = vec2(gl_FragCoord.x * { 2.0 / Width }, gl_FragCoord.y * { 2.0 / Height } );
                         float mixValue = distance(st, vec2(1, 1));
                         { addNoise }
+                    ";
+                }
+                break;
+
+            // Swaying radial gradient 
+            case 12:
+                {
+                    res =
+                        $@"vec2 st = vec2(gl_FragCoord.x * {2.0 / Width}, gl_FragCoord.y * {2.0 / Height} );
+                        float val = 0.025 * (1 + sin(uTime + gl_FragCoord.y * {1.0 / (100 + rnd.Next(111))}));
+                        float mixValue = distance(st, vec2(1 - val, 1 - val));
+                        {addNoise}
                     ";
                 }
                 break;
