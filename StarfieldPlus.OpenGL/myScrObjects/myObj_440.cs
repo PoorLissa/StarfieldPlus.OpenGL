@@ -26,7 +26,7 @@ namespace my
 
         protected static int N = 0, shape = 0, ballMoveMode = 0, moveMode = 0, insertMode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, lineTh = 1.0f;
+        private static float dimAlpha = 0.05f, lineTh = 1.0f, squareAnglePlus = 0;
 
         protected static float centerX = 0, centerY = 0;
 
@@ -79,6 +79,11 @@ namespace my
             ballMoveMode = rand.Next(5);
             insertMode = rand.Next(2);
             renderDelay  = rand.Next(11) + 5;
+
+            // Squares will have 2 pointing modes
+            squareAnglePlus = myUtils.randomChance(rand, 1, 2)
+                ? 0
+                : (float)Math.PI / 4;
 
             dimAlpha = 0.25f;
 
@@ -234,7 +239,7 @@ namespace my
                 case 0:
                     myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
                     myPrimitive._RectangleInst.setInstanceColor(R, G, B, a);
-                    myPrimitive._RectangleInst.setInstanceAngle(angle);
+                    myPrimitive._RectangleInst.setInstanceAngle(angle + squareAnglePlus);
                     break;
 
                 // Instanced triangles
@@ -261,6 +266,7 @@ namespace my
                     myPrimitive._HexagonInst.setInstanceColor(R, G, B, a);
                     break;
 
+                // Lines
                 case 5:
                     myPrimitive._Line.SetColor(R, G, B, a);
                     myPrimitive._Line.SetAngle((float)Math.PI - angle);
