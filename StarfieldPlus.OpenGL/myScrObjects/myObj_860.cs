@@ -14,7 +14,7 @@ namespace my
     public class myObj_860 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_860);
 
         private float x, y, dx, dy;
@@ -232,6 +232,7 @@ namespace my
             header = stdHeader;
 
             string getVal = "x * sin(y) + len";
+            string mode = $@"{rand.Next(6)}";
 
             main = $@"
                 uv *= 5;
@@ -246,9 +247,7 @@ namespace my
                 float sint = sin(t);
                 float cost = cos(t);
 
-                int aaa = 111;
-
-                switch (aaa)
+                switch ({mode})
                 {{
                     case 0:
                         val = cos(5 * x  + y * t * sin(t));
