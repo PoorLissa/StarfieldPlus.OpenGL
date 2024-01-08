@@ -299,3 +299,95 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
     }
 };
+
+
+/*
+    int aaa = 111;
+
+    uv *= 5;
+
+    switch (aaa)
+    {{
+        case 111:
+            break;
+
+        default:
+            uv *= rot(t * 0.01);
+    }}
+
+    float x = uv.x;
+    float y = uv.y;
+
+    float len = length(uv);
+    float val = {getVal};
+    float sint = sin(t);
+    float cost = cos(t);
+
+    bool isSmoothstep = true;
+
+    switch (aaa)
+    {{
+        case 0:
+            val = cos(5 * x  + y * t * sin(t));
+            break;
+
+        case 1:
+            val = cos(5 * x  * x + 10 * y + sin(x * y + t));
+            break;
+
+        case 2:
+            val = cos(5 * x + 10 * y + sin(x * y + t));
+            break;
+
+        case 3:
+            val  = cos(5 * x + 10 * y + sin(x * y + t));
+            val += sin(5 * y + 10 * x + cos(x * y + t));
+            break;
+
+        case 4:
+            val  = cos(5 * x + 10 * y + sin(x * y + t));
+            val += sin(5 * y - 10 * x - cos(x + y - t));
+            break;
+
+        case 5:
+            val  = cos(+5 * x + 10 * y + sin(x * y + t));
+            val += cos(-5 * y + 10 * x + sin(x * y + t));
+            val += smoothstep(0.0, 0.1, sin(t / 3)) * 0.1;
+            break;
+
+        case 1111:
+            // need this before x and y are set: uv *= 2;
+            val = cos(3 * x + 11 * y + sin(x * y + t));
+            val *= 10.0 * sin(t * 0.1);
+            val += 3 * sin(x / 33 * sint);
+            val += 5 * sin(x * x + y * y);
+            break;
+
+        case 1112:
+            // vary this: (x * y + t * 1) VS (x * y * t * 1)
+            val = cos(3 * x * x * x + 11 * y * y * y + sin(x * y + t * 1));
+
+            //val = smoothstep(-0.9, 0.9, val);
+
+            // vary this: use OR not
+            //val *= cos(3 * x + 11 * y + sin(x * y + t));
+
+            isSmoothstep = false;
+            break;
+
+        case 1113:
+            val = cos(3 * x * x * x + 11 * y * y * y + sin(x * y + t * 1));
+            val = sin(val * val * val) / cos(val * val);
+
+            isSmoothstep = false;
+            break;
+    }}
+
+    // Optional, looks good with and without it
+    if (isSmoothstep)
+        val = smoothstep(0.0, 0.2, val);
+
+    //if (val > 0.9) val -= 0.75;
+
+    result = vec4(myColor.xyz * val, val);
+*/
