@@ -45,7 +45,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 23;
+                N = 33;
 
                 shape = rand.Next(5);
             }
@@ -101,13 +101,15 @@ namespace my
             t = 0;
             dt = 0.01f + 0.001f * id;
             dt = 0.1f;
+            dt = 0.01f;
+            //dt = 0.01f + 0.0001f * id;
 
             xFactor = 1.0f + 0.001f * id;
-            //xFactor = 1.0f;
+            xFactor = 1.5f + id * 0.00025f;
 
-            size = 133 - id * 5;
+            size = 100 - id * 3;
 
-            A = 0.66f - id * 0.02f;
+            A = 0.66f - id * 0.01f;
             R = 0.33f;
             G = 0.33f;
             B = 0.33f;
@@ -135,6 +137,7 @@ namespace my
             for (int i = 0; i < n; i++)
             {
                 x2 = x1 + dx;
+                //y2 = size * (float)Math.Sin(xFactor * (x2 + t));
                 y2 = size * (float)Math.Sin(xFactor * x2 + t);
 
                 myPrimitive._LineInst.setInstanceCoords(x1, y + y1, x2, y + y2);
