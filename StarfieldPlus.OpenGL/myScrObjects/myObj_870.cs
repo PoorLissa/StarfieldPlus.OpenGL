@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - thin and long vertical or horizontal rectangles with low opacity and random color; no dimming; rects appear once, then generate new ones;
+    - Thin and long vertical or horizontal rectangles with low opacity and random color
 */
 
 
@@ -21,9 +21,9 @@ namespace my
         private float x, y;
         private float size, Size, A, R, G, B;
 
-        private static int N = 0;
+        private static int N = 0, mode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.01f;
 
         private static myScreenGradient grad = null;
 
@@ -64,6 +64,8 @@ namespace my
         {
             doClearBuffer = myUtils.randomChance(rand, 2, 3);
 
+            mode = rand.Next(2);
+
             renderDelay = rand.Next(11) + 3;
 
             return;
@@ -81,6 +83,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"mode = {mode}\n"                       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -148,19 +151,44 @@ namespace my
             {
                 myPrimitive._Rectangle.SetColor(R, G, B, A);
 
-                if (x == 0)
+                switch (mode)
                 {
-                    myPrimitive._Rectangle.Draw(0, y - size, gl_Width, 2 * size, true);
-                }
-                else
-                {
-                    myPrimitive._Rectangle.Draw(x - size, 0, 2 * size, gl_Height, true);
-                }
+                    case 0:
+                        {
+                            if (cnt > 0)
+                                cnt *= -1;
 
-                if (size < Size)
-                    size++;
-                else
-                    cnt *= -1;
+                            if (x == 0)
+                            {
+                                myPrimitive._Rectangle.Draw(0, y, gl_Width, Size+0, true);
+                                myPrimitive._Rectangle.Draw(0, y, gl_Width, Size+0, false);
+                            }
+                            else
+                            {
+                                myPrimitive._Rectangle.Draw(x, 0, Size, gl_Height, true);
+                                myPrimitive._Rectangle.Draw(x, 0, Size, gl_Height, false);
+                            }
+                        }
+                        break;
+
+                    case 1:
+                        {
+                            if (x == 0)
+                            {
+                                myPrimitive._Rectangle.Draw(0, y - size, gl_Width, 2 * size, true);
+                            }
+                            else
+                            {
+                                myPrimitive._Rectangle.Draw(x - size, 0, 2 * size, gl_Height, true);
+                            }
+
+                            if (size < Size)
+                                size++;
+                            else
+                                cnt *= -1;
+                        }
+                        break;
+                }
             }
 
             return;
@@ -178,7 +206,7 @@ namespace my
 
             grad.SetOpacity(1);
             grad.Draw();
-            grad.SetOpacity(0.01f);
+            grad.SetOpacity(dimAlpha);
 
             while (!Glfw.WindowShouldClose(window))
             {
