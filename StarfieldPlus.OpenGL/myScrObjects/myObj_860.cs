@@ -239,16 +239,20 @@ namespace my
 
                 switch ({mode})
                 {{
-                    case 6:
+                    case 7:
                         uv *= 2;
                         break;
 
-                    case 7:
+                    case 8:
                         uv *= 1.2;
                         break;
 
-                    case 9:
+                    case 10:
                         uv *= 0.75;
+                        break;
+
+                    case 111:
+                        uv *= 20;
                         break;
 
                     default:
@@ -280,35 +284,40 @@ namespace my
                         break;
 
                     case 3:
-                        val  = cos(5 * x + 10 * y + sin(x * y + t));
-                        val += sin(5 * y + 10 * x + cos(x * y + t));
+                        val = cos(3 * x + 11 * y + sin(x * y + t));
+                        val += 5 * sin(x / 33 * sint);
                         break;
 
                     case 4:
                         val  = cos(5 * x + 10 * y + sin(x * y + t));
-                        val += sin(5 * y - 10 * x - cos(x + y - t));
+                        val += sin(5 * y + 10 * x + cos(x * y + t));
                         break;
 
                     case 5:
+                        val  = cos(5 * x + 10 * y + sin(x * y + t));
+                        val += sin(5 * y - 10 * x - cos(x + y - t));
+                        break;
+
+                    case 6:
                         val  = cos(+5 * x + 10 * y + sin(x * y + t));
                         val += cos(-5 * y + 10 * x + sin(x * y + t));
                         val += smoothstep(0.0, 0.1, sin(t / 3)) * 0.1;
                         break;
 
-                    case 6:
+                    case 7:
                         val = cos(3 * x + 11 * y + sin(x * y + t));
                         val *= 10.0 * sin(t * 0.1);
                         val += 3 * sin(x / 33 * sint);
                         val += 5 * sin(x * x + y * y);
                         break;
 
-                    case 7:
+                    case 8:
                         val = cos(3 * y * y * y + sin(x * y + t));
                         val = smoothstep(-0.9, 0.9, val);
                         isSmoothstep = false;
                         break;
 
-                    case 8:
+                    case 9:
                         // vary this: (x * y + t * 1) VS (x * y * t * 1)
                         val = cos(3 * x * x * x + 11 * y * y * y + sin(x * y + t * 1));
 
@@ -322,7 +331,7 @@ namespace my
                         isSmoothstep = false;
                         break;
 
-                    case 9:
+                    case 10:
                         val = cos(3 * x * x * x + 11 * y * y * y + sin(x * y + t * 1));
                         val = sin(val * val * val) / cos(val * val);
 
@@ -330,8 +339,13 @@ namespace my
                         break;
 
                     case 111:
-                        val = cos(3 * x + 11 * y + sin(x * y + t));
-                        val += 3 * sin(x / 33 * sint);
+                        //val = sin(3 * x + 11 * y + sin(x * y + t));
+                        val = int(x * x) ^ int(y * y);
+                        val = sin(val * val * t * 0.000001);
+
+                        val = smoothstep(0.001, 0.999, val);
+
+                        isSmoothstep = false;
                         break;
                 }}
 
