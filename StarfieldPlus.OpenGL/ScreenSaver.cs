@@ -187,6 +187,7 @@ public class ScreenSaver
         register(my.myObj_840.Type);      // Trains moving across the screen
         register(my.myObj_850.Type);      // 3 rotating points per particle, making a rotating triangle
         register(my.myObj_860.Type);      // ...
+        register(my.myObj_870.Type);      // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
