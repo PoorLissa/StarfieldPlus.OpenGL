@@ -225,6 +225,8 @@ namespace my
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_LineInst(N * n);
 
+            myPrimitive._LineInst.setLineWidth(3);
+
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
