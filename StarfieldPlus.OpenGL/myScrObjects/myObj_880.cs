@@ -59,7 +59,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = true;
+            //doClearBuffer = true;
 
             renderDelay = 0;
 
@@ -130,57 +130,30 @@ namespace my
 
         protected override void Show()
         {
-            float size2x = size * 2;
+            int func = 0;
 
             float x1 = 0, y1 = size * (float)Math.Sin(t), x2 = 0, y2 = 0; 
 
             for (int i = 0; i < n; i++)
             {
                 x2 = x1 + dx;
-                //y2 = size * (float)Math.Sin(xFactor * (x2 + t));
-                y2 = size * (float)Math.Sin(xFactor * x2 + t);
+
+                switch (func)
+                {
+                    case 0:
+                        y2 = size * (float)Math.Sin(xFactor * (x2 + t));
+                        break;
+
+                    case 1:
+                        y2 = size * (float)Math.Sin(xFactor * x2 + t) + 0.1f * size * (float)Math.Cos(10 * xFactor * x2 + 11 * t);
+                        break;
+                }
 
                 myPrimitive._LineInst.setInstanceCoords(x1, y + y1, x2, y + y2);
                 myPrimitive._LineInst.setInstanceColor(R, G, B, A);
 
                 x1 = x2;
                 y1 = y2;
-            }
-
-            return;
-
-            switch (shape)
-            {
-                // Instanced squares
-                case 0:
-                    myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                    myPrimitive._RectangleInst.setInstanceAngle(angle);
-                    break;
-
-                // Instanced triangles
-                case 1:
-                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced circles
-                case 2:
-                    myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced pentagons
-                case 3:
-                    myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
-                case 4:
-                    myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
-                    break;
             }
 
             return;
@@ -250,8 +223,6 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, N, 0);
-
             myPrimitive.init_LineInst(N * n);
 
             grad = new myScreenGradient();
