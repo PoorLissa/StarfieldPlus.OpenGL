@@ -59,7 +59,6 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
-            //doClearBuffer = true;
 
             renderDelay = 0;
 
