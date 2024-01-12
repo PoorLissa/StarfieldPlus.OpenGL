@@ -7,11 +7,12 @@ using System.Collections.Generic;
 /*
     - test for O(N^2) interactions with limited distance using grids
 
-    1. Remove sortedList, work off (and sort) the main list: this way, we don't need to use binarySearch: we'll already know the position
-    2. Use cells. Each cell contains a dictionary, each dictionary contains all the particles belonging to this cell
+        Each cell contains a dictionary, each dictionary contains all the particles belonging to this cell
         For the current particle, get its x % cellSize and y % cellSize => cellId
         For that cellId, find all neighbouring cells
         For every such neighbour, check its child particles vs the current one
+
+        todo: check all the todos
 */
 
 
@@ -19,14 +20,13 @@ namespace my
 {
     public class myObj_999_test_002c_Cell
     {
-        public int x, y, w, h;
-
-        public Dictionary<uint, myObj_999_test_002c> items = null;
-
         public myObj_999_test_002c_Cell()
         {
             items = new Dictionary<uint, myObj_999_test_002c>();
         }
+
+        public int x, y;
+        public Dictionary<uint, myObj_999_test_002c> items = null;
     };
 
     public class myObj_999_test_002c : myObject
@@ -54,6 +54,8 @@ namespace my
         // Override base list, to sort it without type casting
         private static new List<myObj_999_test_002c> list = null;
 
+        // todo: see if double array is faster
+
         private static Dictionary<int, myObj_999_test_002c_Cell> dic = null;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -74,7 +76,7 @@ namespace my
 
             {
                 dic = new Dictionary<int, myObj_999_test_002c_Cell>();
-                cellSize = 250;
+                cellSize = 50;
 
                 int offset = 0;
 
@@ -106,8 +108,6 @@ namespace my
 
                         dic[id].x = i / cellSize;
                         dic[id].y = j / cellSize;
-                        dic[id].w = cellSize;
-                        dic[id].h = cellSize;
                     }
                 }
             }
@@ -128,6 +128,8 @@ namespace my
 
                 doGenerateAll = false;
                 doGenerateAll = true;
+
+                doShowCellBounds = false;
             }
 
             initLocal();
@@ -197,14 +199,34 @@ lenMode = 0;
 
             cellId = (int)x / cellSize + ((int)y / cellSize) * cellRow;
 
-            dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
-            dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
+
+            if (true)
+            {
+                dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
+                dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
+            }
+            else
+            {
+                dx = dy = 0;
+
+                switch (rand.Next(2))
+                {
+                    case 0:
+                        dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
+                        break;
+
+                    case 1:
+                        dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
+                        break;
+                }
+            }
 
             angle = 0;
             size = shape == 1 ? 2 : 3;
             angle = myUtils.randFloat(rand) * rand.Next(123);
 
             A = 0.5f + myUtils.randFloat(rand) * 0.5f;
+A *= 0.23f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             dic[cellId].items.Add(id, this);
@@ -216,11 +238,8 @@ lenMode = 0;
 
         protected override void Move()
         {
-            //x += dx;
-            //y += dy;
-
-            x += dx * 0.1f;
-            y += dy * 0.1f;
+            x += dx;
+            y += dy;
 
 #if true
             if (x < 0) dx += dSpeed; else if (x > gl_Width ) dx -= dSpeed;
@@ -232,6 +251,7 @@ lenMode = 0;
             {
                 int newCellId = (int)x / cellSize + ((int)y / cellSize) * cellRow;
 
+                // todo: compare these 2 options
                 //if (cellId != newCellId && dic.ContainsKey(newCellId))
                 if (cellId != newCellId && newCellId >= minId && newCellId <= maxId)
                 {
@@ -255,7 +275,7 @@ lenMode = 0;
             {
                 var cell = dic[cellId];
                 myPrimitive._Rectangle.SetColor(1, 1, 1, 0.05f);
-                myPrimitive._Rectangle.Draw(cell.x * cellSize, cell.y * cellSize, cell.w, cell.h);
+                myPrimitive._Rectangle.Draw(cell.x * cellSize, cell.y * cellSize, cellSize, cellSize);
             }
 
             switch (shape)
@@ -419,13 +439,16 @@ lenMode = 0;
         {
             float dx, dy, dist2, a;
 
-            //for (int i = -1; i < 2; i++)
-            {
-                //for (int j = -1; j < 2; j++)
-                {
-                    //int cell = cellId + cellRow * i + j;
+            // todo: check how it looks with only single cell (remove loops)
 
-                    int cell = cellId;
+            for (int i = -1; i < 2; i++)
+            {
+                for (int j = -1; j < 2; j++)
+                {
+                    int cell = cellId + cellRow * i + j;
+                    //int cell = cellId;
+
+                    // todo: compare these 2 options
 
                     //if (dic.ContainsKey(cell))
                     if (cell >= minId && cell <= maxId)
@@ -437,12 +460,15 @@ lenMode = 0;
                                 dx = x - other.Value.x;
                                 dy = y - other.Value.y;
 
+                                // todo: see if checking linear distance first improves the overall speed
+
                                 dist2 = dx * dx + dy * dy;
 
                                 if (dist2 < maxDistSquared)
                                 {
                                     a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
 
+                                    // see how much of a performance drop do we have from drawing the lines
                                     myPrimitive._LineInst.setInstanceCoords(x, y, other.Value.x, other.Value.y);
                                     myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
                                 }
