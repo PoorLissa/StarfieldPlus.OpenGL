@@ -245,6 +245,17 @@ A *= 0.23f;
             if (x < 0) dx += dSpeed; else if (x > gl_Width ) dx -= dSpeed;
             if (y < 0) dy += dSpeed; else if (y > gl_Height) dy -= dSpeed;
 #else
+            if (x < 0 && dx < 0)
+                dx *= -1;
+            
+            if (x > gl_Width && dx > 0)
+                dx *= -1;
+
+            if (y < 0 && dy < 0)
+                dy *= -1;
+
+            if (y > gl_Height && dy > 0)
+                dy *= -1;
 #endif
 
             // Check if the particle has moved out of its current cell
@@ -253,6 +264,7 @@ A *= 0.23f;
 
                 // todo: compare these 2 options
                 //if (cellId != newCellId && dic.ContainsKey(newCellId))
+#if false
                 if (cellId != newCellId && newCellId >= minId && newCellId <= maxId)
                 {
                     dic[cellId].items.Remove(id);
@@ -260,6 +272,25 @@ A *= 0.23f;
 
                     cellId = newCellId;
                 }
+#else
+
+                // todo: compare with the previous option, and also check if this works at all
+
+                if (cellId != newCellId)
+                {
+                    if (cellId >= minId && cellId <= maxId)
+                    {
+                        dic[cellId].items.Remove(id);
+                    }
+
+                    if (newCellId >= minId && newCellId <= maxId)
+                    {
+                        dic[newCellId].items.Add(id, this);
+                    }
+
+                    cellId = newCellId;
+                }
+#endif
             }
 
             return;
