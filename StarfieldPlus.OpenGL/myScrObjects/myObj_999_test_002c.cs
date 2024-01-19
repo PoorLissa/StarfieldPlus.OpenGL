@@ -32,7 +32,7 @@ namespace my
     public class myObj_999_test_002c : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_999_test_002c);
 
         private int cellId;
@@ -407,9 +407,10 @@ A *= 0.23f;
 
                     // Draw all the connecting lines between particles;
                     // This is the most time consuming part here, and is optimized using multimap approach
+
                     for (int i = 0; i != Count; i++)
                     {
-                        list[i].showConnections();
+                        //list[i].showConnections();
                     }
 
                     // As we're working off a sortedList, Show and Move methods should be called from within the separate loops
