@@ -32,7 +32,7 @@ namespace my
     public class myObj_999_test_002c : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 910;
 		public static System.Type Type => typeof(myObj_999_test_002c);
 
         private int cellId;
@@ -119,7 +119,7 @@ namespace my
                 N = 2500 + rand.Next(1001);
                 N = 2345;
 
-                N = 11111;
+                N = 6666 + rand.Next(11111 - 6666);
 
                 shape = rand.Next(5);
 
@@ -410,7 +410,7 @@ A *= 0.23f;
 
                     for (int i = 0; i != Count; i++)
                     {
-                        //list[i].showConnections();
+                        list[i].showConnections();
                     }
 
                     // As we're working off a sortedList, Show and Move methods should be called from within the separate loops
