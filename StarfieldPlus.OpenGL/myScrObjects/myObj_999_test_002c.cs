@@ -32,7 +32,7 @@ namespace my
     public class myObj_999_test_002c : myObject
     {
         // Priority
-        public static int Priority => 910;
+        public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_999_test_002c);
 
         private int cellId;
@@ -121,6 +121,8 @@ namespace my
 
                 N = 6666 + rand.Next(11111 - 6666);
 
+                N = 11111;
+
                 shape = rand.Next(5);
 
                 nTaskCount = Environment.ProcessorCount - 1;
@@ -202,8 +204,10 @@ lenMode = 0;
 
             if (true)
             {
-                dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
-                dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1);
+                float spdFactor = 0.5f;
+
+                dx = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1) * spdFactor;
+                dy = myUtils.randFloatSigned(rand) * (rand.Next(5) + 1) * spdFactor;
             }
             else
             {
@@ -241,7 +245,7 @@ A *= 0.23f;
             x += dx;
             y += dy;
 
-#if true
+#if !false
             if (x < 0) dx += dSpeed; else if (x > gl_Width ) dx -= dSpeed;
             if (y < 0) dy += dSpeed; else if (y > gl_Height) dy -= dSpeed;
 #else
@@ -262,20 +266,6 @@ A *= 0.23f;
             {
                 int newCellId = (int)x / cellSize + ((int)y / cellSize) * cellRow;
 
-                // todo: compare these 2 options
-                //if (cellId != newCellId && dic.ContainsKey(newCellId))
-#if false
-                if (cellId != newCellId && newCellId >= minId && newCellId <= maxId)
-                {
-                    dic[cellId].items.Remove(id);
-                    dic[newCellId].items.Add(id, this);
-
-                    cellId = newCellId;
-                }
-#else
-
-                // todo: compare with the previous option, and also check if this works at all
-
                 if (cellId != newCellId)
                 {
                     if (cellId >= minId && cellId <= maxId)
@@ -290,7 +280,6 @@ A *= 0.23f;
 
                     cellId = newCellId;
                 }
-#endif
             }
 
             return;
@@ -452,7 +441,7 @@ A *= 0.23f;
         {
             base.initShapes(shape, N, 0);
 
-            int n = N < 10 ? 100 : N * (N / 10);
+            int n = N < 10 ? 100 : 3333;
 
             myPrimitive.init_LineInst(n);
 
@@ -480,9 +469,6 @@ A *= 0.23f;
                     int cell = cellId + cellRow * i + j;
                     //int cell = cellId;
 
-                    // todo: compare these 2 options
-
-                    //if (dic.ContainsKey(cell))
                     if (cell >= minId && cell <= maxId)
                     {
                         foreach (var other in dic[cell].items)
@@ -492,17 +478,13 @@ A *= 0.23f;
                                 dx = x - other.Value.x;
                                 dy = y - other.Value.y;
 
-                                // todo: see if checking linear distance first improves the overall speed
-
                                 dist2 = dx * dx + dy * dy;
 
                                 if (dist2 < maxDistSquared)
                                 {
                                     a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
 
-                                    // see how much of a performance drop do we have from drawing the lines
-                                    myPrimitive._LineInst.setInstanceCoords(x, y, other.Value.x, other.Value.y);
-                                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, a);
+                                    myPrimitive._LineInst.autoDraw(x, y, other.Value.x, other.Value.y, 1, 1, 1, a);
                                 }
                             }
                         }
