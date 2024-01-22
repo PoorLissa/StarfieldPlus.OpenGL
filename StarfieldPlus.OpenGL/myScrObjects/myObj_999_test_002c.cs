@@ -33,7 +33,7 @@ namespace my
     public class myObj_999_test_002c : myObject
     {
         // Priority
-        public static int Priority => 9999933;
+        public static int Priority => 999933;
 		public static System.Type Type => typeof(myObj_999_test_002c);
 
         private int cellId;
@@ -117,22 +117,23 @@ namespace my
                 N = 2500 + rand.Next(1001);
                 N = 2345;
 
-                N = 6666 + rand.Next(11111 - 6666);
+                N = 6666 + rand.Next(12345 - 6666);
 
                 // With N = 11111, nLines will be ~325k
                 // But with the optimization of (id < other.id), only 160k
-                N = 11111;
+                //N = 11111;
 
                 shape = rand.Next(5);
 
                 nTaskCount = Environment.ProcessorCount - 1;
                 nTaskCount = 1;
 
-                doGenerateAll = false;
+                doClearBuffer = myUtils.randomChance(rand, 1, 2);
+                doGenerateAll = myUtils.randomChance(rand, 1, 7);
+
 #if DEBUG
                 doGenerateAll = true;
 #endif
-
                 doShowCellBounds = false;
             }
 
@@ -144,8 +145,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = true;
-
             lenMode = rand.Next(3);
 
 lenMode = 0;
@@ -176,6 +175,7 @@ lenMode = 0;
 
             string str = $"Obj = {Type}\n\n"                             +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"     +
+                            $"doClearBuffer = {doClearBuffer}\n"         +
                             $"nTaskCount = {nTaskCount}\n"               +
                             $"lenMode = {lenMode}\n"                     +
                             $"maxConnectionDist = {maxConnectionDist}\n" +
@@ -293,45 +293,48 @@ A *= 0.23f;
         {
             float size2x = size * 2;
 
-            if (doShowCellBounds)
+/*          if (doShowCellBounds)
             {
                 var cell = dic[cellId];
                 myPrimitive._Rectangle.SetColor(1, 1, 1, 0.05f);
                 myPrimitive._Rectangle.Draw(cell.x * cellSize, cell.y * cellSize, cellSize, cellSize);
-            }
+            }*/
 
-            switch (shape)
+            if (doClearBuffer)
             {
-                // Instanced squares
-                case 0:
-                    myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                    myPrimitive._RectangleInst.setInstanceAngle(angle);
-                    break;
+                switch (shape)
+                {
+                    // Instanced squares
+                    case 0:
+                        myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._RectangleInst.setInstanceAngle(angle);
+                        break;
 
-                // Instanced triangles
-                case 1:
-                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
-                    break;
+                    // Instanced triangles
+                    case 1:
+                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                // Instanced circles
-                case 2:
-                    myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
-                    break;
+                    // Instanced circles
+                    case 2:
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                // Instanced pentagons
-                case 3:
-                    myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
-                    break;
+                    // Instanced pentagons
+                    case 3:
+                        myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                // Instanced hexagons
-                case 4:
-                    myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
-                    break;
+                    // Instanced hexagons
+                    case 4:
+                        myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                        break;
+                }
             }
 
             return;
@@ -344,7 +347,7 @@ A *= 0.23f;
             initShapes();
 
 
-            clearScreenSetup(doClearBuffer, 0.1f);
+            clearScreenSetup(doClearBuffer, 0.1f, true);
 
 
             if (doGenerateAll)
@@ -387,7 +390,6 @@ A *= 0.23f;
 
                 // Dim screen
                 {
-                    glClear(GL_COLOR_BUFFER_BIT);
                     grad.Draw();
                 }
 
@@ -448,11 +450,17 @@ A *= 0.23f;
             myPrimitive.init_LineInst(n);
             myPrimitive._LineInst.setAntialized(false);
 
+/*
             if (doShowCellBounds)
-                myPrimitive.init_Rectangle();
+                myPrimitive.init_Rectangle();*/
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+
+            if (doClearBuffer == false)
+            {
+                grad.SetOpacity(0.1f);
+            }
 
             return;
         }
