@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 
 /*
@@ -96,10 +97,7 @@ namespace my
                     {
                         int id = i / cellSize + (j / cellSize) * cellRow;
 
-                        if (dic.ContainsKey(id))
-                        {
-                            ;
-                        }
+                        Debug.Assert(!dic.ContainsKey(id));
 
                         if (id > maxId) maxId = id;
                         if (id < minId) minId = id;
@@ -122,6 +120,7 @@ namespace my
                 N = 6666 + rand.Next(11111 - 6666);
 
                 // With N = 11111, nLines will be ~325k
+                // But with the optimization of (id < other.id), only 160k
                 N = 11111;
 
                 shape = rand.Next(5);
@@ -130,7 +129,9 @@ namespace my
                 nTaskCount = 1;
 
                 doGenerateAll = false;
+#if DEBUG
                 doGenerateAll = true;
+#endif
 
                 doShowCellBounds = false;
             }
@@ -475,7 +476,8 @@ A *= 0.23f;
                     {
                         foreach (var other in dic[cell].items)
                         {
-                            if (id != other.Value.id)
+                            // Prevent drawing the same line more than once
+                            if (id < other.Value.id)
                             {
                                 dx = x - other.Value.x;
                                 dy = y - other.Value.y;

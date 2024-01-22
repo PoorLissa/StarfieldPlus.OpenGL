@@ -79,6 +79,7 @@ public class ScreenSaver
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
     // - snake that does not cross itself (use lists of vertical and horizontal lines the snake consists of)
+    // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
 
     // -------------------------------------------------------------------------------------------------------------------
 
