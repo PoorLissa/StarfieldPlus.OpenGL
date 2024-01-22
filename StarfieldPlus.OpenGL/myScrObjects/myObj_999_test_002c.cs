@@ -32,7 +32,7 @@ namespace my
     public class myObj_999_test_002c : myObject
     {
         // Priority
-        public static int Priority => 33;
+        public static int Priority => 9999933;
 		public static System.Type Type => typeof(myObj_999_test_002c);
 
         private int cellId;
@@ -121,6 +121,7 @@ namespace my
 
                 N = 6666 + rand.Next(11111 - 6666);
 
+                // With N = 11111, nLines will be ~325k
                 N = 11111;
 
                 shape = rand.Next(5);
@@ -444,6 +445,7 @@ A *= 0.23f;
             int n = N < 10 ? 100 : 3333;
 
             myPrimitive.init_LineInst(n);
+            myPrimitive._LineInst.setAntialized(false);
 
             if (doShowCellBounds)
                 myPrimitive.init_Rectangle();
