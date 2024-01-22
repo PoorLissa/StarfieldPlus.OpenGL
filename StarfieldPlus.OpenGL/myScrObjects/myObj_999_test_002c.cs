@@ -32,7 +32,7 @@ namespace my
     public class myObj_999_test_002c : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 33;
 		public static System.Type Type => typeof(myObj_999_test_002c);
 
         private int cellId;
