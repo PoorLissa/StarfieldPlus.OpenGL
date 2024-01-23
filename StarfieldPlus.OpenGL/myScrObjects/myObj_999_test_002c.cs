@@ -470,6 +470,10 @@ A *= 0.23f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        static float dxFactor = 1;
+        static float dyFactor = 1;
+        static float t = 0, dt = 0.01f;
+
         private void showConnections()
         {
             float dx, dy, dist2, a;
@@ -478,18 +482,28 @@ A *= 0.23f;
             dx = x - gl_x0;
             dy = y - gl_y0;
 
-            dist2 = dx * dx + dy * dy;
+            dist2 = dx * dx * dxFactor + dy * dy * dyFactor;
+
+            dxFactor = 1 + (float)Math.Sin(t) * 1.25f;
+            dyFactor = 2;
+
+            if (id == 0)
+                t += dt;
 
             if (dist2 > Rad)
                 return;
 #endif
 
             // todo: check how it looks with only single cell (remove loops)
-            for (int i = -1; i < 2; i++)
+
+            int min = -1;
+            int max = 2;
+
+            for (int i = min; i < max; i++)
             {
                 int cell_i = cellId + cellRow * i;
 
-                for (int j = -1; j < 2; j++)
+                for (int j = min; j < max; j++)
                 {
                     int cell = cell_i + j;
                     //int cell = cellId;
