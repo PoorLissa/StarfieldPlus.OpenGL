@@ -472,7 +472,7 @@ A *= 0.23f;
 
         static float dxFactor = 1;
         static float dyFactor = 1;
-        static float t = 0, dt = 0.01f;
+        static float t = 0, dt = 0.005f;
 
         private void showConnections()
         {
@@ -484,11 +484,12 @@ A *= 0.23f;
 
             dist2 = dx * dx * dxFactor + dy * dy * dyFactor;
 
-            dxFactor = 1 + (float)Math.Sin(t) * 1.25f;
-            dyFactor = 2;
-
             if (id == 0)
+            {
+                dxFactor = 1 + (float)Math.Sin(t) * 1.25f;
+                dyFactor = 2;
                 t += dt;
+            }
 
             if (dist2 > Rad)
                 return;
