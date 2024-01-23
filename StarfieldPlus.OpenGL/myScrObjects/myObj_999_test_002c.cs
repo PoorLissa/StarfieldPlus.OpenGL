@@ -125,7 +125,8 @@ namespace my
                 //N = 11111;
 
                 shape = rand.Next(5);
-                Rad = 333;
+                Rad = 666;
+                Rad *= Rad;
 
                 nTaskCount = Environment.ProcessorCount - 1;
                 nTaskCount = 1;
@@ -479,7 +480,7 @@ A *= 0.23f;
 
             dist2 = dx * dx + dy * dy;
 
-            if (dist2 > 666*666)
+            if (dist2 > Rad)
                 return;
 #endif
 
