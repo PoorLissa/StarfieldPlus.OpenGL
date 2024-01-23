@@ -47,6 +47,7 @@ namespace my
         private static int   cellSize = 100, cellRow = 0;
         private static int   maxDistSquared = 0;
         private static float maxDistSquared_Inverted = 1.0f;
+        private static float Rad = 0;
 
         private static myScreenGradient grad = null;
 
@@ -124,6 +125,7 @@ namespace my
                 //N = 11111;
 
                 shape = rand.Next(5);
+                Rad = 333;
 
                 nTaskCount = Environment.ProcessorCount - 1;
                 nTaskCount = 1;
@@ -471,13 +473,24 @@ A *= 0.23f;
         {
             float dx, dy, dist2, a;
 
-            // todo: check how it looks with only single cell (remove loops)
+#if true
+            dx = x - gl_x0;
+            dy = y - gl_y0;
 
+            dist2 = dx * dx + dy * dy;
+
+            if (dist2 > 666*666)
+                return;
+#endif
+
+            // todo: check how it looks with only single cell (remove loops)
             for (int i = -1; i < 2; i++)
             {
+                int cell_i = cellId + cellRow * i;
+
                 for (int j = -1; j < 2; j++)
                 {
-                    int cell = cellId + cellRow * i + j;
+                    int cell = cell_i + j;
                     //int cell = cellId;
 
                     if (cell >= minId && cell <= maxId)
