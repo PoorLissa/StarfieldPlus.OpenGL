@@ -453,6 +453,10 @@ A *= 0.23f;
             myPrimitive.init_LineInst(n);
             myPrimitive._LineInst.setAntialized(false);
 
+            if (myUtils.randomChance(rand, 1, 3))
+            {
+                myPrimitive._LineInst.setLineWidth(rand.Next(5) + 1);
+            }
 /*
             if (doShowCellBounds)
                 myPrimitive.init_Rectangle();*/
@@ -524,6 +528,8 @@ A *= 0.23f;
                                 if (dist2 < maxDistSquared)
                                 {
                                     a = (1.0f - dist2 * maxDistSquared_Inverted) * opacityFactor;
+
+                                    //if (id < 100) a *= 5;
 
                                     myPrimitive._LineInst.autoDraw(x, y, other.Value.x, other.Value.y, 1, 1, 1, a);
                                 }
