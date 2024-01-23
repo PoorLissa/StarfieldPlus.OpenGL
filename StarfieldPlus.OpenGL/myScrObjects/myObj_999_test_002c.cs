@@ -490,7 +490,7 @@ A *= 0.23f;
 
             if (id == 0)
             {
-                dxFactor = 1 + (float)Math.Sin(t) * 1.25f;
+                dxFactor = 1 + (float)Math.Sin(t) * 1.725f;
                 dyFactor = 2;
                 t += dt;
             }
