@@ -193,32 +193,25 @@ public class ScreenSaver
         register(my.myObj_890.Type);      // Desktop pieces falling down in a matrix-style
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
-
-#if false
-        register(my.myObj_999_test_001.Type);       // Trails test
-#endif
-
-#if false
-        //register(my.myObj_999_test_002.Type);
-        register(my.myObj_999_test_002a.Type);
-        register(my.myObj_999_test_002b.Type);
-#endif
-
-#if false
-        register(my.myObj_999_test_003.Type);       // TextTex test
-#endif
-
-#if true
-        register(my.myObj_999_test_002c.Type);
-#endif
-
-#if true
-        register(my.myObj_999_test_004.Type);
-#endif
+        registerTests(register);          // Register additional testing objects
 
         _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);
 
         return;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    private void registerTests(System.Action<System.Type> register)
+    {
+        //register(my.myObj_999_test_001.Type);       // Trails test
+        //register(my.myObj_999_test_002.Type);
+        //register(my.myObj_999_test_002a.Type);
+        //register(my.myObj_999_test_002b.Type);
+        //register(my.myObj_999_test_003.Type);       // TextTex test
+
+        register(my.myObj_999_test_002c.Type);
+        register(my.myObj_999_test_004.Type);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
