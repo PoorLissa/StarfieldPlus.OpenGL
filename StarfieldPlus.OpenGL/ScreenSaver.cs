@@ -194,10 +194,6 @@ public class ScreenSaver
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
 
-        // If you want to tell a man from 200 years ago,  about the movie Matrix, you will need to make it way more simpler and change время, место, происходящие события, чтобы соответстововать 
-        // уровню того человека. То есть при пересылке сценариев в прошлое - они должны упрощаться по мере продвижения к началу
-        // Нет ли такого, что нам сцйенарии спускают из будушего, чтобы подготовить нас или развить. Или нпучить, как нейросеть (такогй бэк аправнвйшон)
-
 #if false
         register(my.myObj_999_test_001.Type);       // Trails test
 #endif
@@ -214,6 +210,10 @@ public class ScreenSaver
 
 #if true
         register(my.myObj_999_test_002c.Type);
+#endif
+
+#if true
+        register(my.myObj_999_test_004.Type);
 #endif
 
         _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);
