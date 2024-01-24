@@ -55,7 +55,7 @@ public class myLineInst : myInstancedPrimitive
         glLineWidth(_lineWidth);
 
         updateInstances();
-        updateVertices();
+        updateVertices();       // todo: do we need this ecah frame? seems to be working without it
 
         glUseProgram(shaderProgram);
 
@@ -186,6 +186,13 @@ public class myLineInst : myInstancedPrimitive
             // Copy data to GPU:
             glBindBuffer(GL_ARRAY_BUFFER, instVbo);
             {
+                // todo: can we use it?
+                // https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming
+                //glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, NULL, GL_DYNAMIC_COPY);
+                //glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof(float) * instArrayPosition, GL_MAP_INVALIDATE_BUFFER_BIT);
+
+                // also: https://www.khronos.org/opengl/wiki/Buffer_Object#Data_Specification
+
                 fixed (float* a = &instanceArray[0])
                     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, a, GL_DYNAMIC_COPY);
 

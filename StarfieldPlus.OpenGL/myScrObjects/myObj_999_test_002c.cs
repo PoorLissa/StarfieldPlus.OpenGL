@@ -113,11 +113,6 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(100) + 100;
-                N = 3500;
-                N = 2500 + rand.Next(1001);
-                N = 2345;
-
                 N = 6666 + rand.Next(12345 - 6666);
 
                 // With N = 11111, nLines will be ~325k
@@ -482,7 +477,7 @@ A *= 0.23f;
         {
             float dx, dy, dist2, a;
 
-#if true
+#if false
             dx = x - gl_x0;
             dy = y - gl_y0;
 
