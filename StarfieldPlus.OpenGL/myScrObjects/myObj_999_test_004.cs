@@ -14,7 +14,7 @@ namespace my
     public class myObj_999_test_004 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_999_test_004);
 
         private int cnt;
@@ -41,7 +41,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 100000;
+                N = 300000;
             }
 
             initLocal();
@@ -147,6 +147,7 @@ namespace my
                         var obj = list[i] as myObj_999_test_004;
 
                         obj.Show();
+                        obj.Move();
                     }
 
                     myPrimitive._LineInst.Draw();
