@@ -67,6 +67,20 @@ public class myLineInst : myInstancedPrimitive
 
     private static void CreateProgram()
     {
+#if false
+        // Use gl_VertexID to be able to address the first or the second pair of coordinates
+        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
+           $@"layout (location = 0) in vec3 pos;
+              layout (location = 1) in mat2x4 mData;
+                vec2 realSize = vec2({+2.0 / Width}, {-2.0 / Height});
+                out vec4 rgbaColor;",
+
+                    main: $@"rgbaColor = mData[1];
+                            int idx = gl_VertexID * 2;
+                            gl_Position = vec4(realSize.x * mData[0][idx] - 1.0, realSize.y * mData[0][idx+1] + 1.0, 1.0, 1.0);"
+        );
+#endif
+
         // Use gl_VertexID to be able to address the first or the second pair of coordinates
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
             @"layout (location = 0) in vec3 pos;
@@ -78,8 +92,8 @@ public class myLineInst : myInstancedPrimitive
 
                             int idx = gl_VertexID * 2;
 
-                            float realSizeX = { +2.0 / Width  };
-                            float realSizeY = { -2.0 / Height };
+                            float realSizeX = {+2.0 / Width};
+                            float realSizeY = {-2.0 / Height};
 
                             gl_Position = vec4(realSizeX * mData[0][idx] - 1.0, realSizeY * mData[0][idx+1] + 1.0, 1.0, 1.0);"
         );
@@ -104,6 +118,21 @@ public class myLineInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    public void setInstance(float x1, float y1, float x2, float y2, float r, float g, float b, float a)
+    {
+        instanceArray[instArrayPosition++] = x1;
+        instanceArray[instArrayPosition++] = y1;
+        instanceArray[instArrayPosition++] = x2;
+        instanceArray[instArrayPosition++] = y2;
+
+        instanceArray[instArrayPosition++] = r;
+        instanceArray[instArrayPosition++] = g;
+        instanceArray[instArrayPosition++] = b;
+        instanceArray[instArrayPosition++] = a;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     public void setInstanceCoords(float x1, float y1, float x2, float y2)
     {
         instanceArray[instArrayPosition++] = x1;
@@ -120,16 +149,6 @@ public class myLineInst : myInstancedPrimitive
         instanceArray[instArrayPosition++] = g;
         instanceArray[instArrayPosition++] = b;
         instanceArray[instArrayPosition++] = a;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
-    public void setInstanceColor(double r, double g, double b, double a)
-    {
-        instanceArray[instArrayPosition++] = (float)r;
-        instanceArray[instArrayPosition++] = (float)g;
-        instanceArray[instArrayPosition++] = (float)b;
-        instanceArray[instArrayPosition++] = (float)a;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -176,9 +195,51 @@ public class myLineInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    static bool isCreated = false;
+
     // Create GPU buffer out of out instances from the array
     protected override unsafe void updateInstances()
     {
+#if !true
+        if (instArrayPosition > 1)
+        {
+            N = instArrayPosition / n;
+
+            // Copy data to GPU:
+            glBindBuffer(GL_ARRAY_BUFFER, instVbo);
+            {
+                if (isCreated == false)
+                {
+                    // Create the buffer only once
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instanceArray.Length, NULL, GL_DYNAMIC_COPY);
+                    isCreated = true;
+                }
+                else
+                {
+                    // ??? do we need it? is this orphaning?
+                    // https://stackoverflow.com/questions/24512468/when-to-clear-a-vertex-buffer-object#:~:text=To%20directly%20answer%20your%20question,update%20whatever%20contents%20you%20want.
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instanceArray.Length, NULL, GL_DYNAMIC_COPY);
+
+                    // When created, update the buffer
+                    fixed (float* a = &instanceArray[0])
+                        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * instArrayPosition, a);
+                }
+
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 4, GL_FLOAT, false, floatTimesN, NULL);
+
+                // ??? why use new intptr?
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, 4, GL_FLOAT, false, floatTimesN, new IntPtr(1 * 4 * sizeof(float)));
+
+                // Tell OpenGL this is an instanced vertex attribute
+                glVertexAttribDivisor(1, 1);
+                glVertexAttribDivisor(2, 1);
+
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+            }
+        }
+#else
         if (instArrayPosition > 1)
         {
             N = instArrayPosition / n;
@@ -192,6 +253,12 @@ public class myLineInst : myInstancedPrimitive
                 //glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof(float) * instArrayPosition, GL_MAP_INVALIDATE_BUFFER_BIT);
 
                 // also: https://www.khronos.org/opengl/wiki/Buffer_Object#Data_Specification
+
+                // https://onrendering.blogspot.com/2011/10/buffer-object-streaming-in-opengl.html
+
+                // https://gamedev.stackexchange.com/questions/87074/for-vertex-buffer-steaming-multiple-glbuffersubdata-vs-orphaning
+
+                // https://zachbethel.wordpress.com/2013/03/20/buffer-streamin-opengl/
 
                 fixed (float* a = &instanceArray[0])
                     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, a, GL_DYNAMIC_COPY);
@@ -209,7 +276,7 @@ public class myLineInst : myInstancedPrimitive
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
             }
         }
-
+#endif
         return;
     }
 

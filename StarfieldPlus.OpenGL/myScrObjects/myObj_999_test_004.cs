@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 
 /*
@@ -14,8 +15,8 @@ namespace my
     public class myObj_999_test_004 : myObject
     {
         // Priority
-        public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_999_test_004);
+        public static int Priority => 9999910;
+        public static System.Type Type => typeof(myObj_999_test_004);
 
         private int cnt;
         private float x1, y1, x2, y2;
@@ -60,7 +61,7 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
+            string nStr(int n) { return n.ToString("N0"); }
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
@@ -81,14 +82,14 @@ namespace my
 
         protected override void generateNew()
         {
-            cnt = 33 + rand.Next(111);
+            cnt = 11 + rand.Next(11);
 
             x1 = rand.Next(gl_Width);
             y1 = rand.Next(gl_Height);
             x2 = rand.Next(gl_Width);
             y2 = rand.Next(gl_Height);
 
-            A = 0.01f + myUtils.randFloat(rand) * 0.02f;
+            A = 0.005f + myUtils.randFloat(rand) * 0.005f;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
@@ -110,8 +111,7 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+            myPrimitive._LineInst.setInstance(x1, y1, x2, y2, R, G, B, A);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -125,6 +125,8 @@ namespace my
 
             while (list.Count < N)
                 list.Add(new myObj_999_test_004());
+
+            long time = DateTime.Now.Ticks;
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -153,8 +155,15 @@ namespace my
                     myPrimitive._LineInst.Draw();
                 }
 
-                cnt++;
+                if (++cnt == 100)
+                    Glfw.SetWindowShouldClose(window, true);
             }
+
+            double t = (long)TimeSpan.FromTicks(DateTime.Now.Ticks - time).TotalMilliseconds;
+
+            // 1651
+            // 2201
+            MessageBox.Show($@"fps = {t}", "fps", MessageBoxButtons.OK);
 
             return;
         }
