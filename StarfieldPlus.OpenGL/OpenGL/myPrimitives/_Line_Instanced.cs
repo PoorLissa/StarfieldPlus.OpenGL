@@ -9,7 +9,7 @@ public class myLineInst : myInstancedPrimitive
 
     private static float[] vertices = null;
 
-    private static uint vbo = 0, instVbo = 0, shaderProgram = 0;
+    private static uint vbo = 0, shaderProgram = 0;
     private static int floatTimesN = 0;
 
     private float _lineWidth;
@@ -44,7 +44,6 @@ public class myLineInst : myInstancedPrimitive
             glUseProgram(shaderProgram);
 
             vbo = glGenBuffer();
-            instVbo = glGenBuffer();
         }
     }
 
@@ -55,7 +54,6 @@ public class myLineInst : myInstancedPrimitive
         glLineWidth(_lineWidth);
 
         updateInstances();
-        updateVertices();       // todo: do we need this ecah frame? seems to be working without it
 
         glUseProgram(shaderProgram);
 
@@ -67,7 +65,6 @@ public class myLineInst : myInstancedPrimitive
 
     private static void CreateProgram()
     {
-#if false
         // Use gl_VertexID to be able to address the first or the second pair of coordinates
         var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
            $@"layout (location = 0) in vec3 pos;
@@ -78,24 +75,6 @@ public class myLineInst : myInstancedPrimitive
                     main: $@"rgbaColor = mData[1];
                             int idx = gl_VertexID * 2;
                             gl_Position = vec4(realSize.x * mData[0][idx] - 1.0, realSize.y * mData[0][idx+1] + 1.0, 1.0, 1.0);"
-        );
-#endif
-
-        // Use gl_VertexID to be able to address the first or the second pair of coordinates
-        var vertex = myOGL.CreateShaderEx(GL_VERTEX_SHADER,
-            @"layout (location = 0) in vec3 pos;
-              layout (location = 1) in mat2x4 mData;
-                uniform ivec2 myScrSize;
-                out vec4 rgbaColor;",
-
-                    main: $@"rgbaColor = mData[1];
-
-                            int idx = gl_VertexID * 2;
-
-                            float realSizeX = {+2.0 / Width};
-                            float realSizeY = {-2.0 / Height};
-
-                            gl_Position = vec4(realSizeX * mData[0][idx] - 1.0, realSizeY * mData[0][idx+1] + 1.0, 1.0, 1.0);"
         );
 
         var fragment = myOGL.CreateShaderEx(GL_FRAGMENT_SHADER,
@@ -118,21 +97,7 @@ public class myLineInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void setInstance(float x1, float y1, float x2, float y2, float r, float g, float b, float a)
-    {
-        instanceArray[instArrayPosition++] = x1;
-        instanceArray[instArrayPosition++] = y1;
-        instanceArray[instArrayPosition++] = x2;
-        instanceArray[instArrayPosition++] = y2;
-
-        instanceArray[instArrayPosition++] = r;
-        instanceArray[instArrayPosition++] = g;
-        instanceArray[instArrayPosition++] = b;
-        instanceArray[instArrayPosition++] = a;
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
+    // Set the instance coordinates
     public void setInstanceCoords(float x1, float y1, float x2, float y2)
     {
         instanceArray[instArrayPosition++] = x1;
@@ -143,8 +108,25 @@ public class myLineInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // Set the instance color
     public void setInstanceColor(float r, float g, float b, float a)
     {
+        instanceArray[instArrayPosition++] = r;
+        instanceArray[instArrayPosition++] = g;
+        instanceArray[instArrayPosition++] = b;
+        instanceArray[instArrayPosition++] = a;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    // Set all the instance data in a single call
+    public void setInstance(float x1, float y1, float x2, float y2, float r, float g, float b, float a)
+    {
+        instanceArray[instArrayPosition++] = x1;
+        instanceArray[instArrayPosition++] = y1;
+        instanceArray[instArrayPosition++] = x2;
+        instanceArray[instArrayPosition++] = y2;
+
         instanceArray[instArrayPosition++] = r;
         instanceArray[instArrayPosition++] = g;
         instanceArray[instArrayPosition++] = b;
@@ -178,23 +160,6 @@ public class myLineInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
-    private static unsafe void updateVertices()
-    {
-        // Bind a buffer;
-        // From now on, all the operations on this type of buffer will be performed on the buffer we just bound;
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        {
-            fixed (float* v = &vertices[0])
-                glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.Length, v, GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), NULL);
-            glEnableVertexAttribArray(0);
-        }
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
     static bool isCreated = false;
 
     // Create GPU buffer out of out instances from the array
@@ -206,7 +171,7 @@ public class myLineInst : myInstancedPrimitive
             N = instArrayPosition / n;
 
             // Copy data to GPU:
-            glBindBuffer(GL_ARRAY_BUFFER, instVbo);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
             {
                 if (isCreated == false)
                 {
@@ -239,13 +204,15 @@ public class myLineInst : myInstancedPrimitive
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
             }
         }
-#else
+#endif
+
+#if true
         if (instArrayPosition > 1)
         {
             N = instArrayPosition / n;
 
             // Copy data to GPU:
-            glBindBuffer(GL_ARRAY_BUFFER, instVbo);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
             {
                 // todo: can we use it?
                 // https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming
@@ -262,6 +229,46 @@ public class myLineInst : myInstancedPrimitive
 
                 fixed (float* a = &instanceArray[0])
                     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instArrayPosition, a, GL_DYNAMIC_COPY);
+
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 4, GL_FLOAT, false, floatTimesN, NULL);
+
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, 4, GL_FLOAT, false, floatTimesN, new IntPtr(1 * 4 * sizeof(float)));
+
+                // Tell OpenGL this is an instanced vertex attribute
+                glVertexAttribDivisor(1, 1);
+                glVertexAttribDivisor(2, 1);
+
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+            }
+        }
+#endif
+
+
+#if !true
+
+/*
+        glBindBuffer(GL_ARRAY_BUFFER, verticesBufferId);
+        void* data = glMapBuffer(GL_ARRAY_BUFFER, ... );
+        // copy vertex data from instance 
+        ::memcpy(data, vertices, vertexSize);
+        glUnmapBuffer(... );
+*/
+
+        if (instArrayPosition > 1)
+        {
+            N = instArrayPosition / n;
+
+            // Copy data to GPU:
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            {
+                System.IntPtr data = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+
+                for (int i = 0; i < instArrayPosition; i++)
+                {
+                    //data[i] = instArrayPosition[i];
+                }
 
                 glEnableVertexAttribArray(1);
                 glVertexAttribPointer(1, 4, GL_FLOAT, false, floatTimesN, NULL);

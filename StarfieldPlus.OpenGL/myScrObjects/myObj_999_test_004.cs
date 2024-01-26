@@ -155,15 +155,14 @@ namespace my
                     myPrimitive._LineInst.Draw();
                 }
 
-                if (++cnt == 100)
-                    Glfw.SetWindowShouldClose(window, true);
+                //if (++cnt == 100) Glfw.SetWindowShouldClose(window, true);
             }
 
             double t = (long)TimeSpan.FromTicks(DateTime.Now.Ticks - time).TotalMilliseconds;
 
             // 1651
             // 2201
-            MessageBox.Show($@"fps = {t}", "fps", MessageBoxButtons.OK);
+            //MessageBox.Show($@"fps = {t}", "fps", MessageBoxButtons.OK);
 
             return;
         }
