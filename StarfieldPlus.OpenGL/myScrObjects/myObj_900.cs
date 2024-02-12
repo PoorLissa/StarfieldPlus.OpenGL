@@ -21,7 +21,7 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 0, shape = 0;
+        private static int N = 0, n = 0, shape = 0, dyMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineA = 1, lineWidth = 1, speedFactor = 1;
 
@@ -54,6 +54,8 @@ namespace my
                 lineWidth = 3.0f + rand.Next(7);
 
                 speedFactor = 1.0f + myUtils.randFloat(rand) * rand.Next(5);
+
+                dyMode = rand.Next(2);
             }
 
             initLocal();
@@ -83,6 +85,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"n = {nStr(n)}\n"                       +
                             $"shape = {shape}\n"                     +
+                            $"dyMode = {dyMode}\n"                   +
                             $"lineA = {fStr(lineA)}\n"               +
                             $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"speedFactor = {fStr(speedFactor)}\n"   +
@@ -129,7 +132,12 @@ namespace my
                 y = parent.y;
 
                 dx = parent.dx;
-                dy = 0;
+
+                switch (dyMode)
+                {
+                    case 0: dy = 0; break;
+                    case 1: dy = parent.dy * 0.1f; break;
+                }
 
                 angle = 0;
                 dAngle = myUtils.randFloatSigned(rand) * 0.05f;
@@ -225,7 +233,8 @@ namespace my
                     break;
             }
 
-            if (id > n && lastId > n)
+            // Connection lines
+            //if (id > n && lastId > n)
             {
                 var next = list[lastId] as myObj_900;
 
