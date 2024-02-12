@@ -191,6 +191,7 @@ public class ScreenSaver
         register(my.myObj_870.Type);      // Thin and long vertical or horizontal rectangles with low opacity and random color
         register(my.myObj_880.Type);      // Perspective made of sine-cosine graphs
         register(my.myObj_890.Type);      // Desktop pieces falling down in a matrix-style
+        register(my.myObj_900.Type);      // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
         registerTests(register);          // Register additional testing objects

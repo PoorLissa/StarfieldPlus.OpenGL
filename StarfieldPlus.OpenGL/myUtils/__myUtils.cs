@@ -55,8 +55,11 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Returns a double number from the range [-1, +1]
         public static float randFloatSigned(Random r, float min = 0.0f)
         {
+            //return (float)(2 * r.NextDouble() - 1 + min);     // How to ajdust for min here?
+
             return (float)(r.NextDouble() + min) * (r.Next(2) == 0 ? 1 : -1);
         }
 
