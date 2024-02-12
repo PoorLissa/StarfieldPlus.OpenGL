@@ -15,14 +15,14 @@ namespace my
     public class myObj_900 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_900);
 
         private int cnt, lastId;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 0, shape = 0, dyMode = 0;
+        private static int N = 0, n = 0, cntMax = 100, shape = 0, dyMode = 0, dyGenerateMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineA = 1, lineWidth = 1, speedFactor = 1;
 
@@ -59,6 +59,14 @@ namespace my
                 speedFactor = 1.0f + myUtils.randFloat(rand) * rand.Next(5);
 
                 dyMode = rand.Next(2);
+                dyGenerateMode = rand.Next(2);
+
+                switch (rand.Next(3))
+                {
+                    case 0: cntMax = 33; break;
+                    case 1: cntMax = 33 + rand.Next(33); break;
+                    case 2: cntMax = 33 + rand.Next(66); break;
+                }
 
                 // Grid setup
                 cellSize = 50 + rand.Next(150);
@@ -75,6 +83,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 20, 21);
+            doFillShapes = myUtils.randomChance(rand, 1, 2);
             renderDelay = rand.Next(2);
 
             return;
@@ -92,8 +101,10 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"n = {nStr(n)}\n"                       +
+                            $"cntMax = {cntMax}\n"                   +
                             $"shape = {shape}\n"                     +
                             $"dyMode = {dyMode}\n"                   +
+                            $"dyGenerateMode = {dyGenerateMode}\n"   +
                             $"lineA = {fStr(lineA)}\n"               +
                             $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"speedFactor = {fStr(speedFactor)}\n"   +
@@ -117,7 +128,7 @@ namespace my
         {
             if (id < n)
             {
-                cnt = rand.Next(100);
+                cnt = rand.Next(cntMax);
                 lastId = (int)id;
 
                 x = 0;
@@ -176,8 +187,13 @@ namespace my
                 // Parent objects moving along y-axis
                 if (--cnt == 0)
                 {
-                    cnt = rand.Next(100);
-                    dy = myUtils.randFloatSigned(rand);
+                    cnt = rand.Next(cntMax) + 1;
+
+                    switch (dyGenerateMode)
+                    {
+                        case 0: dy  = myUtils.randFloatSigned(rand); break;
+                        case 1: dy += myUtils.randFloatSigned(rand) * 0.1f; break;
+                    }
                 }
 
                 if (y < 0)
@@ -349,12 +365,12 @@ namespace my
 
             for (int i = cellX; i < gl_Width; i += cellSize)
             {
-                myPrimitive._LineInst.setInstance(i, 0, i, gl_Height, 1, 1, 1, 0.25f);
+                myPrimitive._LineInst.setInstance(i, 0, i, gl_Height, 1, 1, 1, 0.1f);
             }
 
             for (int i = cellY; i < gl_Height; i += cellSize)
             {
-                myPrimitive._LineInst.setInstance(0, i, gl_Width, i, 1, 1, 1, 0.25f);
+                myPrimitive._LineInst.setInstance(0, i, gl_Width, i, 1, 1, 1, 0.1f);
             }
 
             myPrimitive._LineInst.Draw();
