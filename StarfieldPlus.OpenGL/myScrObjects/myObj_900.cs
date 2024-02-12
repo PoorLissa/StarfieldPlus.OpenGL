@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using static System.Net.Mime.MediaTypeNames;
 
 
 /*
@@ -24,6 +25,8 @@ namespace my
         private static int N = 0, n = 0, shape = 0, dyMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineA = 1, lineWidth = 1, speedFactor = 1;
+
+        private static int cellSize = 1, cellX = 0, cellY = 0;
 
         private static myScreenGradient grad = null;
 
@@ -56,6 +59,11 @@ namespace my
                 speedFactor = 1.0f + myUtils.randFloat(rand) * rand.Next(5);
 
                 dyMode = rand.Next(2);
+
+                // Grid setup
+                cellSize = 50 + rand.Next(150);
+                cellX = (gl_Width  % cellSize) / 2;
+                cellY = (gl_Height % cellSize) / 2;
             }
 
             initLocal();
@@ -273,6 +281,8 @@ namespace my
 
                 // Render Frame
                 {
+                    showGrid();
+
                     inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
@@ -326,11 +336,29 @@ namespace my
             }
 
             myPrimitive.init_LineInst(N);
-            myPrimitive._LineInst.setLineWidth(lineWidth);
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void showGrid()
+        {
+            myPrimitive._LineInst.ResetBuffer();
+            myPrimitive._LineInst.setLineWidth(1);
+
+            for (int i = cellX; i < gl_Width; i += cellSize)
+            {
+                myPrimitive._LineInst.setInstance(i, 0, i, gl_Height, 1, 1, 1, 0.25f);
+            }
+
+            for (int i = cellY; i < gl_Height; i += cellSize)
+            {
+                myPrimitive._LineInst.setInstance(0, i, gl_Width, i, 1, 1, 1, 0.25f);
+            }
+
+            myPrimitive._LineInst.Draw();
+            myPrimitive._LineInst.setLineWidth(lineWidth);
+        }
     }
 };
