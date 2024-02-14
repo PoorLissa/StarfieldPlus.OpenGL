@@ -17,10 +17,10 @@ namespace my
         public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_910);
 
-        private float x, y, dx, dy, da;
+        private float x, y, dx, dy, da, dAngle;
         private float size, a, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, maxSize = 1, angleMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -60,6 +60,9 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes  = myUtils.randomBool(rand);
 
+            maxSize = 3 + rand.Next(33);
+            angleMode = rand.Next(3);
+
             renderDelay = rand.Next(2);
 
             return;
@@ -76,6 +79,8 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"maxSize = {maxSize}\n"                 +
+                            $"angleMode = {angleMode}\n"             +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -108,7 +113,17 @@ namespace my
 
             da = (0.01f + myUtils.randFloat(rand) * 0.01f) * 0.5f;
 
-            size = rand.Next(5) + 3;
+            size = rand.Next(maxSize) + 3;
+
+            switch (angleMode)
+            {
+                case 0: angle = 0; break;
+                case 1: angle = myUtils.randFloatSigned(rand) * rand.Next(123); break;
+                case 2:
+                    angle = myUtils.randFloatSigned(rand) * rand.Next(123);
+                    dAngle = myUtils.randFloatSigned(rand) * 0.1f;
+                    break;
+            }
 
             a = 0;
             A = 0.5f + myUtils.randFloat(rand) * 0.5f;
@@ -121,6 +136,8 @@ namespace my
 
         protected override void Move()
         {
+            angle += dAngle;
+
             if (a < A)
             {
                 a += 0.02f;
