@@ -20,7 +20,7 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, moveDir = 0;
         private static bool doFillShapes = false, doAllocateAll = false;
         private static float dimAlpha = 0.05f, rFactor = 0, gFactor = 0, bFactor = 0;
 
@@ -61,6 +61,8 @@ namespace my
             doFillShapes  = myUtils.randomBool(rand);
             doAllocateAll = myUtils.randomBool(rand);
 
+            moveDir = rand.Next(3);
+
             renderDelay = rand.Next(11) + 3;
 
             rFactor = 100 + rand.Next(gl_y0);
@@ -81,6 +83,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"moveDir = {moveDir}\n"                 +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -112,6 +115,25 @@ namespace my
 
             dx *= distInv;
             dy *= distInv;
+
+            switch (moveDir)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    dx *= -1;
+                    dy *= -1;
+                    break;
+
+                case 2:
+                    if (myUtils.randomBool(rand))
+                    {
+                        dx *= -1;
+                        dy *= -1;
+                    }
+                    break;
+            }
 
             size = rand.Next(7) + 3;
 
