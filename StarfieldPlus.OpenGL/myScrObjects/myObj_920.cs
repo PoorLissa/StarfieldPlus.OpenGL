@@ -69,9 +69,7 @@ namespace my
             colorMode = rand.Next(3);
             moveDir = rand.Next(3);
 
-            rDist = 100 + rand.Next(gl_x0);
-            gDist = 100 + rand.Next(gl_x0);
-            bDist = 100 + rand.Next(gl_x0);
+            getColorDistances();
 
             switch (rand.Next(10))
             {
@@ -310,6 +308,9 @@ namespace my
             uint cnt = 0;
             initShapes();
 
+            // todo: check how this affects the fps
+            Glfw.SwapInterval(1);
+
             clearScreenSetup(doClearBuffer, 0.1f);
 
             if (doAllocateAll)
@@ -360,7 +361,7 @@ namespace my
                     list.Add(new myObj_920());
                 }
 
-                System.Threading.Thread.Sleep(renderDelay);
+                System.Threading.Thread.Sleep(0);
 
                 // Fluctuate color factors
                 if (++cnt == cntMax)
@@ -371,9 +372,7 @@ namespace my
                     // Also, fluctuate color distances
                     if (myUtils.randomChance(rand, 1, 5))
                     {
-                        rDist = 100 + rand.Next(gl_x0);
-                        gDist = 100 + rand.Next(gl_x0);
-                        bDist = 100 + rand.Next(gl_x0);
+                        getColorDistances();
                     }
                 }
             }
@@ -468,6 +467,15 @@ namespace my
                     getTripleFactor();
                     break;
             }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getColorDistances()
+        {
+            rDist = 100 + rand.Next(gl_x0);
+            gDist = 100 + rand.Next(gl_x0);
+            bDist = 100 + rand.Next(gl_x0);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
