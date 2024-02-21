@@ -345,9 +345,17 @@ namespace my
 
             switch (rand.Next(3))
             {
-                case 0: myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));"; break;
-                case 1: myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));"; break;
-                case 2: myCircleFunc = "float len = length(uv); if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);"; break;
+                case 0:
+                    myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));";
+                    break;
+
+                case 1:
+                    myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));";
+                    break;
+
+                case 2:
+                    myCircleFunc = "float len = length(uv); if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);";
+                    break;
             }
 
             h = $@"float circle(vec2 uv, float rad) {{ {myCircleFunc} }};";
