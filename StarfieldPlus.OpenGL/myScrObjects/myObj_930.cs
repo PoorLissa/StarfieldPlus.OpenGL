@@ -26,6 +26,7 @@ namespace my
         private static float dimAlpha = 0.05f, spdFactor = 1;
 
         private static myScreenGradient grad = null;
+        private static myFreeShader shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -63,7 +64,7 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes = true;
 
-            maxSize = 250 + rand.Next(50);
+            maxSize = 250 + rand.Next(150);
             spdFactor = (rand.Next(5) + 10) + myUtils.randFloat(rand);
             delayCnt = rand.Next(11) + 3;
 
@@ -103,17 +104,24 @@ namespace my
 
         protected override void generateNew()
         {
+/*
             A = 0.5f;
             R = 0.33f;
             G = 0.33f;
             B = 0.33f;
-
+            A = 1;
+*/
             //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             x2 = y2 = dx = dy = 0;
 
             if (id == 0)
             {
+                R = 0.33f;
+                G = 0.33f;
+                B = 0.33f;
+                A = 1;
+
                 x1 = rand.Next(gl_Width);
                 y1 = rand.Next(gl_Height);
 
@@ -130,6 +138,11 @@ namespace my
                 y1 = parent.y1;
 
                 cnt = parent.cnt + delayCnt;
+
+                R = parent.R + 0.035f;
+                G = parent.G + 0.035f;
+                B = parent.B + 0.035f;
+                A = 1;
             }
 
             return;
@@ -201,6 +214,11 @@ namespace my
 
         protected override void Show()
         {
+            shader.SetColor(R, G, B, A);
+            shader.Draw(x1, y1, size, size, 10);
+
+            return;
+
             float size2x = size * 2;
 
             switch (shape)
@@ -247,9 +265,6 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
             clearScreenSetup(doClearBuffer, 0.1f);
 
             while (!Glfw.WindowShouldClose(window))
@@ -271,7 +286,7 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    for (int i = 0; i != Count; i++)
+                    for (int i = Count-1; i >= 0; i--)
                     {
                         var obj = list[i] as myObj_930;
 
@@ -312,7 +327,41 @@ namespace my
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
+            string header = "";
+            string main = "";
+
+            //my.myShaderHelpers.Shapes.getShader_000(ref rand, ref header, ref main);
+            getShader_000(ref rand, ref header, ref main);
+            shader = new myFreeShader(header, main);
+
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        public static void getShader_000(ref Random rand, ref string h, ref string m)
+        {
+            string myCircleFunc = "";
+
+            switch (rand.Next(3))
+            {
+                case 0: myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));"; break;
+                case 1: myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));"; break;
+                case 2: myCircleFunc = "float len = length(uv); if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);"; break;
+            }
+
+            h = $@"float circle(vec2 uv, float rad) {{ {myCircleFunc} }};";
+
+            m = @"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                    uv -= Pos.xy;
+                    uv *= aspect;
+
+                    float rad = Pos.z;
+                    float circ = circle(uv, rad);
+
+                    result = vec4(myColor * circ);
+                ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
