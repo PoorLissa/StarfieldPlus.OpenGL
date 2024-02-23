@@ -46,7 +46,7 @@ public class myFreeShader : myPrimitive
     private float[] vertices = null;
 
     // Uniform ids:
-    private static int u_Time, myPos, myColor;
+    private int u_Time, myPos, myColor;
 
     private static int verticesLength = 12;
     private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;

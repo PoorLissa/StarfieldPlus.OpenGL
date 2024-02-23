@@ -17,16 +17,18 @@ namespace my
         public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_930);
 
-        private int cnt;
+        private int cnt, shadowFactor;
         private float x1, y1, x2, y2, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, maxSize = 1, dSize = 1, delayCnt = 0, newDistMode = 0;
+        private static int N = 0, shape = 0, maxSize = 1, dSize = 1, delayCnt = 0, newDistMode = 0, parentCntMax = 100, shaderFunc = 0;
+        private static int shadowStayFactor = 0, shadowMoveFactor = 0, shadowPosX = 0, shadowPosY = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, spdFactor = 1;
 
         private static myScreenGradient grad = null;
         private static myFreeShader shader = null;
+        private static myFreeShader shaderShadow = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -49,8 +51,8 @@ namespace my
                 N = rand.Next(10) + 10;
                 N = 5 + rand.Next(50);
 
-                shape = rand.Next(5);
-                shape = 2;
+                //parentCntMax = 1111;
+                //N = 10;
             }
 
             initLocal();
@@ -67,6 +69,11 @@ namespace my
             maxSize = 250 + rand.Next(150);
             maxSize = 50;
             dSize = 20 + rand.Next(33);
+
+            shadowPosX = rand.Next(15) - 7;
+            shadowPosY = rand.Next(15) - 7;
+            shadowStayFactor = 2;
+            shadowMoveFactor  = 7;
 
             if (N > 50)
                 maxSize = 50;
@@ -105,6 +112,7 @@ namespace my
                             $"dSize = {dSize}\n"                     +
                             $"spdFactor = {fStr(spdFactor)}\n"       +
                             $"delayCnt = {delayCnt}\n"               +
+                            $"shaderFunc = {shaderFunc}\n" +
                             $"newDistMode = {newDistMode}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -147,7 +155,7 @@ namespace my
 
                 size = maxSize;
 
-                cnt = 100;
+                cnt = parentCntMax;
             }
             else
             {
@@ -164,6 +172,9 @@ namespace my
                 B = parent.B + 0.035f;
             }
 
+            // Staying in place
+            shadowFactor = shadowStayFactor;
+
             A = 1.0f;
 
             return;
@@ -175,9 +186,15 @@ namespace my
         {
             if (dx == 0 && dy == 0)
             {
+                // Lowered
+                shadowFactor = shadowStayFactor;
+
                 if (--cnt == 0)
                 {
                     cnt = 100;
+
+                    // Raised
+                    shadowFactor = shadowMoveFactor;
 
                     if (id == 0)
                     {
@@ -234,46 +251,12 @@ namespace my
 
         protected override void Show()
         {
+            float shadowSize = size + shadowFactor;
+            shaderShadow.SetColorA(shadowFactor == shadowStayFactor ? 0.75f : 0.15f);
+            shaderShadow.Draw(x1 + shadowPosX, y1 + shadowPosY, shadowSize, shadowSize, 20);
+
             shader.SetColor(R, G, B, A);
             shader.Draw(x1, y1, size, size, 10);
-
-            return;
-
-            float size2x = size * 2;
-
-            switch (shape)
-            {
-                // Instanced squares
-                case 0:
-                    myPrimitive._RectangleInst.setInstanceCoords(x1 - size, y1 - size, size2x, size2x);
-                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                    myPrimitive._RectangleInst.setInstanceAngle(angle);
-                    break;
-
-                // Instanced triangles
-                case 1:
-                    myPrimitive._TriangleInst.setInstanceCoords(x1, y1, size, angle);
-                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced circles
-                case 2:
-                    myPrimitive._EllipseInst.setInstanceCoords(x1, y1, size2x, angle);
-                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced pentagons
-                case 3:
-                    myPrimitive._PentagonInst.setInstanceCoords(x1, y1, size2x, angle);
-                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
-                case 4:
-                    myPrimitive._HexagonInst.setInstanceCoords(x1, y1, size2x, angle);
-                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
-                    break;
-            }
 
             return;
         }
@@ -347,12 +330,13 @@ namespace my
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
-            string header = "";
-            string main = "";
+            string main = "", header = "";
 
-            //my.myShaderHelpers.Shapes.getShader_000(ref rand, ref header, ref main);
             getShader_000(ref rand, ref header, ref main);
             shader = new myFreeShader(header, main);
+
+            getShader_001(ref rand, ref header, ref main);
+            shaderShadow = new myFreeShader(header, main);
 
             return;
         }
@@ -398,28 +382,85 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Main circle
         private static void getShader_000(ref Random rand, ref string h, ref string m)
         {
             string myCircleFunc = "";
 
-            // todo: not used now
-            switch (rand.Next(1111111))
+            shaderFunc = rand.Next(4);
+
+            switch (shaderFunc)
             {
                 case 0:
-                    myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-len));";
+                    {
+                        myCircleFunc = $@"
+                            float circ = 1.0 - smoothstep(0.0, 0.005, abs(rad-len));
+                            result = vec4(color * circ, myColor.w * circ);
+                        ";
+                    }
                     break;
 
                 case 1:
-                    myCircleFunc = "if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);";
+                    {
+                        float softness = myUtils.randomChance(rand, 1, 3)
+                            ? 0.001f
+                            : 0.001f + myUtils.randFloat(rand) * 0.002f;
+
+                        myCircleFunc = $@"
+                            float circ = smoothstep(rad+{softness}, rad-{softness}, len);
+                            result = vec4(color * circ, myColor.w * circ);
+                        ";
+                    }
                     break;
 
-                default:
-                    myCircleFunc = "return smoothstep(rad, rad - 0.005, len);";
+                case 2:
+                    {
+                        myCircleFunc = @"
+                            if (len < rad)
+                            {
+                                float circ = smoothstep(rad+0.0075, rad-0.01, len);
+                                result = vec4(color * circ, myColor.w);
+                                //result = vec4(color * circ, circ);
+                            }
+                            else
+                            {
+                                //float circ = 1 - smoothstep(rad-0.003, rad + 0.005, len);
+                                //result = vec4(0, 0, 0, circ/1.1);
+                            }
+                        ";
+                    }
+                    break;
+
+                case 3:
+                    {
+                        myCircleFunc = $@"
+                            float c1 = 0 + smoothstep(rad + 0.0075, rad - 0.009, len);
+                            float c2 = 1 - smoothstep(rad - 0.0001, rad + 0.005, len);
+                            result = vec4(color * c1, c1 + c2);
+                        ";
+                    }
                     break;
             }
 
-            h = $@"float circle(float len, float rad) {{ {myCircleFunc} }};";
+            h = $@"";
 
+            m = $@"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                    uv -= Pos.xy; uv *= aspect;
+
+                    float rad = Pos.z;
+                    float len = length(uv);
+                    vec3 color = myColor.xyz;
+
+                    {myCircleFunc}
+                ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Shadow
+        private static void getShader_001(ref Random rand, ref string h, ref string m)
+        {
             m = @"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
                     uv -= Pos.xy; uv *= aspect;
@@ -428,25 +469,11 @@ namespace my
                     float len = length(uv);
                     vec3 color = myColor.xyz;
 
-                    if (len < rad)
-                    {{
-                        float circ = smoothstep(rad+0.0075, rad-0.01, len);
-                        //result = vec4(color * circ, myColor.w);
-                        result = vec4(color * circ, circ);
-                    }}
-                    else
-                    {{
-                        float circ = 1 - smoothstep(rad-0.003, rad + 0.005, len);
-                        result = vec4(0, 0, 0, circ/1.1);
-                    }}
-                ";
+                    float r = 0.001;
+                    float a = smoothstep(rad + 0.001, rad - 0.005, len);
 
-/*
-                    float c1 = 0 + smoothstep(rad + 0.0075, rad - 0.009, len);
-                    float c2 = 1 - smoothstep(rad - 0.0001, rad + 0.005, len);
-                    result = vec4(color * c1, c1 + c2);
-                    return;
-*/
+                    result = vec4(0.1, 0.1, 0.1, a * myColor.w);
+                ";
         }
 
         // ---------------------------------------------------------------------------------------------------------------
