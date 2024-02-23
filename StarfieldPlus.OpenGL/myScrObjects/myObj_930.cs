@@ -19,9 +19,12 @@ namespace my
 
         private int cnt, shadowFactor;
         private float x1, y1, x2, y2, dx, dy;
+        private bool xReady, yReady;
         private float size, A, R, G, B, angle = 0;
+        private myObj_930 parent = null;
 
-        private static int N = 0, shape = 0, maxSize = 1, dSize = 1, delayCnt = 0, newDistMode = 0, parentCntMax = 100, shaderFunc = 0;
+        private static int N = 0, shape = 0, maxSize = 1, dSize = 1, delayCnt = 0, newDistMode = 0;
+        private static int parentCntMax = 100, shaderFunc = 0, moveMode = 0;
         private static int shadowStayFactor = 0, shadowMoveFactor = 0, shadowPosX = 0, shadowPosY = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, spdFactor = 1;
@@ -66,9 +69,14 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes = true;
 
+            moveMode = rand.Next(2);
+
             maxSize = 250 + rand.Next(150);
             maxSize = 50;
-            dSize = 20 + rand.Next(33);
+
+            dSize = myUtils.randomChance(rand, 1, 3)
+                ? rand.Next(20) + 1
+                : rand.Next(33) + 20;
 
             shadowPosX = rand.Next(15) - 7;
             shadowPosY = rand.Next(15) - 7;
@@ -108,11 +116,12 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"moveMode = {moveMode}\n"               +
                             $"maxSize = {maxSize}\n"                 +
                             $"dSize = {dSize}\n"                     +
                             $"spdFactor = {fStr(spdFactor)}\n"       +
                             $"delayCnt = {delayCnt}\n"               +
-                            $"shaderFunc = {shaderFunc}\n" +
+                            $"shaderFunc = {shaderFunc}\n"           +
                             $"newDistMode = {newDistMode}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -133,6 +142,7 @@ namespace my
         protected override void generateNew()
         {
             x2 = y2 = dx = dy = 0;
+            xReady = yReady = true;
 
             if (id == 0)
             {
@@ -159,7 +169,7 @@ namespace my
             }
             else
             {
-                var parent = list[(int)id - 1] as myObj_930;
+                parent = list[(int)id - 1] as myObj_930;
 
                 size = parent.size + dSize;
                 x1 = parent.x1;
@@ -184,62 +194,65 @@ namespace my
 
         protected override void Move()
         {
-            if (dx == 0 && dy == 0)
+            if (xReady && yReady)
             {
                 // Lowered
                 shadowFactor = shadowStayFactor;
 
                 if (--cnt == 0)
                 {
-                    cnt = 100;
+                    cnt = parentCntMax;
+                    xReady = yReady = false;
 
                     // Raised
                     shadowFactor = shadowMoveFactor;
 
                     if (id == 0)
                     {
-                        getNewDist();
-
-                        dx = x2 - x1;
-                        dy = y2 - y1;
-
-                        double dist = Math.Sqrt(dx * dx + dy * dy);
-
-                        dx = (float)(spdFactor * dx / dist);
-                        dy = (float)(spdFactor * dy / dist);
+                        getNewDestination();       // Get x2 and y2
+                        getNewDxDy();
                     }
                     else
                     {
-                        var parent = list[(int)id - 1] as myObj_930;
+                        switch (moveMode)
+                        {
+                            case 0:
+                                x2 = parent.x2;
+                                y2 = parent.y2;
+                                dx = parent.dx;
+                                dy = parent.dy;
+                                break;
 
-                        x2 = parent.x2;
-                        y2 = parent.y2;
-                        dx = parent.dx;
-                        dy = parent.dy;
+                            case 1:
+                                x2 = parent.x2;
+                                y2 = parent.y2;
+                                getNewDxDy();
+                                break;
+                        }
                     }
                 }
             }
             else
             {
-                if (dx != 0)
+                if (!xReady)
                 {
                     x1 += dx;
 
                     if (Math.Abs(x1 - x2) <= Math.Abs(dx))
                     {
                         x1 = x2;
-                        dx = 0;
+                        xReady = true;
                     }
                 }
 
-                if (dy != 0)
+                if (!yReady)
                 {
                     y1 += dy;
 
                     if (Math.Abs(y1 - y2) <= Math.Abs(dy))
                     {
                         y1 = y2;
-                        dy = 0;
+                        yReady = true;
                     }
                 }
             }
@@ -343,7 +356,20 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void getNewDist()
+        private void getNewDxDy()
+        {
+            dx = x2 - x1;
+            dy = y2 - y1;
+
+            double distInv = 1.0 / Math.Sqrt(dx * dx + dy * dy);
+
+            dx = (float)(spdFactor * dx * distInv);
+            dy = (float)(spdFactor * dy * distInv);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getNewDestination()
         {
             int dist = 0, d = 0;
 
@@ -375,7 +401,6 @@ namespace my
                 float dy = (y2 - y1);
 
                 d = (int)Math.Sqrt(dx*dx + dy*dy);
-
             }
             while (d > dist);
         }
