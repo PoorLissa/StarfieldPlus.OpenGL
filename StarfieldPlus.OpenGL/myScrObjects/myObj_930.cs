@@ -32,6 +32,7 @@ namespace my
         private static myScreenGradient grad = null;
         private static myFreeShader shader = null;
         private static myFreeShader shaderShadow = null;
+        private static myTexRectangle tex = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -53,9 +54,6 @@ namespace my
             {
                 N = rand.Next(10) + 10;
                 N = 5 + rand.Next(50);
-
-                //parentCntMax = 1111;
-                //N = 10;
             }
 
             initLocal();
@@ -295,7 +293,14 @@ namespace my
 
                 // Dim screen
                 {
-                    grad.Draw();
+                    if (tex == null)
+                    {
+                        grad.Draw();
+                    }
+                    else
+                    {
+                        tex.Draw(0, 0, gl_Width, gl_Height);
+                    }
                 }
 
                 // Render Frame
@@ -350,6 +355,11 @@ namespace my
 
             getShader_001(ref rand, ref header, ref main);
             shaderShadow = new myFreeShader(header, main);
+
+            if (colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE || colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT)
+            {
+                tex = new myTexRectangle(colorPicker.getImg());
+            }
 
             return;
         }
