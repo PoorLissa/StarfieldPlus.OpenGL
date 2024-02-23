@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Stack moving with a delay
 */
 
 
@@ -14,14 +14,14 @@ namespace my
     public class myObj_930 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_930);
 
         private int cnt;
         private float x1, y1, x2, y2, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, maxSize = 1, delayCnt = 0, newDistMode = 0;
+        private static int N = 0, shape = 0, maxSize = 1, dSize = 1, delayCnt = 0, newDistMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, spdFactor = 1;
 
@@ -66,6 +66,7 @@ namespace my
 
             maxSize = 250 + rand.Next(150);
             maxSize = 50;
+            dSize = 20 + rand.Next(33);
 
             if (N > 50)
                 maxSize = 50;
@@ -100,6 +101,8 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"maxSize = {maxSize}\n"                 +
+                            $"dSize = {dSize}\n"                     +
                             $"spdFactor = {fStr(spdFactor)}\n"       +
                             $"delayCnt = {delayCnt}\n"               +
                             $"newDistMode = {newDistMode}\n"         +
@@ -139,8 +142,6 @@ namespace my
                 }
                 while (R + G + B < 1.0f || R + G + B > 2.0f);
 
-                A = 1;
-
                 x1 = rand.Next(gl_Width);
                 y1 = rand.Next(gl_Height);
 
@@ -152,8 +153,7 @@ namespace my
             {
                 var parent = list[(int)id - 1] as myObj_930;
 
-                //size = parent.size + (maxSize / N) / 2;
-                size = parent.size + 20;
+                size = parent.size + dSize;
                 x1 = parent.x1;
                 y1 = parent.y1;
 
@@ -162,8 +162,9 @@ namespace my
                 R = parent.R + 0.035f;
                 G = parent.G + 0.035f;
                 B = parent.B + 0.035f;
-                A = 1;
             }
+
+            A = 1.0f;
 
             return;
         }
@@ -401,33 +402,50 @@ namespace my
         {
             string myCircleFunc = "";
 
-            switch (rand.Next(11))
+            switch (rand.Next(1111111))
             {
                 case 0:
-                    myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));";
+                    myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-len));";
                     break;
 
                 case 1:
-                    myCircleFunc = "float len = length(uv); if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);";
+                    myCircleFunc = "if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);";
                     break;
 
                 default:
-                    myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));";
+                    myCircleFunc = "return smoothstep(rad, rad - 0.005, len);";
                     break;
             }
 
-            h = $@"float circle(vec2 uv, float rad) {{ {myCircleFunc} }};";
+            h = $@"float circle(float len, float rad) {{ {myCircleFunc} }};";
 
             m = @"vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 
-                    uv -= Pos.xy;
-                    uv *= aspect;
+                    uv -= Pos.xy; uv *= aspect;
 
                     float rad = Pos.z;
-                    float circ = circle(uv, rad);
+                    float len = length(uv);
+                    vec3 color = myColor.xyz;
 
-                    result = vec4(myColor * circ);
+                    if (len < rad)
+                    {{
+                        float circ = smoothstep(rad+0.0075, rad-0.01, len);
+                        //result = vec4(color * circ, myColor.w);
+                        result = vec4(color * circ, circ);
+                    }}
+                    else
+                    {{
+                        float circ = 1 - smoothstep(rad-0.003, rad + 0.005, len);
+                        result = vec4(0, 0, 0, circ/1.1);
+                    }}
                 ";
+
+/*
+                    float c1 = 0 + smoothstep(rad + 0.0075, rad - 0.009, len);
+                    float c2 = 1 - smoothstep(rad - 0.0001, rad + 0.005, len);
+                    result = vec4(color * c1, c1 + c2);
+                    return;
+*/
         }
 
         // ---------------------------------------------------------------------------------------------------------------
