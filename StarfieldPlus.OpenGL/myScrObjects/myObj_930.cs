@@ -402,6 +402,7 @@ namespace my
         {
             string myCircleFunc = "";
 
+            // todo: not used now
             switch (rand.Next(1111111))
             {
                 case 0:
