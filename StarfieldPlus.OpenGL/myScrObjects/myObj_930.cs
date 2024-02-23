@@ -14,14 +14,14 @@ namespace my
     public class myObj_930 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_930);
 
         private int cnt;
         private float x1, y1, x2, y2, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, maxSize = 1, delayCnt = 0;
+        private static int N = 0, shape = 0, maxSize = 1, delayCnt = 0, newDistMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, spdFactor = 1;
 
@@ -47,7 +47,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 5;
+                N = 5 + rand.Next(50);
 
                 shape = rand.Next(5);
                 shape = 2;
@@ -65,10 +65,26 @@ namespace my
             doFillShapes = true;
 
             maxSize = 250 + rand.Next(150);
+            maxSize = 50;
+
+            if (N > 50)
+                maxSize = 50;
+            else if (N > 40)
+                maxSize = 60;
+            else if (N > 30)
+                maxSize = 70;
+            else if (N > 20)
+                maxSize = 80;
+            else if (N > 10)
+                maxSize = 90;
+            else
+                maxSize = 150 + rand.Next(250);
+
             spdFactor = (rand.Next(5) + 10) + myUtils.randFloat(rand);
             delayCnt = rand.Next(11) + 3;
+            newDistMode = rand.Next(4);
 
-            renderDelay = rand.Next(11) + 3;
+            renderDelay = rand.Next(3);
 
             return;
         }
@@ -86,6 +102,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"spdFactor = {fStr(spdFactor)}\n"       +
                             $"delayCnt = {delayCnt}\n"               +
+                            $"newDistMode = {newDistMode}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -104,22 +121,24 @@ namespace my
 
         protected override void generateNew()
         {
-/*
-            A = 0.5f;
-            R = 0.33f;
-            G = 0.33f;
-            B = 0.33f;
-            A = 1;
-*/
-            //colorPicker.getColor(x, y, ref R, ref G, ref B);
-
             x2 = y2 = dx = dy = 0;
 
             if (id == 0)
             {
-                R = 0.33f;
-                G = 0.33f;
-                B = 0.33f;
+                if (myUtils.randomChance(rand, 1, 3))
+                {
+                    R = 0.33f;
+                    G = 0.33f;
+                    B = 0.33f;
+                }
+                else do
+                {
+                    R = myUtils.randFloat(rand);
+                    G = myUtils.randFloat(rand);
+                    B = myUtils.randFloat(rand);
+                }
+                while (R + G + B < 1.0f || R + G + B > 2.0f);
+
                 A = 1;
 
                 x1 = rand.Next(gl_Width);
@@ -133,7 +152,8 @@ namespace my
             {
                 var parent = list[(int)id - 1] as myObj_930;
 
-                size = parent.size + (maxSize / N) / 2;
+                //size = parent.size + (maxSize / N) / 2;
+                size = parent.size + 20;
                 x1 = parent.x1;
                 y1 = parent.y1;
 
@@ -160,8 +180,7 @@ namespace my
 
                     if (id == 0)
                     {
-                        x2 = rand.Next(gl_Width);
-                        y2 = rand.Next(gl_Height);
+                        getNewDist();
 
                         dx = x2 - x1;
                         dy = y2 - y1;
@@ -339,22 +358,61 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public static void getShader_000(ref Random rand, ref string h, ref string m)
+        private void getNewDist()
         {
-            string myCircleFunc = "";
+            int dist = 0, d = 0;
 
-            switch (rand.Next(3))
+            switch (newDistMode)
             {
                 case 0:
-                    myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));";
+                    dist = gl_Width * 2;
                     break;
 
                 case 1:
-                    myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));";
+                    dist = 333;
                     break;
 
                 case 2:
+                    dist = 666;
+                    break;
+
+                case 3:
+                    dist = 999;
+                    break;
+            }
+
+            do
+            {
+                x2 = rand.Next(gl_Width);
+                y2 = rand.Next(gl_Height);
+
+                float dx = (x2 - x1);
+                float dy = (y2 - y1);
+
+                d = (int)Math.Sqrt(dx*dx + dy*dy);
+
+            }
+            while (d > dist);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private static void getShader_000(ref Random rand, ref string h, ref string m)
+        {
+            string myCircleFunc = "";
+
+            switch (rand.Next(11))
+            {
+                case 0:
+                    myCircleFunc = "return 1.0 - smoothstep(0.0, 0.005, abs(rad-length(uv)));";
+                    break;
+
+                case 1:
                     myCircleFunc = "float len = length(uv); if (rad > len) return 1.0 - smoothstep(0.0, 0.01, rad-len); else return 1.0 - smoothstep(0.0, 0.005, len-rad);";
+                    break;
+
+                default:
+                    myCircleFunc = "return smoothstep(rad, rad - 0.005, length(uv));";
                     break;
             }
 
