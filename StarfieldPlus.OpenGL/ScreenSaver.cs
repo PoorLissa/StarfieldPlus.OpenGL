@@ -193,7 +193,8 @@ public class ScreenSaver
         register(my.myObj_870.Type);      // Thin and long vertical or horizontal rectangles with low opacity and random color
         register(my.myObj_880.Type);      // Perspective made of sine-cosine graphs
         register(my.myObj_890.Type);      // Desktop pieces falling down in a matrix-style
-        register(my.myObj_900.Type);      // ...
+        register(my.myObj_900.Type);      // Waveforms moving sideways, v1
+        register(my.myObj_901.Type);      // Waveforms moving sideways, v2
         register(my.myObj_910.Type);      // ...
         register(my.myObj_920.Type);      // ...
         register(my.myObj_930.Type);      // Stack moving with a delay

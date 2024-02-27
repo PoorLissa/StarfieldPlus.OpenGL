@@ -116,6 +116,7 @@
     <Compile Include="myScrObjects\myObj_103.cs" />
     <Compile Include="myScrObjects\myObj_011b.cs" />
     <Compile Include="myScrObjects\myObj_691.cs" />
+    <Compile Include="myScrObjects\myObj_901.cs" />
     <Compile Include="myScrObjects\myObj_999_test_002c.cs" />
     <Compile Include="myScrObjects\myObj_999_test_003.cs" />
     <Compile Include="myScrObjects\myObj_541.cs" />
@@ -200,6 +201,7 @@
     <Compile Include="OpenGL\myPrimitives\_Pentagon.cs" />
     <Compile Include="OpenGL\myPrimitives\_Ellipse_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_FreeShader_FullScreen.cs" />
+    <Compile Include="OpenGL\myPrimitives\_Polygon4.cs" />
     <Compile Include="OpenGL\myPrimitives\_TexEllipse.cs" />
     <Compile Include="OpenGL\myPrimitives\_TexRectangle_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_ScreenGradient.cs" />

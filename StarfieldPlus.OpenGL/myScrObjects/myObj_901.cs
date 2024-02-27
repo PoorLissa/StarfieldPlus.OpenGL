@@ -6,34 +6,37 @@ using static System.Net.Mime.MediaTypeNames;
 
 
 /*
-    - Waveforms moving sideways
+    - Waveforms moving sideways, v2
 */
 
 
 namespace my
 {
-    public class myObj_900 : myObject
+    public class myObj_901 : myObject
     {
         // Priority
-        public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_900);
+        public static int Priority => 999910;
+		public static System.Type Type => typeof(myObj_901);
 
-        private int cnt, lastId;
+        private int cnt, parentId;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 0, cntMax = 100, shape = 0, dyMode = 0, dyGenerateMode = 0;
+        private static int N = 0, n = 0, DX = 1, cntMax = 100, shape = 0, dyMode = 0, dyGenerateMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineA = 1, lineWidth = 1, speedFactor = 1;
 
         private static int cellSize = 1, cellX = 0, cellY = 0;
 
+        private static Polygon4 p4 = null;
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_900()
+        public myObj_901()
         {
+            parentId = -1;
+
             if (id != uint.MaxValue)
                 generateNew();
         }
@@ -48,8 +51,10 @@ namespace my
 
             // Global unmutable constants
             {
+                DX = 50;
                 n = 3 + rand.Next(33);
-                N = rand.Next(11111) + 12345;
+                n = 1;
+                N = n + (1 + gl_Width / DX) * n;
 
                 shape = rand.Next(5);
 
@@ -57,16 +62,6 @@ namespace my
                 lineWidth = 3.0f + rand.Next(7);
 
                 speedFactor = 1.0f + myUtils.randFloat(rand) * rand.Next(5);
-
-                dyMode = rand.Next(2);
-                dyGenerateMode = rand.Next(2);
-
-                switch (rand.Next(3))
-                {
-                    case 0: cntMax = 33; break;
-                    case 1: cntMax = 33 + rand.Next(33); break;
-                    case 2: cntMax = 33 + rand.Next(66); break;
-                }
 
                 // Grid setup
                 cellSize = 50 + rand.Next(150);
@@ -128,8 +123,9 @@ namespace my
         {
             if (id < n)
             {
-                cnt = rand.Next(cntMax);
-                lastId = (int)id;
+                parentId = (int)id;
+
+                cnt = rand.Next(cntMax) + 1;
 
                 x = 0;
                 y = rand.Next(gl_Height);
@@ -137,40 +133,45 @@ namespace my
                 dx = 0.5f + myUtils.randFloat(rand) * speedFactor;
                 dy = myUtils.randFloatSigned(rand);
 
-                //colorPicker.getColor(x, y, ref R, ref G, ref B);
-
                 R = (float)rand.NextDouble();
                 G = (float)rand.NextDouble();
                 B = (float)rand.NextDouble();
             }
             else
             {
-                var parent = list[rand.Next(n)] as myObj_900;
+                parentId = (int)id % n;
 
-                x = parent.x;
-                y = parent.y;
-
-                dx = parent.dx;
-
-                switch (dyMode)
+                // Iterate the list backwards, look for an object with the same parent id;
+                // Should take ~n iterations
+                for (int i = list.Count - 1; i >= 0; i--)
                 {
-                    case 0: dy = 0; break;
-                    case 1: dy = parent.dy * 0.1f; break;
+                    var parent = list[i] as myObj_901;
+
+                    if (parentId == (int)parent.id % n)
+                    {
+                        // Get y coordinate from the very first parent
+                        y = (list[parentId] as myObj_901).y;
+
+                        parentId = (int)parent.id;
+
+                        x = parent.x - DX;
+
+                        dx = parent.dx;
+
+                        R = parent.R;
+                        G = parent.G;
+                        B = parent.R;
+
+                        break;
+                    }
                 }
 
                 angle = 0;
                 dAngle = myUtils.randFloatSigned(rand) * 0.05f;
 
-                lastId = parent.lastId;
-                parent.lastId = (int)id;
-
-                size = rand.Next(3) + 3;
+                size = 3;
 
                 A = myUtils.randFloat(rand);
-
-                R = parent.R;
-                G = parent.G;
-                B = parent.R;
             }
 
             return;
@@ -208,8 +209,9 @@ namespace my
                 x += dx;
                 angle += dAngle;
 
-                if (x < 0 || x > gl_Width)
+                if (x > gl_Width)
                 {
+                    parentId = -1;
                     generateNew();
                 }
             }
@@ -221,50 +223,56 @@ namespace my
 
         protected override void Show()
         {
-            float size2x = size * 2;
-
-            switch (shape)
+            if (parentId >= 0)
             {
-                // Instanced squares
-                case 0:
-                    myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                    myPrimitive._RectangleInst.setInstanceAngle(angle);
-                    break;
+                float size2x = size * 2;
 
-                // Instanced triangles
-                case 1:
-                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size, angle);
-                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced circles
-                case 2:
-                    myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced pentagons
-                case 3:
-                    myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
-                    break;
-
-                // Instanced hexagons
-                case 4:
-                    myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
-                    break;
-            }
-
-            // Connection lines
-            //if (id > n && lastId > n)
-            {
-                var next = list[lastId] as myObj_900;
-
-                if (x < next.x)
+                switch (shape)
                 {
-                    myPrimitive._LineInst.setInstance(x, y, next.x, next.y, R, G, B, lineA);
+                    // Instanced squares
+                    case 0:
+                        myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._RectangleInst.setInstanceAngle(angle);
+                        break;
+
+                    // Instanced triangles
+                    case 1:
+                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size, angle);
+                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced circles
+                    case 2:
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced pentagons
+                    case 3:
+                        myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced hexagons
+                    case 4:
+                        myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                        break;
+                }
+
+                // Connection lines
+                if (id > n)
+                {
+                    var next = list[parentId] as myObj_901;
+
+                    if (x < next.x)
+                    {
+                        myPrimitive._LineInst.setInstance(x, y, next.x, next.y, R, G, B, lineA);
+
+                        p4.SetColor(R, G, B, 0.2f);
+                        p4.Draw(x, y, next.x, next.y, x, gl_Height, next.x, gl_Height, true);
+                    }
                 }
             }
 
@@ -304,7 +312,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_900;
+                        var obj = list[i] as myObj_901;
 
                         obj.Show();
                         obj.Move();
@@ -326,7 +334,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_900());
+                    list.Add(new myObj_901());
                 }
 
                 cnt++;
@@ -340,7 +348,6 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
@@ -350,6 +357,8 @@ namespace my
             {
                 grad.SetOpacity(0.01f);
             }
+
+            p4 = new Polygon4();
 
             myPrimitive.init_LineInst(N);
 
