@@ -139,10 +139,10 @@ namespace my
             }
             else
             {
+                // Get the very first parent
                 parentId = (int)id % n;
 
-                // Iterate the list backwards, look for an object with the same parent id;
-                // Should take ~n iterations
+                // Iterate the list backwards, look for an object with the same very first parent;
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
                     var parent = list[i] as myObj_901;
@@ -152,10 +152,10 @@ namespace my
                         // Get y coordinate from the very first parent
                         y = (list[parentId] as myObj_901).y;
 
+                        // Store previous item as a parent
                         parentId = (int)parent.id;
 
                         x = parent.x - DX;
-
                         dx = parent.dx;
 
                         R = parent.R;
