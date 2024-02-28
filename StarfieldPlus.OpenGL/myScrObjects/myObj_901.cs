@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, n = 0, DX = 1, cntMax = 100, shape = 0, dyMode = 0, dyGenerateMode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, lineA = 1, lineWidth = 1, speedFactor = 1;
+        private static float dimAlpha = 0.05f, lineA = 1, lineWidth = 1, speedFactor = 1, t = 0, dt = 0;
 
         private static int cellSize = 1, cellX = 0, cellY = 0;
 
@@ -51,6 +51,8 @@ namespace my
 
             // Global unmutable constants
             {
+                dt = 0.001f;
+
                 DX = 50;
                 n = 3 + rand.Next(12);
                 N = n + (3 + gl_Width / DX) * n;
@@ -60,7 +62,7 @@ namespace my
                 lineA = 0.5f;
                 lineWidth = 3.0f + rand.Next(7);
 
-                speedFactor = 1.0f + myUtils.randFloat(rand) * rand.Next(5);
+                speedFactor = 2.0f + myUtils.randFloat(rand) * rand.Next(7);
 
                 // Grid setup
                 cellSize = 50 + rand.Next(150);
@@ -79,7 +81,7 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 20, 21);
             doFillShapes = myUtils.randomChance(rand, 1, 2);
 
-            dyGenerateMode = rand.Next(2);
+            dyGenerateMode = rand.Next(3);
 
             renderDelay = rand.Next(2);
 
@@ -133,9 +135,6 @@ namespace my
                 y = rand.Next(gl_Height);
 
                 dx = 0.5f + myUtils.randFloat(rand) * speedFactor;
-
-                dx += 2;
-
                 dy = myUtils.randFloatSigned(rand);
 
                 R = (float)rand.NextDouble();
@@ -174,6 +173,7 @@ namespace my
             if (id < n)
             {
                 y += dy;
+                y += (float)Math.Sin(t) * 2;
 
                 // Parent objects moving along y-axis
                 if (--cnt == 0)
@@ -184,6 +184,7 @@ namespace my
                     {
                         case 0: dy = myUtils.randFloatSigned(rand); break;
                         case 1: dy += myUtils.randFloatSigned(rand) * 0.1f; break;
+                        case 2: y = y + rand.Next(101) - 50; break;
                     }
                 }
 
@@ -291,10 +292,18 @@ namespace my
 
                     if (x < next.x)
                     {
-                        myPrimitive._LineInst.setInstance(x, y, next.x, next.y, R, G, B, lineA);
-
-                        p4.SetColor(R, G, B, 0.1f);
-                        p4.Draw(x, y, next.x, next.y, x, gl_Height, next.x, gl_Height, true);
+                        if (dyGenerateMode == 2)
+                        {
+                            myPrimitive._LineInst.setInstance(x, y, next.x, y, R, G, B, lineA);
+                            p4.SetColor(R, G, B, 0.3f);
+                            p4.Draw(x, y, next.x, y, x, gl_Height, next.x, gl_Height, true);
+                        }
+                        else
+                        {
+                            myPrimitive._LineInst.setInstance(x, y, next.x, next.y, R, G, B, lineA);
+                            p4.SetColor(R, G, B, 0.1f);
+                            p4.Draw(x, y, next.x, next.y, x, gl_Height, next.x, gl_Height, true);
+                        }
                     }
                 }
             }
@@ -366,6 +375,7 @@ namespace my
                 }
 
                 cnt++;
+                t += dt;
                 System.Threading.Thread.Sleep(renderDelay);
             }
 
