@@ -52,9 +52,15 @@ namespace my
             // Global unmutable constants
             {
                 dt = 0.001f;
+                DX = 20 + rand.Next(66);
 
-                DX = 50;
-                n = 3 + rand.Next(12);
+                switch (rand.Next(3))
+                {
+                    case 0: n = 3 + rand.Next( 3); break;
+                    case 1: n = 3 + rand.Next( 7); break;
+                    case 2: n = 3 + rand.Next(12); break;
+                }
+
                 N = n + (3 + gl_Width / DX) * n;
 
                 shape = rand.Next(5);
@@ -101,6 +107,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"n = {nStr(n)}\n"                       +
                             $"cntMax = {cntMax}\n"                   +
+                            $"DX = {DX}\n"                           +
                             $"shape = {shape}\n"                     +
                             $"dyMode = {dyMode}\n"                   +
                             $"dyGenerateMode = {dyGenerateMode}\n"   +
