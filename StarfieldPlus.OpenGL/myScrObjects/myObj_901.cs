@@ -18,7 +18,7 @@ namespace my
         public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_901);
 
-        private int cnt, parentId;
+        private int cnt, ptr;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
@@ -35,7 +35,7 @@ namespace my
 
         public myObj_901()
         {
-            parentId = -1;
+            ptr = -1;
 
             if (id != uint.MaxValue)
                 generateNew();
@@ -52,9 +52,8 @@ namespace my
             // Global unmutable constants
             {
                 DX = 50;
-                n = 3 + rand.Next(33);
-                n = 1;
-                N = n + (1 + gl_Width / DX) * n;
+                n = 3 + rand.Next(12);
+                N = n + (3 + gl_Width / DX) * n;
 
                 shape = rand.Next(5);
 
@@ -79,6 +78,9 @@ namespace my
         {
             doClearBuffer = myUtils.randomChance(rand, 20, 21);
             doFillShapes = myUtils.randomChance(rand, 1, 2);
+
+            dyGenerateMode = rand.Next(2);
+
             renderDelay = rand.Next(2);
 
             return;
@@ -123,55 +125,43 @@ namespace my
         {
             if (id < n)
             {
-                parentId = (int)id;
+                ptr = -1;
 
                 cnt = rand.Next(cntMax) + 1;
 
-                x = 0;
+                x = -50;
                 y = rand.Next(gl_Height);
 
                 dx = 0.5f + myUtils.randFloat(rand) * speedFactor;
+
+                dx += 2;
+
                 dy = myUtils.randFloatSigned(rand);
 
                 R = (float)rand.NextDouble();
                 G = (float)rand.NextDouble();
                 B = (float)rand.NextDouble();
+                A = 0.75f;
             }
             else
             {
-                // Get the very first parent
-                parentId = (int)id % n;
-
-                // Iterate the list backwards, look for an object with the same very first parent;
-                for (int i = list.Count - 1; i >= 0; i--)
+                if (ptr >= 0)
                 {
-                    var parent = list[i] as myObj_901;
+                    var parent = list[ptr] as myObj_901;
 
-                    if (parentId == (int)parent.id % n)
-                    {
-                        // Get y coordinate from the very first parent
-                        y = (list[parentId] as myObj_901).y;
+                    x = parent.x;
+                    y = parent.y;
+                    dx = parent.dx;
 
-                        // Store previous item as a parent
-                        parentId = (int)parent.id;
+                    A = parent.A;
+                    R = parent.R;
+                    G = parent.G;
+                    B = parent.B;
 
-                        x = parent.x - DX;
-                        dx = parent.dx;
-
-                        R = parent.R;
-                        G = parent.G;
-                        B = parent.R;
-
-                        break;
-                    }
+                    angle = 0;
+                    dAngle = myUtils.randFloatSigned(rand) * 0.05f;
+                    size = 3;
                 }
-
-                angle = 0;
-                dAngle = myUtils.randFloatSigned(rand) * 0.05f;
-
-                size = 3;
-
-                A = myUtils.randFloat(rand);
             }
 
             return;
@@ -181,10 +171,10 @@ namespace my
 
         protected override void Move()
         {
-            y += dy;
-
             if (id < n)
             {
+                y += dy;
+
                 // Parent objects moving along y-axis
                 if (--cnt == 0)
                 {
@@ -192,7 +182,7 @@ namespace my
 
                     switch (dyGenerateMode)
                     {
-                        case 0: dy  = myUtils.randFloatSigned(rand); break;
+                        case 0: dy = myUtils.randFloatSigned(rand); break;
                         case 1: dy += myUtils.randFloatSigned(rand) * 0.1f; break;
                     }
                 }
@@ -202,17 +192,51 @@ namespace my
 
                 if (y > gl_Height)
                     dy -= 0.01f;
-            }
-            else
-            {
-                // Child objects moving along x-axis
-                x += dx;
-                angle += dAngle;
 
-                if (x > gl_Width)
+                if (ptr < 0)
                 {
-                    parentId = -1;
-                    generateNew();
+                    // Generate first child
+                    getNextAvailable();
+
+                    if (ptr > 0)
+                    {
+                        var obj = list[ptr] as myObj_901;
+                        obj.ptr = (int)id;
+                        obj.generateNew();
+                        obj.ptr = 0;
+                    }
+                }
+                else
+                {
+                    // Already has a child; check on it
+                    var child = list[ptr] as myObj_901;
+
+                    if (child.x - x >= DX)
+                    {
+                        getNextAvailable();
+
+                        if (ptr > 0)
+                        {
+                            var obj = list[ptr] as myObj_901;
+
+                            obj.ptr = (int)id;
+                            obj.generateNew();
+                            obj.ptr = (int)child.id;
+                        }
+                    }
+                }
+            }
+            else if (ptr >= 0)
+            {
+                {
+                    // Child objects moving along x-axis
+                    x += dx;
+                    angle += dAngle;
+
+                    if (x > gl_Width + DX)
+                    {
+                        ptr = -1;
+                    }
                 }
             }
 
@@ -223,7 +247,7 @@ namespace my
 
         protected override void Show()
         {
-            if (parentId >= 0)
+            if (ptr >= 0)
             {
                 float size2x = size * 2;
 
@@ -261,16 +285,15 @@ namespace my
                         break;
                 }
 
-                // Connection lines
-                if (id > n)
+                // Connection lines and the area filled with color
                 {
-                    var next = list[parentId] as myObj_901;
+                    var next = list[ptr] as myObj_901;
 
                     if (x < next.x)
                     {
                         myPrimitive._LineInst.setInstance(x, y, next.x, next.y, R, G, B, lineA);
 
-                        p4.SetColor(R, G, B, 0.2f);
+                        p4.SetColor(R, G, B, 0.1f);
                         p4.Draw(x, y, next.x, next.y, x, gl_Height, next.x, gl_Height, true);
                     }
                 }
@@ -287,6 +310,11 @@ namespace my
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+            if (list.Count < N/3)
+            {
+                list.Add(new myObj_901());
+            }
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -360,7 +388,9 @@ namespace my
 
             p4 = new Polygon4();
 
-            myPrimitive.init_LineInst(N);
+            int gridN = gl_Width / cellSize + gl_Height / cellSize + 4;
+
+            myPrimitive.init_LineInst(gridN > N ? gridN : N);
 
             return;
         }
@@ -385,5 +415,24 @@ namespace my
             myPrimitive._LineInst.Draw();
             myPrimitive._LineInst.setLineWidth(lineWidth);
         }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Find an unused object
+        private void getNextAvailable()
+        {
+            for (int i = n; i < list.Count; i++)
+            {
+                var obj = list[i] as myObj_901;
+
+                if (obj.ptr < 0)
+                {
+                    ptr = (int)obj.id;
+                    break;
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
     }
 };
