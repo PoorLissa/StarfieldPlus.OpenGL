@@ -22,7 +22,7 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 0, DX = 1, cntMax = 100, shape = 0, dyMode = 0, dyGenerateMode = 0;
+        private static int N = 0, n = 0, DX = 1, cntMax = 100, shape = 0, dyMode = 0, dyGenerateMode = 0, yMin = 1, yMax = 1;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineA = 1, lineWidth = 1, speedFactor = 1, t = 0, dt = 0;
 
@@ -69,6 +69,9 @@ namespace my
                 lineWidth = 3.0f + rand.Next(7);
 
                 speedFactor = 2.0f + myUtils.randFloat(rand) * rand.Next(7);
+
+                yMin = 100;
+                yMax = gl_Height - 100;
 
                 // Grid setup
                 cellSize = 50 + rand.Next(150);
@@ -140,7 +143,7 @@ namespace my
                 cnt = rand.Next(cntMax) + 1;
 
                 x = -50;
-                y = rand.Next(gl_Height);
+                y = yMin + rand.Next(yMax - yMin);
 
                 dx = 0.5f + myUtils.randFloat(rand) * speedFactor;
                 dy = myUtils.randFloatSigned(rand);
@@ -196,10 +199,10 @@ namespace my
                     }
                 }
 
-                if (y < 0)
+                if (y < yMin)
                     dy += 0.01f;
 
-                if (y > gl_Height)
+                if (y > yMax)
                     dy -= 0.01f;
 
                 if (ptr < 0)

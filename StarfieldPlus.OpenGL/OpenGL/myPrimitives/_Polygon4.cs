@@ -182,12 +182,13 @@ public class Polygon4 : myPrimitive
 
         string fragMain =
             $@"
-                vec2 st = vec2(0, gl_FragCoord.y * { 1.0 / Height });
-
                 float mixValue = myColor.z;
 
                 if (myGradient == 1)
+                {{
+                    vec2 st = vec2(0, gl_FragCoord.y * {1.0 / Height});
                     mixValue = 1.0 - distance(st, vec2(0, 1)) * 1.05;
+                }}
 
                 result = vec4(myColor.xyz, mixValue);
             ";
