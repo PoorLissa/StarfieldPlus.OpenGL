@@ -15,12 +15,16 @@ public class Polygon4 : myPrimitive
     private static uint vbo = 0, ebo_fill = 0, ebo_outline = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static float _angle;
-    private static int myColor = 0, myAngle = 0, myCenter = 0;
+    private static int myColor = 0, myAngle = 0, myCenter = 0, myGradient = 0;
 
     private static float invW = -1, invH = -1;
 
     private static int verticesLength = 12;
     private static int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
+
+    // 0 means opacity is constant
+    // 1 means it is using vertical gradient
+    private int _gradMode;
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -37,9 +41,10 @@ public class Polygon4 : myPrimitive
             glUseProgram(shaderProgram);
 
             // Uniforms
-            myColor  = glGetUniformLocation(shaderProgram, "myColor");
-            myAngle  = glGetUniformLocation(shaderProgram, "myAngle");
-            myCenter = glGetUniformLocation(shaderProgram, "myCenter");
+            myColor    = glGetUniformLocation(shaderProgram, "myColor");
+            myAngle    = glGetUniformLocation(shaderProgram, "myAngle");
+            myCenter   = glGetUniformLocation(shaderProgram, "myCenter");
+            myGradient = glGetUniformLocation(shaderProgram, "myGradient");
 
             vbo         = glGenBuffer();
             ebo_fill    = glGenBuffer();
@@ -47,6 +52,13 @@ public class Polygon4 : myPrimitive
 
             updateIndices();
         }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
+    public void Draw(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, bool doFill = false)
+    {
+        Draw((int)x1, (int)y1, (int)x2, (int)y2, (int)x3, (int)y3, (int)x4, (int)y4, doFill);
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -108,6 +120,7 @@ public class Polygon4 : myPrimitive
 
         glUniform4f(myColor, _r, _g, _b, _a);
         glUniform1f(myAngle, _angle);
+        glUniform1i(myGradient, _gradMode);
 
         // Set the center of rotation
         if (_angle != 0.0f)
@@ -165,10 +178,19 @@ public class Polygon4 : myPrimitive
             ";
 
         string fragHead =
-            "out vec4 result; uniform vec4 myColor;";
+            "out vec4 result; uniform vec4 myColor; uniform int myGradient;";
 
         string fragMain =
-            "result = myColor;";
+            $@"
+                vec2 st = vec2(0, gl_FragCoord.y * { 1.0 / Height });
+
+                float mixValue = myColor.z;
+
+                if (myGradient == 1)
+                    mixValue = 1.0 - distance(st, vec2(0, 1)) * 1.05;
+
+                result = vec4(myColor.xyz, mixValue);
+            ";
 
         return CreateProgram(vertHead, vertMain, fragHead, fragMain);
     }
@@ -241,11 +263,10 @@ public class Polygon4 : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void Draw(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, bool doFill = false)
+    public void SetGradient(int mode)
     {
-        Draw((int)x1, (int)y1, (int)x2, (int)y2, (int)x3, (int)y3, (int)x4, (int)y4, doFill);
+        _gradMode = mode;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
-
 };

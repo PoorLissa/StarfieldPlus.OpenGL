@@ -85,6 +85,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 20, 21);
+            doClearBuffer = true;
             doFillShapes = myUtils.randomChance(rand, 1, 2);
 
             dyGenerateMode = rand.Next(3);
@@ -404,6 +405,7 @@ namespace my
             }
 
             p4 = new Polygon4();
+            p4.SetGradient(1);
 
             int gridN = gl_Width / cellSize + gl_Height / cellSize + 4;
 
