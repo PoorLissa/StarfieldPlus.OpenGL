@@ -15,7 +15,7 @@ namespace my
     public class myObj_901 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_901);
 
         private int cnt, ptr;
@@ -261,40 +261,43 @@ namespace my
         {
             if (ptr >= 0)
             {
-                float size2x = size * 2;
-
-                switch (shape)
+                if (dyGenerateMode != 2)
                 {
-                    // Instanced squares
-                    case 0:
-                        myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                        myPrimitive._RectangleInst.setInstanceAngle(angle);
-                        break;
+                    float size2x = size * 2;
 
-                    // Instanced triangles
-                    case 1:
-                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size, angle);
-                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
-                        break;
+                    switch (shape)
+                    {
+                        // Instanced squares
+                        case 0:
+                            myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                            myPrimitive._RectangleInst.setInstanceAngle(angle);
+                            break;
 
-                    // Instanced circles
-                    case 2:
-                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
-                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
-                        break;
+                        // Instanced triangles
+                        case 1:
+                            myPrimitive._TriangleInst.setInstanceCoords(x, y, size, angle);
+                            myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                            break;
 
-                    // Instanced pentagons
-                    case 3:
-                        myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
-                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
-                        break;
+                        // Instanced circles
+                        case 2:
+                            myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                            myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                            break;
 
-                    // Instanced hexagons
-                    case 4:
-                        myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
-                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
-                        break;
+                        // Instanced pentagons
+                        case 3:
+                            myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
+                            myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                            break;
+
+                        // Instanced hexagons
+                        case 4:
+                            myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
+                            myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                            break;
+                    }
                 }
 
                 // Connection lines and the area filled with color
