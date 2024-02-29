@@ -180,7 +180,7 @@ namespace my
             if (id < n)
             {
                 y += dy;
-                y += (float)Math.Sin(t) * 2;
+                y += (float)Math.Sin(t*10) * 1;
 
                 // Parent objects moving along y-axis
                 if (--cnt == 0)
