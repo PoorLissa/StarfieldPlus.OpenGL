@@ -20,7 +20,7 @@ namespace my
     public class myObj_043 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 33;
 		public static System.Type Type => typeof(myObj_043);
 
         private const int N = 50;
@@ -1125,9 +1125,6 @@ namespace my
 
             initShapes();
 
-            // Disable VSYNC if needed
-            //Glfw.SwapInterval(0);
-
             {
                 // Bgr color is close to black
                 float lightnessFactor = 11;
@@ -1257,7 +1254,9 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
+
             myPrimitive.init_LineInst(N);
+            myPrimitive._LineInst.setAntialized(true);
 
             base.initShapes(shape, N, 0);
 
