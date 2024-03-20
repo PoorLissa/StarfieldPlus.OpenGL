@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Stack moving with a delay
+    - Stack of circle shapes moving with a delay
 */
 
 

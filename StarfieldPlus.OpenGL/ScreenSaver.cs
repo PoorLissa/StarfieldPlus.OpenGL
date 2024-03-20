@@ -197,7 +197,7 @@ public class ScreenSaver
         register(my.myObj_901.Type);      // Waveforms moving sideways, v2
         register(my.myObj_910.Type);      // ...
         register(my.myObj_920.Type);      // ...
-        register(my.myObj_930.Type);      // Stack moving with a delay
+        register(my.myObj_930.Type);      // Stack of circle shapes moving with a delay
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
         registerTests(register);          // Register additional testing objects

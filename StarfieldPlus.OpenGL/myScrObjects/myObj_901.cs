@@ -7,6 +7,8 @@ using static System.Net.Mime.MediaTypeNames;
 
 /*
     - Waveforms moving sideways, v2
+
+        todo: add z-order to remove polygon flickering
 */
 
 
