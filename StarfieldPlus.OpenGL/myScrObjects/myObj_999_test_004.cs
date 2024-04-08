@@ -15,14 +15,15 @@ namespace my
     public class myObj_999_test_004 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 9999910;
         public static System.Type Type => typeof(myObj_999_test_004);
 
         private int cnt;
         private float x1, y1, x2, y2;
         private float A, R, G, B;
 
-        private static int N = 0;
+        private static int N = 0, Rad = 666;
+        private static float t = 0, dt = 0.003f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -42,7 +43,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 300000;
+                N = 100000;
             }
 
             initLocal();
@@ -82,12 +83,58 @@ namespace my
 
         protected override void generateNew()
         {
-            cnt = 11 + rand.Next(11);
+            if (false)
+            {
+                cnt = 11 + rand.Next(11);
 
-            x1 = rand.Next(gl_Width);
-            y1 = rand.Next(gl_Height);
-            x2 = rand.Next(gl_Width);
-            y2 = rand.Next(gl_Height);
+                x1 = rand.Next(gl_Width);
+                y1 = rand.Next(gl_Height);
+                x2 = rand.Next(gl_Width);
+                y2 = rand.Next(gl_Height);
+            }
+
+            if (false)
+            {
+                cnt = 111 + rand.Next(111);
+
+                cnt = 11 + rand.Next(11);
+
+                int rad = Rad + (int)(333 * Math.Sin(t));
+
+                int r1 = rad + rand.Next(21) - 10;
+                int r2 = rad + rand.Next(21) - 10;
+
+                float angle1 = rand.Next(333) + (float)rand.NextDouble();
+
+                x1 = gl_x0 + r1 * (float)Math.Sin(angle1);
+                y1 = gl_y0 + r1 * (float)Math.Cos(angle1);
+
+                float angle2 = rand.Next(333) + (float)rand.NextDouble();
+
+                x2 = gl_x0 + r2 * (float)Math.Sin(angle2);
+                y2 = gl_y0 + r2 * (float)Math.Cos(angle2);
+            }
+
+            if (true)
+            {
+                cnt = 11 + rand.Next(11);
+
+                int rad1 = Rad + (int)(333 * Math.Sin(t));
+                int rad2 = Rad + (int)(333 * Math.Cos(t/1.73));
+
+                int r1 = rad1 + rand.Next(21) - 10;
+                int r2 = rad2 + rand.Next(21) - 10;
+
+                float angle1 = rand.Next(333) + (float)rand.NextDouble();
+
+                x1 = gl_x0 + r1 * (float)Math.Sin(angle1);
+                y1 = gl_y0 + r1 * (float)Math.Cos(angle1);
+
+                float angle2 = rand.Next(333) + (float)rand.NextDouble();
+
+                x2 = gl_x0 + r2 * (float)Math.Sin(angle2);
+                y2 = gl_y0 + r2 * (float)Math.Cos(angle2);
+            }
 
             A = 0.005f + myUtils.randFloat(rand) * 0.005f;
             R = (float)rand.NextDouble();
@@ -155,10 +202,12 @@ namespace my
                     myPrimitive._LineInst.Draw();
                 }
 
+                t += dt;
+
                 //if (++cnt == 100) Glfw.SetWindowShouldClose(window, true);
             }
 
-            double t = (long)TimeSpan.FromTicks(DateTime.Now.Ticks - time).TotalMilliseconds;
+            //double t = (long)TimeSpan.FromTicks(DateTime.Now.Ticks - time).TotalMilliseconds;
 
             // 1651
             // 2201
