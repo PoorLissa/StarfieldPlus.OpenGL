@@ -198,6 +198,7 @@ public class ScreenSaver
         register(my.myObj_910.Type);      // ...
         register(my.myObj_920.Type);      // ...
         register(my.myObj_930.Type);      // Stack of circle shapes moving with a delay
+        register(my.myObj_940.Type);      // Circular shapes made of instanced lines
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
         registerTests(register);          // Register additional testing objects
@@ -218,7 +219,7 @@ public class ScreenSaver
         //register(my.myObj_999_test_003.Type);       // TextTex test
 
         register(my.myObj_999_test_002c.Type);
-        register(my.myObj_999_test_004.Type);
+        //register(my.myObj_999_test_004.Type);       // Instanced lines test
     }
 
     // -------------------------------------------------------------------------------------------------------------------
