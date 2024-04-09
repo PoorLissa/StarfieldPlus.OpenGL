@@ -23,7 +23,8 @@ namespace my
         private float A, R, G, B;
 
         private static int N = 0, Rad = 666;
-        private static float t = 0, dt = 0.003f;
+        private static float t = 0, dt = 0.003f, tFactorInv = 1;
+        private static float sinT0 = 0, cosT0 = 0, cosT1 = 0;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -54,6 +55,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            tFactorInv = 1.0f / (1.0f + myUtils.randFloat(rand));
+
             mode    = rand.Next(6);
             subMode = rand.Next(2);
 
@@ -94,8 +97,6 @@ namespace my
 
         protected override void generateNew()
         {
-            // todo: sin(t), cos(t) must be calculated only once per iteration
-
             cnt = 111 + rand.Next(111);
             cnt = 11 + rand.Next(11);
 
@@ -103,7 +104,7 @@ namespace my
             {
                 case 0:
                     {
-                        int rad = Rad + (int)(333 * Math.Sin(t));
+                        int rad = Rad + (int)(333 * sinT0);
 
                         int r1 = rad + rand.Next(21) - 10;
                         int r2 = rad + rand.Next(21) - 10;
@@ -122,8 +123,8 @@ namespace my
 
                 case 1:
                     {
-                        int rad1 = Rad + (int)(333 * Math.Sin(t));
-                        int rad2 = Rad + (int)(333 * Math.Cos(t / 1.73));
+                        int rad1 = Rad + (int)(333 * sinT0);
+                        int rad2 = Rad + (int)(333 * cosT1);
 
                         int r1 = rad1 + rand.Next(21) - 10;
                         int r2 = rad2 + rand.Next(21) - 10;
@@ -140,8 +141,8 @@ namespace my
 
                 case 2:
                     {
-                        int rad1 = Rad + (int)(333 * Math.Sin(t));
-                        int rad2 = Rad + (int)(333 * Math.Cos(t / 1.73));
+                        int rad1 = Rad + (int)(333 * sinT0);
+                        int rad2 = Rad + (int)(333 * cosT1);
 
                         int r1 = rad1 + rand.Next(21) - 10;
                         int r2 = rad2 + rand.Next(21) - 10;
@@ -167,8 +168,8 @@ namespace my
                 // Ring with 2 sides
                 case 3:
                     {
-                        int rad1 = Rad + (int)(333 * Math.Sin(t));
-                        int rad2 = Rad + (int)(333 * Math.Cos(t / 1.73));
+                        int rad1 = Rad + (int)(333 * sinT0);
+                        int rad2 = Rad + (int)(333 * cosT1);
 
                         int r1 = rad1 + rand.Next(21) - 10;
                         int r2 = rad2 + rand.Next(21) - 10;
@@ -197,7 +198,7 @@ namespace my
                 // Ring with a single side
                 case 4:
                     {
-                        int rad1 = Rad + (int)(333 * Math.Sin(t));
+                        int rad1 = Rad + (int)(333 * sinT0);
                         int r1 = rad1 + rand.Next(21) - 10;
 
                         float angle1 = rand.Next(333) + (float)rand.NextDouble();
@@ -224,7 +225,7 @@ namespace my
                 // Ring with a single side and an opera effect
                 case 5:
                     {
-                        int rad1 = Rad + (int)(333 * Math.Sin(t));
+                        int rad1 = Rad + (int)(333 * sinT0);
                         int r1 = rad1 + rand.Next(21) - 10;
 
                         float angle1 = rand.Next(333) + (float)rand.NextDouble();
@@ -243,8 +244,8 @@ namespace my
                                 break;
                         }
 
-                        x2 = gl_x0 + r1 * (float)Math.Sin(angle2) * (float)Math.Sin(t);
-                        y2 = gl_y0 + r1 * (float)Math.Cos(angle2) * (float)Math.Cos(t);
+                        x2 = gl_x0 + r1 * (float)Math.Sin(angle2) * sinT0;
+                        y2 = gl_y0 + r1 * (float)Math.Cos(angle2) * cosT0;
                     }
                     break;
             }
@@ -314,6 +315,10 @@ namespace my
                 }
 
                 t += dt;
+
+                sinT0 = (float)Math.Sin(t);
+                cosT0 = (float)Math.Cos(t);
+                cosT1 = (float)Math.Cos(t * tFactorInv);
             }
 
             return;
