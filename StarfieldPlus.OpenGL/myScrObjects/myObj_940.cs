@@ -18,11 +18,11 @@ namespace my
         public static int Priority => 9999910;
         public static System.Type Type => typeof(myObj_940);
 
-        private int cnt, mode, subMode;
+        private int cnt;
         private float x1, y1, x2, y2;
         private float A, R, G, B;
 
-        private static int N = 0, Rad = 666;
+        private static int N = 0, mode, subMode, Rad = 666;
         private static float t = 0, dt = 0.003f, tFactorInv = 1;
         private static float sinT0 = 0, cosT0 = 0, cosT1 = 0;
 
@@ -97,11 +97,11 @@ namespace my
 
         protected override void generateNew()
         {
-            cnt = 111 + rand.Next(111);
             cnt = 11 + rand.Next(11);
 
             switch (mode)
             {
+                // Circle
                 case 0:
                     {
                         int rad = Rad + (int)(333 * sinT0);
@@ -121,13 +121,16 @@ namespace my
                     }
                     break;
 
+                // Double circle
                 case 1:
                     {
+                        cnt = 11 + rand.Next(111);
+
                         int rad1 = Rad + (int)(333 * sinT0);
                         int rad2 = Rad + (int)(333 * cosT1);
 
                         int r1 = rad1 + rand.Next(21) - 10;
-                        int r2 = rad2 + rand.Next(21) - 10;
+                        int r2 = rad2 + rand.Next(101) - 50;
 
                         float angle1 = rand.Next(333) + (float)rand.NextDouble();
                         x1 = gl_x0 + r1 * (float)Math.Sin(angle1);
@@ -153,14 +156,14 @@ namespace my
 
                         if (myUtils.randomChance(rand, 1, 2))
                         {
-                            float angle2 = rand.Next(333) + (float)rand.NextDouble();
-                            x2 = gl_x0 + r2 * (float)Math.Sin(angle2);
-                            y2 = gl_y0 + r2 * (float)Math.Cos(angle2);
+                            x2 = gl_x0 + r2 * (float)Math.Sin(angle1);
+                            y2 = gl_y0 + r2 * (float)Math.Cos(angle1);
                         }
                         else
                         {
-                            x2 = gl_x0 + r2 * (float)Math.Sin(angle1);
-                            y2 = gl_y0 + r2 * (float)Math.Cos(angle1);
+                            float angle2 = rand.Next(333) + (float)rand.NextDouble();
+                            x2 = gl_x0 + r2 * (float)Math.Sin(angle2);
+                            y2 = gl_y0 + r2 * (float)Math.Cos(angle2);
                         }
                     }
                     break;
@@ -217,6 +220,8 @@ namespace my
                                 break;
                         }
 
+                        r1 += 33;
+
                         x2 = gl_x0 + r1 * (float)Math.Sin(angle2);
                         y2 = gl_y0 + r1 * (float)Math.Cos(angle2);
                     }
@@ -250,7 +255,7 @@ namespace my
                     break;
             }
 
-            A = 0.005f + myUtils.randFloat(rand) * 0.005f;
+            A = 0.005f + myUtils.randFloat(rand) * 0.0075f;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
@@ -283,6 +288,11 @@ namespace my
             initShapes();
 
             clearScreenSetup(true, 0.1f);
+
+            t = 0;
+            sinT0 = (float)Math.Sin(t);
+            cosT0 = (float)Math.Cos(t);
+            cosT1 = (float)Math.Cos(t * tFactorInv);
 
             while (list.Count < N)
                 list.Add(new myObj_940());
