@@ -25,6 +25,7 @@ namespace my
         private static int N = 0, mode, subMode, Rad = 666;
         private static float t = 0, dt = 0.003f, tFactorInv = 1;
         private static float sinT0 = 0, cosT0 = 0, cosT1 = 0;
+        private static bool doAllocateAtOnce = false;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -45,6 +46,8 @@ namespace my
             // Global unmutable constants
             {
                 N = 100000;
+
+                doAllocateAtOnce = myUtils.randomChance(rand, 2, 3);
             }
 
             initLocal();
@@ -260,6 +263,8 @@ namespace my
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
 
+            //colorPicker.getColor(x1, y1, ref R, ref G, ref B);
+
             return;
         }
 
@@ -294,8 +299,9 @@ namespace my
             cosT0 = (float)Math.Cos(t);
             cosT1 = (float)Math.Cos(t * tFactorInv);
 
-            while (list.Count < N)
-                list.Add(new myObj_940());
+            if (doAllocateAtOnce)
+                while (list.Count < N)
+                    list.Add(new myObj_940());
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -329,6 +335,12 @@ namespace my
                 sinT0 = (float)Math.Sin(t);
                 cosT0 = (float)Math.Cos(t);
                 cosT1 = (float)Math.Cos(t * tFactorInv);
+
+                if (Count < N)
+                {
+                    for (int i = 0; i < 10; i++)
+                        list.Add(new myObj_940());
+                }
             }
 
             return;
