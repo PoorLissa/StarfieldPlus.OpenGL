@@ -199,6 +199,7 @@ public class ScreenSaver
         register(my.myObj_920.Type);      // ...
         register(my.myObj_930.Type);      // Stack of circle shapes moving with a delay
         register(my.myObj_940.Type);      // Circular shapes made of instanced lines
+        register(my.myObj_950.Type);      // Very narrow window from a texture stretched to full-screen
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
         registerTests(register);          // Register additional testing objects

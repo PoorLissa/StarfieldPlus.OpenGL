@@ -15,7 +15,7 @@ namespace my
     public class myObj_940 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
         public static System.Type Type => typeof(myObj_940);
 
         private int cnt;
