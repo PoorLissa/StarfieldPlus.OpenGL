@@ -20,7 +20,7 @@ namespace my
         private static int size;
         private static float x, y, dx, dy;
 
-        private static int N = 0, mode = 0;
+        private static int N = 0, mode = 0, dirMode = 0;
         private static bool doShiftImg = false;
         private static float dimAlpha = 0.05f;
 
@@ -48,7 +48,8 @@ namespace my
             {
                 N = 1;
 
-                mode = rand.Next(2);
+                mode = rand.Next(2);        // Drawing : Stretch vs Repeat
+                dirMode = rand.Next(3);     // Movement: Vertical, Horizontal or Both
 
                 doShiftImg = myUtils.randomBool(rand);
             }
@@ -80,6 +81,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"mode = {mode}\n"                       +
+                            $"dirMode = {dirMode}\n"                 +
                             $"size = {size}\n"                       +
                             $"dx = {fStr(dx)}\n"                     +
                             $"doShiftImg = {doShiftImg}\n"           +
@@ -104,9 +106,24 @@ namespace my
             x = 0;
             y = 0;
 
-            dx = myUtils.randFloat(rand);
-            dx = 0.25f;
-            dy = 0;
+            switch (dirMode)
+            {
+                case 0:
+                    dx = myUtils.randFloat(rand);
+                    dx = 0.25f;
+                    dy = 0;
+                    break;
+
+                case 1:
+                    dx = 0;
+                    dy = 0.25f;
+                    break;
+
+                case 2:
+                    dx = 0.25f;
+                    dy = 0.25f;
+                    break;
+            }
 
             size = rand.Next(10) + 1;
 
@@ -120,7 +137,7 @@ namespace my
             x += dx;
             y += dy;
 
-            if (x < 0 || x > gl_Width)
+            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
             {
                 generateNew();
             }
@@ -135,25 +152,97 @@ namespace my
             int X = (int)x;
             int Y = (int)y;
 
-            // Slightly shit Y coordinate up and down
-            if (doShiftImg)
+            switch (dirMode)
             {
-                Y = (int)(Math.Sin(x * 0.1) * 10);
-            }
-
-            switch (mode)
-            {
+                // Horizontal movement
                 case 0:
                     {
-                        tex.Draw(0, Y, gl_Width, gl_Height, (int)x, 0, size, gl_Height);
+                        // Slightly shit Y coordinate up and down
+                        if (doShiftImg)
+                        {
+                            Y = (int)(Math.Sin(x * 0.1) * 10);
+                        }
+
+                        switch (mode)
+                        {
+                            // Stretch
+                            case 0:
+                                {
+                                    tex.Draw(0, Y, gl_Width, gl_Height, X, 0, size, gl_Height);
+                                }
+                                break;
+
+                            // Repeat
+                            case 1:
+                                {
+                                    for (int i = 0; i < gl_Width; i += size)
+                                    {
+                                        tex.Draw(i, Y, size, gl_Height, X, 0, size, gl_Height);
+                                    }
+                                }
+                                break;
+                        }
                     }
                     break;
 
+                // Vertical movement
                 case 1:
                     {
-                        for (int i = 0; i < gl_Width; i += size)
+                        // Slightly shit X coordinate up and down
+                        if (doShiftImg)
                         {
-                            tex.Draw(i, Y, size, gl_Height, (int)x, 0, size, gl_Height);
+                            X = (int)(Math.Sin(y * 0.1) * 10);
+                        }
+
+                        switch (mode)
+                        {
+                            // Stretch
+                            case 0:
+                                {
+                                    tex.Draw(X, 0, gl_Width, gl_Height, 0, Y, gl_Width, size);
+                                }
+                                break;
+
+                            // Repeat
+                            case 1:
+                                {
+                                    for (int i = 0; i < gl_Height; i += size)
+                                    {
+                                        tex.Draw(X, i, gl_Width, size, 0, X, gl_Width, size);
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                    break;
+
+                // Vertical + Horizontal movements
+                case 2:
+                    {
+                        switch (mode)
+                        {
+                            // Stretch
+                            case 0:
+                                {
+                                    tex.Draw(0, 0, gl_Width, gl_Height, X, 0, size, gl_Height);
+                                    tex.Draw(0, 0, gl_Width, gl_Height, 0, Y, gl_Width, size);
+                                }
+                                break;
+
+                            // Repeat
+                            case 1:
+                                {
+                                    for (int i = 0; i < gl_Width; i += size)
+                                    {
+                                        tex.Draw(i, 0, size, gl_Height, X, 0, size, gl_Height);
+                                    }
+
+                                    for (int i = 0; i < gl_Height; i += size)
+                                    {
+                                        tex.Draw(0, i, gl_Width, size, 0, Y, gl_Width, size);
+                                    }
+                                }
+                                break;
                         }
                     }
                     break;
