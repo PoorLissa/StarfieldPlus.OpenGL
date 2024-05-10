@@ -103,12 +103,14 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    // Render the texture on the screen.
-    //  x, y, w, h          -- rectangle on the screen to fill with texture
-    //  ptx, pty, ptw, pth  -- optional rectangle to sample pixels from
-    // - In case ptw is '0', the whole texture is rendered
-    // - In case ptw is not '0', only part of the texture is rendered
-    // - Using negative ptw/pth, it is possible to flip/rotate/mirror the texture
+    /// <summary>
+    /// Render the texture on the screen.
+    ///  x, y, w, h          -- rectangle on the screen to fill with texture
+    ///  ptx, pty, ptw, pth  -- optional rectangle to sample pixels from
+    /// - In case ptw is '0', the whole texture is rendered
+    /// - In case ptw is not '0', only part of the texture is rendered
+    /// - Using negative ptw/pth, it is possible to flip/rotate/mirror the texture
+    /// </summary>
     public void Draw(int x, int y, int w, int h, int ptx = 0, int pty = 0, int ptw = 0, int pth = 0)
     {
         float fx = 0, fy = 0;

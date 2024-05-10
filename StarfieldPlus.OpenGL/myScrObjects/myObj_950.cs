@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 
 /*
@@ -20,11 +21,9 @@ namespace my
         private static int size;
         private static float x, y, dx, dy;
 
-        private static int N = 0, mode = 0, dirMode = 0;
-        private static bool doShiftImg = false;
+        private static int N = 0, mode = 0, dirMode = 0, rectOffset1 = 0, rectOffset2 = 0;
+        private static bool doShiftImg = false, doFillShapes = false;
         private static float dimAlpha = 0.05f;
-
-        private static myScreenGradient grad = null;
 
         private static myTexRectangle tex = null;
 
@@ -48,10 +47,16 @@ namespace my
             {
                 N = 1;
 
-                mode = rand.Next(2);        // Drawing : Stretch vs Repeat
+                size = rand.Next(10) + 1;
+
+                mode = rand.Next(3);        // Drawing : Stretch vs Repeat vs InstRectangles
                 dirMode = rand.Next(3);     // Movement: Vertical, Horizontal or Both
 
                 doShiftImg = myUtils.randomBool(rand);
+                doFillShapes = myUtils.randomBool(rand);
+
+                rectOffset1 = rand.Next(10);
+                rectOffset2 = rectOffset1 * 2;
             }
 
             initLocal();
@@ -85,6 +90,8 @@ namespace my
                             $"size = {size}\n"                       +
                             $"dx = {fStr(dx)}\n"                     +
                             $"doShiftImg = {doShiftImg}\n"           +
+                            $"doFillShapes = {doFillShapes}\n"       +
+                            $"rectOffset1 = {rectOffset1}\n"         +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -124,8 +131,6 @@ namespace my
                     dy = 0.25f;
                     break;
             }
-
-            size = rand.Next(10) + 1;
 
             return;
         }
@@ -181,6 +186,22 @@ namespace my
                                     }
                                 }
                                 break;
+
+                            // Inst rectangles
+                            case 2:
+                                {
+                                    float r = 0, g = 0, b = 0;
+
+                                    for (int i = 0; i < gl_Height; i += size)
+                                    {
+                                        colorPicker.getColorAverage(X, i, size, size, ref r, ref g, ref b);
+
+                                        myPrimitive._RectangleInst.setInstanceCoords(0, i - rectOffset1, gl_Width, size + rectOffset2);
+                                        myPrimitive._RectangleInst.setInstanceColor(r, g, b, 0.1f);
+                                        myPrimitive._RectangleInst.setInstanceAngle(0);
+                                    }
+                                }
+                                break;
                         }
                     }
                     break;
@@ -209,6 +230,22 @@ namespace my
                                     for (int i = 0; i < gl_Height; i += size)
                                     {
                                         tex.Draw(X, i, gl_Width, size, 0, X, gl_Width, size);
+                                    }
+                                }
+                                break;
+
+                            // Inst rectangles
+                            case 2:
+                                {
+                                    float r = 0, g = 0, b = 0;
+
+                                    for (int i = 0; i < gl_Width; i += size)
+                                    {
+                                        colorPicker.getColorAverage(i, Y, size, size, ref r, ref g, ref b);
+
+                                        myPrimitive._RectangleInst.setInstanceCoords(i - rectOffset1, 0, size + rectOffset2, gl_Height);
+                                        myPrimitive._RectangleInst.setInstanceColor(r, g, b, 0.1f);
+                                        myPrimitive._RectangleInst.setInstanceAngle(0);
                                     }
                                 }
                                 break;
@@ -243,6 +280,34 @@ namespace my
                                     }
                                 }
                                 break;
+
+                            // Inst rectangles
+                            case 2:
+                                {
+                                    float r = 0, g = 0, b = 0;
+
+                                    for (int i = 0; i < gl_Height; i += size)
+                                    {
+                                        colorPicker.getColorAverage(X, i, size, size, ref r, ref g, ref b);
+
+                                        myPrimitive._RectangleInst.setInstanceCoords(0, i - rectOffset1, gl_Width, size + rectOffset2);
+                                        myPrimitive._RectangleInst.setInstanceColor(r, g, b, 0.1f);
+                                        myPrimitive._RectangleInst.setInstanceAngle(0);
+                                    }
+
+                                    inst.Draw(doFillShapes);
+                                    inst.ResetBuffer();
+
+                                    for (int i = 0; i < gl_Width; i += size)
+                                    {
+                                        colorPicker.getColorAverage(i, Y, size, size, ref r, ref g, ref b);
+
+                                        myPrimitive._RectangleInst.setInstanceCoords(i - rectOffset1, 0, size + rectOffset2, gl_Height);
+                                        myPrimitive._RectangleInst.setInstanceColor(r, g, b, 0.1f);
+                                        myPrimitive._RectangleInst.setInstanceAngle(0);
+                                    }
+                                }
+                                break;
                         }
                     }
                     break;
@@ -274,7 +339,6 @@ namespace my
                     if (doClearBuffer)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
                     }
                     else
                     {
@@ -284,6 +348,8 @@ namespace my
 
                 // Render Frame
                 {
+                    inst.ResetBuffer();
+
                     for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_950;
@@ -291,6 +357,8 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
+
+                    inst.Draw(doFillShapes);
                 }
 
                 if (Count < N)
@@ -309,10 +377,7 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
-
-            grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.2f);
+            base.initShapes(0, gl_Width / size + 1, 0);
 
             tex = new myTexRectangle(colorPicker.getImg());
 
