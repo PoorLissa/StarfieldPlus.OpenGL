@@ -18,11 +18,14 @@ namespace my
 		public static System.Type Type => typeof(myObj_850);
 
         private int cnt;
-        private float x, y, x1, y1, r1, a1, da1, x2, y2, r2, a2, da2, x3, y3, r3, a3, da3;
-        private float A, R, G, B;
+        private float x, y;
+        private float x1, y1, r1, dr1, a1, da1;
+        private float x2, y2, r2, dr2, a2, da2;
+        private float x3, y3, r3, dr3, a3, da3;
+        private float a, A, R, G, B;
         private myParticleTrail[] trails = null;
 
-        private static int N = 0, shape = 0, nTrail = 0;
+        private static int N = 0, shape = 0, nTrail = 0, mode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, lineWidth = 1.0f;
 
@@ -50,8 +53,18 @@ namespace my
                 N = 11 + rand.Next(150);
 
                 shape = 0;
+                mode = rand.Next(2);
 
-                nTrail = 111;
+                switch (mode)
+                {
+                    case 0:
+                        nTrail = 111;
+                        break;
+
+                    case 1:
+                        nTrail = 1234;
+                        break;
+                }
 
                 lineWidth = 0.5f + myUtils.randFloat(rand) * rand.Next(7);
             }
@@ -84,6 +97,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"mode = {mode}\n"                       +
                             $"nTrail = {nTrail}\n"                   +
                             $"lineWidth = {fStr(lineWidth)}\n"       +
                             $"renderDelay = {renderDelay}\n"         +
@@ -114,6 +128,10 @@ namespace my
             r1 = rand.Next(max);
             r2 = rand.Next(max);
             r3 = rand.Next(max);
+
+            dr1 = 0.05f + myUtils.randFloat(rand) * 0.1f;
+            dr2 = 0.05f + myUtils.randFloat(rand) * 0.1f;
+            dr3 = 0.05f + myUtils.randFloat(rand) * 0.1f;
 
             a1 = myUtils.randFloat(rand) * rand.Next(11);
             a2 = myUtils.randFloat(rand) * rand.Next(11);
@@ -174,6 +192,13 @@ namespace my
             x3 = x + r3 * (float)Math.Sin(a3);
             y3 = y + r3 * (float)Math.Cos(a3);
 
+            if (mode == 1)
+            {
+                r1 += 0.1f;
+                r2 += 0.1f;
+                r3 += 0.1f;
+            }
+
             trails[0].update(x1, y1);
             trails[1].update(x2, y2);
             trails[2].update(x3, y3);
@@ -194,6 +219,7 @@ namespace my
         protected override void Show()
         {
             int size = 2;
+            a = A * 0.333f;
 
             trails[0].Show(R, G, B, A > 1 ? 1 : A);
             trails[1].Show(R, G, B, A > 1 ? 1 : A);
@@ -210,8 +236,6 @@ namespace my
             myPrimitive._RectangleInst.setInstanceCoords(x3 - size, y3 - size, size * 2, size * 2);
             myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
             myPrimitive._RectangleInst.setInstanceAngle(0);
-
-            float a = A * 0.333f;
 
             myPrimitive._LineInst.setLineWidth(lineWidth);
 
