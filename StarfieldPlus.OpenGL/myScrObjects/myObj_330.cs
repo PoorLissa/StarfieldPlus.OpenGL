@@ -72,8 +72,9 @@ namespace my
         {
             mode = rand.Next(69);
 #if DEBUG
-            //mode = 68;
+            //mode = 11;
 #endif
+
             // Reset parameter values
             {
                 for (int i = 0; i < prm_i.Length; i++)
@@ -135,6 +136,8 @@ namespace my
                     N = 999 + rand.Next(666);
                     prm_i[0] = myUtils.randomChance(rand, 1, 2)                             // 5: Central line vs random line
                         ? gl_y0 : rand.Next(gl_Height);
+                    prm_i[1] = myUtils.randomChance(rand, 1, 2)                             // 5: Generate points on the line vs off the line
+                        ? 0 : 1;
                     break;
 
                 // Random pieces of the image constantly appearing at their own locations
@@ -969,11 +972,11 @@ namespace my
                 case 05:
                     a = doClearBuffer ? a * 1.75f : a;
                     width = rand.Next(max) + 1;
-                    x = X = rand.Next(gl_Width);
-                    y = Y = prm_i[0];
                     dx = 0;
                     dy = (float)rand.NextDouble() * myUtils.randomSign(rand) * 5;
                     da = (float)rand.NextDouble() / 25;
+                    x = X = rand.Next(gl_Width);
+                    y = Y = prm_i[0] - prm_i[1] * dy * 25;
                     break;
 
                 case 06:

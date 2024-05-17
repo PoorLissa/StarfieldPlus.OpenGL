@@ -15,6 +15,8 @@ using System.Collections.Generic;
 
     Read this later https://miketuritzin.com/post/rendering-particles-with-compute-shaders/
 
+	Ray marching distance functions: https://iquilezles.org/articles/distfunctions/
+
     // To investigate later:
     https://www.shadertoy.com/view/3tXXRn   -- tentacles (super cool but super complex)
     https://www.shadertoy.com/view/Xsl3z2
