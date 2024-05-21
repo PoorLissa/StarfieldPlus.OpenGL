@@ -202,6 +202,7 @@ public class ScreenSaver
         register(my.myObj_950.Type);      // Very narrow window from a texture stretched to full-screen
         register(my.myObj_960.Type);      // Pulsing grids
         register(my.myObj_970.Type);      // ...
+        register(my.myObj_980.Type);      // Edge finding random algorythm
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
         registerTests(register);          // Register additional testing objects
