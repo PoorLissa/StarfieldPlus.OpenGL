@@ -1,0 +1,317 @@
+﻿using GLFW;
+using static OpenGL.GL;
+using System;
+using System.Collections.Generic;
+
+
+/*
+    - ...
+*/
+
+
+namespace my
+{
+    public class myObj_990 : myObject
+    {
+        // Priority
+        public static int Priority => 999910;
+		public static System.Type Type => typeof(myObj_990);
+
+        private int cnt;
+        private bool isAlive;
+        private float x, y, w, h;
+        private float size, dSize, A, R, G, B, angle = 0;
+
+        private static int N = 0, shape = 0, maxCnt = 1;
+        private static bool doFillShapes = false;
+        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0;
+
+        private static myScreenGradient grad = null;
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        public myObj_990()
+        {
+            if (id != uint.MaxValue)
+                generateNew();
+
+            if (id > 0)
+                isAlive = false;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time global initialization
+        protected override void initGlobal()
+        {
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            list = new List<myObject>();
+
+            // Global unmutable constants
+            {
+                N = rand.Next(10) + 10;
+
+                whRatio = 1.0f + myUtils.randFloat(rand) * 3;
+
+                maxCnt = 100;
+
+                dt = 0.1f * (rand.Next(5) + 1);
+
+                shape = 0;
+            }
+
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // One-time local initialization
+        private void initLocal()
+        {
+            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = true;
+
+            renderDelay = rand.Next(3) + 1;
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override string CollectCurrentInfo(ref int width, ref int height)
+        {
+            height = 600;
+
+            string nStr(int   n) { return n.ToString("N0");    }
+            string fStr(float f) { return f.ToString("0.000"); }
+
+            string str = $"Obj = {Type}\n\n"                         +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"whRatio = {fStr(whRatio)}\n"           +
+                            $"renderDelay = {renderDelay}\n"         +
+                            $"file: {colorPicker.GetFileName()}"
+                ;
+            return str;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // 
+        protected override void setNextMode()
+        {
+            initLocal();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void generateNew()
+        {
+            if (id == 0)
+            {
+                isAlive = false;
+
+                cnt = maxCnt;
+
+                h = 50;
+                w = h * whRatio;
+
+                x = gl_x0;
+                y = gl_y0;
+
+                dSize = 0.5f + myUtils.randFloat(rand) * 0.75f;
+            }
+            else
+            {
+                var parent = list[0] as myObj_990;
+
+                isAlive = true;
+
+                x = parent.x;
+                y = parent.y;
+                w = parent.w;
+                h = parent.h;
+                dSize = parent.dSize;
+
+                A = 0.25f;
+                R = (float)rand.NextDouble();
+                G = (float)rand.NextDouble();
+                B = (float)rand.NextDouble();
+
+                R = G = B = 0.5f;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Move()
+        {
+            if (id == 0)
+            {
+                if (--cnt == 0)
+                {
+                    cnt = maxCnt;
+
+                    x += 10 * (float)Math.Cos(t);
+                    t += dt;
+
+                    for (int i = 1; i < list.Count; i++)
+                    {
+                        var obj = list[i] as myObj_990;
+
+                        if (obj.isAlive == false)
+                        {
+                            obj.generateNew();
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (isAlive)
+                {
+                    w += dSize;
+                    h += dSize;
+
+                    if (w > gl_x0 || h > gl_y0)
+                    {
+                        isAlive = false;
+                    }
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Show()
+        {
+            if (isAlive)
+            {
+                float size2x = size * 2;
+
+                switch (shape)
+                {
+                    // Instanced squares
+                    case 0:
+                        myPrimitive._RectangleInst.setInstanceCoords(x - w, y - h, w * 2, h * 2);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._RectangleInst.setInstanceAngle(angle);
+                        break;
+
+                    // Instanced triangles
+                    case 1:
+                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced circles
+                    case 2:
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced pentagons
+                    case 3:
+                        myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced hexagons
+                    case 4:
+                        myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                        break;
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        protected override void Process(Window window)
+        {
+            uint cnt = 0;
+            initShapes();
+
+            clearScreenSetup(doClearBuffer, 0.1f);
+
+            while (!Glfw.WindowShouldClose(window))
+            {
+                int Count = list.Count;
+
+                processInput(window);
+
+                // Swap fore/back framebuffers, and poll for operating system events.
+                Glfw.SwapBuffers(window);
+                Glfw.PollEvents();
+
+                // Dim screen
+                {
+                    if (doClearBuffer)
+                    {
+                        glClear(GL_COLOR_BUFFER_BIT);
+                        grad.Draw();
+                    }
+                    else
+                    {
+                        dimScreen(dimAlpha);
+                    }
+                }
+
+                // Render Frame
+                {
+                    inst.ResetBuffer();
+
+                    for (int i = 0; i != Count; i++)
+                    {
+                        var obj = list[i] as myObj_990;
+
+                        obj.Show();
+                        obj.Move();
+                    }
+
+                    if (doFillShapes)
+                    {
+                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                        inst.SetColorA(-0.5f);
+                        inst.Draw(true);
+                    }
+
+                    // Tell the fragment shader to do nothing with the existing instance opacity:
+                    inst.SetColorA(0);
+                    inst.Draw(false);
+                }
+
+                if (Count < N)
+                {
+                    list.Add(new myObj_990());
+                }
+
+                cnt++;
+                System.Threading.Thread.Sleep(renderDelay);
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void initShapes()
+        {
+            myPrimitive.init_ScrDimmer();
+            base.initShapes(shape, N, 0);
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f);
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+    }
+};
