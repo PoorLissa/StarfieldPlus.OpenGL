@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 
 /*
@@ -24,7 +25,7 @@ namespace my
 
         private static int N = 0, shape = 0, maxCnt = 1;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0;
+        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, ytFactor = 0;
 
         private static myScreenGradient grad = null;
 
@@ -49,15 +50,17 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
+                N = 333;
 
                 whRatio = 1.0f + myUtils.randFloat(rand) * 3;
 
-                maxCnt = 100;
+                maxCnt = 33;
 
                 dt = 0.1f * (rand.Next(5) + 1);
 
-                shape = 0;
+                shape = myUtils.randomChance(rand, 1, 2) ? 0 : 2;
+
+                ytFactor = myUtils.randFloat(rand) + rand.Next(3);
             }
 
             initLocal();
@@ -70,6 +73,7 @@ namespace my
         {
             doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = true;
+            doFillShapes = true;
 
             renderDelay = rand.Next(3) + 1;
 
@@ -113,12 +117,16 @@ namespace my
                 cnt = maxCnt;
 
                 h = 50;
-                w = h * whRatio;
+                w = (int)(h * 1.0 * gl_Width / gl_Height);
 
                 x = gl_x0;
                 y = gl_y0;
 
                 dSize = 0.5f + myUtils.randFloat(rand) * 0.75f;
+
+                R = (float)rand.NextDouble();
+                G = (float)rand.NextDouble();
+                B = (float)rand.NextDouble();
             }
             else
             {
@@ -133,11 +141,16 @@ namespace my
                 dSize = parent.dSize;
 
                 A = 0.25f;
+
+                R = G = B = 0.5f;
+
+                R = parent.R;
+                G = parent.G;
+                B = parent.B;
+
                 R = (float)rand.NextDouble();
                 G = (float)rand.NextDouble();
                 B = (float)rand.NextDouble();
-
-                R = G = B = 0.5f;
             }
 
             return;
@@ -153,7 +166,9 @@ namespace my
                 {
                     cnt = maxCnt;
 
-                    x += 10 * (float)Math.Cos(t);
+                    x += 50 * (float)Math.Cos(t);
+                    //y += 33 * (float)Math.Cos(t * 1.107);
+                    y += 33 * (float)Math.Cos(t * ytFactor);
                     t += dt;
 
                     for (int i = 1; i < list.Count; i++)
@@ -172,12 +187,19 @@ namespace my
             {
                 if (isAlive)
                 {
-                    w += dSize;
-                    h += dSize;
+                    float factor = 1.001f;
+
+                    w *= factor;
+                    h *= factor;
 
                     if (w > gl_x0 || h > gl_y0)
                     {
-                        isAlive = false;
+                        A -= 0.0025f;
+
+                        if (A <= 0)
+                        {
+                            isAlive = false;
+                        }
                     }
                 }
             }
@@ -210,7 +232,7 @@ namespace my
 
                     // Instanced circles
                     case 2:
-                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, w * 2, angle);
                         myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
                         break;
 
@@ -278,7 +300,7 @@ namespace my
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
+                        inst.SetColorA(-0.1f);
                         inst.Draw(true);
                     }
 
