@@ -26,7 +26,7 @@ namespace my
 
         private static int N = 0, shape = 0, maxCnt = 1;
         private static bool doFillShapes = false, newOption = false;
-        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, xtFactor = 0, ytFactor = 0, X1, Y1, X2, Y2;
+        private static float dimAlpha = 0.05f, whRatio = 1, speedFactor = 0, t = 0, dt = 0, xtFactor = 0, ytFactor = 0, X1, Y1, X2, Y2;
 
         private static myScreenGradient grad = null;
 
@@ -59,6 +59,7 @@ namespace my
                 whRatio = 1.0f + myUtils.randFloat(rand) * 3;
 
                 maxCnt = 33;
+                speedFactor = 1.01f;
 
                 dt = 0.1f * (rand.Next(5) + 1);
 
@@ -82,6 +83,7 @@ newOption = true;
             doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = true;
             doFillShapes = true;
+doFillShapes = false;
 
             renderDelay = rand.Next(3) + 1;
 
@@ -124,7 +126,7 @@ newOption = true;
 
                 cnt = maxCnt;
 
-                h = 50;
+                h = 20;
                 w = (int)(h * 1.0 * gl_Width / gl_Height);
 
                 x = gl_x0;
@@ -148,7 +150,7 @@ newOption = true;
                 h = parent.h;
                 dSize = parent.dSize;
 
-                A = 0.25f;
+                A = doFillShapes ? 0.25f : 0.5f;
 
                 R = parent.R;
                 G = parent.G;
@@ -156,13 +158,17 @@ newOption = true;
 
                 R = G = B = 0.5f;
 
+                R = (float)rand.NextDouble();
+                G = (float)rand.NextDouble();
+                B = (float)rand.NextDouble();
+
                 R = 0.5f + (float)rand.NextDouble() * 0.1f;
                 G = 0.5f + (float)rand.NextDouble() * 0.1f;
                 B = 0.5f + (float)rand.NextDouble() * 0.1f;
 
-                R = (float)rand.NextDouble();
-                G = (float)rand.NextDouble();
-                B = (float)rand.NextDouble();
+                R = 0.33f + (float)rand.NextDouble() * 0.66f;
+                G = 0.33f + (float)rand.NextDouble() * 0.66f;
+                B = 0.33f + (float)rand.NextDouble() * 0.66f;
             }
 
             return;
@@ -179,8 +185,7 @@ newOption = true;
                     cnt = maxCnt;
 
                     x += 50 * (float)Math.Cos(t * xtFactor);
-                    //y += 33 * (float)Math.Cos(t * 1.107);
-                    //y += 33 * (float)Math.Cos(t * ytFactor);
+                    y += 33 * (float)Math.Cos(t * ytFactor);
                     t += dt;
 
                     for (int i = 1; i < list.Count; i++)
@@ -199,10 +204,8 @@ newOption = true;
             {
                 if (isAlive)
                 {
-                    float factor = 1.001f;
-
-                    w *= factor;
-                    h *= factor;
+                    w *= speedFactor;
+                    h *= speedFactor;
 
                     if (w > gl_x0 || h > gl_y0)
                     {
@@ -211,6 +214,17 @@ newOption = true;
                         if (A <= 0)
                         {
                             isAlive = false;
+                        }
+                    }
+                    else
+                    {
+                        float f = 0.00025f;
+
+                        switch (rand.Next(3))
+                        {
+                            case 0: R -= f; break;
+                            case 1: G -= f; break;
+                            case 2: B -= f; break;
                         }
                     }
                 }
