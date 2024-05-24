@@ -3,6 +3,7 @@ using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Collections;
 
 
 /*
@@ -24,10 +25,12 @@ namespace my
         private float size, dSize, A, R, G, B, angle = 0;
 
         private static int N = 0, shape = 0, maxCnt = 1;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, ytFactor = 0;
+        private static bool doFillShapes = false, newOption = false;
+        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, ytFactor = 0, X1, Y1, X2, Y2;
 
         private static myScreenGradient grad = null;
+
+        private static List<myObj_990> sortedList = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -47,6 +50,7 @@ namespace my
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
+            sortedList = new List<myObj_990>();
 
             // Global unmutable constants
             {
@@ -59,6 +63,9 @@ namespace my
                 dt = 0.1f * (rand.Next(5) + 1);
 
                 shape = myUtils.randomChance(rand, 1, 2) ? 0 : 2;
+
+shape = 0;
+newOption = true;
 
                 ytFactor = myUtils.randFloat(rand) + rand.Next(3);
             }
@@ -142,11 +149,15 @@ namespace my
 
                 A = 0.25f;
 
-                R = G = B = 0.5f;
-
                 R = parent.R;
                 G = parent.G;
                 B = parent.B;
+
+                R = G = B = 0.5f;
+
+                R = 0.5f + (float)rand.NextDouble() * 0.1f;
+                G = 0.5f + (float)rand.NextDouble() * 0.1f;
+                B = 0.5f + (float)rand.NextDouble() * 0.1f;
 
                 R = (float)rand.NextDouble();
                 G = (float)rand.NextDouble();
@@ -168,7 +179,7 @@ namespace my
 
                     x += 50 * (float)Math.Cos(t);
                     //y += 33 * (float)Math.Cos(t * 1.107);
-                    y += 33 * (float)Math.Cos(t * ytFactor);
+                    //y += 33 * (float)Math.Cos(t * ytFactor);
                     t += dt;
 
                     for (int i = 1; i < list.Count; i++)
@@ -219,9 +230,57 @@ namespace my
                 {
                     // Instanced squares
                     case 0:
-                        myPrimitive._RectangleInst.setInstanceCoords(x - w, y - h, w * 2, h * 2);
-                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                        myPrimitive._RectangleInst.setInstanceAngle(angle);
+                        {
+                            float x1 = x - w;
+                            float y1 = y - h;
+                            float x2 = x1 + w * 2;
+                            float y2 = y1 + h * 2;
+
+                            if (newOption == true)
+                            {
+                                if (X1 == 0 && Y1 == 0 && X2 == 0 && Y2 == 0)
+                                {
+                                    X1 = x1;
+                                    Y1 = y1;
+                                    X2 = x2;
+                                    Y2 = y2;
+                                }
+                                else
+                                {
+                                    if (x1 < X1)
+                                        x1 = X1;
+                                    else if (x1 >= X2)
+                                        return;
+                                    else
+                                        X1 = x1;
+
+                                    if (y1 < Y1)
+                                        y1 = Y1;
+                                    else if (y1 >= Y2)
+                                        return;
+                                    else
+                                        Y1 = y1;
+
+                                    if (x2 > X2)
+                                        x2 = X2;
+                                    else if (x2 <= X1)
+                                        return;
+                                    else
+                                        X2 = x2;
+
+                                    if (y2 > Y2)
+                                        y2 = Y2;
+                                    else if (y2 <= Y1)
+                                        return;
+                                    else
+                                        Y2 = y2;
+                                }
+                            }
+
+                            myPrimitive._RectangleInst.setInstanceCoords(x1, y1, x2 - x1, y2 - y1);
+                            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                            myPrimitive._RectangleInst.setInstanceAngle(angle);
+                        }
                         break;
 
                     // Instanced triangles
@@ -264,7 +323,9 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
-                int Count = list.Count;
+                int Count = sortedList.Count;
+
+                SortParticles();
 
                 processInput(window);
 
@@ -289,9 +350,11 @@ namespace my
                 {
                     inst.ResetBuffer();
 
+                    X1 = Y1 = X2 = Y2 = 0;
+
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_990;
+                        var obj = sortedList[i];
 
                         obj.Show();
                         obj.Move();
@@ -311,7 +374,10 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_990());
+                    var obj = new myObj_990();
+
+                    list.Add(obj);
+                    sortedList.Add(obj);
                 }
 
                 cnt++;
@@ -332,6 +398,20 @@ namespace my
             grad.SetRandomColors(rand, 0.2f);
 
             return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void SortParticles()
+        {
+            sortedList.Sort(delegate (myObj_990 obj1, myObj_990 obj2)
+            {
+                return obj1.w > obj2.w
+                    ? -1
+                    : obj1.w < obj2.w
+                        ? 1
+                        : 0;
+            });
         }
 
         // ---------------------------------------------------------------------------------------------------------------
