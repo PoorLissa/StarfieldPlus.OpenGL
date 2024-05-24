@@ -26,7 +26,7 @@ namespace my
 
         private static int N = 0, shape = 0, maxCnt = 1;
         private static bool doFillShapes = false, newOption = false;
-        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, ytFactor = 0, X1, Y1, X2, Y2;
+        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, xtFactor = 0, ytFactor = 0, X1, Y1, X2, Y2;
 
         private static myScreenGradient grad = null;
 
@@ -67,7 +67,8 @@ namespace my
 shape = 0;
 newOption = true;
 
-                ytFactor = myUtils.randFloat(rand) + rand.Next(3);
+                xtFactor = (myUtils.randFloat(rand) + rand.Next(3)) * myUtils.randomSign(rand);
+                ytFactor = (myUtils.randFloat(rand) + rand.Next(3)) * myUtils.randomSign(rand);
             }
 
             initLocal();
@@ -177,7 +178,7 @@ newOption = true;
                 {
                     cnt = maxCnt;
 
-                    x += 50 * (float)Math.Cos(t);
+                    x += 50 * (float)Math.Cos(t * xtFactor);
                     //y += 33 * (float)Math.Cos(t * 1.107);
                     //y += 33 * (float)Math.Cos(t * ytFactor);
                     t += dt;
