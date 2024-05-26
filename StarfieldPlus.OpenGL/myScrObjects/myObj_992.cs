@@ -26,7 +26,7 @@ namespace my
         private float A, R, G, B, angle = 0;
 
         private static int N = 0, shape = 0, maxCnt = 1;
-        private static bool doFillShapes = false;
+        private static bool doFillShapes = false, doMoveCenter = false;
         private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, ytFactor = 0;
 
         private static myScreenGradient grad = null;
@@ -78,6 +78,7 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = true;
             doFillShapes = true;
+            doMoveCenter = myUtils.randomChance(rand, 4, 5);
 
             renderDelay = rand.Next(3) + 1;
 
@@ -96,6 +97,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"shape = {shape}\n"                     +
+                            $"doMoveCenter = {doMoveCenter}\n"       +
                             $"whRatio = {fStr(whRatio)}\n"           +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -165,9 +167,12 @@ namespace my
                 {
                     cnt = maxCnt;
 
-                    x += 50 * (float)Math.Cos(t);
-                    y += 33 * (float)Math.Cos(t * ytFactor);
-                    t += dt;
+                    if (doMoveCenter)
+                    {
+                        x += 50 * (float)Math.Cos(t);
+                        y += 33 * (float)Math.Cos(t * ytFactor);
+                        t += dt;
+                    }
 
                     for (int i = 1; i < list.Count; i++)
                     {
