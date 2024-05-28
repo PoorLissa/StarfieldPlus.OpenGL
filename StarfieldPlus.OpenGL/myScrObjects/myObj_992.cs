@@ -25,7 +25,7 @@ namespace my
         private float x, y, w, h;
         private float A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, maxCnt = 1;
+        private static int N = 0, shape = 0, colorMode = 0, maxCnt = 1, colorCnt = 0;
         private static bool doFillShapes = false, doMoveCenter = false;
         private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, ytFactor = 0;
 
@@ -57,11 +57,11 @@ namespace my
                 whRatio = 1.0f + myUtils.randFloat(rand) * 3;
 
                 maxCnt = 33;
+                colorCnt = 33;
 
                 dt = 0.1f * (rand.Next(5) + 1);
 
                 shape = myUtils.randomChance(rand, 4, 5) ? 2 : rand.Next(5);
-                shape = 0;
                 shape = rand.Next(5);
 
                 ytFactor = myUtils.randFloat(rand) + rand.Next(3);
@@ -80,6 +80,8 @@ namespace my
             doFillShapes = true;
             doMoveCenter = myUtils.randomChance(rand, 4, 5);
 
+            colorMode = doMoveCenter ? 0 : rand.Next(2);
+
             renderDelay = rand.Next(3) + 1;
 
             return;
@@ -97,6 +99,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"shape = {shape}\n"                     +
+                            $"colorMode = {colorMode}\n"             +
                             $"doMoveCenter = {doMoveCenter}\n"       +
                             $"whRatio = {fStr(whRatio)}\n"           +
                             $"renderDelay = {renderDelay}\n"         +
@@ -124,7 +127,6 @@ namespace my
                 cnt = maxCnt;
 
                 h = 50;
-                //w = (int)(h * 1.0 * gl_Width / gl_Height);
                 w = h;
 
                 x = gl_x0;
@@ -149,9 +151,35 @@ namespace my
 
                 A = 0.25f;
 
-                R = (float)rand.NextDouble();
-                G = (float)rand.NextDouble();
-                B = (float)rand.NextDouble();
+                switch (colorMode)
+                {
+                    case 0:
+                        R = (float)rand.NextDouble();
+                        G = (float)rand.NextDouble();
+                        B = (float)rand.NextDouble();
+                        break;
+
+                    case 1:
+                        if (--colorCnt == 0)
+                        {
+                            parent.R = (float)rand.NextDouble();
+                            parent.G = (float)rand.NextDouble();
+                            parent.B = (float)rand.NextDouble();
+
+                            R = parent.R;
+                            G = parent.G;
+                            B = parent.B;
+
+                            colorCnt = 11 + rand.Next(23);
+                        }
+                        else
+                        {
+                            R = parent.R + myUtils.randFloatSigned(rand) * 0.1f;
+                            G = parent.G + myUtils.randFloatSigned(rand) * 0.1f;
+                            B = parent.B + myUtils.randFloatSigned(rand) * 0.1f;
+                        }
+                        break;
+                }
             }
 
             return;
