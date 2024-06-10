@@ -211,6 +211,8 @@ public class ScreenSaver
         // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.
         // Дальше они движутся, а соединения рисуются все время одни и те же
 
+        // some particles rotating around a central particle. central one moves randomly, the rest of them leave trails
+
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
         registerTests(register);          // Register additional testing objects
