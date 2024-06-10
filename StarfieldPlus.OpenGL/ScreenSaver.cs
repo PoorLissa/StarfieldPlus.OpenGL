@@ -206,6 +206,12 @@ public class ScreenSaver
         register(my.myObj_990.Type);      // Square/Rectangle Tunnel
         register(my.myObj_992.Type);      // ...
 
+
+        // несколько партиклов, которые в ограниченной терротории рандомно двигаются туда и сюда.
+        // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.
+        // Дальше они движутся, а соединения рисуются все время одни и те же
+
+
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
         registerTests(register);          // Register additional testing objects
 
