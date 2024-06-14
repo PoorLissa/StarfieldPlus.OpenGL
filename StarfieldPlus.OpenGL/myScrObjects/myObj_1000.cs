@@ -24,7 +24,7 @@ namespace my
 
         private List<myObj_1000> _children = null;
 
-        private static int N = 0, n = 0, NN = 0, shape = 0, cellSize = 100;
+        private static int N = 0, n = 0, NN = 0, shape = 0, cellSize = 100, colorMode = 0;
         private static bool doFillShapes = false;
 
         private static myScreenGradient grad = null;
@@ -52,6 +52,8 @@ namespace my
                 NN = 10000;
 
                 shape = rand.Next(5);
+
+                colorMode = rand.Next(2);
             }
 
             initLocal();
@@ -83,6 +85,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"n = {nStr(n)}\n"                       +
                             $"cellSize = {cellSize}\n"               +
+                            $"colorMode = {colorMode}\n"             +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -104,6 +107,10 @@ namespace my
             if (_children == null)
             {
                 _children = new List<myObj_1000>();
+
+                R = myUtils.randFloat(rand);
+                G = myUtils.randFloat(rand);
+                B = myUtils.randFloat(rand);
             }
             else
             {
@@ -118,14 +125,20 @@ namespace my
                 obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
                 obj.dy = myUtils.randFloatSigned(rand) * 0.95f;
 
-                obj.A = (float)rand.NextDouble();
-                obj.R = (float)rand.NextDouble();
-                obj.G = (float)rand.NextDouble();
-                obj.B = (float)rand.NextDouble();
-
                 obj.cnt = 100 + rand.Next(100);
 
-                colorPicker.getColor(obj.x, obj.y, ref obj.R, ref obj.G, ref obj.B);
+                switch (colorMode)
+                {
+                    case 0:
+                        obj.R = R + myUtils.randFloatSigned(rand) * 0.05f;
+                        obj.G = G + myUtils.randFloatSigned(rand) * 0.05f;
+                        obj.B = B + myUtils.randFloatSigned(rand) * 0.05f;
+                        break;
+
+                    case 1:
+                        colorPicker.getColor(obj.x, obj.y, ref obj.R, ref obj.G, ref obj.B);
+                        break;
+                }
 
                 _children.Add(obj);
             }
@@ -314,8 +327,8 @@ namespace my
         {
             myPrimitive._LineInst.ResetBuffer();
 
-            float gridA = 0.5f;
-            float factor = 0.99f;
+            float gridA = 0.25f;
+            float factor = 0.95f;
 
             float a = gridA;
             float r = 0.25f;
