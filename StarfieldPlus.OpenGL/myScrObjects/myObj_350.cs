@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 
 /*
-    - Moving groups of small particles. Particles within the group are connected to each other.
+    - Moving groups of small particles.
+    - Particles within the group are connected to each other.
 */
 
 
@@ -22,10 +23,12 @@ namespace my
 
         private int level;
         private float x, y, dx, dy, rad1, rad2;
-        private float size, A, R, G, B, angle = 0, gravityRate;
+        private float size, A, R, G, B, angle = 0, dAngle, gravityRate;
 
-        private static int N = 0, shape = 0, levelBase = 0, maxChildren = 0, childMoveMode = 0;
-        private static bool doFillShapes = false, doUseOpacityAsSpeed = true, doConnectToCenter = true;
+        private myParticleTrail trail = null;
+
+        private static int N = 0, shape = 0, levelBase = 0, maxChildren = 0, childMoveMode = 0, nTrail = 0;
+        private static bool doFillShapes = false, doUseOpacityAsSpeed = true, doConnectToCenter = true, doUseTrails = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
@@ -56,6 +59,7 @@ namespace my
 
                     obj.size = 3;
                     obj.gravityRate = gravityRate;
+                    obj.dAngle = myUtils.randFloatSigned(rand) * 0.025f;
 
                     obj.R = R;
                     obj.G = G;
@@ -79,6 +83,19 @@ namespace my
                         obj.dy = (0.1f + myUtils.randFloat(rand) * 0.05f) * myUtils.randomSign(rand);
                     }
 
+                    // Initialize Trail
+                    {
+                        if (doUseTrails && obj.trail == null)
+                        {
+                            obj.trail = new myParticleTrail(nTrail, obj.x, obj.y);
+                        }
+
+                        if (obj.trail != null)
+                        {
+                            obj.trail.updateDa(obj.A * 2);
+                        }
+                    }
+
                     children.Add(obj);
                 }
 
@@ -99,6 +116,19 @@ namespace my
                 N = rand.Next(100) + 13;
                 maxChildren = rand.Next(13);
                 shape = rand.Next(5);
+
+                doUseTrails = true;
+
+                switch (rand.Next(7))
+                {
+                    case 0: nTrail = 10 + rand.Next(  5); break;
+                    case 1: nTrail = 10 + rand.Next(  9); break;
+                    case 2: nTrail = 10 + rand.Next( 13); break;
+                    case 3: nTrail = 33 + rand.Next( 33); break;
+                    case 4: nTrail = 33 + rand.Next( 99); break;
+                    case 5: nTrail = 33 + rand.Next(199); break;
+                    case 6: nTrail = 33 + rand.Next(299); break;
+                }
             }
 
             initLocal();
@@ -134,6 +164,8 @@ namespace my
                             $"maxChildren = {maxChildren}\n"             +
                             $"childMoveMode = {childMoveMode}\n"         +
                             $"doConnectToCenter = {doConnectToCenter}\n" +
+                            $"doUseTrails = {doUseTrails}\n"             +
+                            $"nTrail = {nTrail}\n"                       +
                             $"dimAlpha = {dimAlpha.ToString("0.000")}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -209,6 +241,8 @@ namespace my
             }
             else
             {
+                angle += dAngle;
+
                 switch (childMoveMode)
                 {
                     case 0:
@@ -291,6 +325,12 @@ namespace my
                         }
                         break;
                 }
+
+                // Update trail info
+                if (doUseTrails)
+                {
+                    trail.update(x, y);
+                }
             }
 
             return;
@@ -334,6 +374,12 @@ namespace my
                 }
 
                 return;
+            }
+
+            // Draw the trail
+            if (doUseTrails)
+            {
+                trail.Show(R, G, B, A);
             }
 
             switch (shape)
@@ -462,8 +508,12 @@ namespace my
         {
             int nChildren = maxChildren + 3;
 
+            int lineInstN = N * nChildren * (nChildren - 1);
+            lineInstN += doUseTrails ? (N * nChildren * nTrail) : 0;
+
             myPrimitive.init_ScrDimmer();
-            myPrimitive.init_LineInst(N * nChildren * (nChildren - 1));
+            myPrimitive.init_LineInst(lineInstN);
+
             base.initShapes(shape, N * (nChildren + 1), 0);
 
             grad = new myScreenGradient();

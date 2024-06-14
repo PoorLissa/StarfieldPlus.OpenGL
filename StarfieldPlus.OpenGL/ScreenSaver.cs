@@ -133,7 +133,7 @@ public class ScreenSaver
         register(my.myObj_310.Type);      // Moving particles, where each particle is connected with every other particle out there
         register(my.myObj_320.Type);      // Spiralling doodles made of squares
         register(my.myObj_330.Type);      // Textures, Take 1
-        register(my.myObj_340.Type);      // Grid consisting of hexagons
+        register(my.myObj_340.Type);      // Grid of hexagons
         register(my.myObj_350.Type);      // Moving groups of small particles. Particles within the group are connected to each other
         register(my.myObj_360.Type);      // Moving particles; each particle is connected to 5 other random particles
         register(my.myObj_370.Type);      // The image is split into big number of particles that fall down
@@ -204,6 +204,7 @@ public class ScreenSaver
         register(my.myObj_970.Type);      // ...
         register(my.myObj_980.Type);      // Edge finding random algorythm
         register(my.myObj_990.Type);      // ...
+        register(my.myObj_1000.Type);     // ...
 
         register(my.myObj_999a.Type);     // Test rotating shape, unfinished yet good
         registerTests(register);          // Register additional testing objects

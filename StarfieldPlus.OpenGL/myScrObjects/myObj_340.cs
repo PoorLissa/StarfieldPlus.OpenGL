@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Grid covered with hexagons -- unfinished yet
+    - Grid of hexagons -- unfinished yet
 */
 
 
