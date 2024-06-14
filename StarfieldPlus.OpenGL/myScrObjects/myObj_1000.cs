@@ -18,6 +18,7 @@ namespace my
         public static int Priority => 9999910;
 		public static System.Type Type => typeof(myObj_1000);
 
+        private int cnt;
         private float x, y, x1, y1, x2, y2, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle;
 
@@ -46,7 +47,7 @@ namespace my
 
             // Global unmutable constants
             {
-                cellSize = 50;
+                cellSize = 50 + rand.Next(100);
 
                 NN = 10000;
 
@@ -122,6 +123,8 @@ namespace my
                 obj.G = (float)rand.NextDouble();
                 obj.B = (float)rand.NextDouble();
 
+                obj.cnt = 100 + rand.Next(100);
+
                 colorPicker.getColor(obj.x, obj.y, ref obj.R, ref obj.G, ref obj.B);
 
                 _children.Add(obj);
@@ -137,6 +140,12 @@ namespace my
             for (int i = 0; i < _children.Count; i++)
             {
                 var obj = _children[i];
+
+                if (--obj.cnt == 0)
+                {
+                    obj.cnt = 100 + rand.Next(100);
+                    obj.A = (float)rand.NextDouble();
+                }    
 
                 obj.x += obj.dx;
                 obj.y += obj.dy;
@@ -287,7 +296,7 @@ namespace my
         {
             base.initShapes(shape, NN, 0);
 
-            int nLineInst = gl_Width / cellSize + gl_Height / cellSize + 1;
+            int nLineInst = gl_Width / cellSize + gl_Height / cellSize + 10;
 
             myPrimitive.init_LineInst(nLineInst);
 
