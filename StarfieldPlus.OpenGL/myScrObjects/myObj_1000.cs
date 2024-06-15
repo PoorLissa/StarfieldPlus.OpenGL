@@ -23,9 +23,11 @@ namespace my
         private float size, A, R, G, B, angle = 0, dAngle;
 
         private List<myObj_1000> _children = null;
+        private myParticleTrail trail = null;
 
-        private static int N = 0, n = 0, NN = 0, shape = 0, cellSize = 100, colorMode = 0;
-        private static bool doFillShapes = false;
+        private static int N = 0, n = 0, NN = 0, shape = 0, cellSize = 100, colorMode = 0, moveMode = 0, nTrail = 0;
+        private static float trailOpacity = 0.1f;
+        private static bool doFillShapes = false, doUseTrails = false;
 
         private static myScreenGradient grad = null;
 
@@ -66,6 +68,13 @@ namespace my
         {
             doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = true;
+            doFillShapes = myUtils.randomBool(rand);
+
+            doUseTrails = true;
+            nTrail = 50;
+            trailOpacity = 0.2f + myUtils.randFloat(rand) * 0.1f;
+
+            moveMode = rand.Next(5);
 
             renderDelay = rand.Next(3) + 1;
 
@@ -86,6 +95,9 @@ namespace my
                             $"n = {nStr(n)}\n"                       +
                             $"cellSize = {cellSize}\n"               +
                             $"colorMode = {colorMode}\n"             +
+                            $"doFillShapes = {doFillShapes}\n"       +
+                            $"doUseTrails = {doUseTrails}\n"         +
+                            $"nTrail = {nTrail}\n"                   +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -122,10 +134,49 @@ namespace my
                 obj.size = rand.Next(3) + 1;
                 obj.dAngle = myUtils.randFloatSigned(rand) * 0.01f;
 
-                obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
-                obj.dy = myUtils.randFloatSigned(rand) * 0.95f;
+                switch (moveMode)
+                {
+                    // random
+                    case 0:
+                        obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
+                        obj.dy = myUtils.randFloatSigned(rand) * 0.95f;
+                        break;
+
+                    // horizontal
+                    case 1:
+                        obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
+                        obj.dy = 0;
+                        break;
+
+                    // vertical
+                    case 2:
+                        obj.dx = 0;
+                        obj.dy = myUtils.randFloatSigned(rand) * 0.95f;
+                        break;
+
+                    // 45 degrees
+                    case 3:
+                        obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
+                        obj.dy = obj.dx;
+                        break;
+
+                    // Horizontal/vertical
+                    case 4:
+                        if (id % 2 == 0)
+                        {
+                            obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
+                            obj.dy = 0;
+                        }
+                        else
+                        {
+                            obj.dx = 0;
+                            obj.dy = myUtils.randFloatSigned(rand) * 0.95f;
+                        }
+                        break;
+                }
 
                 obj.cnt = 100 + rand.Next(100);
+                obj.A = (float)rand.NextDouble();
 
                 switch (colorMode)
                 {
@@ -138,6 +189,19 @@ namespace my
                     case 1:
                         colorPicker.getColor(obj.x, obj.y, ref obj.R, ref obj.G, ref obj.B);
                         break;
+                }
+
+                // Initialize Trail
+                {
+                    if (doUseTrails && obj.trail == null)
+                    {
+                        obj.trail = new myParticleTrail(nTrail, obj.x, obj.y);
+                    }
+
+                    if (obj.trail != null)
+                    {
+                        obj.trail.updateDa(trailOpacity);
+                    }
                 }
 
                 _children.Add(obj);
@@ -163,6 +227,12 @@ namespace my
                 obj.x += obj.dx;
                 obj.y += obj.dy;
                 obj.angle += obj.dAngle;
+
+                // Update trail info
+                if (doUseTrails)
+                {
+                    obj.trail.update(obj.x, obj.y);
+                }
 
                 if (obj.x < x1 && obj.dx < 0)
                     obj.dx *= -1;
@@ -195,6 +265,12 @@ namespace my
             else
             {
                 float size2x = size * 2;
+
+                // Draw the trail
+                if (doUseTrails)
+                {
+                    trail.Show(R, G, B, trailOpacity);
+                }
 
                 switch (shape)
                 {
@@ -265,6 +341,7 @@ namespace my
                 // Render Frame
                 {
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i < Count; i++)
                     {
@@ -273,6 +350,8 @@ namespace my
                         obj.Show();
                         obj.Move();
                     }
+
+                    myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
                     {
@@ -310,6 +389,7 @@ namespace my
             base.initShapes(shape, NN, 0);
 
             int nLineInst = gl_Width / cellSize + gl_Height / cellSize + 10;
+            nLineInst += doUseTrails ? (NN * nTrail) : 0;
 
             myPrimitive.init_LineInst(nLineInst);
 
