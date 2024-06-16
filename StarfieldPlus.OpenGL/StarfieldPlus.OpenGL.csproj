@@ -123,7 +123,7 @@
     <Compile Include="myScrObjects\myObj_0541.cs" />
     <Compile Include="myScrObjects\myObj_9999_test_002b.cs" />
     <Compile Include="myScrObjects\myObj_9999_test_002a.cs" />
-    <Compile Include="myScrObjects\myObj_Extras.cs" />
+    <Compile Include="myClasses\myObj_Extras.cs" />
     <Compile Include="myScrObjects\myObj_0072.cs" />
     <Compile Include="myScrObjects\myObj_0510.cs" />
     <Compile Include="myScrObjects\myObj_0520.cs" />
