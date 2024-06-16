@@ -74,7 +74,7 @@ namespace my
             nTrail = 50;
             trailOpacity = 0.2f + myUtils.randFloat(rand) * 0.1f;
 
-            moveMode = rand.Next(5);
+            moveMode = rand.Next(9);
 
             renderDelay = rand.Next(3) + 1;
 
@@ -94,6 +94,7 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"n = {nStr(n)}\n"                       +
                             $"cellSize = {cellSize}\n"               +
+                            $"moveMode = {moveMode}\n"               +
                             $"colorMode = {colorMode}\n"             +
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doUseTrails = {doUseTrails}\n"         +
@@ -134,29 +135,46 @@ namespace my
                 obj.size = rand.Next(3) + 1;
                 obj.dAngle = myUtils.randFloatSigned(rand) * 0.01f;
 
+                int moveModeLocal = moveMode;
+
                 switch (moveMode)
+                {
+                    // Each particle's moving patern is one of predefined modes
+                    case 5:
+                    case 6:
+                        moveModeLocal = rand.Next(5);
+                        break;
+
+                    // Each cell's moving patern is one of predefined modes
+                    case 7:
+                    case 8:
+                        moveModeLocal = (100 + (int)id) % 5;
+                        break;
+                }
+
+                switch (moveModeLocal)
                 {
                     // random
                     case 0:
-                        obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
-                        obj.dy = myUtils.randFloatSigned(rand) * 0.95f;
+                        obj.dx = myUtils.randFloatSigned(rand) + 0.05f;
+                        obj.dy = myUtils.randFloatSigned(rand) + 0.05f;
                         break;
 
                     // horizontal
                     case 1:
-                        obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
+                        obj.dx = myUtils.randFloatSigned(rand) + 0.05f;
                         obj.dy = 0;
                         break;
 
                     // vertical
                     case 2:
                         obj.dx = 0;
-                        obj.dy = myUtils.randFloatSigned(rand) * 0.95f;
+                        obj.dy = myUtils.randFloatSigned(rand) + 0.05f;
                         break;
 
                     // 45 degrees
                     case 3:
-                        obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
+                        obj.dx = myUtils.randFloatSigned(rand) + 0.05f;
                         obj.dy = obj.dx;
                         break;
 
@@ -164,13 +182,13 @@ namespace my
                     case 4:
                         if (id % 2 == 0)
                         {
-                            obj.dx = myUtils.randFloatSigned(rand) * 0.95f;
+                            obj.dx = myUtils.randFloatSigned(rand) + 0.05f;
                             obj.dy = 0;
                         }
                         else
                         {
                             obj.dx = 0;
-                            obj.dy = myUtils.randFloatSigned(rand) * 0.95f;
+                            obj.dy = myUtils.randFloatSigned(rand) + 0.05f;
                         }
                         break;
                 }
