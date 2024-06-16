@@ -94,10 +94,10 @@ public class ScreenSaver
         register(my.myObj_0000.Type);       // Star Field
         register(my.myObj_0010.Type);       // Randomly Roaming Squares (Snow Like)
         register(my.myObj_0011.Type);       // Randomly Roaming Lines (based on Randomly Roaming Squares)
-        register(my.myObj_0011a.Type);      // Particles with real trails
-        register(my.myObj_0011b.Type);      // Particles with real trails again
-        register(my.myObj_0011c.Type);      // Particles with real trails again again
-        register(my.myObj_0012.Type);       // Snow-like pattern made of different layers moving in different directions
+        register(my.myObj_0012.Type);       // Particles with real trails
+        register(my.myObj_0013.Type);       // Particles with real trails again
+        register(my.myObj_0014.Type);       // Particles with real trails again again
+        register(my.myObj_0015.Type);       // Snow-like pattern made of different layers moving in different directions
         register(my.myObj_0020.Type);       // Linearly Moving Shapes (Soap Bubbles Alike)
         register(my.myObj_0021.Type);       // Ever Growing Shapes located at the center of the screen + small offset
         register(my.myObj_0030.Type);       // Rain Drops (Vertical, Top-Down)
@@ -205,7 +205,7 @@ public class ScreenSaver
         register(my.myObj_0980.Type);       // Edge finding random algorythm
         register(my.myObj_0990.Type);       // Square/Rectangle Tunnel
         register(my.myObj_0992.Type);       // ...
-        register(my.myObj_1000.Type);       // ...
+        register(my.myObj_1000.Type);       // Bouncing particles inside grid cells
 
         // несколько партиклов, которые в ограниченной терротории рандомно двигаются туда и сюда.
         // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.

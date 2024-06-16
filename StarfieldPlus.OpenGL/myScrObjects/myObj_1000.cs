@@ -6,7 +6,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 
 
 /*
-    - ...
+    - Bouncing particles inside grid cells
 */
 
 
@@ -51,7 +51,7 @@ namespace my
             {
                 cellSize = 50 + rand.Next(100);
 
-                NN = 10000;
+                NN = 3000 + rand.Next(7001);
 
                 shape = rand.Next(5);
 
@@ -91,8 +91,8 @@ namespace my
             //string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"n = {nStr(n)}\n"                       +
+                            $"Cells Qt = {N}\n"                      +
+                            $"n = {nStr(n)} of {NN}\n"               +
                             $"cellSize = {cellSize}\n"               +
                             $"moveMode = {moveMode}\n"               +
                             $"colorMode = {colorMode}\n"             +

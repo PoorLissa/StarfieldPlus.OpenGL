@@ -5,34 +5,33 @@ using System.Collections.Generic;
 
 
 /*
-    - Particles with real trails again again
+    - Particles with real trails again
 */
 
 
 namespace my
 {
-    public class myObj_0011c : myObject
+    public class myObj_0013 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_0011c);
+		public static System.Type Type => typeof(myObj_0013);
 
-        private int cnt;
-        private float x, y, dx, dy, ddx, ddy;
+        private int sign;
+        private float x, y, dx, dy;
         private float size, A, R, G, B;
 
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrailMin = 50, nTrailMax = 111, startMode = 0, moveMode = 0, trailMode = 0, reflectMode = 0;
-        private static bool doFillShapes = true, doDrawToWhite = true, doUseBlackBox = true, doUseLifeCnt = true;
-        private static int X = gl_x0, Y = gl_y0, blackBoxW = 0, blackBoxH = 0, maxCnt = 0;
+        private static int N = 0, shape = 0, nTrailMin = 50, nTrailMax = 111, moveMode = 0, trailMode = 0;
+        private static bool doFillShapes = true, doDrawToWhite = true;
 
         private static int[] i_arr = null;
         private static float[] f_arr = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_0011c()
+        public myObj_0013()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -70,8 +69,6 @@ namespace my
                     case 1: nTrailMax = 75 + rand.Next(333); break;
                     case 2: nTrailMax = 99 + rand.Next(666); break;
                 }
-
-                startMode = rand.Next(5);
             }
 
             initLocal();
@@ -82,29 +79,23 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            X = rand.Next(gl_Width);
-            Y = rand.Next(gl_Height);
-
             doClearBuffer = true;
             doFillShapes  = myUtils.randomChance(rand, 1, 2);
             doDrawToWhite = myUtils.randomChance(rand, 1, 3);
-            doUseBlackBox = myUtils.randomChance(rand, 1, 2);
-            doUseLifeCnt  = myUtils.randomChance(rand, 4, 5);
             renderDelay = 0;
 
-            maxCnt = 333 + rand.Next(999);
 
-            blackBoxW = 111 + rand.Next(gl_x0 / 2);
-            blackBoxH = 111 + rand.Next(gl_y0 / 2);
-
-            moveMode  = rand.Next(3);
+            moveMode  = rand.Next(6);
             trailMode = rand.Next(8);
-            reflectMode = rand.Next(2);
 
-            i_arr[0] = 1 + rand.Next(3);                        // speed factor for dx, dy
 
             switch (moveMode)
             {
+                case 4:
+                case 5:
+                    i_arr[0] = 2 + rand.Next(15);
+                    i_arr[1] = 2 + rand.Next(15);
+                    break;
             }
 
             switch (trailMode)
@@ -164,8 +155,6 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doDrawToWhite = {doDrawToWhite}\n"     +
-                            $"doUseBlackBox = {doUseBlackBox}\n"     +
-                            $"doUseLifeCnt = {doUseLifeCnt}\n"       +
                             $"moveMode = {moveMode}\n"               +
                             $"trailMode = {trailMode}\n"             +
                             $"nTrailMin = {nTrailMin}\n"             +
@@ -190,76 +179,30 @@ namespace my
 
         protected override void generateNew()
         {
-            cnt = 333 + rand.Next(maxCnt);
+            int nTrail = nTrailMin + rand.Next(nTrailMax);
+
+            A = 0.5f;
             size = rand.Next(3) + 3;
-            A = myUtils.randFloat(rand, 0.1f);
-            colorPicker.getColorRand(ref R, ref G, ref B);
 
-            // Set starting point
-            switch (startMode)
-            {
-                case 0:
-                    x = gl_x0;
-                    y = gl_y0;
-                    break;
-
-                case 1:
-                    x = X;
-                    y = Y;
-                    break;
-
-                case 2:
-                    x = rand.Next(gl_Width);
-                    y = Y;
-                    break;
-
-                case 3:
-                    y = rand.Next(gl_Height);
-                    x = X;
-                    break;
-
-                case 4:
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
-                    break;
-            }
-
-            // Set dx, dy, ddx, ddy
             switch (moveMode)
             {
                 case 0:
-                    {
-                        dx = myUtils.randFloatSigned(rand, 0.01f) * 3;
-                        ddx = 0;
-
-                        dy = 0;
-                        ddy = 0.01f + myUtils.randFloat(rand) * 0.01f * i_arr[0];
-
-                        // Direction: up or down
-                        ddy *= myUtils.randomSign(rand);
-                    }
-                    break;
-
                 case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
                     {
-                        dy = myUtils.randFloatSigned(rand, 0.01f) * 3;
-                        ddy = 0;
+                        A = myUtils.randFloat(rand, 0.1f);
+                        colorPicker.getColorRand(ref R, ref G, ref B);
+
+                        x = rand.Next(gl_Width);
+                        y = gl_Height;
 
                         dx = 0;
-                        ddx = 0.01f + myUtils.randFloat(rand) * 0.01f * i_arr[0];
+                        dy = -myUtils.randFloat(rand, 0.01f) * 3;
 
-                        // Direction: left or right
-                        ddx *= myUtils.randomSign(rand);
-                    }
-                    break;
-
-                case 2:
-                    {
-                        dx = myUtils.randFloatSigned(rand, 0.01f) * 3;
-                        dy = myUtils.randFloatSigned(rand, 0.01f) * 3;
-
-                        ddx = (0.01f + myUtils.randFloat(rand) * 0.01f) * myUtils.randomSign(rand) * i_arr[0];
-                        ddy = (0.01f + myUtils.randFloat(rand) * 0.01f) * myUtils.randomSign(rand) * i_arr[0];
+                        sign = myUtils.randomSign(rand);
                     }
                     break;
             }
@@ -267,7 +210,6 @@ namespace my
             // Initialize Trail
             if (trail == null)
             {
-                int nTrail = nTrailMin + rand.Next(nTrailMax);
                 trail = new myParticleTrail(nTrail, x, y);
             }
             else
@@ -285,84 +227,120 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void reflect1()
+        private void endOfLife(bool condition)
         {
-            if (y > gl_Height && dy > 0)
-                dy *= -1;
+            if (condition)
+            {
+                A -= 0.001f;
 
-            if (y < 0 && dy < 0)
-                dy *= -1;
-
-            if (x < 0 && dx < 0)
-                dx *= -1;
-
-            if (x > gl_Width && dx > 0)
-                dx *= -1;
+                if (A < 0)
+                    generateNew();
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
-        private void reflect2()
-        {
-            float val = 0.05f;
-
-            if (y > gl_Height)
-                dy -= val;
-
-            if (y < 0)
-                dy += val;
-
-            if (x < 0)
-                dx += val;
-
-            if (x > gl_Width)
-                dx -= val;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
 
         protected override void Move()
         {
-            if (doUseLifeCnt && --cnt < 0)
-            {
-                A -= 0.01f;
-
-                if (A < 0)
-                {
-                    generateNew();
-                }
-            }
-
             switch (moveMode)
             {
+                // Straight bottom to top
                 case 0:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        endOfLife(y < 0);
+                    }
+                    break;
+
+                // Angle rotations, speed maintained
                 case 1:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (dx == 0 && myUtils.randomChance(rand, 1, 33))
+                        {
+                            dx = dy * myUtils.randomSign(rand);
+                            dy = 0;
+                        }
+
+                        if (dy == 0 && myUtils.randomChance(rand, 1, 15))
+                        {
+                            dy = dx < 0 ? dx : -dx;
+                            dx = 0;
+                        }
+
+                        endOfLife(y < 0);
+                    }
+                    break;
+
+                // Angle rotations, speed random each time
                 case 2:
                     {
                         x += dx;
                         y += dy;
 
-                        // In blackBoxMode, acceleration is applied only when the particle is outside of the box:
-                        if (doUseBlackBox)
+                        if (dx == 0 && myUtils.randomChance(rand, 1, 33))
                         {
-                            if (x < blackBoxW || x > gl_Width - blackBoxW || y < blackBoxH || y > gl_Height - blackBoxH)
+                            dx = myUtils.randFloatSigned(rand, 0.01f) * 3;
+                            dy = 0;
+                        }
+
+                        if (dy == 0 && myUtils.randomChance(rand, 1, 15))
+                        {
+                            dy = -myUtils.randFloat(rand, 0.01f) * 3;
+                            dx = 0;
+                        }
+
+                        endOfLife(y < 0);
+                    }
+                    break;
+
+                // Angle rotations, speed maintained, x-direction always alternates
+                case 3:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (dx == 0)
+                        {
+                            if (myUtils.randomChance(rand, 1, 33))
                             {
-                                dx += ddx;
-                                dy += ddy;
+                                dx = -dy * sign;
+                                dy = 0;
+                                sign *= -1;
                             }
                         }
                         else
                         {
-                            dx += ddx;
-                            dy += ddy;
+                            if (myUtils.randomChance(rand, 1, 15))
+                            {
+                                dy = dx < 0 ? dx : -dx;
+                                dx = 0;
+                            }
                         }
 
-                        switch (reflectMode)
-                        {
-                            case 0: reflect1(); break;
-                            case 1: reflect2(); break;
-                        }
+                        endOfLife(y < 0);
+                    }
+                    break;
+
+                case 4:
+                    {
+                        y += dy;
+                        x += (int)(1.1 * Math.Sin(y / i_arr[0])) * i_arr[1];
+
+                        endOfLife(y < 0);
+                    }
+                    break;
+
+                case 5:
+                    {
+                        y += dy;
+                        x += (int)(1.1 * Math.Sin(y % 100)) * i_arr[1];
+
+                        endOfLife(y < 0);
                     }
                     break;
             }
@@ -524,7 +502,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_0011c;
+                        var obj = list[i] as myObj_0013;
 
                         obj.Show();
                         obj.Move();
@@ -546,7 +524,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_0011c());
+                    list.Add(new myObj_0013());
                 }
 
                 cnt++;

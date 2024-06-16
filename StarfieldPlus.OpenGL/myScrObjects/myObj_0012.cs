@@ -1,11 +1,14 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
+using System;
 
 
 /*
-    - Snow-like pattern made of different layers moving in different directions
+    - Particles with real trails
+
+    Smooth trail howto:
+    https://kosmonautblog.wordpress.com/2016/07/29/geometry-trails-tire-tracks-tutorial/
 */
 
 
@@ -17,15 +20,23 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_0012);
 
-        private float x, y, dx, dy, rad, t, dt;
-        private float size, A, R, G, B, angle = 0, dAngle = 0;
+        private float x, y, dx, dy, X, Y, a, da, angle, dAngle, radx, rady;
+        private float A, R, G, B;
+        private int cnt;
+        private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, mode = 0, rotateMode = 0, step = 0;
-        private static int minX = 0, minY = 0, maxX = 0, maxY = 0;
-        private static bool doFillShapes = false, doTraceColor = false, doUseBaseMove = true;
-        private static float dimAlpha = 0.05f, sAngle = 0, dimRate = 0;
+        private static int N = 0, nTrail = 0, x0 = gl_x0, y0 = gl_y0;
+        private static int moveMode = 0, lineWidth = 1, startMode = 0, borderOffset = 0, randomizeTrail1Mode = 0, randomizeTrail2Mode = 0, trailModifyMode = 0;
+        private static bool doRandomizeSpeed = true, doRandomizeTrail1 = true, doRandomizeTrail2 = true, doVaryRadius = true;
+        private static float spdFactor = 10.0f;
+        private static float randomizeTrail1Factor = 0, randomizeTrail2Factor = 0;
+        private static float t = 0, dt = 0;
+        private static float borderRepulsionFactor = 0;
 
-        private static myScreenGradient grad = null;
+        private static int int_01 = 0, int_02 = 0;
+
+        private static myFreeShader shader = null;
+        static myTexRectangle tex = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -45,11 +56,38 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10000) + 1234;
+                dt = 0.01f;
 
-                //N = 33333;
+                switch (rand.Next(4))
+                {
+                    case 0:
+                        {
+                            N = 3 + rand.Next(33);
+                            nTrail = 100 + rand.Next(500);
+                        }
+                        break;
 
-                shape = rand.Next(5);
+                    case 1:
+                        {
+                            N = 3 + rand.Next(111);
+                            nTrail = 100 + rand.Next(333);
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            N = 111 + rand.Next(666);
+                            nTrail = 50 + rand.Next(111);
+                        }
+                        break;
+
+                    case 3:
+                        {
+                            N = 111 + rand.Next(777);
+                            nTrail = 25 + rand.Next(50);
+                        }
+                        break;
+                }
             }
 
             initLocal();
@@ -60,37 +98,61 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doUseBaseMove = true;
-            doClearBuffer = myUtils.randomChance(rand, 10, 11);
-            doFillShapes  = myUtils.randomChance(rand, 1, 3);
-            doTraceColor  = myUtils.randomChance(rand, 1, 2) &&
-                                        (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT ||
-                                         colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE
-            );
+            doClearBuffer = true;
 
-            rotateMode = rand.Next(3);
-            step = rand.Next(333) + 1;
+            doVaryRadius = myUtils.randomChance(rand, 1, 3);
 
-            dimRate = myUtils.randomChance(rand, 1, 3)
-                ? myUtils.randFloat(rand) * 0.005f
-                : 0.0f;
+            doRandomizeTrail1 = myUtils.randomBool(rand);
+            doRandomizeTrail2 = myUtils.randomBool(rand);
 
+            randomizeTrail1Mode = rand.Next(2);
+            randomizeTrail2Mode = rand.Next(4);
+
+            randomizeTrail1Factor = rand.Next(23) + 1;
+            randomizeTrail2Factor = rand.Next(15) + 1;
+
+            moveMode = rand.Next(10);
+            startMode = rand.Next(4);
+
+            // line width
+            switch (rand.Next(3))
             {
-                int offset = rand.Next(234);
-
-                minX = offset;
-                minY = offset;
-                maxX = gl_Width  - offset;
-                maxY = gl_Height - offset;
+                case 0: lineWidth = rand.Next(3) + 1; break;
+                case 1: lineWidth = rand.Next(5) + 1; break;
+                case 2: lineWidth = rand.Next(7) + 1; break;
             }
 
-            mode = rand.Next(24);
+            borderOffset = rand.Next(666);
+            doRandomizeSpeed = myUtils.randomChance(rand, 1, 5);
+            trailModifyMode = rand.Next(13);
 
-#if DEBUG
-            mode = 22;
-#endif
+            borderRepulsionFactor = 0.1f + myUtils.randFloat(rand) * 0.5f;
 
-            renderDelay = rand.Next(11) + 1;
+            // Set central point for the linear move modes
+            if (myUtils.randomChance(rand, 2, 3))
+            {
+                x0 = rand.Next(gl_Width);
+                y0 = rand.Next(gl_Height);
+            }
+
+            switch (moveMode)
+            {
+                case 7:
+                case 8:
+                    int_01 = 10 + rand.Next(90);
+                    break;
+
+                case 9:
+                    doRandomizeSpeed = false;
+                    int_01 = rand.Next(6);
+                    break;
+
+                case 10:
+                    doRandomizeSpeed = myUtils.randomChance(rand, 1, 7);
+                    int_01 = 1 + rand.Next(8);
+                    int_02 = 2 + rand.Next(7);
+                    break;
+            }
 
             return;
         }
@@ -101,22 +163,47 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
+            string nStr(int n) { return n.ToString("N0"); }
             string fStr(float f) { return f.ToString("0.000"); }
 
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"doFillShapes = {doFillShapes}\n"       +
-                            $"doTraceColor = {doTraceColor}\n"       +
-                            $"rotateMode = {rotateMode}\n"           +
-                            $"mode = {mode}\n"                       +
-                            $"offset = {minX}\n"                     +
-                            $"dimRate = {fStr(dimRate)}\n"           +
-                            $"renderDelay = {renderDelay}\n"         +
-                            $"file: {colorPicker.GetFileName()}"
-                ;
-            return str;
+            if (moveMode < 3)
+            {
+                string brf = $"{fStr(borderRepulsionFactor)}";
+
+                string str = $"Obj = {Type}\n\n"                        	+
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                                $"doClearBuffer = {doClearBuffer}\n"        +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +
+                                $"moveMode = {moveMode}\n"                  +
+                                $"startMode = {startMode}\n"                +
+                                $"lineWidth = {lineWidth}\n"                +
+                                $"borderRepulsionFactor = {brf}\n"          +
+                                $"nTrail = {nTrail}\n"                      +
+                                $"borderOffset = {borderOffset}\n"          +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +
+                                $"renderDelay = {renderDelay}\n"            +
+                                $"int_01 = {int_01}\n"                      +
+                                $"file: {colorPicker.GetFileName()}"
+                    ;
+                return str;
+            }
+            else
+            {
+                string str = $"Obj = myObj_0012\n\n"                       +
+                                $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                                $"doClearBuffer = {doClearBuffer}\n"        +
+                                $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +
+                                $"moveMode = {moveMode}\n"                  +
+                                $"startMode = {startMode}\n"                +
+                                $"lineWidth = {lineWidth}\n"                +
+                                $"nTrail = {nTrail}\n"                      +
+                                $"doVaryRadius = {doVaryRadius}\n"          +
+                                $"renderDelay = {renderDelay}\n"            +
+                                $"int_01 = {int_01}\n"                      +
+                                $"file: {colorPicker.GetFileName()}"
+                    ;
+                return str;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -124,628 +211,124 @@ namespace my
         // 
         protected override void setNextMode()
         {
+            System.Threading.Thread.Sleep(17);
+
             initLocal();
+            myPrimitive._LineInst.setLineWidth(lineWidth);
+
+            System.Threading.Thread.Sleep(17);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void generateNew()
         {
-            size = rand.Next(5) + 3;
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
+            dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
+            dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * spdFactor;
 
-            // Set angle / rotation
-            switch (rotateMode)
+            // Initial position of all the trail points
+            switch (startMode)
             {
                 case 0:
-                    angle = 0;
-                    dAngle = 0;
                     break;
 
                 case 1:
-                    angle = rand.Next(111) * myUtils.randFloat(rand);
-                    dAngle = 0;
+                    x = x0;
                     break;
 
                 case 2:
-                    angle = 0;
-                    dAngle = myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.01f;
+                    y = y0;
+                    break;
+
+                case 3:
+                    x = x0;
+                    y = y0;
                     break;
             }
 
-            switch (mode)
+            // Circular motion setup
+            if ((moveMode >= 3 && moveMode <= 6) || (moveMode == 10))
             {
-                // Random direction, start at random position
-                case 000:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        dx = myUtils.randFloat(rand, 0.05f) * myUtils.randomSign(rand);
-                        dy = myUtils.randFloat(rand, 0.05f) * myUtils.randomSign(rand);
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.1f;
-                    }
-                    break;
-
-                // Random direction, start at a central line
-                case 001:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
-
-                        dx = myUtils.randFloat(rand, 0.05f) * myUtils.randomSign(rand);
-                        dy = myUtils.randFloat(rand, 0.05f) * myUtils.randomSign(rand);
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.1f;
-                    }
-                    break;
-
-                // Random direction, start at a top or bottom line
-                case 002:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(2) == 0
-                            ? minY + rand.Next(50) * myUtils.randomSign(rand)
-                            : maxY + rand.Next(50) * myUtils.randomSign(rand);
-
-                        dx = myUtils.randFloat(rand, 0.05f) * myUtils.randomSign(rand);
-                        dy = myUtils.randFloat(rand, 0.05f) * myUtils.randomSign(rand);
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.1f;
-                    }
-                    break;
-
-                // Random direction, start at center spot
-                case 003:
-                    {
-                        x = gl_x0 + rand.Next(50) * myUtils.randomSign(rand);
-                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
-
-                        dx = myUtils.randFloat(rand, 0.05f) * myUtils.randomSign(rand);
-                        dy = myUtils.randFloat(rand, 0.05f) * myUtils.randomSign(rand);
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.1f;
-                    }
-                    break;
-
-                // 45 degrees direction, start at a random position
-                case 004:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        switch (rand.Next(2))
-                        {
-                            case 0:
-                                dx = myUtils.randFloat(rand, 0.05f);
-                                dy = dx;
-                                A = 0.25f + myUtils.randFloat(rand) * 0.1f;
-                                break;
-
-                            case 1:
-                                dx = -myUtils.randFloat(rand, 0.05f);
-                                dy = -dx;
-                                A = 0.1f + myUtils.randFloat(rand) * 0.05f;
-                                break;
-                        }
-                    }
-                    break;
-
-                // 45 degrees direction, start at a top line
-                case 005:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = minY + rand.Next(50) * myUtils.randomSign(rand);
-
-                        switch (rand.Next(2))
-                        {
-                            case 0:
-                                dx = myUtils.randFloat(rand, 0.05f);
-                                dy = dx;
-                                A = 0.25f + myUtils.randFloat(rand) * 0.1f;
-                                break;
-
-                            case 1:
-                                dx = -myUtils.randFloat(rand, 0.05f);
-                                dy = -dx;
-                                A = 0.1f + myUtils.randFloat(rand) * 0.05f;
-                                break;
-                        }
-                    }
-                    break;
-
-                // Vertical and horizontal direction, start at a random position
-                case 006:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        switch (rand.Next(2))
-                        {
-                            case 0:
-                                dx = myUtils.randFloat(rand, 0.05f);
-                                dy = 0;
-                                A = 0.25f + myUtils.randFloat(rand) * 0.1f;
-                                break;
-
-                            case 1:
-                                dy = myUtils.randFloat(rand, 0.05f);
-                                dx = 0;
-                                A = 0.1f + myUtils.randFloat(rand) * 0.05f;
-                                break;
-                        }
-                    }
-                    break;
-
-                // Vertical + horizontal + diagonal direction, start at a random position
-                case 007:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        switch (rand.Next(3))
-                        {
-                            case 0:
-                                dx = myUtils.randFloat(rand, 0.05f);
-                                dy = 0;
-                                A = 0.25f + myUtils.randFloat(rand) * 0.1f;
-                                break;
-
-                            case 1:
-                                dy = myUtils.randFloat(rand, 0.05f);
-                                dx = 0;
-                                A = 0.1f + myUtils.randFloat(rand) * 0.05f;
-                                break;
-
-                            case 2:
-                                dx = -myUtils.randFloat(rand, 0.05f);
-                                dy = dx;
-                                A = 0.2f + myUtils.randFloat(rand) * 0.05f;
-                                break;
-                        }
-                    }
-                    break;
-
-                // All the particles move in the same direction, but the angle constantly changes; start at a random position
-                case 008:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        float spd = 5;
-
-                        dx = spd * (float)Math.Sin(sAngle);
-                        dy = spd * (float)Math.Cos(sAngle);
-
-                        sAngle += 0.001f;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-                    }
-                    break;
-
-                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a random position
-                case 009:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        float spd = 5;
-
-                        dx = spd * (float)Math.Sin(sAngle);
-                        dy = spd * (float)Math.Cos(sAngle);
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        sAngle += 0.001f;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-                    }
-                    break;
-
-                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a central spot
-                case 010:
-                    {
-                        x = gl_x0 + rand.Next(50) * myUtils.randomSign(rand);
-                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
-
-                        float spd = 5;
-
-                        dx = spd * (float)Math.Sin(sAngle);
-                        dy = spd * (float)Math.Cos(sAngle);
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        sAngle += 0.001f;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-                    }
-                    break;
-
-                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a central spot
-                // Added 2 more streams with slower changing angle
-                case 011:
-                    {
-                        x = gl_x0 + rand.Next(50) * myUtils.randomSign(rand);
-                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
-
-                        float spd = 5;
-
-                        dx = spd * (float)Math.Sin(sAngle);
-                        dy = spd * (float)Math.Cos(sAngle);
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= 0.5f;
-                            dy *= 0.5f;
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        sAngle += 0.001f;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-                    }
-                    break;
-
-                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a central spot
-                // Added 2 more streams with half-angle
-                case 012:
-                    {
-                        x = gl_x0 + rand.Next(50) * myUtils.randomSign(rand);
-                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
-
-                        float spd = 5;
-
-                        dx = spd * (float)Math.Sin(sAngle);
-                        dy = spd * (float)Math.Cos(sAngle);
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx = spd * (float)Math.Sin(sAngle * 0.5f);
-                            dy = spd * (float)Math.Cos(sAngle * 0.5f);
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        sAngle += 0.001f;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-                    }
-                    break;
-
-                // All the particles move in the same direction + opposite direction, but the angle constantly changes; start at a central line
-                case 013:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = gl_y0 + rand.Next(50) * myUtils.randomSign(rand);
-
-                        float spd = 5;
-
-                        dx = spd * (float)Math.Sin(sAngle);
-                        dy = spd * (float)Math.Cos(sAngle);
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx = spd * (float)Math.Sin(sAngle / 2);
-                            dy = spd * (float)Math.Cos(sAngle / 2);
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        sAngle += 0.001f;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-                    }
-                    break;
-
-                // All the particles move in the same direction + opposite direction, but the angle constantly changes;
-                // Start at a central spot
-                // Increased angle change speed
-                // Angle randomized to get triangular distribution
-                case 014:
-                    {
-                        x = gl_x0 + rand.Next(11) * myUtils.randomSign(rand);
-                        y = gl_y0 + rand.Next(11) * myUtils.randomSign(rand);
-
-                        float spd = 5;
-
-                        dx = spd * (float)Math.Sin(sAngle + myUtils.randFloat(rand) * 0.25f);
-                        dy = spd * (float)Math.Cos(sAngle + myUtils.randFloat(rand) * 0.25f);
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        sAngle += 0.003f;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-                    }
-                    break;
-
-                // All the particles move in the same direction + opposite direction, but the angle constantly changes;
-                // Start at a central spot
-                // Increased angle change speed
-                // Angle randomized to get triangular distribution
-                // Added 1/2 chance to use a negative angle
-                case 015:
-                    {
-                        x = gl_x0 + rand.Next(11) * myUtils.randomSign(rand);
-                        y = gl_y0 + rand.Next(11) * myUtils.randomSign(rand);
-
-                        float spd = 5;
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx = spd * (float)Math.Sin(sAngle + myUtils.randFloat(rand) * 0.25f);
-                            dy = spd * (float)Math.Cos(sAngle + myUtils.randFloat(rand) * 0.25f);
-                        }
-                        else
-                        {
-                            dx = spd * (float)Math.Sin(-sAngle - myUtils.randFloat(rand) * 0.25f);
-                            dy = spd * (float)Math.Cos(-sAngle - myUtils.randFloat(rand) * 0.25f);
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        sAngle += 0.003f;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-                    }
-                    break;
-
-                // 45 degrees criss-cross movement; start position is random
-                case 016:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        dx = myUtils.randFloat(rand) + 0.1f;
-                        dy = dx;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dy *= -1;
-                            A /= 2;
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 10000))
-                        {
-                            step = rand.Next(333) + 1;
-                        }
-                    }
-                    break;
-
-                // 45 degrees criss-cross movement; start position is random, but aligned to a grid
-                case 017:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        x -= x % step;
-                        y -= y % step;
-
-                        dx = myUtils.randFloat(rand) + 0.1f;
-                        dy = dx;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dy *= -1;
-                            A /= 2;
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 10000))
-                        {
-                            step = rand.Next(333) + 1;
-                        }
-                    }
-                    break;
-
-                // 45 degrees criss-cross movement; start position is random;
-                // The points that get into the grid receive higher opacity
-                case 018:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        dx = myUtils.randFloat(rand) + 0.1f;
-                        dy = dx;
-
-                        A = 0.1f + myUtils.randFloat(rand) * 0.25f;
-
-                        if (x == x % step)
-                        {
-                            A += 0.2f;
-                        }
-
-                        if (y == y % step)
-                        {
-                            A += 0.2f;
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dy *= -1;
-                            A /= 2;
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 2))
-                        {
-                            dx *= -1;
-                            dy *= -1;
-                        }
-
-                        if (myUtils.randomChance(rand, 1, 10000))
-                        {
-                            step = rand.Next(333) + 1;
-                        }
-                    }
-                    break;
-
-                // Circular (spiral) motion
-                case 019:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        rad = rand.Next(333) + 50;
-
-                        t = myUtils.randFloat(rand) * rand.Next(111);
-                        dt = myUtils.randFloat(rand) * 0.05f;
-
-                        dx = dy = 0;
-
-                        A = 0.1f + myUtils.randFloat(rand) * 0.25f;
-                    }
-                    break;
-
-                // Horizontal, vertical and diagonal movement at a fixed speed, ver1
-                case 020:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-
-                        switch (rand.Next(3))
-                        {
-                            case 0:
-                                dx = 0;
-                                dy = 0.5f;
-                                break;
-
-                            case 1:
-                                dy = 0;
-                                dx = 0.5f;
-                                break;
-
-                            case 2:
-                                dx = -0.33f;
-                                dy = -0.33f;
-                                break;
-                        }
-                    }
-                    break;
-
-                // Horizontal, vertical and diagonal movement at a fixed speed, ver2
-                case 021:
-                    {
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        x -= x % step;
-                        y -= y % step;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-
-                        switch (rand.Next(3))
-                        {
-                            case 0:
-                                dx = 0;
-                                dy = 0.5f;
-                                break;
-
-                            case 1:
-                                dy = 0;
-                                dx = 0.5f;
-                                break;
-
-                            case 2:
-                                dx = -0.33f;
-                                dy = -0.33f;
-                                break;
-                        }
-                    }
-                    break;
-
-                // Oscillating movement along random line
-                case 022:
-                    {
-                        doUseBaseMove = false;
-
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-
-                        dx = (myUtils.randFloat(rand) + 0.1f) * myUtils.randomSign(rand);
-                        dy = (myUtils.randFloat(rand) + 0.1f) * myUtils.randomSign(rand);
-
-                        dt = myUtils.randFloat(rand) * 0.05f;
-                    }
-                    break;
-
-                // Oscillating movement along random line;
-                // Attached to grid
-                case 023:
-                    {
-                        doUseBaseMove = false;
-
-                        x = rand.Next(gl_Width);
-                        y = rand.Next(gl_Height);
-
-                        x -= x % step;
-                        y -= y % step;
-
-                        A = 0.2f + myUtils.randFloat(rand) * 0.5f;
-
-                        dx = (myUtils.randFloat(rand) + 0.1f) * myUtils.randomSign(rand);
-                        dy = (myUtils.randFloat(rand) + 0.1f) * myUtils.randomSign(rand);
-
-                        dt = myUtils.randFloat(rand) * 0.05f;
-                    }
-                    break;
-
-                // ======================================
-
-                case 099:
-                    {
-                    }
-                    break;
+                angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
+                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
+
+                switch (moveMode)
+                {
+                    // Circle
+                    case 3:
+                        radx = rady = rand.Next(gl_x0) + 3;
+                        break;
+
+                    // Horizontal Ellipse
+                    case 4:
+                        radx = rand.Next(gl_x0) + 3;
+                        rady = radx * myUtils.randFloat(rand);
+                        break;
+
+                    // Random Ellipse
+                    case 5:
+                        radx = rand.Next(gl_x0) + 3;
+                        rady = rand.Next(gl_x0) + 3;
+                        break;
+
+                    // Circle-to-Ellipse-and-back
+                    case 6:
+                        radx = rady = rand.Next(gl_x0) + 3;
+                        break;
+
+                    case 10:
+                        radx = rady = rand.Next(gl_x0) + 3;
+                        cnt = 100 + rand.Next(333);
+                        dAngle *= (1.0f / int_01);
+                        break;
+                }
+
+                MoveParticle();
             }
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            if (moveMode == 7 || moveMode == 8)
+            {
+                cnt = 3 + rand.Next(10);
+
+                switch (rand.Next(2))
+                {
+                    case 0: dx = 0; break;
+                    case 1: dy = 0; break;
+                }
+            }
+
+            if (moveMode == 9)
+            {
+                cnt = 33;
+
+                radx = rady = 500;
+
+                x = gl_x0;
+                y = gl_y0;
+
+                X = rand.Next(gl_Width);
+                Y = rand.Next(gl_Height);
+
+                dx = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * 10;
+                dy = myUtils.randFloat(rand, 0.1f) * myUtils.randomSign(rand) * 10;
+
+                angle = myUtils.randFloat(rand) * rand.Next(66) * myUtils.randomSign(rand);
+                dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f * myUtils.randomSign(rand);
+
+                MoveParticle();
+            }
+
+            A = 0.25f + myUtils.randFloat(rand) * 0.25f;
+            da = A / (nTrail + 1);
+            colorPicker.getColorRand(ref R, ref G, ref B);
+
+            // Initialize Trail
+            if (trail == null)
+            {
+                trail = new myParticleTrail(nTrail, x, y);
+            }
 
             return;
         }
@@ -754,37 +337,230 @@ namespace my
 
         protected override void Move()
         {
-            // Special cases
+            // Update trail info
             {
-                if (mode == 019)
-                    move_019();
-
-                if (mode == 022 || mode == 023)
-                    move_022();
-            }
-
-            if (doUseBaseMove)
-            {
-                x += dx;
-                y += dy;
-            }
-
-            angle += dAngle;
-
-            A -= dimRate;
-
-            if (doTraceColor && rand.Next(3) == 0)
-            {
-                colorPicker.getColor(x, y, ref R, ref G, ref B);
-            }
-
-            if (x < minX || x > maxX || y < minY || y > maxY)
-            {
-                A -= 0.005f;
-
-                if (A < 0)
+                if (doRandomizeTrail1)
                 {
-                    generateNew();
+                    float r1 = 0, r2 = 0;
+                    randomizeTrail1Factor = 10;
+
+                    switch (randomizeTrail1Mode)
+                    {
+                        case 0:
+                            r1 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail1Factor;
+                            r2 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail1Factor;
+                            break;
+
+                        case 1:
+                            r1 = (float)Math.Sin(x) * 3;
+                            r2 = (float)Math.Cos(y) * 3;
+                            break;
+                    }
+
+                    trail.update(x + r1, y + r2);
+                }
+                else
+                {
+                    trail.update(x, y);
+                }
+            }
+
+            a = A;
+
+            MoveParticle();
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void MoveParticle()
+        {
+            switch (moveMode)
+            {
+                case 0:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (x < 0 && dx < 0)
+                            dx *= -1;
+
+                        if (y < 0 && dy < 0)
+                            dy *= -1;
+
+                        if (x > gl_Width && dx > 0)
+                            dx *= -1;
+
+                        if (y > gl_Height && dy > 0)
+                            dy *= -1;
+                    }
+                    break;
+
+                case 1:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        if (x < borderOffset)
+                            dx += borderRepulsionFactor;
+
+                        if (y < borderOffset)
+                            dy += borderRepulsionFactor;
+
+                        if (x > gl_Width - borderOffset)
+                            dx -= borderRepulsionFactor;
+
+                        if (y > gl_Height - borderOffset)
+                            dy -= borderRepulsionFactor;
+                    }
+                    break;
+
+                case 2:
+                    {
+                        x += dx;
+                        y += dy;
+
+                        float val = myUtils.randFloat(rand) * 0.15f;
+
+                        if (x < borderOffset)
+                            dx += val;
+
+                        if (y < borderOffset)
+                            dy += val;
+
+                        if (x > gl_Width - borderOffset)
+                            dx -= val;
+
+                        if (y > gl_Height - borderOffset)
+                            dy -= val;
+                    }
+                    break;
+
+                // Circular motion
+                case 3:
+                case 4:
+                case 5:
+                    {
+                        x = gl_x0 + radx * (float)Math.Sin(angle);
+                        y = gl_y0 + rady * (float)Math.Cos(angle);
+
+                        angle += dAngle;
+
+                        if (doVaryRadius && myUtils.randomChance(rand, 1, 11))
+                        {
+                            radx += myUtils.randFloatSigned(rand);
+                            rady += myUtils.randFloatSigned(rand);
+                        }
+                    }
+                    break;
+
+                // Circular motion with varying y-radius
+                case 6:
+                    {
+                        x = gl_x0 + radx * (float)Math.Sin(angle);
+                        y = gl_y0 + rady * (float)Math.Cos(angle) * (float)Math.Sin(t * 0.05);
+
+                        angle += dAngle;
+
+                        if (doVaryRadius && myUtils.randomChance(rand, 1, 11))
+                        {
+                            radx += myUtils.randFloatSigned(rand);
+                            rady += myUtils.randFloatSigned(rand);
+                        }
+                    }
+                    break;
+
+                case 7:
+                case 8:
+                    {
+                        if (--cnt == 0)
+                        {
+                            switch (moveMode)
+                            {
+                                case 7: mode7GenerateNew(); break;
+                                case 8: mode8GenerateNew(); break;
+                            }
+                        }
+                        else
+                        {
+                            x += dx;
+                            y += dy;
+                        }
+                    }
+                    break;
+
+                case 9:
+                    {
+                        if (--cnt == 0)
+                        {
+                            mode9GenerateNew();
+                        }
+                        else
+                        {
+                            x += dx * (float)Math.Sin(angle);
+                            y += dy * (float)Math.Cos(angle);
+
+                            angle += dAngle;
+                        }
+                    }
+                    break;
+
+                case 10:
+                    {
+                        if (--cnt < 1)
+                        {
+                            if (cnt == 0)
+                            {
+                                dx = x - gl_x0;
+                                dy = y - gl_y0;
+
+                                int speed = 1 + rand.Next(int_02);
+
+                                float dist = speed / (float)Math.Sqrt(dx * dx + dy * dy);
+
+                                dx *= dist;
+                                dy *= dist;
+                            }
+
+                            if (cnt < -11)
+                            {
+                                x += dx;
+                                y += dy;
+
+                                if (x < 0 || y < 0 || x > gl_Width || y > gl_Height)
+                                {
+                                    A -= 0.01f;
+
+                                    if (A < 0)
+                                    {
+                                        generateNew();
+                                        trail.reset(x, y);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            x = gl_x0 + radx * (float)Math.Sin(angle);
+                            y = gl_y0 + rady * (float)Math.Cos(angle);
+
+                            angle += dAngle;
+                        }
+                    }
+                    break;
+            }
+
+            if (doRandomizeSpeed)
+            {
+                if (myUtils.randomChance(rand, 1, 5))
+                {
+                    dx += myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.5f;
+                }
+
+                if (myUtils.randomChance(rand, 1, 5))
+                {
+                    dy += myUtils.randFloatSigned(rand) * 0.5f;
                 }
             }
 
@@ -793,70 +569,96 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private void move_019()
-        {
-            x += (float)Math.Sin(t) * rad * 0.01f;
-            y += (float)Math.Cos(t) * rad * 0.01f;
-
-            t += dt;
-
-            rad -= 1;
-
-            if (rad <= 0)
-                generateNew();
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        private void move_022()
-        {
-            x += dx * (float)Math.Sin(t);
-            y += dy * (float)Math.Sin(t);
-
-            t += dt;
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
         protected override void Show()
         {
-            float size2x = size * 2;
-
-            switch (shape)
+            // Draw the trail
             {
-                // Instanced squares
-                case 0:
-                    myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                    myPrimitive._RectangleInst.setInstanceAngle(angle);
-                    break;
+                float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+                int i = 0;
 
-                // Instanced triangles
-                case 1:
-                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size, angle);
-                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
-                    break;
+                // Get the first pair of coordinates
+                trail.getXY(i++, ref x1, ref y1);
 
-                // Instanced circles
-                case 2:
-                    myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
-                    break;
+                for (; i < nTrail; i++)
+                {
+                    // Get the second pair of coordinates
+                    trail.getXY(i, ref x2, ref y2);
 
-                // Instanced pentagons
-                case 3:
-                    myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
-                    break;
+                    switch (trailModifyMode)
+                    {
+                        case 0:
+                            drawTailSegment(x1, y1 + i / 2, x2, y2 - i / 2);
+                            break;
 
-                // Instanced hexagons
-                case 4:
-                    myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
-                    break;
+                        default:
+                            drawTailSegment(x1, y1, x2, y2);
+                            break;
+                    }
+
+                    // Shift the first pair 1 position towards the end
+                    x1 = x2;
+                    y1 = y2;
+
+                    a -= da;
+                }
             }
 
-            return;
+            // Draw the particle
+            {
+                shader.SetColor(R, G, B, A * 1.5f);
+                shader.Draw(x, y, 8, 8, 10);
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void drawTailSegment(float x1, float y1, float x2, float y2)
+        {
+            if (x1 == x2 && y1 == y2)
+                return;
+
+            if (doRandomizeTrail2)
+            {
+                float r1 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail2Factor;
+                float r2 = myUtils.randFloat(rand) * myUtils.randomSign(rand) * randomizeTrail2Factor;
+
+                switch (randomizeTrail2Mode)
+                {
+                    case 0:
+                        myPrimitive._LineInst.setInstanceCoords(x1 + r1, y1 + r2, x2 + r1, y2 + r2);
+                        break;
+
+                    case 1:
+                        myPrimitive._LineInst.setInstanceCoords(x1, y1, x2 + r1, y2 + r2);
+                        break;
+
+                    case 2:
+                        myPrimitive._LineInst.setInstanceCoords(x1 + r1, y1, x2 + r2, y2);
+                        break;
+
+                    case 3:
+                        r1 = (float)System.Math.Sin(x1 + y1) * randomizeTrail2Factor;
+                        r2 = (float)System.Math.Sin(x2 + y2) * randomizeTrail2Factor;
+                        myPrimitive._LineInst.setInstanceCoords(x1 + r1, y1 + r2, x2 - r1, y2 - r2);
+                        break;
+                }
+            }
+            else
+            {
+                myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
+            }
+
+            myPrimitive._LineInst.setInstanceColor(R, G, B, a);
+
+#if false
+            int zz = 2;
+
+            myPrimitive._LineInst.setInstanceCoords(x1 - zz, y1 - zz, x2 - zz, y2 - zz);
+            myPrimitive._LineInst.setInstanceColor(R/2, G/2, B/2, a/2);
+
+            myPrimitive._LineInst.setInstanceCoords(x1 + zz, y1 + zz, x2 + zz, y2 + zz);
+            myPrimitive._LineInst.setInstanceColor(R/2, G/2, B/2, a/2);
+#endif
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -866,7 +668,10 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.1f);
+
+            clearScreenSetup(doClearBuffer, 0.13f);
+            glDrawBuffer(GL_BACK);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -880,17 +685,18 @@ namespace my
 
                 // Dim screen
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                    }
+                    glClear(GL_COLOR_BUFFER_BIT);
 
-                    grad.Draw();
+                    if (tex != null)
+                    {
+                        tex.setOpacity(0.9f);
+                        tex.Draw(0, 0, gl_Width, gl_Height);
+                    }
                 }
 
                 // Render Frame
                 {
-                    inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
                     {
@@ -900,16 +706,7 @@ namespace my
                         obj.Move();
                     }
 
-                    if (doFillShapes)
-                    {
-                        // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
-                        inst.Draw(true);
-                    }
-
-                    // Tell the fragment shader to do nothing with the existing instance opacity:
-                    inst.SetColorA(0);
-                    inst.Draw(false);
+                    myPrimitive._LineInst.Draw();
                 }
 
                 if (Count < N)
@@ -918,7 +715,7 @@ namespace my
                 }
 
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
+                t += dt;
             }
 
             return;
@@ -928,14 +725,150 @@ namespace my
 
         private void initShapes()
         {
-            base.initShapes(shape, N, 0);
+            myPrimitive.init_LineInst(N * nTrail);
+            myPrimitive._LineInst.setLineWidth(lineWidth);
 
-            grad = new myScreenGradient();
-            grad.SetRandomColors(rand, 0.23f);
+            getShader();
 
-            if (doClearBuffer == false)
+            var mode = (myColorPicker.colorMode)colorPicker.getMode();
+
+            if (mode == myColorPicker.colorMode.IMAGE || mode == myColorPicker.colorMode.SNAPSHOT)
             {
-                grad.SetOpacity(0.05f);
+                if (myUtils.randomChance(rand, 1, 3))
+                {
+                    tex = new myTexRectangle(colorPicker.getImg());
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void getShader()
+        {
+            string header = "";
+            string main = "";
+
+            my.myShaderHelpers.Shapes.getShader_000(ref rand, ref header, ref main);
+            shader = new myFreeShader(header, main);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void mode7GenerateNew()
+        {
+            float val = myUtils.randFloat(rand, 0.1f) * spdFactor;
+            cnt = 13 + rand.Next(int_01);
+
+            switch (rand.Next(2))
+            {
+                case 0:
+                    dx = 0;
+                    dy = val;
+
+                    if (y > gl_Height)
+                        dy *= -1;
+                    else if (y > 0)
+                        dy *= myUtils.randomSign(rand);
+                    break;
+
+                case 1:
+                    dx = val;
+                    dy = 0;
+
+                    if (x > gl_Width)
+                        dx *= -1;
+                    else if (x > 0)
+                        dx *= myUtils.randomSign(rand);
+                    break;
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void mode8GenerateNew()
+        {
+            float val = myUtils.randFloat(rand, 0.1f) * spdFactor;
+            cnt = 13 + rand.Next(int_01);
+
+            if (dx == 0)
+            {
+                dx = val;
+                dy = 0;
+
+                if (x > gl_Width)
+                    dx *= -1;
+                else if (x > 0)
+                    dx *= myUtils.randomSign(rand);
+            }
+            else
+            {
+                dx = 0;
+                dy = val;
+
+                if (y > gl_Height)
+                    dy *= -1;
+                else if (y > 0)
+                    dy *= myUtils.randomSign(rand);
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void mode9GenerateNew()
+        {
+            cnt = 33 + rand.Next(100);
+
+            if (x > gl_Width + 666 || x < -666 || y > gl_Height + 666 || y < -666)
+            {
+                generateNew();
+                trail.reset(x, y);
+                return;
+            }
+
+            float signx = myUtils.signOf(dx);
+            float signy = myUtils.signOf(dy);
+
+            float val1 = myUtils.randFloat(rand, 0.1f);
+            float val2 = myUtils.randFloat(rand, 0.1f);
+
+            int factor1 = (3 + rand.Next(11));
+            int factor2 = (3 + rand.Next(11));
+
+            switch (int_01)
+            {
+                case 0:
+                    dx = val1 * factor1 * myUtils.randomSign(rand);
+                    dy = val2 * factor2 * myUtils.randomSign(rand);
+                    break;
+
+                case 1:
+                    dx = val1 * factor1 * signx;
+                    dy = val2 * factor2 * signy;
+                    break;
+
+                case 2:
+                    dx = val1 * factor1;
+                    dy = val1 * factor1;
+                    break;
+
+                case 3:
+                    dx = val1 * factor1 * myUtils.randomSign(rand);
+                    dy = val1 * factor1 * myUtils.randomSign(rand);
+                    break;
+
+                case 4:
+                    dx = val1 * factor1 * signx;
+                    dy = val1 * factor1 * signy;
+                    break;
+
+                case 5:
+                    dx = Math.Abs(dx) * myUtils.randomSign(rand);
+                    dy = Math.Abs(dy) * myUtils.randomSign(rand);
+                    break;
             }
 
             return;

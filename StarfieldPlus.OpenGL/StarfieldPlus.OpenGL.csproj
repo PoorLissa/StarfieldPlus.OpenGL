@@ -68,7 +68,7 @@
   <ItemGroup>
     <Compile Include="myClasses\_ParticleTrail.cs" />
     <Compile Include="myScrObjects\myObj.cs" />
-    <Compile Include="myScrObjects\myObj_0011c.cs" />
+    <Compile Include="myScrObjects\myObj_0014.cs" />
     <Compile Include="myScrObjects\myObj_0021.cs" />
     <Compile Include="myScrObjects\myObj_0020.cs" />
     <Compile Include="myScrObjects\myObj_0042.cs" />
@@ -114,7 +114,7 @@
     <Compile Include="myScrObjects\myObj_0501.cs" />
     <Compile Include="myScrObjects\myObj_0500.cs" />
     <Compile Include="myScrObjects\myObj_0103.cs" />
-    <Compile Include="myScrObjects\myObj_0011b.cs" />
+    <Compile Include="myScrObjects\myObj_0013.cs" />
     <Compile Include="myScrObjects\myObj_0691.cs" />
     <Compile Include="myScrObjects\myObj_0901.cs" />
     <Compile Include="myScrObjects\myObj_0992.cs" />
@@ -127,7 +127,7 @@
     <Compile Include="myScrObjects\myObj_0072.cs" />
     <Compile Include="myScrObjects\myObj_0510.cs" />
     <Compile Include="myScrObjects\myObj_0520.cs" />
-    <Compile Include="myScrObjects\myObj_0012.cs" />
+    <Compile Include="myScrObjects\myObj_0015.cs" />
     <Compile Include="myScrObjects\myObj_0530.cs" />
     <Compile Include="myScrObjects\myObj_0540.cs" />
     <Compile Include="myScrObjects\myObj_0550.cs" />
@@ -137,7 +137,7 @@
     <Compile Include="myScrObjects\myObj_0590.cs" />
     <Compile Include="myScrObjects\myObj_0600.cs" />
     <Compile Include="myScrObjects\myObj_0610.cs" />
-    <Compile Include="myScrObjects\myObj_0011a.cs" />
+    <Compile Include="myScrObjects\myObj_0012.cs" />
     <Compile Include="myScrObjects\myObj_0620.cs" />
     <Compile Include="myScrObjects\myObj_0630.cs" />
     <Compile Include="myScrObjects\myObj_9999_test_001.cs" />
