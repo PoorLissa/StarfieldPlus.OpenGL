@@ -212,7 +212,7 @@ public class ScreenSaver
         // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.
         // Дальше они движутся, а соединения рисуются все время одни и те же
 
-        register(my.myObj_9998.Type);      // Test rotating shape, unfinished yet good
+        register(my.myObj_9998.Type);       // Test rotating shape, unfinished yet good
         registerTests(register);            // Register additional testing objects
 
         _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);
