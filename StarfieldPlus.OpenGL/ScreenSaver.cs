@@ -207,6 +207,7 @@ public class ScreenSaver
         register(my.myObj_0992.Type);       // ...
         register(my.myObj_1000.Type);       // Bouncing particles inside grid cells
         register(my.myObj_1010.Type);       // Lightnings
+        register(my.myObj_1020.Type);       // ...
 
         // несколько партиклов, которые в ограниченной терротории рандомно двигаются туда и сюда.
         // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.
