@@ -18,11 +18,11 @@ namespace my
 		public static System.Type Type => typeof(myObj_1020);
 
         private float x, y, Rad;
-        private float size, R, G, B;
+        private float size, R, G, B, angle, dAngle;
 
         private List<child> _children = null;
 
-        private static int N = 0, nChildren = 10, shape = 0, childMoveMode = 0;
+        private static int N = 0, nChildren = 10, shape = 0, childMoveMode = 0, startAngle = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -52,12 +52,16 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
+                N = 3;
 
                 nChildren = 100;
 
                 childMoveMode = rand.Next(3);
+                //childMoveMode = 0;
 
                 shape = rand.Next(5);
+
+                startAngle = myUtils.randomBool(rand) ? 1 : 0;
             }
 
             initLocal();
@@ -69,6 +73,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
+            doFillShapes = myUtils.randomBool(rand);
 
             renderDelay = rand.Next(3) + 1;
 
@@ -86,6 +91,8 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            $"nChildren = {nChildren}\n"             +
+                            $"total particles = {N * nChildren}\n"   +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -110,6 +117,9 @@ namespace my
             size = rand.Next(3) + 2;
             Rad = 100 + rand.Next(200);
 
+            angle = myUtils.randFloat(rand) * 123;
+            dAngle = myUtils.randFloatSigned(rand) * 0.2f;
+
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
@@ -124,21 +134,27 @@ namespace my
                 {
                     var obj = new child();
 
-                    obj.angle  = myUtils.randFloat(rand) * 123;
+                    obj.angle = myUtils.randFloat(rand) * 123;
 
                     switch (childMoveMode)
                     {
                         case 0:
+                            obj.angle = startAngle != 0 ? angle : obj.angle;
+                            obj.dAngle = myUtils.randFloat(rand) * 0.25f * 0.1f;
+                            break;
+
                         case 1:
                             obj.dAngle = myUtils.randFloat(rand) * 0.25f * 0.1f;
+                            obj.r = 33;
+                            obj.r = 33 + rand.Next(33);
                             break;
 
                         case 2:
                             obj.dAngle = myUtils.randomSign(rand) * 0.25f * 0.1f;
+                            obj.r = 33 + rand.Next(99);
                             break;
                     }
 
-                    obj.r = 33 + rand.Next(99);
                     obj.a = myUtils.randFloat(rand);
 
                     obj.x = x + (float)Math.Sin(obj.angle) * Rad;
@@ -158,6 +174,8 @@ namespace my
 
         protected override void Move()
         {
+            angle += dAngle;
+
             for (int i = 0; i < _children.Count; i++)
             {
                 var obj = _children[i];
@@ -179,6 +197,18 @@ namespace my
                     case 2:
                         obj.x = obj.x0 + (float)Math.Sin(obj.angle) * obj.r;
                         obj.y = obj.y0 + (float)Math.Cos(obj.angle) * obj.r;
+                        break;
+
+                    case 100:
+                        obj.x = x + (float)Math.Sin(obj.angle) * (Rad + (float)(Math.Sin(obj.angle) * 33 + 11 * Math.Sin(obj.angle * 15)));
+                        obj.y = y + (float)Math.Cos(obj.angle) * (Rad + (float)(Math.Cos(obj.angle) * 33 + 11 * Math.Cos(obj.angle * 15)));
+                        break;
+
+                    case 101:
+                        obj.x = x + (float)(Math.Sin(obj.angle) * (Rad + 13 * Math.Sin(obj.angle * 6 + angle * 0.23)));
+                        obj.y = y + (float)(Math.Cos(obj.angle) * (Rad + 11 * Math.Cos(obj.angle * 5 + angle * 0.27)));
+                        //obj.x = x + (float)Math.Sin(obj.angle) * (Rad + (float)(Math.Sin(obj.angle) * 33 + 11 * Math.Sin(angle * 0.25)));
+                        //obj.y = y + (float)Math.Cos(obj.angle) * (Rad + (float)(Math.Cos(obj.angle) * 33 + 13 * Math.Sin(angle * 0.25)));
                         break;
                 }
             }
