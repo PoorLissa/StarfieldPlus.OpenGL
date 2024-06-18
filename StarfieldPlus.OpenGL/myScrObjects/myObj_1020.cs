@@ -14,15 +14,15 @@ namespace my
     public class myObj_1020 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_1020);
 
-        private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float x, y, Rad;
+        private float size, R, G, B;
 
         private List<child> _children = null;
 
-        private static int N = 0, nChildren = 10, shape = 0;
+        private static int N = 0, nChildren = 10, shape = 0, childMoveMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -30,7 +30,7 @@ namespace my
 
         class child
         {
-            public float x, y, r, angle, dAngle;
+            public float x, y, r, x0, y0, angle, dAngle, a;
         };
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -52,7 +52,10 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 1;
+
+                nChildren = 100;
+
+                childMoveMode = rand.Next(3);
 
                 shape = rand.Next(5);
             }
@@ -104,12 +107,9 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-x = gl_x0;
-y = gl_y0;
-
             size = rand.Next(3) + 2;
+            Rad = 100 + rand.Next(200);
 
-            A = 0.5f;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
@@ -124,12 +124,30 @@ y = gl_y0;
                 {
                     var obj = new child();
 
-                    obj.r = 100 + rand.Next(100);
                     obj.angle  = myUtils.randFloat(rand) * 123;
-                    obj.dAngle = myUtils.randFloat(rand) * 0.25f * 0.001f;
 
-                    obj.x = x + (float)Math.Sin(obj.angle) * obj.r;
-                    obj.y = y + (float)Math.Cos(obj.angle) * obj.r;
+                    switch (childMoveMode)
+                    {
+                        case 0:
+                        case 1:
+                            obj.dAngle = myUtils.randFloat(rand) * 0.25f * 0.1f;
+                            break;
+
+                        case 2:
+                            obj.dAngle = myUtils.randomSign(rand) * 0.25f * 0.1f;
+                            break;
+                    }
+
+                    obj.r = 33 + rand.Next(99);
+                    obj.a = myUtils.randFloat(rand);
+
+                    obj.x = x + (float)Math.Sin(obj.angle) * Rad;
+                    obj.y = y + (float)Math.Cos(obj.angle) * Rad;
+
+                    obj.x0 = obj.x;
+                    obj.y0 = obj.y;
+
+                    _children.Add(obj);
                 }
             }
 
@@ -146,8 +164,23 @@ y = gl_y0;
 
                 obj.angle += obj.dAngle;
 
-                obj.x = x + (float)Math.Sin(obj.angle) * obj.r;
-                obj.y = y + (float)Math.Cos(obj.angle) * obj.r;
+                switch (childMoveMode)
+                {
+                    case 0:
+                        obj.x = x + (float)Math.Sin(obj.angle) * Rad;
+                        obj.y = y + (float)Math.Cos(obj.angle) * Rad;
+                        break;
+
+                    case 1:
+                        obj.x = obj.x0 + (float)Math.Sin(obj.angle) * obj.r;
+                        obj.y = obj.y0 + (float)Math.Cos(obj.angle) * obj.r;
+                        break;
+
+                    case 2:
+                        obj.x = obj.x0 + (float)Math.Sin(obj.angle) * obj.r;
+                        obj.y = obj.y0 + (float)Math.Cos(obj.angle) * obj.r;
+                        break;
+                }
             }
 
             if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
@@ -173,32 +206,32 @@ y = gl_y0;
                     // Instanced squares
                     case 0:
                         myPrimitive._RectangleInst.setInstanceCoords(obj.x - size, obj.y - size, size2x, size2x);
-                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, obj.a);
                         myPrimitive._RectangleInst.setInstanceAngle(obj.angle);
                         break;
 
                     // Instanced triangles
                     case 1:
                         myPrimitive._TriangleInst.setInstanceCoords(obj.x, obj.y, size2x, obj.angle);
-                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, obj.a);
                         break;
 
                     // Instanced circles
                     case 2:
                         myPrimitive._EllipseInst.setInstanceCoords(obj.x, obj.y, size2x, obj.angle);
-                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, obj.a);
                         break;
 
                     // Instanced pentagons
                     case 3:
                         myPrimitive._PentagonInst.setInstanceCoords(obj.x, obj.y, size2x, obj.angle);
-                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, obj.a);
                         break;
 
                     // Instanced hexagons
                     case 4:
                         myPrimitive._HexagonInst.setInstanceCoords(obj.x, obj.y, size2x, obj.angle);
-                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, obj.a);
                         break;
                 }
             }
@@ -228,14 +261,9 @@ y = gl_y0;
                 // Dim screen
                 {
                     if (doClearBuffer)
-                    {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -283,6 +311,7 @@ y = gl_y0;
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+            grad.SetOpacity(doClearBuffer ? 1 : 0.2f);
 
             return;
         }
