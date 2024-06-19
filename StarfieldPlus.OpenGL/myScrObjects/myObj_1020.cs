@@ -51,8 +51,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-                N = 3;
+                N = rand.Next(100) + 100;
 
                 nChildren = 100;
 
