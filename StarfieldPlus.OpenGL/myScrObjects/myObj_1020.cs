@@ -343,9 +343,6 @@ namespace my
             grad.SetRandomColors(rand, 0.2f);
             grad.SetOpacity(doClearBuffer ? 1 : 0.2f);
 
-            grad.SetColor(0.3f, 0.3f, 0.4f, 0.2f);
-            grad.SetColor2(0.5f, 0.3f, 0.3f, 0.2f);
-
             return;
         }
 
