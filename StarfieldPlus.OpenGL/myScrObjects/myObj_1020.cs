@@ -57,7 +57,7 @@ namespace my
                 nChildren = 100;
 
                 childMoveMode = rand.Next(3);
-                //childMoveMode = 0;
+                // childMoveMode = 1;
 
                 shape = rand.Next(5);
 
@@ -342,6 +342,9 @@ namespace my
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
             grad.SetOpacity(doClearBuffer ? 1 : 0.2f);
+
+            grad.SetColor(0.3f, 0.3f, 0.4f, 0.2f);
+            grad.SetColor2(0.5f, 0.3f, 0.3f, 0.2f);
 
             return;
         }
@@ -662,6 +665,7 @@ doClearBuffer = false;
                 // Dim screen
                 {
                     //grad.Draw();
+                    dimScreenRGB_Set(0, 0, 0);
                     dimScreen(0.02f);
                 }
 

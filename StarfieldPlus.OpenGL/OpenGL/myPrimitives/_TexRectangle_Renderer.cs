@@ -7,7 +7,7 @@ using System;
     https://learnopengl.com/Advanced-OpenGL/Framebuffers
 
     Texture attached to a framebuffer;
-    ALlows rendering to an off-screen texture, instead of the actual screen
+    Allows rendering to an off-screen texture, instead of the actual screen
 
     Known issues:
     Does not really render anything until an existing texture is rendered to it.
