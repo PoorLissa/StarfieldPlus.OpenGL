@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using static System.Net.Mime.MediaTypeNames;
 
 
 /*
@@ -25,8 +26,7 @@ namespace my
                            minSize = 5, maxSize = 25, maxHeight = gl_Height + 100, gridStep = 1, gridOffset = 1;
         private static bool doFillShapes = false, doUseGrid = true, doUseConstSize = true;
 
-        static myTexRectangle tex = null;
-        static myTexRectangle_Renderer offScrRenderer = null;
+        private static myTexRectangle_Renderer offScrRenderer = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -40,8 +40,6 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            //myColorPicker.setFileName("C:\\_maxx\\pix\\_renamer.old.visuals.png");
-
             colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
@@ -253,7 +251,7 @@ namespace my
             // Render objects to the off-screen texture, when they appear for the first time:
             if (cnt == 1)
             {
-                // Dim the tile on the src image
+                // Dim the tile on the src image -- leave permament mark on the bgr texture
                 offScrRenderer.startRendering();
                 {
                     float r = myUtils.randFloat(rand) * 0.1f;
@@ -339,33 +337,18 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
 
             // Render our main texture to the off-screen texture and show it for the first time
-            {
-                offScrRenderer.startRendering();
-                {
-                    glDrawBuffer(GL_BACK);
-                    glClearColor(1, 1, 1, 1);
-                    glClear(GL_COLOR_BUFFER_BIT);
-                    //glClear(GL_DEPTH_BUFFER_BIT);
+            offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
+            Glfw.SwapBuffers(window);
+            System.Threading.Thread.Sleep(123);
 
-                    tex.setOpacity(1);
-                    tex.Draw(0, 0, gl_Width, gl_Height, 0, 0, gl_Width, -gl_Height);
-                }
-                offScrRenderer.stopRendering();
-
-                offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
-                Glfw.SwapBuffers(window);
-                System.Threading.Thread.Sleep(111);
-            }
 
             // This is the default setting for double-buffered setups
             glDrawBuffer(GL_BACK);
             glClearColor(0, 0, 0, 1);
-
             inst.setDrawingMode(myInstancedPrimitive.drawMode.OWN_COLOR_CUSTOM_OPACITY);
+
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -387,9 +370,10 @@ namespace my
                     inst.ResetBuffer();
 
                     // Render our off-screen texture first
-                    tex.UpdateVertices__WorkaroundTmp();
                     offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
 
+                    // Render particles;
+                    // Render permanent marks on the bgr texture
                     for (int i = 0; i != list.Count; i++)
                     {
                         var obj = list[i] as myObj_0070;
@@ -433,9 +417,7 @@ namespace my
 
             base.initShapes(shape, N, 0);
 
-            offScrRenderer = new myTexRectangle_Renderer();
-
-            tex = new myTexRectangle(colorPicker.getImg());
+            offScrRenderer = new myTexRectangle_Renderer(colorPicker.getImg());
 
             // Set rotation mode for instanced particles
             switch (shape)

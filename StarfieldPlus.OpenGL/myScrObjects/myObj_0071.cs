@@ -26,8 +26,8 @@ namespace my
                            minSize = 5, maxSize = 25, maxHeight = gl_Height + 100, gridStep = 1, gridOffset = 1;
         private static bool doUseGrid = true, doUseConstSize = true;
 
-        static myTexRectangle tex = null;
-        static myTexRectangle_Renderer offScrRenderer = null;
+        private static myTexRectangle tex = null;
+        private static myTexRectangle_Renderer offScrRenderer = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -41,10 +41,6 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-#if DEBUG
-            //myColorPicker.setFileName("C:\\_maxx\\pix\\_renamer.old.visuals.png");
-#endif
-
             colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
@@ -306,36 +302,22 @@ namespace my
             uint cnt = 0;
             initShapes();
 
+
             // Render our main texture to the off-screen texture and show it for the first time
-            if (true)
-            {
-                offScrRenderer.startRendering();
-                {
-                    glDrawBuffer(GL_BACK);
-                    glClearColor(1, 1, 1, 1);
-                    glClear(GL_COLOR_BUFFER_BIT);
-                    //glClear(GL_DEPTH_BUFFER_BIT);
+            offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
+            Glfw.SwapBuffers(window);
+            System.Threading.Thread.Sleep(111);
 
-                    tex.setOpacity(1);
-                    tex.Draw(0, 0, gl_Width, gl_Height, 0, 0, gl_Width, -gl_Height);
-                }
-                offScrRenderer.stopRendering();
-
-                offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
-                Glfw.SwapBuffers(window);
-                System.Threading.Thread.Sleep(111);
-            }
 
             // This is the default setting for double-buffered setups
             glDrawBuffer(GL_BACK);
             glClearColor(0, 0, 0, 1);
-
-
             inst.setDrawingMode(myInstancedPrimitive.drawMode.OWN_COLOR_CUSTOM_OPACITY);
 
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
                 cnt++;
 
                 processInput(window);
@@ -354,10 +336,7 @@ namespace my
                     inst.ResetBuffer();
 
                     // Render our off-screen texture first
-                    tex.UpdateVertices__WorkaroundTmp();
                     offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
-
-                    int Count = list.Count;
 
                     for (int i = 0; i != Count; i++)
                     {
@@ -391,8 +370,7 @@ namespace my
 
             base.initShapes(0, N, 0);
 
-            offScrRenderer = new myTexRectangle_Renderer();
-
+            offScrRenderer = new myTexRectangle_Renderer(colorPicker.getImg());
             tex = new myTexRectangle(colorPicker.getImg());
 
             return;

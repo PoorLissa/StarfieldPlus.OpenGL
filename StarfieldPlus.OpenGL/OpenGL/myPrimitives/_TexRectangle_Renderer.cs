@@ -1,6 +1,7 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System;
+using my;
 
 
 /*
@@ -45,10 +46,17 @@ public class myTexRectangle_Renderer : myPrimitive
     private const int verticesLength = 12;
     private const int sizeofFloat_x_verticesLength = sizeof(float) * verticesLength;
 
+    private myTexRectangle _tex = null;
+
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myTexRectangle_Renderer()
+    public myTexRectangle_Renderer(System.Drawing.Bitmap bmp)
     {
+        if (_tex == null)
+        {
+            _tex = new myTexRectangle(bmp);
+        }
+
         if (vertices == null)
         {
             initVertices();
@@ -78,6 +86,17 @@ public class myTexRectangle_Renderer : myPrimitive
                 vertices[07] = -1.0f;
             }
         }
+
+        startRendering();
+        {
+            glDrawBuffer(GL_BACK);
+            glClearColor(1, 1, 1, 1);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            _tex.setOpacity(1);
+            _tex.Draw(0, 0, bmp.Width, bmp.Height, 0, 0, bmp.Width, -bmp.Height);
+        }
+        stopRendering();
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -126,6 +145,8 @@ public class myTexRectangle_Renderer : myPrimitive
     // - Using negative ptw/pth, it is possible to flip/rotate/mirror the texture
     public void Draw(int x, int y, int w, int h)
     {
+        _tex.UpdateVertices__WorkaroundTmp();
+
         glUseProgram(shaderProgram);
 
         // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
