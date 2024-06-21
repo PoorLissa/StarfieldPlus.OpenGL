@@ -371,7 +371,6 @@ namespace my
 
         private static myScreenGradient grad = null;
 
-        static myTexRectangle tex = null;
         static myTexRectangle_Renderer offScrRenderer = null;
 
         class child
@@ -626,18 +625,6 @@ doClearBuffer = false;
 
             // Render our main texture to the off-screen texture and show it for the first time
             {
-                offScrRenderer.startRendering();
-                {
-                    glDrawBuffer(GL_BACK);
-                    glClearColor(0.1f, 0.1f, 0.1f, 1);
-                    glClear(GL_COLOR_BUFFER_BIT);
-                    glClear(GL_DEPTH_BUFFER_BIT);
-
-                    tex.setOpacity(1);
-                    tex.Draw(0, 0, gl_Width, gl_Height);
-                }
-                offScrRenderer.stopRendering();
-
                 offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
                 Glfw.SwapBuffers(window);
                 System.Threading.Thread.Sleep(111);
@@ -691,7 +678,7 @@ doClearBuffer = false;
                 }
 
                 offScrRenderer.stopRendering();
-                tex.UpdateVertices__WorkaroundTmp();
+
                 offScrRenderer.Draw(0, 0, gl_Width, gl_Height);
 
                 if (Count < N)
@@ -717,10 +704,7 @@ doClearBuffer = false;
             grad.SetRandomColors(rand, 0.2f);
             //grad.SetOpacity(0.05f);
 
-            offScrRenderer = new myTexRectangle_Renderer();
-
-            var bmp = new System.Drawing.Bitmap(gl_Width, gl_Height);
-            tex = new myTexRectangle(bmp);
+            offScrRenderer = new myTexRectangle_Renderer(new System.Drawing.Bitmap(gl_Width, gl_Height));
 
 #if false
             /// <summary>
