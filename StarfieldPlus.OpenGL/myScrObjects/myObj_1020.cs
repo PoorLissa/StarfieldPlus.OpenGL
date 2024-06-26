@@ -55,7 +55,7 @@ namespace my
                 nChildren = 100;
 
                 childMoveMode = rand.Next(4);
-                // childMoveMode = 3;
+                //childMoveMode = 0;
 
                 shape = rand.Next(5);
 
@@ -304,6 +304,7 @@ namespace my
                     case 0:
                         obj.x = x + (float)Math.Sin(obj.angle) * obj.r;
                         obj.y = y + (float)Math.Cos(obj.angle) * obj.r;
+                        //obj.r += (float)Math.Sin(obj.angle);
                         break;
 
                     case 1:
