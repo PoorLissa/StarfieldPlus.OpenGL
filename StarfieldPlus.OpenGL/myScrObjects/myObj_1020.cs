@@ -21,9 +21,9 @@ namespace my
 
         private List<child> _children = null;
 
-        private static int N = 0, nChildren = 10, shape = 0, childMoveMode = 0, startAngle = 0;
+        private static int N = 0, nChildren = 10, shape = 0, childMoveMode = 0, startAngle = 0, maxRad = 33;
+        private static int option_i0 = 0, option_i1 = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
 
@@ -54,12 +54,43 @@ namespace my
 
                 nChildren = 100;
 
-                childMoveMode = rand.Next(3);
-                // childMoveMode = 1;
+                childMoveMode = rand.Next(4);
+                // childMoveMode = 3;
 
                 shape = rand.Next(5);
 
                 startAngle = myUtils.randomBool(rand) ? 1 : 0;
+
+                switch (rand.Next(5))
+                {
+                    case 0: maxRad = rand.Next( 2); break;
+                    case 1: maxRad = rand.Next(11); break;
+                    case 2: maxRad = rand.Next(20); break;
+                    case 3: maxRad = rand.Next(30); break;
+                    case 4: maxRad = rand.Next(50); break;
+                }
+
+                switch (childMoveMode)
+                {
+                    case 0:
+                        option_i0 = rand.Next(2);
+                        option_i1 = rand.Next(3);
+                        break;
+
+                    case 1:
+                        option_i0 = rand.Next(3);
+                        break;
+
+                    case 2:
+                        option_i0 = rand.Next(5);
+                        option_i1 = rand.Next(2);
+                        break;
+
+                    case 3:
+                        option_i0 = rand.Next(33) + 1;
+                        option_i1 = rand.Next(33) + 1;
+                        break;
+                }
             }
 
             initLocal();
@@ -91,6 +122,10 @@ namespace my
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"nChildren = {nChildren}\n"             +
                             $"total particles = {N * nChildren}\n"   +
+                            $"childMoveMode = {childMoveMode}\n"     +
+                            $"option_i0 = {option_i0}\n"             +
+                            $"option_i1 = {option_i1}\n"             +
+                            $"maxRad = {maxRad}\n"                   +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -122,6 +157,8 @@ namespace my
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
 
+            float child_dAngle = 0.01f + myUtils.randFloat(rand) * 0.025f;
+
             //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             if (_children == null)
@@ -134,29 +171,106 @@ namespace my
 
                     obj.angle = myUtils.randFloat(rand) * 123;
 
-                    switch (childMoveMode)
-                    {
-                        case 0:
-                            obj.angle = startAngle != 0 ? angle : obj.angle;
-                            obj.dAngle = myUtils.randFloat(rand) * 0.25f * 0.1f;
-                            break;
-
-                        case 1:
-                            obj.dAngle = myUtils.randFloat(rand) * 0.25f * 0.1f;
-                            obj.r = 33;
-                            obj.r = 33 + rand.Next(33);
-                            break;
-
-                        case 2:
-                            obj.dAngle = myUtils.randomSign(rand) * 0.25f * 0.1f;
-                            obj.r = 33 + rand.Next(99);
-                            break;
-                    }
-
                     obj.A = myUtils.randFloat(rand);
                     obj.R = R + myUtils.randFloatSigned(rand) * 0.1f;
                     obj.G = G + myUtils.randFloatSigned(rand) * 0.1f;
                     obj.B = B + myUtils.randFloatSigned(rand) * 0.1f;
+
+                    switch (childMoveMode)
+                    {
+                        case 0:
+                            {
+                                obj.angle = startAngle != 0 ? angle : obj.angle;
+                                obj.dAngle = 0.025f;
+
+                                switch (option_i0)
+                                {
+                                    case 0:
+                                        obj.r = Rad + myUtils.randFloatSigned(rand) * maxRad;
+                                        break;
+
+                                    case 1:
+                                        obj.r = Rad + (1 - obj.A) * maxRad;
+                                        break;
+                                }
+
+                                switch (option_i1)
+                                {
+                                    case 0: obj.dAngle *= +1.0f * myUtils.randFloat(rand); break;
+                                    case 1: obj.dAngle *= -1.0f * myUtils.randFloat(rand); break;
+                                    case 2: obj.dAngle *= +1.0f * myUtils.randFloatSigned(rand);  break;
+                                }
+                            }
+                            break;
+
+                        // dAngle different per particle
+                        case 1:
+                            {
+                                obj.dAngle = myUtils.randFloat(rand) * 0.025f;
+
+                                switch (option_i0)
+                                {
+                                    case 0:
+                                        obj.r = 33 + rand.Next(33);
+                                        break;
+
+                                    case 1:
+                                        obj.r = 33 + rand.Next(maxRad);
+                                        break;
+
+                                    case 2:
+                                        obj.r = maxRad + rand.Next(maxRad);
+                                        break;
+                                }
+                            }
+                            break;
+
+                        // dAngle the same for all particles (sign might be different)
+                        case 2:
+                            {
+                                switch (option_i0)
+                                {
+                                    case 0:
+                                        obj.dAngle = 0.025f;
+                                        break;
+
+                                    case 1:
+                                        obj.dAngle = 0.025f * myUtils.randomSign(rand);
+                                        break;
+
+                                    case 2:
+                                        obj.dAngle = 0.0002f * (id + 1);
+                                        break;
+
+                                    case 3:
+                                        obj.dAngle = 0.0002f * (id + 1) * myUtils.randomSign(rand);
+                                        break;
+
+                                    case 4:
+                                        obj.dAngle = child_dAngle;
+                                        break;
+                                }
+
+                                switch (option_i1)
+                                {
+                                    case 0:
+                                        obj.r = 33 + rand.Next(99);
+                                        break;
+
+                                    case 1:
+                                        obj.r = 33 + rand.Next(maxRad);
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case 3:
+                            {
+                                obj.dAngle = 0.025f;
+                                obj.r = 33 + rand.Next(11);
+                            }
+                            break;
+                    }
 
                     obj.x = x + (float)Math.Sin(obj.angle) * Rad;
                     obj.y = y + (float)Math.Cos(obj.angle) * Rad;
@@ -188,8 +302,8 @@ namespace my
                 switch (childMoveMode)
                 {
                     case 0:
-                        obj.x = x + (float)Math.Sin(obj.angle) * Rad;
-                        obj.y = y + (float)Math.Cos(obj.angle) * Rad;
+                        obj.x = x + (float)Math.Sin(obj.angle) * obj.r;
+                        obj.y = y + (float)Math.Cos(obj.angle) * obj.r;
                         break;
 
                     case 1:
@@ -200,6 +314,11 @@ namespace my
                     case 2:
                         obj.x = obj.x0 + (float)Math.Sin(obj.angle) * obj.r;
                         obj.y = obj.y0 + (float)Math.Cos(obj.angle) * obj.r;
+                        break;
+
+                    case 3:
+                        obj.x = x + (float)Math.Sin(obj.angle) * Rad + (float)Math.Sin(obj.angle / option_i0) * obj.r;
+                        obj.y = y + (float)Math.Cos(obj.angle) * Rad + (float)Math.Cos(obj.angle / option_i1) * obj.r;
                         break;
 
                     case 100:
@@ -245,7 +364,7 @@ namespace my
 
                     // Instanced triangles
                     case 1:
-                        myPrimitive._TriangleInst.setInstanceCoords(obj.x, obj.y, size2x, obj.angle);
+                        myPrimitive._TriangleInst.setInstanceCoords(obj.x, obj.y, size, obj.angle);
                         myPrimitive._TriangleInst.setInstanceColor(obj.R, obj.G, obj.B, obj.A);
                         break;
 
