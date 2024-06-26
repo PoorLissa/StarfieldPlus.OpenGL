@@ -54,7 +54,7 @@ namespace my
 
                 nChildren = 100;
 
-                childMoveMode = rand.Next(4);
+                childMoveMode = rand.Next(5);
                 // childMoveMode = 4;
 
                 shape = rand.Next(5);
