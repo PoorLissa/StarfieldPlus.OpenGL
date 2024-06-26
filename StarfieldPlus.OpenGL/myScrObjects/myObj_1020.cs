@@ -29,7 +29,7 @@ namespace my
 
         class child
         {
-            public float x, y, r, x0, y0, angle, dAngle, A, R, G, B;
+            public float x, y, r, x0, y0, angle, dAngle, A, R, G, B, f1, f2;
         };
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ namespace my
                 nChildren = 100;
 
                 childMoveMode = rand.Next(4);
-                //childMoveMode = 0;
+                // childMoveMode = 4;
 
                 shape = rand.Next(5);
 
@@ -89,6 +89,10 @@ namespace my
                     case 3:
                         option_i0 = rand.Next(33) + 1;
                         option_i1 = rand.Next(33) + 1;
+                        break;
+
+                    case 4:
+                        maxRad = rand.Next(50) + 10;
                         break;
                 }
             }
@@ -270,6 +274,16 @@ namespace my
                                 obj.r = 33 + rand.Next(11);
                             }
                             break;
+
+                        // Radial motion, no rotation
+                        case 4:
+                            {
+                                obj.dAngle = 0.01f + myUtils.randFloat(rand) * 0.033f;
+                                obj.r = obj.angle;
+                                obj.f1 = (float)Math.Sin(obj.angle);    // Pre-calc sin
+                                obj.f2 = (float)Math.Cos(obj.angle);    // Pre-calc cos
+                            }
+                            break;
                     }
 
                     obj.x = x + (float)Math.Sin(obj.angle) * Rad;
@@ -320,6 +334,11 @@ namespace my
                     case 3:
                         obj.x = x + (float)Math.Sin(obj.angle) * Rad + (float)Math.Sin(obj.angle / option_i0) * obj.r;
                         obj.y = y + (float)Math.Cos(obj.angle) * Rad + (float)Math.Cos(obj.angle / option_i1) * obj.r;
+                        break;
+
+                    case 4:
+                        obj.x = x + (float)(obj.f1 * (Rad + Math.Sin(obj.angle) * maxRad));
+                        obj.y = y + (float)(obj.f2 * (Rad + Math.Sin(obj.angle) * maxRad));
                         break;
 
                     case 100:
