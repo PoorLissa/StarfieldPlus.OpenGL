@@ -55,7 +55,7 @@ namespace my
                 nChildren = 100;
 
                 childMoveMode = rand.Next(5);
-                // childMoveMode = 4;
+                //childMoveMode = 4;
 
                 shape = rand.Next(5);
 
@@ -93,6 +93,8 @@ namespace my
 
                     case 4:
                         maxRad = rand.Next(50) + 10;
+                        option_i0 = rand.Next(3);           // 2 modes (0 vs 1-2)
+                        option_i1 = rand.Next(9) + 3;       // number of different dAngles in the 2nd mode
                         break;
                 }
             }
@@ -278,7 +280,18 @@ namespace my
                         // Radial motion, no rotation
                         case 4:
                             {
-                                obj.dAngle = 0.01f + myUtils.randFloat(rand) * 0.033f;
+                                switch (option_i0)
+                                {
+                                    case 0:
+                                        obj.dAngle = 0.01f + myUtils.randFloat(rand) * 0.033f;
+                                        break;
+
+                                    case 1:
+                                    case 2:
+                                        obj.dAngle = 0.01f * (rand.Next(option_i1) + 1);
+                                        break;
+                                }
+
                                 obj.r = obj.angle;
                                 obj.f1 = (float)Math.Sin(obj.angle);    // Pre-calc sin
                                 obj.f2 = (float)Math.Cos(obj.angle);    // Pre-calc cos
