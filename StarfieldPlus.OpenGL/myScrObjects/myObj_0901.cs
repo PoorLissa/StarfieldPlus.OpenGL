@@ -26,7 +26,7 @@ namespace my
 
         private static int N = 0, n = 0, DX = 1, cntMax = 100, shape = 0, dyMode = 0, dyGenerateMode = 0, yMin = 1, yMax = 1;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, lineA = 1, lineWidth = 1, speedFactor = 1, t = 0, dt = 0;
+        private static float lineA = 1, lineWidth = 1, speedFactor = 1, t = 0, dt = 0;
 
         private static int cellSize = 1, cellX = 0, cellY = 0;
 

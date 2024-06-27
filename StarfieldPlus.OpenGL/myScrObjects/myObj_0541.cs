@@ -70,7 +70,7 @@ namespace my
         private static bool doUseCustomRGB = false, doChangeSymbols = false, doUseRandomX = false;
         private static float sR = 0, sG = 0, sB = 0;
 
-        private static int maxSpeed = 0, angleMode = 0, modX = 0, size = 20, sizeFactorMode = 0, rowSizeMode = 0;
+        private static int maxSpeed = 0, angleMode = 0, modX = 0, size = 20, sizeFactorMode = 0, rowSizeMode = 0, bgrMode = 0;
 
         private static myTexRectangle bgrTex = null;
         private static TexText tTex = null;
@@ -89,10 +89,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            var mode = myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
-            //mode = myColorPicker.colorMode.SNAPSHOT;
-
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: mode);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
             // Global unmutable constants
@@ -102,6 +99,7 @@ namespace my
 
                 doUseCustomRGB = true;                              // If true, paint the alphabet in white and then set custom color for each particle
                 doClearBuffer = myUtils.randomChance(rand, 1, 2);
+                bgrMode = rand.Next(2);
 
                 // Size
                 switch (rand.Next(4))
@@ -151,31 +149,29 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            height = 600;
-
-            string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
-
             int nSymbols = 0;
+            height = 600;
 
             for (int i = 0; i < list.Count; i++)
             {
                 nSymbols += (list[i] as myObj_0541)._symbols.Count;
             }
 
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"nSymbols = {nSymbols}\n"               +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"renderDelay = {renderDelay}\n"         +
-                            $"font = '{tTex.FontFamily()}'\n"        +
-                            $"size = {size}\n"                       +
-                            $"sizeFactorMode = {sizeFactorMode}\n"   +
-                            $"rowSizeMode = {rowSizeMode}\n"         +
-                            $"doUseCustomRGB = {doUseCustomRGB}\n"   +
-                            $"drawMode = {drawMode}\n"               +
-                            $"maxSpeed = {maxSpeed}\n"               +
-                            $"angleMode = {angleMode}\n"             +
+            string str = $"Obj = {Type}\n\n"                        +
+                            $"N = {myUtils.nStr(list.Count)}"       +
+                            $" of {myUtils.nStr(N)}\n"              +
+                            $"nSymbols = {nSymbols}\n"              +
+                            $"doClearBuffer = {doClearBuffer}\n"    +
+                            $"bgrMode = {bgrMode}\n"                +
+                            $"renderDelay = {renderDelay}\n"        +
+                            $"font = '{tTex.FontFamily()}'\n"       +
+                            $"size = {size}\n"                      +
+                            $"sizeFactorMode = {sizeFactorMode}\n"  +
+                            $"rowSizeMode = {rowSizeMode}\n"        +
+                            $"doUseCustomRGB = {doUseCustomRGB}\n"  +
+                            $"drawMode = {drawMode}\n"              +
+                            $"maxSpeed = {maxSpeed}\n"              +
+                            $"angleMode = {angleMode}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -436,8 +432,17 @@ namespace my
                 if (doClearBuffer)
                 {
                     glClear(GL_COLOR_BUFFER_BIT);
-                    //bgrTex.Draw(0, 0, gl_Width, gl_Height);
-                    grad.Draw();
+
+                    switch (bgrMode)
+                    {
+                        case 0:
+                            bgrTex.Draw(0, 0, gl_Width, gl_Height);
+                            break;
+
+                        case 1:
+                            grad.Draw();
+                            break;
+                    }
                 }
                 else
                 {
@@ -482,7 +487,7 @@ namespace my
             TexText.setScrDimensions(gl_Width, gl_Height);
             tTex = new TexText(size, doUseCustomRGB, 150000, fontStyle, -5);
 
-            //bgrTex = new myTexRectangle(colorPicker.getImg());
+            bgrTex = new myTexRectangle(colorPicker.getImg());
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);

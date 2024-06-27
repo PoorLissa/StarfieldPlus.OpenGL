@@ -97,14 +97,13 @@ namespace my
         {
             height = 600;
 
-            string nStr(int n) { return n.ToString("N0"); }
-            string fStr(float f) { return f.ToString("0.000"); }
+            string rgb = $"R = {myUtils.fStr(R)}; G = {myUtils.fStr(G)}; B = {myUtils.fStr(B)}\n";
 
-            string str = $"Obj = {Type} -- Free Shader Experiments\n\n" 	 +
-                            $"N = {nStr(0)}\n" 								 +
-                            $"R = {fStr(R)}; G = {fStr(G)}; B = {fStr(B)}\n" +
-                            $"mode = {mode}\n" 								 +
-                            $"renderDelay = {renderDelay}\n" 				 +
+            string str = $"Obj = {Type} -- Free Shader Experiments\n\n" +
+                            $"N = {myUtils.nStr(0)}\n" 					+
+                            $"{rgb}"                                    +
+                            $"mode = {mode}\n" 							+
+                            $"renderDelay = {renderDelay}\n" 			+
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

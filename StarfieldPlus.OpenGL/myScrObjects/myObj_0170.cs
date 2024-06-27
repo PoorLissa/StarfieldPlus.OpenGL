@@ -125,7 +125,7 @@ namespace my
             height = 600;
 
             string str = $"Obj = {Type}\n\n"                  	 +
-                            $"N = {list.Count} of {N}\n"         +
+                            myUtils.strCountOf(list.Count, N)    +
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"doUseCells = {doUseCells}\n"       +
                             $"drawMode = {drawMode}\n"           +

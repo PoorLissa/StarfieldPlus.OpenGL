@@ -144,22 +144,22 @@ namespace my
         {
             height = 800;
 
-            string str = $"Obj = {Type}\n\n" 						+
-                            $"N = {list.Count} of {N}\n" 			+
-                            $"starNum = {N - dustNum}\n" 			+
-                            $"dustNum = {dustNum}\n" 				+
-                            $"doClearBuffer = {doClearBuffer}\n" 	+
-                            $"doUseDiscreetSpeed = {doUseDiscreetSpeed}\n" +
-                            $"doUseFastDeath = {doUseFastDeath}\n" 	+
-                            $"doUseBackSuction = {doUseBackSuction}\n" +
-                            $"doUseAcceleration = {doUseAcceleration}\n" +
-                            $"accelerationFactor = {accelerationFactor.ToString("0.000")}\n" +
-                            $"doShowZeroSize = {doShowZeroSize}\n" 	+
-                            $"maxSpeed = {maxSpeed}\n" 				+
-                            $"explosionSpeed = {explosionSpeed}\n" 	+
-                            $"offCenterRad = {offCenterRad}\n" 		+
-                            $"colorMode = {colorMode}\n" 			+
-                            $"renderDelay = {renderDelay}\n" 		+
+            string str = $"Obj = {Type}\n\n" 						                        +
+                            myUtils.strCountOf(list.Count, N)                               +
+                            $"starNum = {N - dustNum}\n" 			                        +
+                            $"dustNum = {dustNum}\n" 				                        +
+                            $"doClearBuffer = {doClearBuffer}\n" 	                        +
+                            $"doUseDiscreetSpeed = {doUseDiscreetSpeed}\n"                  +
+                            $"doUseFastDeath = {doUseFastDeath}\n" 	                        +
+                            $"doUseBackSuction = {doUseBackSuction}\n"                      +
+                            $"doUseAcceleration = {doUseAcceleration}\n"                    +
+                            $"accelerationFactor = {accelerationFactor.ToString("0.000")}\n"+
+                            $"doShowZeroSize = {doShowZeroSize}\n" 	                        +
+                            $"maxSpeed = {maxSpeed}\n" 				                        +
+                            $"explosionSpeed = {explosionSpeed}\n" 	                        +
+                            $"offCenterRad = {offCenterRad}\n" 		                        +
+                            $"colorMode = {colorMode}\n" 			                        +
+                            $"renderDelay = {renderDelay}\n" 		                        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

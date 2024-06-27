@@ -112,19 +112,17 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                                     	+
-                            $"N = {nStr(list.Count - n)} of {nStr(N - n)} + {n}\n"  +
-                            $"shape = {shape}\n"                                    +
-                            $"specialMode = {specialMode}\n"                        +
-                            $"trailMode = {trailMode}\n"                            +
-                            $"doClearBuffer = {doClearBuffer}\n"                    +
-                            $"doUseRandomSpeed = {doUseRandomSpeed}\n"              +
-                            $"doUseBulletSpread = {doUseBulletSpread}\n"            +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"                        +
-                            $"renderDelay = {renderDelay}\n"                        +
+            string str = $"Obj = {Type}\n\n"                             +
+                            $"N = {myUtils.nStr(list.Count - n)} "       +
+                            $"of {myUtils.nStr(N - n)} + {n}\n"          +
+                            $"shape = {shape}\n"                         +
+                            $"specialMode = {specialMode}\n"             +
+                            $"trailMode = {trailMode}\n"                 +
+                            $"doClearBuffer = {doClearBuffer}\n"         +
+                            $"doUseRandomSpeed = {doUseRandomSpeed}\n"   +
+                            $"doUseBulletSpread = {doUseBulletSpread}\n" +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n"     +
+                            $"renderDelay = {renderDelay}\n"             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

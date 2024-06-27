@@ -90,7 +90,7 @@ namespace my
             height = 700;
 
             string str = $"Obj = {Type} (Starfield)\n\n"               +
-                            $"Total N = {list.Count} of ({N})\n"       +
+                            myUtils.strCountOf(list.Count, N)          +
                             $"moving stars N = {N - staticStarsN}\n"   +
                             $"static stars N = {staticStarsN}\n"       +
                             $"comets N = {cometsN}\n"                  +

@@ -41,7 +41,7 @@ namespace my
         private float size, A, R, G, B, angle = 0;
 
         private static int N = 0, shape = 0, maxConnectionDist = 100, nTaskCount = 1, lenMode = 0, minId = 0, maxId = 0;
-        private static bool doFillShapes = false, doGenerateAll = false, doShowCellBounds = true;
+        private static bool doGenerateAll = false;
         private static float dSpeed = 0.01f, opacityFactor = 0.025f;
 
         private static int   cellSize = 100, cellRow = 0;
@@ -132,7 +132,6 @@ namespace my
 #if DEBUG
                 doGenerateAll = true;
 #endif
-                doShowCellBounds = false;
             }
 
             initLocal();
@@ -469,9 +468,9 @@ A *= 0.23f;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        static float dxFactor = 1;
-        static float dyFactor = 1;
-        static float t = 0, dt = 0.005f;
+        //static float dxFactor = 1;
+        //static float dyFactor = 1;
+        //static float t = 0, dt = 0.005f;
 
         private void showConnections()
         {

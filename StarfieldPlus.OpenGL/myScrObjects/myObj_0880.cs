@@ -17,8 +17,8 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_0880);
 
-        private float x, xFactor, y, dx;
-        private float size, A, R, G, B, angle = 0;
+        private float xFactor, y, dx;
+        private float size, A, R, G, B;
         private float t = 0, dt = 0;
 
         private static int N = 0, n = 100, shape = 0;

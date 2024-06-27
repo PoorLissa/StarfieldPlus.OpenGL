@@ -160,7 +160,7 @@ public class myLineInst : myInstancedPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    static bool isCreated = false;
+    //static bool isCreated = false;
 
     // Create GPU buffer out of out instances from the array
     protected override unsafe void updateInstances()

@@ -121,24 +121,21 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         	+
-                            $"N = {nStr(list.Count)} of ({N} x {n})\n"  +
-                            $"doClearBuffer = {doClearBuffer}\n"        +
-                            $"doFillShapes = {doFillShapes}\n"          +
-                            $"shape = {shape}\n"                        +
-                            $"maxSize = {maxSize}\n"                    +
-                            $"sizeMode = {sizeMode}\n"                  +
-                            $"genMode = {genMode}\n"                    +
-                            $"moveMode = {moveMode}\n"                  +
-                            $"angleMode = {angleMode}\n"                +
-                            $"speedMode = {speedMode}\n"                +
-                            $"speedConst = {fStr(speedConst)}\n"        +
-                            $"opacityFactor = {opacityFactor}\n"        +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"            +
-                            $"renderDelay = {renderDelay}\n"            +
+            string str = $"Obj = {Type}\n\n"                         	       +
+                            $"N = {myUtils.nStr(list.Count)} of ({N} x {n})\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"               +
+                            $"doFillShapes = {doFillShapes}\n"                 +
+                            $"shape = {shape}\n"                               +
+                            $"maxSize = {maxSize}\n"                           +
+                            $"sizeMode = {sizeMode}\n"                         +
+                            $"genMode = {genMode}\n"                           +
+                            $"moveMode = {moveMode}\n"                         +
+                            $"angleMode = {angleMode}\n"                       +
+                            $"speedMode = {speedMode}\n"                       +
+                            $"speedConst = {myUtils.fStr(speedConst)}\n"       +
+                            $"opacityFactor = {opacityFactor}\n"               +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n"           +
+                            $"renderDelay = {renderDelay}\n"                   +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

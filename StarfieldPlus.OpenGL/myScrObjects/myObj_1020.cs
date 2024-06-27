@@ -13,7 +13,7 @@ namespace my
     public class myObj_1020 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1020);
 
         private float x, y, Rad;
@@ -121,18 +121,16 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"nChildren = {nChildren}\n"             +
-                            $"total particles = {N * nChildren}\n"   +
-                            $"childMoveMode = {childMoveMode}\n"     +
-                            $"option_i0 = {option_i0}\n"             +
-                            $"option_i1 = {option_i1}\n"             +
-                            $"maxRad = {maxRad}\n"                   +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                        +
+                            $"N = {myUtils.nStr(list.Count)}"       +
+                            $" of {myUtils.nStr(N)}\n"              +
+                            $"nChildren = {nChildren}\n"            +
+                            $"total particles = {N * nChildren}\n"  +
+                            $"childMoveMode = {childMoveMode}\n"    +
+                            $"option_i0 = {option_i0}\n"            +
+                            $"option_i1 = {option_i1}\n"            +
+                            $"maxRad = {maxRad}\n"                  +
+                            $"renderDelay = {renderDelay}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

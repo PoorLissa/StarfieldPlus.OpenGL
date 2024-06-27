@@ -326,7 +326,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            float t = 0;
             uint cnt = 0;
             initShapes();
 

@@ -98,21 +98,18 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
             float ballSize = (list[0] as myObj_0440_Ball).size;
 
-            string str = $"Obj = {Type}\n\n"                      	 +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"shape = {shape}\n"                     +
-                            $"moveMode = {moveMode}\n"               +
-                            $"insertMode = {insertMode}\n"           +
-                            $"ballMoveMode = {ballMoveMode}\n"       +
-                            $"ball.size = {fStr(ballSize)}\n"        +
-                            $"lineTh = {fStr(lineTh)}\n"             +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                      	  +
+                            myUtils.strCountOf(list.Count, N)         +
+                            $"doClearBuffer = {doClearBuffer}\n"      +
+                            $"shape = {shape}\n"                      +
+                            $"moveMode = {moveMode}\n"                +
+                            $"insertMode = {insertMode}\n"            +
+                            $"ballMoveMode = {ballMoveMode}\n"        +
+                            $"ball.size = {myUtils.fStr(ballSize)}\n" +
+                            $"lineTh = {myUtils.fStr(lineTh)}\n"      +
+                            $"renderDelay = {renderDelay}\n"          +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

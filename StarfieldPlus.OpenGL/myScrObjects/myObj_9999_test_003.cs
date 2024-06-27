@@ -17,8 +17,8 @@ namespace my
         public static System.Type Type => typeof(myObj_9999_test_003);
 
         private int index, cnt;
-        private float x, y, dy, angle, dAngle, sizeFactor;
-        private float A, R, G, B;
+        private float x, y, sizeFactor;
+        private float R, G, B;
 
         private static int N = 0, size = 20;
 
@@ -100,8 +100,6 @@ namespace my
             x = gl_x0 + rand.Next(gl_Width ) - gl_x0;
             y = gl_y0 + rand.Next(gl_Height) - gl_y0;
 
-            A = 0.25f;
-
             // Size factor (should only reduce the symbols, as enlarging makes them pixelated)
             {
                 int maxSize = 20;
@@ -113,7 +111,6 @@ namespace my
 
             colorPicker.getColor(rand.Next(gl_Width), rand.Next(gl_Height), ref R, ref G, ref B);
 
-            angle = 0;
             cnt = 100 + rand.Next(100);
 
             return;

@@ -129,11 +129,8 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
             string str = $"Obj = {Type}\n\n"                          	 +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"     +
+                            myUtils.strCountOf(list.Count, N)            +
                             $"doClearBuffer = {doClearBuffer}\n"         +
                             $"shape = {shape}\n"                         +
                             $"maxSize = {maxSize}\n"                     +
@@ -142,8 +139,8 @@ namespace my
                             $"borderOpacityMode = {borderOpacityMode}\n" +
                             $"shapeOpacityMode = {shapeOpacityMode}\n"   +
                             $"angleMode = {angleMode}\n"                 +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"             +
-                            $"lineWidth = {fStr(lineWidth)}\n"           +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n"     +
+                            $"lineWidth = {myUtils.fStr(lineWidth)}\n"   +
                             $"renderDelay = {renderDelay}\n"             +
                             $"maxCnt = {maxCnt}\n"                       +
                             $"file: {colorPicker.GetFileName()}\n"       +

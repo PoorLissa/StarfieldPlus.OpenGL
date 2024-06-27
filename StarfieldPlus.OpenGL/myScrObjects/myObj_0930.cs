@@ -20,14 +20,14 @@ namespace my
         private int cnt, shadowFactor;
         private float x1, y1, x2, y2, dx, dy;
         private bool xReady, yReady;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B;
         private myObj_0930 parent = null;
 
         private static int N = 0, shape = 0, maxSize = 1, dSize = 1, delayCnt = 0, newDistMode = 0;
         private static int parentCntMax = 100, shaderFunc = 0, moveMode = 0;
         private static int shadowStayFactor = 0, shadowMoveFactor = 0, shadowPosX = 0, shadowPosY = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, spdFactor = 1;
+        private static float spdFactor = 1;
 
         private static myScreenGradient grad = null;
         private static myFreeShader shader = null;

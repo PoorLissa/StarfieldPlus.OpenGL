@@ -183,7 +183,7 @@ namespace my
             }
 
             return $"Obj = {Type}\n\n" 																+
-                            $"N = {list.Count} of {N}\n"                                            +
+                            myUtils.strCountOf(list.Count, N)                                       +
                             $"doUseShader = {doUseShader}\n"                                        +
                             $"shape = {shape} ({getShape(shape)})\n"                                +
                             $"baseSize = {baseSize}\n"                                              +

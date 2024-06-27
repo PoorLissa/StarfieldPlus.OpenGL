@@ -87,19 +87,17 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"Cells Qt = {N}\n"                      +
-                            $"n = {nStr(n)} of {NN}\n"               +
-                            $"cellSize = {cellSize}\n"               +
-                            $"moveMode = {moveMode}\n"               +
-                            $"colorMode = {colorMode}\n"             +
-                            $"doFillShapes = {doFillShapes}\n"       +
-                            $"doUseTrails = {doUseTrails}\n"         +
-                            $"nTrail = {nTrail}\n"                   +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                    +
+                            $"Cells Qt = {N}\n"                 +
+                            $"N = {myUtils.nStr(n)}"            +
+                            $" of {myUtils.nStr(NN)}\n"         +
+                            $"cellSize = {cellSize}\n"          +
+                            $"moveMode = {moveMode}\n"          +
+                            $"colorMode = {colorMode}\n"        +
+                            $"doFillShapes = {doFillShapes}\n"  +
+                            $"doUseTrails = {doUseTrails}\n"    +
+                            $"nTrail = {nTrail}\n"              +
+                            $"renderDelay = {renderDelay}\n"    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

@@ -110,22 +110,19 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                      	 +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"mode = {mode}\n"                       +
-                            $"mode2mode = {mode2mode}\n"             +
-                            $"shape = {shape}\n"                     +
-                            $"maxSize = {maxSize}\n"                 +
-                            $"offsetMode = {offsetMode}\n"           +
-                            $"opacityMode = {opacityMode}\n"         +
-                            $"angleMode = {angleMode}\n"             +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"         +
-                            $"maxOffset = {fStr(maxOffset)}\n"       +
-                            $"lineWidth = {fStr(lineWidth)}\n"       +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                      	   +
+                            myUtils.strCountOf(list.Count, N)          +
+                            $"mode = {mode}\n"                         +
+                            $"mode2mode = {mode2mode}\n"               +
+                            $"shape = {shape}\n"                       +
+                            $"maxSize = {maxSize}\n"                   +
+                            $"offsetMode = {offsetMode}\n"             +
+                            $"opacityMode = {opacityMode}\n"           +
+                            $"angleMode = {angleMode}\n"               +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n"   +
+                            $"maxOffset = {myUtils.fStr(maxOffset)}\n" +
+                            $"lineWidth = {myUtils.fStr(lineWidth)}\n" +
+                            $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

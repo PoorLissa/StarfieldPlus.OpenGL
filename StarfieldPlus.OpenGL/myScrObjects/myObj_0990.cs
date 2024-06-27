@@ -149,6 +149,7 @@ namespace my
                 x = gl_x0;
                 y = gl_y0;
 
+                size = 0;
                 dSize = 0.5f + myUtils.randFloat(rand) * 0.75f;
 
                 R = 0.33f + (float)rand.NextDouble() * 0.66f;
@@ -165,6 +166,8 @@ namespace my
                 y = parent.y;
                 w = parent.w;
                 h = parent.h;
+
+                size = parent.size;
                 dSize = parent.dSize;
 
                 A = doFillShapes ? 0.25f : 0.5f;

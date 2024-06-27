@@ -23,7 +23,6 @@ namespace my
 
         private static int N = 0, nChildren = 10, shape = 0, childMoveMode = 0, startAngle = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
         private static myTexRectangle_Renderer offScrRenderer = null;
@@ -84,14 +83,12 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"nChildren = {nChildren}\n"             +
-                            $"total particles = {N * nChildren}\n"   +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                        +
+                            $"N = {myUtils.nStr(list.Count)}"       +
+                            $" of {myUtils.nStr(N)}\n"              +
+                            $"nChildren = {nChildren}\n"            +
+                            $"total particles = {N * nChildren}\n"  +
+                            $"renderDelay = {renderDelay}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

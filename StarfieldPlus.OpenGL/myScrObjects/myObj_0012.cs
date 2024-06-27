@@ -163,15 +163,12 @@ namespace my
         {
             height = 600;
 
-            string nStr(int n) { return n.ToString("N0"); }
-            string fStr(float f) { return f.ToString("0.000"); }
-
             if (moveMode < 3)
             {
-                string brf = $"{fStr(borderRepulsionFactor)}";
+                string brf = $"{myUtils.fStr(borderRepulsionFactor)}";
 
                 string str = $"Obj = {Type}\n\n"                        	+
-                                $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                                myUtils.strCountOf(list.Count, N)           +
                                 $"doClearBuffer = {doClearBuffer}\n"        +
                                 $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +
                                 $"moveMode = {moveMode}\n"                  +
@@ -189,8 +186,8 @@ namespace my
             }
             else
             {
-                string str = $"Obj = myObj_0012\n\n"                       +
-                                $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
+                string str = $"Obj = myObj_0012\n\n"                        +
+                                myUtils.strCountOf(list.Count, N)           +
                                 $"doClearBuffer = {doClearBuffer}\n"        +
                                 $"doRandomizeSpeed = {doRandomizeSpeed}\n"  +
                                 $"moveMode = {moveMode}\n"                  +

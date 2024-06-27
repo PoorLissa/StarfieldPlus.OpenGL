@@ -145,23 +145,20 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
+            string i_arrStr = $"{myUtils.nStr(i_arr[0])}; {myUtils.nStr(i_arr[1])}; {myUtils.nStr(i_arr[2])};";
+            string f_arrStr = $"{myUtils.fStr(f_arr[0])}; {myUtils.fStr(f_arr[1])}; {myUtils.fStr(f_arr[2])};";
 
-            string i_arrStr = $"{nStr(i_arr[0])}; {nStr(i_arr[1])}; {nStr(i_arr[2])};";
-            string f_arrStr = $"{fStr(f_arr[0])}; {fStr(f_arr[1])}; {fStr(f_arr[2])};";
-
-            string str = $"Obj = {Type}\n\n"                     	 +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doFillShapes = {doFillShapes}\n"       +
-                            $"doDrawToWhite = {doDrawToWhite}\n"     +
-                            $"moveMode = {moveMode}\n"               +
-                            $"trailMode = {trailMode}\n"             +
-                            $"nTrailMin = {nTrailMin}\n"             +
-                            $"nTrailMax = {nTrailMax}\n"             +
-                            $"i_arr = {i_arrStr}\n"                  +
-                            $"f_arr = {f_arrStr}\n"                  +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                     	+
+                            myUtils.strCountOf(list.Count, N)       +
+                            $"doFillShapes = {doFillShapes}\n"      +
+                            $"doDrawToWhite = {doDrawToWhite}\n"    +
+                            $"moveMode = {moveMode}\n"              +
+                            $"trailMode = {trailMode}\n"            +
+                            $"nTrailMin = {nTrailMin}\n"            +
+                            $"nTrailMax = {nTrailMax}\n"            +
+                            $"i_arr = {i_arrStr}\n"                 +
+                            $"f_arr = {f_arrStr}\n"                 +
+                            $"renderDelay = {renderDelay}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

@@ -78,7 +78,7 @@ namespace my
             height = 600;
 
             string str = $"Obj = {Type} -- Falling Pieces, ver2\n\n" 	+
-                            $"N = {list.Count} of {N}\n"                +
+                            myUtils.strCountOf(list.Count, N)           +
                             $"doUseGrid = {doUseGrid}\n"                +
                             $"doUseConstSize = {doUseConstSize}\n"      +
                             $"gridStep = {gridStep}\n"                  +

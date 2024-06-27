@@ -22,7 +22,6 @@ namespace my
         private float size, Size, A, R, G, B;
 
         private static int N = 0, mode = 0;
-        private static bool doFillShapes = false;
         private static float dimAlpha = 0.01f;
 
         private static myScreenGradient grad = null;
@@ -77,14 +76,12 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"mode = {mode}\n"                       +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                        +
+                            $"N = {myUtils.nStr(list.Count)}"       +
+                            $" of {myUtils.nStr(N)}\n"              +
+                            $"doClearBuffer = {doClearBuffer}\n"    +
+                            $"mode = {mode}\n"                      +
+                            $"renderDelay = {renderDelay}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

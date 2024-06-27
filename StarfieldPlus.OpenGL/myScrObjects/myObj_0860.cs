@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Full screen shader
 */
 
 
@@ -18,10 +18,9 @@ namespace my
 		public static System.Type Type => typeof(myObj_0860);
 
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float R, G, B;
 
         private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
@@ -72,12 +71,10 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                    +
+                            $"N = {myUtils.nStr(list.Count)}"   +
+                            $" of {myUtils.nStr(N)}\n"          +
+                            $"renderDelay = {renderDelay}\n"    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -101,9 +98,6 @@ namespace my
             dx = myUtils.randFloat(rand);
             dy = myUtils.randFloat(rand);
 
-            size = rand.Next(11) + 3;
-
-            A = 1;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();

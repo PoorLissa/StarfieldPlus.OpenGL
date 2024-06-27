@@ -97,18 +97,15 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
             string str = $"Obj = {Type}\n\n"                      	 +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            myUtils.strCountOf(list.Count, N)        +
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"doUseRandSpeed = {doUseRandSpeed}\n"   +
                             $"dirMode = {dirMode}\n"                 +
                             $"drawMode = {drawMode}\n"               +
                             $"di = {di}\n"                           +
                             $"renderDelay = {renderDelay}\n"         +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"         +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

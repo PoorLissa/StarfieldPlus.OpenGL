@@ -73,16 +73,14 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                 	+
-                            $"objN = {objN}\n"                  +
-                            $"drawMode = {drawMode}\n"          +
-                            $"gridMode = {gridMode}\n"          +
-                            $"maxSteps = {maxSteps}\n"          +
-                            $"doRecalcStep = {doRecalcStep}\n"  +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"    +
-                            $"renderDelay = {renderDelay}\n"    +
+            string str = $"Obj = {Type}\n\n"                 	     +
+                            $"objN = {objN}\n"                       +
+                            $"drawMode = {drawMode}\n"               +
+                            $"gridMode = {gridMode}\n"               +
+                            $"maxSteps = {maxSteps}\n"               +
+                            $"doRecalcStep = {doRecalcStep}\n"       +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
             ;
             return str;

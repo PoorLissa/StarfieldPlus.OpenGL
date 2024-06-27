@@ -23,7 +23,7 @@ namespace my
         private static int N = 0, shape = 0, mode = 0, rotateMode = 0, step = 0;
         private static int minX = 0, minY = 0, maxX = 0, maxY = 0;
         private static bool doFillShapes = false, doTraceColor = false, doUseBaseMove = true;
-        private static float dimAlpha = 0.05f, sAngle = 0, dimRate = 0;
+        private static float sAngle = 0, dimRate = 0;
 
         private static myScreenGradient grad = null;
 
@@ -101,19 +101,16 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"doFillShapes = {doFillShapes}\n"       +
-                            $"doTraceColor = {doTraceColor}\n"       +
-                            $"rotateMode = {rotateMode}\n"           +
-                            $"mode = {mode}\n"                       +
-                            $"offset = {minX}\n"                     +
-                            $"dimRate = {fStr(dimRate)}\n"           +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                        +
+                            myUtils.strCountOf(list.Count, N)       +
+                            $"doClearBuffer = {doClearBuffer}\n"    +
+                            $"doFillShapes = {doFillShapes}\n"      +
+                            $"doTraceColor = {doTraceColor}\n"      +
+                            $"rotateMode = {rotateMode}\n"          +
+                            $"mode = {mode}\n"                      +
+                            $"offset = {minX}\n"                    +
+                            $"dimRate = {myUtils.fStr(dimRate)}\n"  +
+                            $"renderDelay = {renderDelay}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

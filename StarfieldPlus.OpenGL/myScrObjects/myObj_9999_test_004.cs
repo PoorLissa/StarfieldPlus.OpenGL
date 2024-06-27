@@ -165,7 +165,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
             clearScreenSetup(true, 0.1f);

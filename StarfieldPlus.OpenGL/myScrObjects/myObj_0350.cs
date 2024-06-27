@@ -159,7 +159,7 @@ namespace my
             height = 800;
 
             string str = $"Obj = {Type}\n\n"                         	 +
-                            $"N = {list.Count} of {N}\n"                 +
+                            myUtils.strCountOf(list.Count, N)            +
                             $"shape = {shape}\n"                         +
                             $"maxChildren = {maxChildren}\n"             +
                             $"childMoveMode = {childMoveMode}\n"         +

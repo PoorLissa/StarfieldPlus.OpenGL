@@ -303,7 +303,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        protected override async void Process(Window window)
+        protected override void Process(Window window)
         {
             uint cnt = 0;
             initShapes();

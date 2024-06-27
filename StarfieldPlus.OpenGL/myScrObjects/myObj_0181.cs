@@ -96,22 +96,19 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type} -- Particle Wave Generators\n\n"         	+
-                            $"N = {nStr(N - n)} (+ {nStr(n)} generator(s))\n"       +
-                            $"liveCnt / deadCnt = {N-n-deadCnt} / {deadCnt}\n"      +
-                            $"sizeMode = {sizeMode}\n"                              +
-                            $"moveMode = {moveMode}\n"                              +
-                            $"genOrderMode = {genOrderMode}\n"                      +
-                            $"rate = {rate}\n"                                      +
-                            $"waveSize = {waveSize}\n"                              +
-                            $"doUseRandomSpeed = {doUseRandomSpeed}\n"              +
-                            $"renderDelay = {renderDelay}\n"                        +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"                        +
-                            $"randSpeedFactor = {fStr(randSpeedFactor)}\n"          +
-                            $"gravity = {fStr(doUseGravity ? gravityValue : 0)}\n"  +
+            string str = $"Obj = {Type} -- Particle Wave Generators\n\n"         	          +
+                            $"N = {myUtils.nStr(N - n)} (+ {myUtils.nStr(n)} generator(s))\n" +
+                            $"liveCnt / deadCnt = {N-n-deadCnt} / {deadCnt}\n"                +
+                            $"sizeMode = {sizeMode}\n"                                        +
+                            $"moveMode = {moveMode}\n"                                        +
+                            $"genOrderMode = {genOrderMode}\n"                                +
+                            $"rate = {rate}\n"                                                +
+                            $"waveSize = {waveSize}\n"                                        +
+                            $"doUseRandomSpeed = {doUseRandomSpeed}\n"                        +
+                            $"renderDelay = {renderDelay}\n"                                  +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n"                          +
+                            $"randSpeedFactor = {myUtils.fStr(randSpeedFactor)}\n"            +
+                            $"gravity = {myUtils.fStr(doUseGravity ? gravityValue : 0)}\n"    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

@@ -189,7 +189,7 @@ public class ScreenSaver
         register(my.myObj_0830.Type);       // Thin texture lines moving top to bottom of the screen
         register(my.myObj_0840.Type);       // Trains moving across the screen
         register(my.myObj_0850.Type);       // 3 rotating points per particle, making a rotating triangle
-        register(my.myObj_0860.Type);       // ...
+        register(my.myObj_0860.Type);       // Full screen shader
         register(my.myObj_0870.Type);       // Thin and long vertical or horizontal rectangles with low opacity and random color
         register(my.myObj_0880.Type);       // Perspective made of sine-cosine graphs
         register(my.myObj_0890.Type);       // Desktop pieces falling down in a matrix-style

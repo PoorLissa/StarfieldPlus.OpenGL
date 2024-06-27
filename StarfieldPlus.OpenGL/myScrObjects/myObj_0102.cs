@@ -150,8 +150,6 @@ namespace my
             width = 600;
             height = 700;
 
-            string fStr(float f) { return f.ToString("0.000"); }
-
             string str = $"Obj = {Type}\n\n"                         	+
                             $"N = {list.Count} of {N}; nObj = {nObj}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"        +
@@ -166,7 +164,7 @@ namespace my
                             $"borderOffset = {borderOffset}\n"          +
                             $"baseSize = {baseSize}\n"                  +
                             $"gridSize = {gridSize}\n"                  +
-                            $"lineWidth = {fStr(lineWidth)}\n"          +
+                            $"lineWidth = {myUtils.fStr(lineWidth)}\n"  +
                             $"opacity = {A.ToString("0.000")}\n"        +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"

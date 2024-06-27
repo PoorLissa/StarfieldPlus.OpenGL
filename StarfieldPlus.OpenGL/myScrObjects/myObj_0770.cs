@@ -18,7 +18,7 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_0770);
 
-        private int layer;
+        //private int layer;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 

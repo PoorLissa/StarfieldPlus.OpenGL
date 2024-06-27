@@ -138,12 +138,9 @@ additiveFunc = 0;
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
             string str = $"Obj = {Type}\n\n"                         	+
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"    +
-                            $"n = {nStr(n)}\n"                          +
+                            myUtils.strCountOf(list.Count, N)           +
+                            $"n = {myUtils.nStr(n)}\n"                  +
                             $"funcNo = {funcNo}\n"                      +
                             $"size = {size2x}\n"                        +
                             $"doUseVariations = {doUseVariations}\n"    +
@@ -151,7 +148,7 @@ additiveFunc = 0;
                             $"passConditionMode = {passConditionMode}\n"+
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"renderDelay = {renderDelay}\n"            +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"            +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n"    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

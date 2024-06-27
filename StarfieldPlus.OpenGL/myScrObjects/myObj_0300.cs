@@ -191,25 +191,23 @@ namespace my
         {
             height = 700;
 
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                             	              +
-                            $"N = {list.Count} of {N} x {maxParticles}\n"                 +
-                            $"doClearBuffer = {doClearBuffer}\n"                          +
-                            $"grad.Opacity = {fStr(grad.GetOpacity())}\n"                 +
-                            $"doShowConnections = {doShowConnections}\n"                  +
-                            $"moveType = {moveType}\n"                                    +
-                            $"shapeType = {shapeType}\n"                                  +
-                            $"rotationMode = {rotationMode}\n"                            +
-                            $"rotationSubMode = {rotationSubMode}\n"                      +
-                            $"colorMode = {colorMode}\n"                                  +
-                            $"maxSize = {maxSize}\n"                                      +
-                            $"doGenerateAtCenter = {doGenerateAtCenter}\n"                +
-                            $"const_i1 = {const_i1}\n"                                    +
-                            $"const_i2 = {const_i2}\n"                                    +
-                            $"const_f1 = {fStr(const_f1)}\n"                              +
-                            $"const_f2 = {fStr(const_f2)}\n"                              +
-                            $"renderDelay = {renderDelay}\n"                              +
+            string str = $"Obj = {Type}\n\n"                             	      +
+                            $"N = {list.Count} of {N} x {maxParticles}\n"         +
+                            $"doClearBuffer = {doClearBuffer}\n"                  +
+                            $"grad.Opacity = {myUtils.fStr(grad.GetOpacity())}\n" +
+                            $"doShowConnections = {doShowConnections}\n"          +
+                            $"moveType = {moveType}\n"                            +
+                            $"shapeType = {shapeType}\n"                          +
+                            $"rotationMode = {rotationMode}\n"                    +
+                            $"rotationSubMode = {rotationSubMode}\n"              +
+                            $"colorMode = {colorMode}\n"                          +
+                            $"maxSize = {maxSize}\n"                              +
+                            $"doGenerateAtCenter = {doGenerateAtCenter}\n"        +
+                            $"const_i1 = {const_i1}\n"                            +
+                            $"const_i2 = {const_i2}\n"                            +
+                            $"const_f1 = {myUtils.fStr(const_f1)}\n"              +
+                            $"const_f2 = {myUtils.fStr(const_f2)}\n"              +
+                            $"renderDelay = {renderDelay}\n"                      +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

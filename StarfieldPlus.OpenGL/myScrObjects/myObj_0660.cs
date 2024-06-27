@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, n = 0, nMode = 0, shape = 0;
         private static bool doFillShapes = false, doUseRandSpeed = true;
-        private static float t = 0, dt = 0.001f, dimAlpha = 0.05f, randSpeedFactor = 0, lineWidth = 1;
+        private static float dimAlpha = 0.05f, randSpeedFactor = 0, lineWidth = 1;
 
         private enum STATE { ALIVE, WAITING, DEAD };
 

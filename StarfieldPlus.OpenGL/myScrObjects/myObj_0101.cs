@@ -77,7 +77,7 @@ namespace my
             height = 600;
 
             string str = $"Obj = {Type}\n\n"                     	+
-                            $"N = {objN} of {N}\n"                  +
+                            myUtils.strCountOf(objN, N)             +
                             $"doClearBuffer = {doClearBuffer}\n"    +
                             $"maxX = {maxX}\n"                      +
                             $"maxY = {maxY}\n"                      +

@@ -876,9 +876,6 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string nStr(int n) { return n.ToString("N0"); }
-            string fStr(float f) { return f.ToString("0.000"); }
-
             string str_params = "";
 
             for (int i = 0; i < prm_i.Length; i++)
@@ -886,17 +883,17 @@ namespace my
                 str_params += i == 0 ? $"{prm_i[i]}" : $", {prm_i[i]}";
             }
 
-            string str = $"Obj = {Type}\n\n"                     	+
-                            $"mode = {mode}\n\n"                    +
-                            $"N = {nStr(list.Count)} of ({N})\n"    +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"        +
-                            $"max = {max}\n"                        +
-                            $"opacityFactor = {opacityFactor}\n"    +
-                            $"doClearBuffer = {doClearBuffer}\n"    +
-                            $"doSampleOnce  = {doSampleOnce}\n"     +
-                            $"doUseRandDxy  = {doUseRandDxy}\n"     +
-                            $"param: [{str_params}]\n\n"            +
-                            $"renderDelay = {renderDelay}\n"        +
+            string str = $"Obj = {Type}\n\n"                     	 +
+                            $"mode = {mode}\n\n"                     +
+                            myUtils.strCountOf(list.Count, N)        +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
+                            $"max = {max}\n"                         +
+                            $"opacityFactor = {opacityFactor}\n"     +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doSampleOnce  = {doSampleOnce}\n"      +
+                            $"doUseRandDxy  = {doUseRandDxy}\n"      +
+                            $"param: [{str_params}]\n\n"             +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

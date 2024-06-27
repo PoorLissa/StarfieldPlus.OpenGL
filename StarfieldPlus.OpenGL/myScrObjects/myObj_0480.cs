@@ -105,11 +105,8 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
             string str = $"Obj = {Type}\n\n"                       	 +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
+                            myUtils.strCountOf(list.Count, N)        +
                             $"shape = {shape}\n"                     +
                             $"moveMode = {moveMode}\n"               +
                             $"colorMode = {colorMode}\n"             +
@@ -118,8 +115,8 @@ namespace my
                             $"doShowLine = {doShowLine}\n"           +
                             $"doUseDdt = {doUseDdt}\n"               +
                             $"doUseNoise = {doUseNoise}\n"           +
-                            $"lineTh = {fStr(lineTh)}\n"             +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"         +
+                            $"lineTh = {myUtils.fStr(lineTh)}\n"     +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
                             $"dx = {DX}\n"                           +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"

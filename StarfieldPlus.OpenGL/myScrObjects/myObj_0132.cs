@@ -120,7 +120,7 @@ namespace my
             }
 
             string str = $"Obj = {Type}\n\n"                  	 +
-                            $"N = {list.Count} of {N}\n"         +
+                            myUtils.strCountOf(list.Count, N)    +
                             $"mode = {mode}\n"                   +
                             $"stepsPerFrame = {stepsPerFrame}\n" +
                             $"dimAlpha = {dimAlpha}\n"           +

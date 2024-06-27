@@ -122,25 +122,22 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                             	+
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n"        +
-                            $"shape = {shape}\n"                            +
-                            $"genMode = {genMode}\n"                        +
-                            $"angleMode = {angleMode}\n"                    +
-                            $"colorMode = {colorMode}\n"                    +
-                            $"connectMode = {connectMode}\n"                +
-                            $"doClearBuffer = {doClearBuffer}\n"            +
-                            $"doFillShapes = {doFillShapes}\n"              +
-                            $"doCreateAtOnce = {doCreateAtOnce}\n"          +
-                            $"doUseRandSpdFactor = {doUseRandSpdFactor}\n"  +
-                            $"doConnect = {doConnect}\n"                    +
-                            $"spdX = {spdX}; spdY = {spdY}\n"               +
-                            $"dAlphaStatic = {fStr(dAlphaStatic)}\n"        +
-                            $"dimAlpha = {fStr(dimAlpha)}\n"                +
-                            $"renderDelay = {renderDelay}\n"                +
+            string str = $"Obj = {Type}\n\n"                             	 +
+                            myUtils.strCountOf(list.Count, N)                +
+                            $"shape = {shape}\n"                             +
+                            $"genMode = {genMode}\n"                         +
+                            $"angleMode = {angleMode}\n"                     +
+                            $"colorMode = {colorMode}\n"                     +
+                            $"connectMode = {connectMode}\n"                 +
+                            $"doClearBuffer = {doClearBuffer}\n"             +
+                            $"doFillShapes = {doFillShapes}\n"               +
+                            $"doCreateAtOnce = {doCreateAtOnce}\n"           +
+                            $"doUseRandSpdFactor = {doUseRandSpdFactor}\n"   +
+                            $"doConnect = {doConnect}\n"                     +
+                            $"spdX = {spdX}; spdY = {spdY}\n"                +
+                            $"dAlphaStatic = {myUtils.fStr(dAlphaStatic)}\n" +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n"         +
+                            $"renderDelay = {renderDelay}\n"                 +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

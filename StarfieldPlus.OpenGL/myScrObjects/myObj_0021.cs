@@ -96,15 +96,13 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string fStr(float f) { return f.ToString("0.000"); }
-
             string str = $"Obj = {Type}\n\n"                         	+
-                            $"N = {list.Count} of {N}\n"                +
+                            myUtils.strCountOf(list.Count, N)           +
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"dimAlpha = {dimAlpha.ToString("0.00")}\n" +
                             $"shape = {shape}\n"                        +
-                            $"dSizeBase = {fStr(dSizeBase)}\n"          +
-                            $"dA = {fStr(dA)}\n"                        +
+                            $"dSizeBase = {myUtils.fStr(dSizeBase)}\n"  +
+                            $"dA = {myUtils.fStr(dA)}\n"                +
                             $"offset = {offset}\n"                      +
                             $"xyGenerateMode = {xyGenerateMode}\n"      +
                             $"colorMode = {colorMode}\n"                +

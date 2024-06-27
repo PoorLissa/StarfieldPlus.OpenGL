@@ -139,26 +139,23 @@ namespace my
         {
             height = 800;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                      	 +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"mode = {mode}\n"                       +
-                            $"sizeMode = {sizeMode}\n"               +
-                            $"shape = {shape}\n"                     +
-                            $"angleMode = {angleMode}\n"             +
-                            $"accelerationMode = {accMode}\n"        +
-                            $"accelerationRate = {fStr(accRate)}\n"  +
-                            $"cntMode = {cntMode}\n"                 +
-                            $"maxSize = {maxSize}\n"                 +
-                            $"maxCnt = {maxCnt}\n"                   +
-                            $"dxFactor = {dxFactor}\n"               +
-                            $"dyFactor = {dyFactor}\n"               +
-                            $"dA = {fStr(dA)}\n"                     +
-                            $"localMode = {localMode}\n"             +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                      	        +
+                            myUtils.strCountOf(list.Count, N)               +
+                            $"doClearBuffer = {doClearBuffer}\n"            +
+                            $"mode = {mode}\n"                              +
+                            $"sizeMode = {sizeMode}\n"                      +
+                            $"shape = {shape}\n"                            +
+                            $"angleMode = {angleMode}\n"                    +
+                            $"accelerationMode = {accMode}\n"               +
+                            $"accelerationRate = {myUtils.fStr(accRate)}\n" +
+                            $"cntMode = {cntMode}\n"                        +
+                            $"maxSize = {maxSize}\n"                        +
+                            $"maxCnt = {maxCnt}\n"                          +
+                            $"dxFactor = {dxFactor}\n"                      +
+                            $"dyFactor = {dyFactor}\n"                      +
+                            $"dA = {myUtils.fStr(dA)}\n"                    +
+                            $"localMode = {localMode}\n"                    +
+                            $"renderDelay = {renderDelay}\n"                +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

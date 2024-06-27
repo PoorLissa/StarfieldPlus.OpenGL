@@ -19,7 +19,7 @@ namespace my
         {
             public int index;
             public float x, a;
-            public float r, g, b;
+            //public float r, g, b;
 
             public symbolItem(float rowX, float rowY, float rowA, float rowSizeFactor)
             {
@@ -38,13 +38,11 @@ namespace my
         private bool isDead = true;
         private int yOffset = 0;
         private float x, y, dy, sizeFactor;
-        private float A, R, G, B, angle = 0;
+        private float A, R, G, B;
 
         private List<symbolItem> itemList = null;
 
         private static int N = 0, size = 20, startY = -100;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
 
         private static TexText tTex = null;
         private static myScreenGradient grad = null;
@@ -101,13 +99,11 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"size = {size}\n"                       +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                    +
+                            $"N = {myUtils.nStr(list.Count)}"   +
+                            $" of {myUtils.nStr(N)}\n"          +
+                            $"size = {size}\n"                  +
+                            $"renderDelay = {renderDelay}\n"    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;

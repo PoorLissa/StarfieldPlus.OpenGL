@@ -110,7 +110,7 @@ namespace my
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
             string str = $"Obj = {Type}\n\n"                     	+
-                            $"N = {list.Count} of {N}\n"            +
+                            myUtils.strCountOf(list.Count, N)       +
                             $"doClearBuffer = {doClearBuffer}\n"    +
                             $"shape = {shape}\n"                    +
                             $"rotationMode = {rotationMode}\n"      +

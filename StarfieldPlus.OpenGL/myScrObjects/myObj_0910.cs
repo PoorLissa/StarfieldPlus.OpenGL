@@ -22,7 +22,6 @@ namespace my
 
         private static int N = 0, shape = 0, maxSize = 1, angleMode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
 
