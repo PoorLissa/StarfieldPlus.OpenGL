@@ -23,7 +23,7 @@ namespace my
 
         private List<child> _children = null;
 
-        private static int N = 0, shape = 0, maxSize = 66, maxSpd = 1, drawMode = 0;
+        private static int N = 0, shape = 0, maxSize = 66, maxSpd = 1, drawMode = 0, moveMode = 0;
         private static bool doFillShapes = false;
 
         private static myScreenGradient grad = null;
@@ -72,6 +72,7 @@ namespace my
             renderDelay = rand.Next(3) + 1;
 
             drawMode = rand.Next(2);
+            moveMode = rand.Next(2);
 
             return;
         }
@@ -93,6 +94,7 @@ namespace my
                             $"maxSize = {maxSize}\n"             +
                             $"maxSpd = {maxSpd}\n"               +
                             $"drawMode = {drawMode}\n"           +
+                            $"moveMode = {moveMode}\n"           +
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"renderDelay = {renderDelay}\n"     +
                             $"file: {colorPicker.GetFileName()}"
@@ -144,6 +146,13 @@ namespace my
 
                     _children.Add(obj);
                     x += dx;
+
+                    if (moveMode == 1 && i > 0 && i % 2 == 1)
+                    {
+                        var prev = _children[i-1];
+                        prev.dy = obj.dy;
+                        prev.size = obj.size;
+                    }
                 }
             }
             else
@@ -155,6 +164,13 @@ namespace my
                     obj.y = y;
                     obj.dy = (0.001f + myUtils.randFloat(rand) * 0.2f) * myUtils.randomSign(rand) * maxSpd;
                     obj.size = 10 + rand.Next(maxSize);
+
+                    if (moveMode == 1 && i > 0 && i % 2 == 1)
+                    {
+                        var prev = _children[i - 1];
+                        prev.dy = obj.dy;
+                        prev.size = obj.size;
+                    }
                 }
             }
 
