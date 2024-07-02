@@ -17,6 +17,7 @@ namespace my
         public static int Priority => 9999910;
 		public static System.Type Type => typeof(myObj_1030);
 
+        private int cnt;
         private float x, y;
         private float A, R, G, B;
 
@@ -50,7 +51,6 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
                 N = rand.Next(10) + 1;
 
                 shape = rand.Next(5);
@@ -131,7 +131,7 @@ namespace my
                 int n = 100 + rand.Next(350);
 
                 x = 0;
-                float dx = 1.0f * gl_Width / (n-1);
+                float dx = 1.0f * gl_Width / (n - 1);
 
                 for (int i = 0; i < n; i++)
                 {
@@ -146,6 +146,19 @@ namespace my
                     x += dx;
                 }
             }
+            else
+            {
+                for (int i = 0; i < _children.Count; i++)
+                {
+                    var obj = _children[i];
+
+                    obj.y = y;
+                    obj.dy = (0.001f + myUtils.randFloat(rand) * 0.2f) * myUtils.randomSign(rand) * maxSpd;
+                    obj.size = 10 + rand.Next(maxSize);
+                }
+            }
+
+            cnt = 999 + rand.Next(999);
 
             return;
         }
@@ -154,24 +167,38 @@ namespace my
 
         protected override void Move()
         {
-            for (int i = 1; i < _children.Count - 1; i++)
+            if (--cnt < 0)
             {
-                var obj = _children[i];
+                A -= myUtils.randFloat(rand) * 0.001f;
+            }
 
-                obj.y += obj.dy;
+            if (A < 0)
+            {
+                generateNew();
+            }
+            else
+            {
+                int Count = _children.Count - 1;
 
-                if (obj.dy > 0)
+                for (int i = 1; i < Count; i++)
                 {
-                    if (obj.y >= y + obj.size)
+                    var obj = _children[i];
+
+                    obj.y += obj.dy;
+
+                    if (obj.dy > 0)
                     {
-                        obj.dy *= -1;
+                        if (obj.y >= y + obj.size)
+                        {
+                            obj.dy *= -1;
+                        }
                     }
-                }
-                else
-                {
-                    if (obj.y <= y - obj.size)
+                    else
                     {
-                        obj.dy *= -1;
+                        if (obj.y <= y - obj.size)
+                        {
+                            obj.dy *= -1;
+                        }
                     }
                 }
             }
