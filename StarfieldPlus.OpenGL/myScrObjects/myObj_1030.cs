@@ -51,7 +51,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 1;
+                N = rand.Next(33) + 3;
 
                 shape = rand.Next(5);
 
