@@ -20,7 +20,7 @@ namespace my
         private int x, y, cnt;
 
         private static float maxA = 1;
-        private static int N = 0, cellSize = 1, cellMargin = 0, xOffset = 0, yOffset = 0;
+        private static int N = 0, cellSize = 1, cellMargin = 0, xOffset = 0, yOffset = 0, mode = 0;
 
         private static myScreenGradient grad = null;
         private static myTexRectangle tex = null;
@@ -69,6 +69,8 @@ namespace my
 
             maxA = 0.1f + myUtils.randFloat(rand) * 0.9f;
 
+            mode = rand.Next(5) == 0 ? 1 : 0;
+
             return;
         }
 
@@ -80,6 +82,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"mode = {mode}\n"                +
                             $"cellSize = {cellSize}\n"        +
                             $"cellMargin = {cellMargin}\n"    +
                             $"maxA = {myUtils.fStr(maxA)}\n"  +
@@ -101,16 +104,24 @@ namespace my
 
         protected override void generateNew()
         {
+            cnt = 1;
+
             x = rand.Next(gl_Width  + 100) - 50;
             y = rand.Next(gl_Height + 100) - 50;
 
-            x -= x % (cellSize + cellMargin);
-            y -= y % (cellSize + cellMargin);
+            switch (mode)
+            {
+                case 0:
+                    x -= x % (cellSize + cellMargin);
+                    y -= y % (cellSize + cellMargin);
 
-            x -= xOffset;
-            y -= yOffset;
+                    x -= xOffset;
+                    y -= yOffset;
+                    break;
 
-            cnt = 1;
+                case 1:
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
