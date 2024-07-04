@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Tiled image transitioning to another image over time
 */
 
 
@@ -19,7 +19,8 @@ namespace my
 
         private int x, y, cnt;
 
-        private static int N = 0, cellSize = 1, cellMargin = 0;
+        private static float maxA = 1;
+        private static int N = 0, cellSize = 1, cellMargin = 0, xOffset = 0, yOffset = 0;
 
         private static myScreenGradient grad = null;
         private static myTexRectangle tex = null;
@@ -46,6 +47,12 @@ namespace my
 
                 cellSize = 10 + rand.Next(50);
                 cellMargin = 1 + rand.Next(3);
+
+                xOffset = gl_Width % (cellSize + cellMargin);
+                xOffset = (cellSize + cellMargin - xOffset) / 2;
+
+                yOffset = gl_Height % (cellSize + cellMargin);
+                yOffset = (cellSize + cellMargin - yOffset) / 2;
             }
 
             initLocal();
@@ -60,6 +67,8 @@ namespace my
 
             renderDelay = rand.Next(3) + 1;
 
+            maxA = 0.1f + myUtils.randFloat(rand) * 0.9f;
+
             return;
         }
 
@@ -73,6 +82,7 @@ namespace my
                             myUtils.strCountOf(list.Count, N) +
                             $"cellSize = {cellSize}\n"        +
                             $"cellMargin = {cellMargin}\n"    +
+                            $"maxA = {myUtils.fStr(maxA)}\n"  +
                             $"renderDelay = {renderDelay}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -91,13 +101,15 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            x = rand.Next(gl_Width  + 100) - 50;
+            y = rand.Next(gl_Height + 100) - 50;
 
             x -= x % (cellSize + cellMargin);
             y -= y % (cellSize + cellMargin);
 
-            cnt = 11 + rand.Next(11);
+            x -= xOffset;
+            y -= yOffset;
+
             cnt = 1;
         }
 
@@ -116,7 +128,7 @@ namespace my
 
         protected override void Show()
         {
-            tex.setOpacity(myUtils.randFloat(rand));
+            tex.setOpacity(myUtils.randFloat(rand) * maxA);
             tex.Draw(x, y, cellSize, cellSize, x, y, cellSize, cellSize);
         }
 
