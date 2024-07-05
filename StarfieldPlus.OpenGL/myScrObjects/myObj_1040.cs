@@ -14,13 +14,14 @@ namespace my
     public class myObj_1040 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1040);
 
         private int x, y, cnt;
 
         private static float maxA = 1;
-        private static int N = 0, cellSize = 1, cellMargin = 0, xOffset = 0, yOffset = 0, mode = 0;
+        private static int N = 0, cellSize = 1, cellMargin = 0, xOffset = 0, yOffset = 0, mode = 0, cntThreshold = 1, gl_cnt = 0;
+        private static bool doChangeCellSize = false;
 
         private static myScreenGradient grad = null;
         private static myTexRectangle tex = null;
@@ -45,14 +46,7 @@ namespace my
             {
                 N = rand.Next(10) + 10;
 
-                cellSize = 10 + rand.Next(50);
-                cellMargin = 1 + rand.Next(3);
-
-                xOffset = gl_Width % (cellSize + cellMargin);
-                xOffset = (cellSize + cellMargin - xOffset) / 2;
-
-                yOffset = gl_Height % (cellSize + cellMargin);
-                yOffset = (cellSize + cellMargin - yOffset) / 2;
+                setUpCellSize();
             }
 
             initLocal();
@@ -64,6 +58,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = false;
+            doChangeCellSize = myUtils.randomBool(rand);
 
             renderDelay = rand.Next(3) + 1;
 
@@ -80,13 +75,16 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
-                            $"mode = {mode}\n"                +
-                            $"cellSize = {cellSize}\n"        +
-                            $"cellMargin = {cellMargin}\n"    +
-                            $"maxA = {myUtils.fStr(maxA)}\n"  +
-                            $"renderDelay = {renderDelay}\n"  +
+            string str = $"Obj = {Type}\n\n"                           +
+                            myUtils.strCountOf(list.Count, N)          +
+                            $"mode = {mode}\n"                         +
+                            $"cellSize = {cellSize}\n"                 +
+                            $"cellMargin = {cellMargin}\n"             +
+                            $"maxA = {myUtils.fStr(maxA)}\n"           +
+                            $"doChangeCellSize = {doChangeCellSize}\n" +
+                            $"gl_cnt = {gl_cnt}\n"                     +
+                            $"cntThreshold = {cntThreshold}\n"         +
+                            $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -147,7 +145,6 @@ namespace my
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f, true);
@@ -177,15 +174,19 @@ namespace my
                     list.Add(new myObj_1040());
                 }
 
-                cnt++;
                 System.Threading.Thread.Sleep(renderDelay);
 
-                if (cnt == 3000)
+                if (++gl_cnt == cntThreshold)
                 {
-                    cnt = 0;
+                    gl_cnt = 0;
 
                     colorPicker.reloadImage();
                     tex.reloadImg(colorPicker.getImg());
+
+                    if (doChangeCellSize)
+                    {
+                        setUpCellSize();
+                    }
                 }
             }
 
@@ -202,6 +203,33 @@ namespace my
             grad.SetRandomColors(rand, 0.2f);
 
             tex = new myTexRectangle(colorPicker.getImg());
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void setUpCellSize()
+        {
+            int sizeMin = 10;
+            int sizeMax = 61;
+            int nMin = 6000;
+            int nMax = 3000;
+
+            cellSize = sizeMin + rand.Next(sizeMax - sizeMin);
+            cellMargin = 1 + rand.Next(3);
+
+            xOffset = gl_Width % (cellSize + cellMargin);
+            xOffset = (cellSize + cellMargin - xOffset) / 2;
+
+            yOffset = gl_Height % (cellSize + cellMargin);
+            yOffset = (cellSize + cellMargin - yOffset) / 2;
+
+            // Linear interpolation
+            int a = (nMax - nMin) / (sizeMax - sizeMin);
+            int b = nMin - a * sizeMin;
+
+            cntThreshold = a * cellSize + b;
 
             return;
         }
