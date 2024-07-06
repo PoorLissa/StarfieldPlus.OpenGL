@@ -54,8 +54,20 @@ namespace my
 
                 mode = rand.Next(3);
 
-                dimAlpha = 0.25f;
-                dimAlpha = 0.05f;
+                switch (rand.Next(3))
+                {
+                    case 0:
+                        dimAlpha = 0.25f;
+                        break;
+
+                    case 1:
+                        dimAlpha = 0.05f;
+                        break;
+
+                    case 2:
+                        dimAlpha = 0.001f;
+                        break;
+                }
             }
 
             initLocal();
@@ -79,9 +91,11 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
-                            $"renderDelay = {renderDelay}\n"  +
+            string str = $"Obj = {Type}\n\n"                         +
+                            myUtils.strCountOf(list.Count, N)        +
+                            $"mode = {mode }\n"                      +
+                            $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
