@@ -19,10 +19,9 @@ namespace my
 
         private int cnt;
         private float x, y, dx, dy, xOld, yOld;
-        private float size, A, r, g, b, dR, dG, dB, R, G, B, angle = 0;
+        private float size, A, r, g, b, dR, dG, dB, R, G, B;
 
-        private static int N = 0, shape = 0, maxCnt = 1, mode;
-        private static bool doFillShapes = false;
+        private static int N = 0, maxCnt = 1, mode, dimMode = 0, spd = 1;
         private static float dimAlpha = 0.005f;
 
         private static myScreenGradient grad = null;
@@ -48,23 +47,24 @@ namespace my
                 N = rand.Next(10) + 10;
                 N = 33;
 
-                shape = rand.Next(5);
-
+                spd = 5;
                 maxCnt = 2000;
-
-                mode = rand.Next(3);
+                mode = rand.Next(4);
 
                 switch (rand.Next(3))
                 {
                     case 0:
+                        dimMode = 0;
                         dimAlpha = 0.25f;
                         break;
 
                     case 1:
+                        dimMode = 1;
                         dimAlpha = 0.05f;
                         break;
 
                     case 2:
+                        dimMode = 2;
                         dimAlpha = 0.001f;
                         break;
                 }
@@ -93,7 +93,8 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                         +
                             myUtils.strCountOf(list.Count, N)        +
-                            $"mode = {mode }\n"                      +
+                            $"mode = {mode}\n"                       +
+                            $"dimMode = {dimMode}\n"                 +
                             $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
@@ -118,8 +119,6 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            int spd = 5;
-
             dx = (0.2f + myUtils.randFloat(rand)) * spd * myUtils.randomSign(rand);
             dy = (0.2f + myUtils.randFloat(rand)) * spd * myUtils.randomSign(rand);
 
@@ -129,8 +128,6 @@ namespace my
             r = R = (float)rand.NextDouble();
             g = G = (float)rand.NextDouble();
             b = B = (float)rand.NextDouble();
-
-            //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
         }
@@ -185,8 +182,6 @@ namespace my
                 A += 0.01f;
             }
 
-            angle += 0.001f;
-
             xOld = x;
             yOld = y;
 
@@ -216,7 +211,7 @@ namespace my
 
                 case 1:
                     {
-                        float back = 0.095f;
+                        float back = 0.04f * spd;
 
                         if (x < 0)
                             dx += back;
@@ -228,7 +223,7 @@ namespace my
                             dx -= back;
 
                         if (y > gl_Height)
-                            dx -= back;
+                            dy -= back;
                     }
                     break;
 
@@ -240,6 +235,22 @@ namespace my
                         }
                     }
                     break;
+
+                case 3:
+                    {
+                        if (x < 0)
+                            x = xOld = gl_Width;
+
+                        if (y < 0)
+                            y = yOld = gl_Height;
+
+                        if (x > gl_Width)
+                            x = xOld = 0;
+
+                        if (y > gl_Height)
+                            y = yOld = 0;
+                    }
+                    break;
             }
 
             return;
@@ -249,15 +260,11 @@ namespace my
 
         protected override void Show()
         {
-            float size2x = size * 2;
-
             myPrimitive._Line.SetColor(r, g, b, A);
             myPrimitive._Line.Draw(x, y, xOld, yOld, A);
 
             myPrimitive._Line.SetColor(r, g, b, A * 0.5f);
             myPrimitive._Line.Draw(x, y, xOld, yOld, 7);
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -281,15 +288,7 @@ namespace my
 
                 // Dim screen
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+                    dimScreen(dimAlpha);
                 }
 
                 // Render Frame
@@ -310,6 +309,21 @@ namespace my
 
                 cnt++;
                 System.Threading.Thread.Sleep(renderDelay);
+
+                // Dim faster to clear the screen
+                if (dimMode == 2)
+                {
+                    if (cnt > 11111)
+                    {
+                        dimAlpha += 0.001f;
+
+                        if (dimAlpha > 0.3f)
+                        {
+                            cnt = 0;
+                            dimAlpha = 0.001f;
+                        }
+                    }
+                }
             }
 
             return;
@@ -320,9 +334,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_Line();
-
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
