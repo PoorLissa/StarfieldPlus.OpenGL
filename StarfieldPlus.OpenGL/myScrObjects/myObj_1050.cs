@@ -19,7 +19,7 @@ namespace my
 
         private int cnt;
         private float x, y, dx, dy, xOld, yOld;
-        private float size, A, r, g, b, dR, dG, dB, R, G, B;
+        private float A, r, g, b, dR, dG, dB, R, G, B;
 
         private static int N = 0, maxCnt = 1, mode, dimMode = 0, spd = 1;
         private static float dimAlpha = 0.005f;
@@ -121,8 +121,6 @@ namespace my
 
             dx = (0.2f + myUtils.randFloat(rand)) * spd * myUtils.randomSign(rand);
             dy = (0.2f + myUtils.randFloat(rand)) * spd * myUtils.randomSign(rand);
-
-            size = rand.Next(3) + 2;
 
             A = 0;
             r = R = (float)rand.NextDouble();
