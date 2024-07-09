@@ -21,6 +21,7 @@ namespace my
         private float x, y, dx, dy, xOld, yOld;
         private float A, r, g, b, dR, dG, dB, R, G, B;
 
+        private static uint gl_cnt = 0;
         private static int N = 0, maxCnt = 1, mode, dimMode = 0, spd = 1;
         private static float dimAlpha = 0.005f;
 
@@ -97,6 +98,7 @@ namespace my
                             $"dimMode = {dimMode}\n"                 +
                             $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
                             $"renderDelay = {renderDelay}\n"         +
+                            $"gl_cnt = {gl_cnt}\n"                   +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -258,18 +260,28 @@ namespace my
 
         protected override void Show()
         {
+#if !false
+            myPrimitive._Line.SetColor(r, g, b, A);
+            myPrimitive._Line.Draw(x, y, xOld, yOld, A);
+
+            myPrimitive._Line.SetColor(r, g, b, A * 0.5f);
+            myPrimitive._Line.Draw(x, y, xOld, yOld, 5);
+
+            myPrimitive._Line.SetColor(r, g, b, A * 0.15f);
+            myPrimitive._Line.Draw(x, y, xOld, yOld, 7);
+#else
             myPrimitive._Line.SetColor(r, g, b, A);
             myPrimitive._Line.Draw(x, y, xOld, yOld, A);
 
             myPrimitive._Line.SetColor(r, g, b, A * 0.5f);
             myPrimitive._Line.Draw(x, y, xOld, yOld, 7);
+#endif
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Process(Window window)
         {
-            uint cnt = 0;
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f, true);
@@ -305,19 +317,19 @@ namespace my
                     list.Add(new myObj_1050());
                 }
 
-                cnt++;
+                gl_cnt++;
                 System.Threading.Thread.Sleep(renderDelay);
 
                 // Dim faster to clear the screen
                 if (dimMode == 2)
                 {
-                    if (cnt > 11111)
+                    if (gl_cnt > 5555)
                     {
-                        dimAlpha += 0.001f;
+                        dimAlpha += 0.0001f;
 
-                        if (dimAlpha > 0.3f)
+                        if (dimAlpha > 0.12f)
                         {
-                            cnt = 0;
+                            gl_cnt = 0;
                             dimAlpha = 0.001f;
                         }
                     }
