@@ -24,6 +24,7 @@ namespace my
         private static uint gl_cnt = 0;
         private static int N = 0, maxCnt = 1, mode, dimMode = 0, modeOld = 0, spd = 1;
         private static float dimAlpha = 0.005f;
+        private static bool doUseGravity = false;
 
         private static myScreenGradient grad = null;
 
@@ -52,6 +53,8 @@ namespace my
                 maxCnt = 2000;
                 mode = rand.Next(4);
                 modeOld = rand.Next(2);
+
+                doUseGravity = false;
 
                 switch (rand.Next(3))
                 {
@@ -179,7 +182,7 @@ namespace my
                     cnt = 333 + rand.Next(maxCnt);
             }
 
-            if (A < 1)
+            if (A < 0.3)
             {
                 A += 0.01f;
             }
@@ -197,11 +200,37 @@ namespace my
                     break;
             }
 
-            x += dx;
-            y += dy;
+            if (doUseGravity)
+            {
+                x += dx;
+                y += dy;
 
-            dx += (float)Math.Sin(x + y);
-            dy += (float)Math.Cos(y - x);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    var obj = list[i] as myObj_1050;
+
+                    if (obj.id != id)
+                    {
+                        float dX = obj.x - x;
+                        float dY = obj.y - y;
+
+                        double distSq = dX * dX + dY * dY + 0.01;
+
+                        double factor = 33;
+
+                        x += (float)(factor * dX / distSq);
+                        y += (float)(factor * dY / distSq);
+                    }
+                }
+            }
+            else
+            {
+                x += dx;
+                y += dy;
+
+                dx += (float)Math.Sin(x + y);
+                dy += (float)Math.Cos(y - x);
+            }
 
             switch (mode)
             {
