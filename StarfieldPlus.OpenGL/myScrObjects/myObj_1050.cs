@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Roaming lines, no buffer clearing
 */
 
 
@@ -22,7 +22,7 @@ namespace my
         private float A, r, g, b, dR, dG, dB, R, G, B;
 
         private static uint gl_cnt = 0;
-        private static int N = 0, maxCnt = 1, mode, dimMode = 0, spd = 1;
+        private static int N = 0, maxCnt = 1, mode, dimMode = 0, modeOld = 0, spd = 1;
         private static float dimAlpha = 0.005f;
 
         private static myScreenGradient grad = null;
@@ -51,6 +51,7 @@ namespace my
                 spd = 5;
                 maxCnt = 2000;
                 mode = rand.Next(4);
+                modeOld = rand.Next(2);
 
                 switch (rand.Next(3))
                 {
@@ -96,6 +97,7 @@ namespace my
                             myUtils.strCountOf(list.Count, N)        +
                             $"mode = {mode}\n"                       +
                             $"dimMode = {dimMode}\n"                 +
+                            $"modeOld = {modeOld}\n"                 +
                             $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
                             $"renderDelay = {renderDelay}\n"         +
                             $"gl_cnt = {gl_cnt}\n"                   +
@@ -182,8 +184,18 @@ namespace my
                 A += 0.01f;
             }
 
-            xOld = x;
-            yOld = y;
+            switch(modeOld)
+            {
+                case 0:
+                    xOld = x;
+                    yOld = y;
+                    break;
+
+                case 1:
+                    xOld = x + rand.Next(7) - 3;
+                    yOld = y + rand.Next(7) - 3;
+                    break;
+            }
 
             x += dx;
             y += dy;
