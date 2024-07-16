@@ -22,7 +22,7 @@ namespace my
         private float A, r, g, b, dR, dG, dB, R, G, B;
 
         private static uint gl_cnt = 0;
-        private static int N = 0, maxCnt = 1, mode, dimMode = 0, modeOld = 0, spd = 1;
+        private static int N = 0, maxCnt = 1, mode, colorMode = 0, dimMode = 0, modeOld = 0, spd = 1;
         private static float dimAlpha = 0.005f;
         private static bool doUseGravity = false;
 
@@ -53,6 +53,7 @@ namespace my
                 maxCnt = 2000;
                 mode = rand.Next(4);
                 modeOld = rand.Next(2);
+                colorMode = rand.Next(3);
 
                 doUseGravity = false;
 
@@ -61,6 +62,8 @@ namespace my
                     case 0:
                         dimMode = 0;
                         dimAlpha = 0.25f;
+                        N = 100 + rand.Next(250);
+                        spd = 2 + rand.Next(3);
                         break;
 
                     case 1:
@@ -100,6 +103,8 @@ namespace my
                             myUtils.strCountOf(list.Count, N)        +
                             $"mode = {mode}\n"                       +
                             $"dimMode = {dimMode}\n"                 +
+                            $"colorMode = {colorMode}\n"             +
+                            $"spd = {spd}\n"                         +
                             $"modeOld = {modeOld}\n"                 +
                             $"dimAlpha = {myUtils.fStr(dimAlpha)}\n" +
                             $"renderDelay = {renderDelay}\n"         +
@@ -130,9 +135,39 @@ namespace my
             dy = (0.2f + myUtils.randFloat(rand)) * spd * myUtils.randomSign(rand);
 
             A = 0;
-            r = R = (float)rand.NextDouble();
-            g = G = (float)rand.NextDouble();
-            b = B = (float)rand.NextDouble();
+
+            switch (colorMode)
+            {
+                case 0:
+                case 1:
+                    {
+                        r = R = (float)rand.NextDouble();
+                        g = G = (float)rand.NextDouble();
+                        b = B = (float)rand.NextDouble();
+                    }
+                    break;
+
+                case 2:
+                    {
+                        if (id == 0)
+                        {
+                            do
+                            {
+                                r = R = (float)rand.NextDouble();
+                                g = G = (float)rand.NextDouble();
+                                b = B = (float)rand.NextDouble();
+                            }
+                            while (r + g + b < 0.5f);
+                        }
+                        else
+                        {
+                            r = R = (list[0] as myObj_1050).R + myUtils.randFloatSigned(rand) * 0.1f;
+                            g = G = (list[0] as myObj_1050).G + myUtils.randFloatSigned(rand) * 0.1f;
+                            b = B = (list[0] as myObj_1050).B + myUtils.randFloatSigned(rand) * 0.1f;
+                        }
+                    }
+                    break;
+            }
 
             return;
         }
