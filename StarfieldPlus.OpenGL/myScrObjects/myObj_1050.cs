@@ -20,9 +20,10 @@ namespace my
         private int cnt;
         private float x, y, dx, dy, xOld, yOld;
         private float A, r, g, b, dR, dG, dB, R, G, B;
+        private float rad, Rad, dRad, angle, dAngle;
 
         private static uint gl_cnt = 0;
-        private static int N = 0, maxCnt = 1, mode, colorMode = 0, dimMode = 0, modeOld = 0, spd = 1;
+        private static int N = 0, maxCnt = 1, mode, moveMode = 0, colorMode = 0, dimMode = 0, modeOld = 0, spd = 1;
         private static float dimAlpha = 0.005f;
         private static bool doUseGravity = false;
 
@@ -54,6 +55,7 @@ namespace my
                 mode = rand.Next(4);
                 modeOld = rand.Next(2);
                 colorMode = rand.Next(3);
+                moveMode = rand.Next(7);
 
                 doUseGravity = false;
 
@@ -128,8 +130,21 @@ namespace my
         {
             cnt = 333 + rand.Next(maxCnt);
 
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            switch (moveMode)
+            {
+                case 0:
+                    rad = Rad = 10 + rand.Next(gl_Width/2);
+                    angle = myUtils.randFloat(rand) * 321;
+                    dAngle = myUtils.randFloatSigned(rand) * 0.1f;
+                    x = gl_x0 + rad * (float)Math.Sin(angle);
+                    y = gl_y0 + rad * (float)Math.Cos(angle);
+                    break;
+
+                default:
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    break;
+            }
 
             dx = (0.2f + myUtils.randFloat(rand)) * spd * myUtils.randomSign(rand);
             dy = (0.2f + myUtils.randFloat(rand)) * spd * myUtils.randomSign(rand);
@@ -176,6 +191,8 @@ namespace my
 
         protected override void Move()
         {
+            bool doRenew = false;
+
             if (--cnt == 0)
             {
                 cnt = -1;
@@ -187,6 +204,8 @@ namespace my
                 dR = (R - r) / 100;
                 dG = (G - g) / 100;
                 dB = (B - b) / 100;
+
+                doRenew = true;
             }
 
             if (cnt < 0)
@@ -260,11 +279,44 @@ namespace my
             }
             else
             {
-                x += dx;
-                y += dy;
+                switch (moveMode)
+                {
+                    case 0:
+                        {
+                            angle += dAngle;
 
-                dx += (float)Math.Sin(x + y);
-                dy += (float)Math.Cos(y - x);
+                            x = gl_x0 + rad * (float)Math.Sin(angle);
+                            y = gl_y0 + rad * (float)Math.Cos(angle);
+
+                            if (doRenew)
+                            {
+                                Rad += rand.Next(201) - 100;
+                                dRad = (Rad - rad) * 0.005f;
+                            }
+
+                            if (dRad != 0)
+                            {
+                                rad += dRad;
+
+                                if (dRad > 0 && rad >= Rad)
+                                    dRad = 0;
+
+                                if (dRad < 0 && rad <= Rad)
+                                    dRad = 0;
+                            }
+                        }
+                        break;
+
+                    default:
+                        {
+                            x += dx;
+                            y += dy;
+
+                            dx += (float)Math.Sin(x + y);
+                            dy += (float)Math.Cos(y - x);
+                        }
+                        break;
+                }
             }
 
             switch (mode)
