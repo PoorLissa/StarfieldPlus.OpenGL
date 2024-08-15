@@ -24,7 +24,7 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myTexRectangle(string path)
+    public myTexRectangle(string path, string vertHead = "", string vertMain = "", string fragHead = "", string fragMain = "")
     {
         if (vertices == null)
         {
@@ -33,7 +33,7 @@ public class myTexRectangle : myPrimitive
             dx = 1.0f / Width;
             dy = 1.0f / Height;
 
-            shaderProgram = CreateShader();
+            shaderProgram = CreateShader(vertHead, vertMain, fragHead, fragMain);
             glUseProgram(shaderProgram);
 
             locationColor = glGetUniformLocation(shaderProgram, "myColor");
@@ -55,7 +55,7 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public myTexRectangle(System.Drawing.Bitmap bmp)
+    public myTexRectangle(System.Drawing.Bitmap bmp, string vertHead = "", string vertMain = "", string fragHead = "", string fragMain = "")
     {
         if (vertices == null)
         {
@@ -64,7 +64,7 @@ public class myTexRectangle : myPrimitive
             dx = 1.0f / Width;
             dy = 1.0f / Height;
 
-            shaderProgram = CreateShader();
+            shaderProgram = CreateShader(vertHead, vertMain, fragHead, fragMain);
             glUseProgram(shaderProgram);
 
             locationColor = glGetUniformLocation(shaderProgram, "myColor");
@@ -228,7 +228,7 @@ public class myTexRectangle : myPrimitive
     // -------------------------------------------------------------------------------------------------------------------
 
     // Create a shader program
-    private uint CreateShader()
+    private uint CreateShader(string _vertHead, string _vertMain, string _fragHead, string _fragMain)
     {
         string vertHead =
             @"layout (location = 0) in vec3 pos;
@@ -274,6 +274,19 @@ public class myTexRectangle : myPrimitive
 
         string fragMain =
             "result = texture(myTexture, fragTxCoord) * fragColor;";
+
+        // Replace default implementations with user-defined ones
+        if (_vertHead != string.Empty)
+            vertHead = _vertHead;
+
+        if (_vertMain != string.Empty)
+            vertMain = _vertMain;
+
+        if (_fragHead != string.Empty)
+            fragHead = _fragHead;
+
+        if (_fragMain != string.Empty)
+            fragMain = _fragMain;
 
         return CreateProgram(vertHead, vertMain, fragHead, fragMain);
     }

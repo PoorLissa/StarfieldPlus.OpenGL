@@ -212,6 +212,7 @@ public class ScreenSaver
         register(my.myObj_1030.Type);       // ...
         register(my.myObj_1040.Type);       // Tiled image transitioning to another image over time
         register(my.myObj_1050.Type);       // Roaming lines, no buffer clearing
+        register(my.myObj_1060.Type);       // Draw texture's pixels only if their color is close to a target color
 
         // несколько партиклов, которые в ограниченной терротории рандомно двигаются туда и сюда.
         // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.
