@@ -117,9 +117,9 @@ namespace my
         {
             t += dt;
 
-            R = (float)Math.Sin(r * t);
-            G = (float)Math.Sin(g * t);
-            B = (float)Math.Sin(b * t);
+            R = (float)Math.Abs(Math.Sin(r * t));
+            G = (float)Math.Abs(Math.Sin(g * t));
+            B = (float)Math.Abs(Math.Sin(b * t));
 
             tex.setColor(R, G, B);
 
