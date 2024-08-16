@@ -18,12 +18,10 @@ namespace my
         public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_1060);
 
-        private float x, y;
-        private float A, R, G, B;
-
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, colorMode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, t = 0, dt = 0.001f, r, g, b;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0.001f;
+        private static float rFactor, gFactor, bFactor, R, G, B, rCustom, gCustom, bCustom;
 
         private static myTexRectangle tex = null;
         private static myScreenGradient grad = null;
@@ -48,11 +46,20 @@ namespace my
             {
                 N = 1;
 
+                colorMode = rand.Next(2);
                 shape = rand.Next(5);
 
-                r = (myUtils.randFloat(rand) + 0.1f) + rand.Next(5);
-                g = (myUtils.randFloat(rand) + 0.1f) + rand.Next(5);
-                b = (myUtils.randFloat(rand) + 0.1f) + rand.Next(5);
+                do {
+
+                    rCustom = myUtils.randFloat(rand);
+                    gCustom = myUtils.randFloat(rand);
+                    bCustom = myUtils.randFloat(rand);
+
+                } while (rCustom + gCustom + bCustom < 1);
+
+                rFactor = (myUtils.randFloat(rand) + 0.1f) + rand.Next(5);
+                gFactor = (myUtils.randFloat(rand) + 0.1f) + rand.Next(5);
+                bFactor = (myUtils.randFloat(rand) + 0.1f) + rand.Next(5);
             }
 
             initLocal();
@@ -78,9 +85,13 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                     +
                             myUtils.strCountOf(list.Count, N)    +
-                            $"r = {r}\n"                         +
-                            $"g = {g}\n"                         +
-                            $"b = {b}\n"                         +
+                            $"colorMode = {colorMode}\n"         +
+                            $"rFactor = {rFactor}\n"             +
+                            $"gFactor = {gFactor}\n"             +
+                            $"bFactor = {bFactor}\n"             +
+                            $"rCustom = {rCustom}\n"             +
+                            $"gCustom = {gCustom}\n"             +
+                            $"bCustom = {bCustom}\n"             +
                             $"renderDelay = {renderDelay}\n"     +
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"file: {colorPicker.GetFileName()}"
@@ -100,15 +111,7 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
-
-            A = 1;
             R = G = B = 0;
-
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -117,10 +120,12 @@ namespace my
         {
             t += dt;
 
-            R = (float)Math.Abs(Math.Sin(r * t));
-            G = (float)Math.Abs(Math.Sin(g * t));
-            B = (float)Math.Abs(Math.Sin(b * t));
+            // Recalc target color
+            R = (float)Math.Abs(Math.Sin(rFactor * t));
+            G = (float)Math.Abs(Math.Sin(gFactor * t));
+            B = (float)Math.Abs(Math.Sin(bFactor * t));
 
+            // Send target color into shader
             tex.setColor(R, G, B);
 
             return;
@@ -205,6 +210,26 @@ namespace my
 
         private void initShapes()
         {
+            string result = "";
+
+            double A = doClearBuffer ? 0.05 : 0.01;
+
+            switch (colorMode)
+            {
+                // Draw everything that we see in a normal way
+                case 0:
+                    result = "";
+                    break;
+
+                // Draw everything that we see in a special color
+                case 1:
+                    result = $"result = vec4({rCustom}, {gCustom}, {bCustom}, 1);";
+                    A = 0.001;
+                    break;
+            }
+
+            // Compare target color with current pixel color;
+            // Draw the pixel only if it is close to the target color
             string fragMain = $@"
 
                 float target = {0.25f + myUtils.randFloat(rand) * 0.3f};
@@ -212,11 +237,11 @@ namespace my
 
                 if (distance(result, fragColor) < target)
                 {{
-                    result = texture(myTexture, fragTxCoord);
+                    {result}
                 }}
                 else
                 {{
-                    result = texture(myTexture, fragTxCoord) * vec4(0.25, 0.25, 0.25, 0.1);
+                    result *= vec4(1, 1, 1, {A});
                 }}
             ";
 
