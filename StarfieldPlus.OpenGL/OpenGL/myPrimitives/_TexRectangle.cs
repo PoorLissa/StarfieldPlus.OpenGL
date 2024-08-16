@@ -24,6 +24,7 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // By using the default params, we can provide custom shader implementations
     public myTexRectangle(string path, string vertHead = "", string vertMain = "", string fragHead = "", string fragMain = "")
     {
         if (vertices == null)
@@ -55,6 +56,7 @@ public class myTexRectangle : myPrimitive
 
     // -------------------------------------------------------------------------------------------------------------------
 
+    // By using the default params, we can provide custom shader implementations
     public myTexRectangle(System.Drawing.Bitmap bmp, string vertHead = "", string vertMain = "", string fragHead = "", string fragMain = "")
     {
         if (vertices == null)

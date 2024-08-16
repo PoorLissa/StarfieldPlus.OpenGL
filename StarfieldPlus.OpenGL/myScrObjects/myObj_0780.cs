@@ -20,8 +20,8 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle;
 
-        private static int N = 0, shape = 0, dirMode = 0, maxSize = 0;
-        private static bool doFillShapes = false, doRotate = false;
+        private static int N = 0, shape = 0, dirMode = 0, maxSize = 0, gridStepX = 33, gridStepY = 33;
+        private static bool doFillShapes = false, doRotate = false, doUseGrid = false;
         private static float maxSpeed = 1;
 
         private static myScreenGradient grad = null;
@@ -66,6 +66,7 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doFillShapes = myUtils.randomChance(rand, 1, 3);
             doRotate = myUtils.randomChance(rand, 1, 2);
+            doUseGrid = myUtils.randomChance(rand, 1, 2);
 
             maxSpeed = myUtils.randFloat(rand, 0.1f) * (myUtils.randomChance(rand, 4, 5)  ? 0.5f : 1.0f);
             maxSize = 3 + rand.Next(11);
@@ -73,6 +74,17 @@ namespace my
             dirMode = rand.Next(7);
 
             renderDelay = 0;
+
+            if (myUtils.randomChance(rand, 1, 3))
+            {
+                gridStepX = rand.Next(100) + 33;
+                gridStepY = rand.Next(100) + 33;
+            }
+            else
+            {
+                gridStepX = rand.Next(100) + 33;
+                gridStepY = gridStepX;
+            }
 
 #if false
             doClearBuffer = true;
@@ -100,6 +112,9 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n"     +
                             $"doFillShapes = {doFillShapes}\n"       +
                             $"doRotate = {doRotate}\n"               +
+                            $"doUseGrid = {doUseGrid}\n"             +
+                            $"gridStepX = {gridStepX}\n"             +
+                            $"gridStepY = {gridStepY}\n"             +
                             $"dirMode = {dirMode}\n"                 +
                             $"maxSize = {maxSize}\n"                 +
                             $"maxSpeed = {fStr(maxSpeed)}\n"         +
@@ -124,8 +139,11 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            //x -= x % 33;
-            //y -= y % 33;
+            if (doUseGrid)
+            {
+                x -= x % gridStepX;
+                y -= y % gridStepY;
+            }
 
             switch (dirMode)
             {
@@ -229,8 +247,6 @@ namespace my
         {
             uint cnt = 0;
             initShapes();
-
-            //Glfw.SwapInterval(1);
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
