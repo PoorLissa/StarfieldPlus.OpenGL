@@ -80,7 +80,6 @@ public class ScreenSaver
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
     // - snake that does not cross itself (use lists of vertical and horizontal lines the snake consists of)
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
-    // - get a picture, go through all its pixels and map them <R+G+B to Count>, so we know percentages of all the colors in the image; then pick a color that is 20-40%, and only display those pixels
     // - make a grid like in conway's life, and then get an image and put grid cells using image's color; when the image is done, select another image and so on
 
     // -------------------------------------------------------------------------------------------------------------------
