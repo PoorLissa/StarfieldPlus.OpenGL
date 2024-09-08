@@ -81,6 +81,8 @@ public class ScreenSaver
     // - snake that does not cross itself (use lists of vertical and horizontal lines the snake consists of)
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
     // - make a grid like in conway's life, and then get an image and put grid cells using image's color; when the image is done, select another image and so on
+    // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
+    // - like starfield, but instead of flying dots we have flying lines (made of 2 dots with the same angle, but slightly different speed)
 
     // -------------------------------------------------------------------------------------------------------------------
 
