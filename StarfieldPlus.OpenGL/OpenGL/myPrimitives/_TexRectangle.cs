@@ -3,6 +3,7 @@ using static OpenGL.GL;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using my;
 
 // todo:
 // need 2 types of rotation:
@@ -294,6 +295,12 @@ public class myTexRectangle : myPrimitive
     }
 
     // -------------------------------------------------------------------------------------------------------------------
+
+/*
+    Ask AI (they have some clever suggestions about it):
+        - Do I need to call glBufferData each time I draw a frame?
+            https://stackoverflow.com/questions/32222574/is-it-better-glbuffersubdata-or-glmapbuffer
+*/
 
     // Move vertices data from CPU to GPU -- needs to be called each time we change the Rectangle's coordinates
     private static unsafe void updateVertices()
