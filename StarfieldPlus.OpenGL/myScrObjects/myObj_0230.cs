@@ -9,6 +9,93 @@ using System.Collections.Generic;
     https://www.youtube.com/watch?v=0Kx4Y9TVMGg&ab_channel=Brainxyz
 
     - Gravity, unfinished
+
+Got it! To achieve this, you can first calculate the total center of mass for all particles. Then, for each particle, you can exclude it
+from the center of mass calculation by adjusting the total mass and the weighted sums accordingly. This way, you only need to calculate
+the center of mass once and then adjust it for each particle.
+
+Here’s how you can do it:
+
+Calculate the Total Center of Mass: Compute the center of mass for all particles.
+Adjust for Each Particle: For each particle, adjust the total mass and weighted sums to exclude that particle and compute the new center
+of mass.
+
+Example in C++
+#include <vector>
+#include <iostream>
+
+struct Particle {
+    double x, y; // Position
+    double mass; // Mass
+};
+
+std::pair<double, double> calculateTotalCenterOfMass(const std::vector<Particle>& particles) {
+    double totalMass = 0.0;
+    double weightedSumX = 0.0;
+    double weightedSumY = 0.0;
+
+    for (const auto& p : particles) {
+        totalMass += p.mass;
+        weightedSumX += p.mass * p.x;
+        weightedSumY += p.mass * p.y;
+    }
+
+    double centerX = weightedSumX / totalMass;
+    double centerY = weightedSumY / totalMass;
+
+    return {centerX, centerY};
+}
+
+std::pair<double, double> calculateReducedCenterOfMass(const std::vector<Particle>& particles, size_t excludeIndex, double totalMass, double weightedSumX, double weightedSumY)
+{
+    double reducedMass = totalMass - particles[excludeIndex].mass;
+    double reducedSumX = weightedSumX - particles[excludeIndex].mass * particles[excludeIndex].x;
+    double reducedSumY = weightedSumY - particles[excludeIndex].mass * particles[excludeIndex].y;
+
+    double centerX = reducedSumX / reducedMass;
+    double centerY = reducedSumY / reducedMass;
+
+    return {centerX, centerY};
+}
+
+int main() {
+    std::vector<Particle> particles = {
+        {0.0, 0.0, 1.0},
+        {1.0, 0.0, 2.0},
+        {0.0, 1.0, 3.0},
+        {1.0, 1.0, 4.0}
+    };
+
+    // Calculate the total center of mass
+    auto totalCenterOfMass = calculateTotalCenterOfMass(particles);
+    double totalMass = 0.0;
+    double weightedSumX = 0.0;
+    double weightedSumY = 0.0;
+
+    for (const auto& p : particles) {
+        totalMass += p.mass;
+        weightedSumX += p.mass * p.x;
+        weightedSumY += p.mass * p.y;
+    }
+
+    std::cout << "Total Center of Mass: (" << totalCenterOfMass.first << ", " << totalCenterOfMass.second << ")\n";
+
+    // Calculate the reduced center of mass for each particle
+    for (size_t i = 0; i < particles.size(); ++i) {
+        auto reducedCenterOfMass = calculateReducedCenterOfMass(particles, i, totalMass, weightedSumX, weightedSumY);
+        std::cout << "Reduced Center of Mass excluding particle " << i << ": (" << reducedCenterOfMass.first << ", " << reducedCenterOfMass.second << ")\n";
+    }
+
+    return 0;
+}
+
+Explanation
+Calculate Total Center of Mass: The calculateTotalCenterOfMass function computes the center of mass for all particles.
+Adjust for Each Particle: The calculateReducedCenterOfMass function adjusts the total mass and weighted sums to exclude a specific particle and computes the new center of mass.
+Main Function: The main function demonstrates how to use these functions to calculate the total center of mass and the reduced center of mass for each particle.
+This approach ensures that you only calculate the total center of mass once and then efficiently adjust it for each particle.
+
+Would you like more details on any specific part of this process or help with another aspect of your simulation?
 */
 
 
