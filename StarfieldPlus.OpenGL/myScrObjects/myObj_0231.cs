@@ -394,6 +394,28 @@ namespace my
                 list.Add(new myObj_0231());
             }
 
+            // 
+            if (false)
+            {
+                var obj0 = list[0] as myObj_0231;
+
+                totalMass -= obj0.mass;
+
+                //calculateTotalCenterOfMass();
+
+                obj0.dx = 0;
+                obj0.dy = 0;
+
+                //obj0.x = centerX; obj0.y = centerY;
+
+                obj0.x = gl_x0; obj0.y = gl_y0;
+
+                obj0.mass = totalMass * 0.1f;
+                obj0.size = 15;
+
+                totalMass += obj0.mass;
+            }
+
             while (!Glfw.WindowShouldClose(window))
             {
                 int Count = list.Count;
