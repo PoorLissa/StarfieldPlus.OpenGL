@@ -260,8 +260,6 @@ namespace my
                     break;
             }
 
-            doUseRandomMass = true;
-
             if (doUseRandomMass)
             {
                 mass = rand.Next(9999) + 100;
