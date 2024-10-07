@@ -129,8 +129,8 @@ public class ScreenSaver
         register(my.myObj_0200.Type);       // Spiraling out shapes
         register(my.myObj_0210.Type);       // Another spiraling shapes -- see what's the difference
         register(my.myObj_0220.Type);       // Falling lines, Matrix-Style
-        register(my.myObj_0230.Type);       // Gravity -- unfinished
-        register(my.myObj_0231.Type);       // Gravity -- unfinished
+        register(my.myObj_0230.Type);       // Gravity 1 -- unfinished
+        register(my.myObj_0231.Type);       // Gravity 2 -- unfinished
         register(my.myObj_0300.Type);       // Small Explosions of Particles + Movement type Variations
         register(my.myObj_0310.Type);       // Moving particles, where each particle is connected with every other particle out there
         register(my.myObj_0320.Type);       // Spiralling doodles made of squares

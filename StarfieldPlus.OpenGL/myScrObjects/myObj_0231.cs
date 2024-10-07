@@ -112,9 +112,10 @@ namespace my
         private float x, y, dx, dy;
         private float mass, size, A, R, G, B, angle;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = true, doUseRandomMass = false;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, shape = 0, moveMode = 0;
+        private static int localCenterX = 0, localCenterY = 0, localMode = 0;
+        private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false;
+        private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9;
 
         private static float totalMass = 0;
         private static float weightedSumX = 0;
@@ -151,17 +152,31 @@ namespace my
             N = 111111;
 
             doUseRandomMass = myUtils.randomBool(rand);
-            doUseRandomMass = true;
+            doUseCenters = myUtils.randomBool(rand);
+
             renderDelay = 3;
+            moveMode = rand.Next(3);
+            localMode = rand.Next(2);
+
+            localCenterX = rand.Next(2 * gl_Width) - gl_Width / 2;
+            localCenterY = rand.Next(2 * gl_Width) - gl_Width / 2 - (gl_Width - gl_Height) / 2;
+
+            localR = myUtils.randFloat(rand);
+            localG = myUtils.randFloat(rand);
+            localB = myUtils.randFloat(rand);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = {Type}\n\n"                 	+
-                            myUtils.strCountOf(list.Count, N)   +
-                            $"renderDelay = {renderDelay}\n"    +
+            string str = $"Obj = {Type}\n\n"                 	     +
+                            myUtils.strCountOf(list.Count, N)        +
+                            $"moveMode = {moveMode}\n"               +
+                            $"localMode = {localMode}\n"             +
+                            $"doUseCenters = {doUseCenters}\n"       +
+                            $"doUseRandomMass = {doUseRandomMass}\n" +
+                            $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -184,51 +199,90 @@ namespace my
             x = rand.Next(2 * gl_Width) - gl_Width/2;
             y = rand.Next(2 * gl_Width) - gl_Width/2 - (gl_Width - gl_Height)/2;
 
+            A = 0.5f;
+            R = (float)rand.NextDouble();
+            G = (float)rand.NextDouble();
+            B = (float)rand.NextDouble();
+
+            if (doUseCenters)
+            {
+                // Get new local center
+                if (myUtils.randomChance(rand, 1, 1111))
+                {
+                    localCenterX = rand.Next(2 * gl_Width) - gl_Width / 2;
+                    localCenterY = rand.Next(2 * gl_Width) - gl_Width / 2 - (gl_Width - gl_Height) / 2;
+
+                    localR = myUtils.randFloat(rand);
+                    localG = myUtils.randFloat(rand);
+                    localB = myUtils.randFloat(rand);
+                }
+
+                // Get localized coordinates:
+                switch (localMode)
+                {
+                    case 0:
+                        x = localCenterX + myUtils.randomSign(rand) * rand.Next(111);
+                        y = localCenterY + myUtils.randomSign(rand) * rand.Next(111);
+                        break;
+
+                    case 1:
+                        int rad = 10 + rand.Next(123);
+                        x = localCenterX + myUtils.randomSign(rand) * rand.Next(rad);
+                        y = localCenterY + myUtils.randomSign(rand) * rand.Next(rad);
+                        break;
+                }
+
+                float f = 0.1f;
+
+                R = localR + (float)rand.NextDouble() * f;
+                G = localG + (float)rand.NextDouble() * f;
+                B = localB + (float)rand.NextDouble() * f;
+            }
+
             dx = dy = 0;
 
-            if (!true)
+            switch (moveMode)
             {
-                dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 7;
-                dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 7;
+                case 0:
+                    break;
+
+                case 1:
+                    dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+                    dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+                    break;
+
+                case 2:
+                    if (myUtils.randomChance(rand, 1, 333))
+                    {
+                        dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 27;
+                        dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 27;
+                    }
+                    break;
             }
 
-            if (true)
-            {
-                if (myUtils.randomChance(rand, 1, 333))
-                {
-                    dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 27;
-                    dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 27;
-                }
-            }
+            doUseRandomMass = true;
 
             if (doUseRandomMass)
             {
                 mass = rand.Next(9999) + 100;
 
-                if (myUtils.randomChance(rand, 1, 123))
+                if (myUtils.randomChance(rand, 1, 12345))
                     mass = rand.Next(933000) + 100;
-
-                mass = 5000;
             }
             else
             {
-                mass = 500;
+                mass = 5000;
             }
 
             if (id != uint.MaxValue)
                 totalMass += mass;
 
-            size = mass < 500 ? 1 : mass / 25000;
+            //size = mass < 500 ? 1 : mass / 25000;
 
-            if (size < 0)
-                size = 2;
+            size = (int)Math.Log(mass)/5;
+            size = size < 1 ? 1 : size;
 
             angle = 0;
-
-            A = 0.5f;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
 
             return;
         }
