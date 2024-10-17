@@ -123,6 +123,8 @@ namespace my
         private static float centerX = 0;
         private static float centerY = 0;
 
+        private static myScreenGradient grad = null;
+
         // ---------------------------------------------------------------------------------------------------------------
 
         public myObj_0231()
@@ -153,6 +155,7 @@ namespace my
 
             doUseRandomMass = myUtils.randomBool(rand);
             doUseCenters = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomBool(rand);
 
             renderDelay = 3;
             moveMode = rand.Next(3);
@@ -176,6 +179,7 @@ namespace my
                             $"localMode = {localMode}\n"             +
                             $"doUseCenters = {doUseCenters}\n"       +
                             $"doUseRandomMass = {doUseRandomMass}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -389,9 +393,12 @@ namespace my
             // Disable VSYNC if needed
             //Glfw.SwapInterval(0);
 
-            while (list.Count < N)
+            if (true)
             {
-                list.Add(new myObj_0231());
+                while (list.Count < N)
+                {
+                    list.Add(new myObj_0231());
+                }
             }
 
             // 
@@ -434,7 +441,7 @@ namespace my
                     }
                     else
                     {
-                        //grad.Draw();
+                        grad.Draw();
                     }
                 }
 
@@ -471,6 +478,16 @@ namespace my
                 myPrimitive._Ellipse.Draw(centerX, centerY, 13, 13, true);
 
                 System.Threading.Thread.Sleep(renderDelay);
+
+                continue;
+
+                if (list.Count < N)
+                {
+                    int a = rand.Next(111);
+
+                    while(list.Count < N && --a > 0)
+                        list.Add(new myObj_0231());
+                }
             }
 
             return;
@@ -484,6 +501,12 @@ namespace my
             base.initShapes(shape, N, 0);
 
             myPrimitive.init_Ellipse();
+
+            grad = new myScreenGradient();
+            grad.SetRandomColors(rand, 0.2f);
+
+            if (doClearBuffer == false)
+                grad.SetOpacity(0.2f);
 
             return;
         }
