@@ -116,6 +116,7 @@ namespace my
         private static int localCenterX = 0, localCenterY = 0, localMode = 0;
         private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false;
         private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9;
+        private static float constSpd = 1.0f;
 
         private static float totalMass = 0;
         private static float weightedSumX = 0;
@@ -158,7 +159,7 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
 
             renderDelay = 3;
-            moveMode = rand.Next(3);
+            moveMode = rand.Next(5);
             localMode = rand.Next(2);
 
             localCenterX = rand.Next(2 * gl_Width) - gl_Width / 2;
@@ -167,6 +168,8 @@ namespace my
             localR = myUtils.randFloat(rand);
             localG = myUtils.randFloat(rand);
             localB = myUtils.randFloat(rand);
+
+            constSpd = 0.0001f + myUtils.randFloat(rand);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -262,6 +265,16 @@ namespace my
                         dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 27;
                     }
                     break;
+
+                case 3:
+                    dy = constSpd * (x > gl_x0 ? 1 : -1);
+                    break;
+
+                case 4:
+                    dy = constSpd * (x > gl_x0 ? 1 : -1);
+                    dy *= Math.Abs((x - gl_x0) / gl_x0);
+                    break;
+
             }
 
             if (doUseRandomMass)
