@@ -114,7 +114,7 @@ namespace my
 
         private static int N = 0, shape = 0, moveMode = 0;
         private static int localCenterX = 0, localCenterY = 0, localMode = 0;
-        private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false;
+        private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false;
         private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9;
         private static float constSpd = 1.0f;
 
@@ -157,6 +157,7 @@ namespace my
             doUseRandomMass = myUtils.randomBool(rand);
             doUseCenters = myUtils.randomBool(rand);
             doClearBuffer = myUtils.randomBool(rand);
+            doUseSingleLargeMass = myUtils.randomChance(rand, 1, 5);
 
             renderDelay = 3;
             moveMode = rand.Next(5);
@@ -176,14 +177,15 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            string str = $"Obj = {Type}\n\n"                 	     +
-                            myUtils.strCountOf(list.Count, N)        +
-                            $"moveMode = {moveMode}\n"               +
-                            $"localMode = {localMode}\n"             +
-                            $"doUseCenters = {doUseCenters}\n"       +
-                            $"doUseRandomMass = {doUseRandomMass}\n" +
-                            $"doClearBuffer = {doClearBuffer}\n"     +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                 	               +
+                            myUtils.strCountOf(list.Count, N)                  +
+                            $"moveMode = {moveMode}\n"                         +
+                            $"localMode = {localMode}\n"                       +
+                            $"doUseCenters = {doUseCenters}\n"                 +
+                            $"doUseRandomMass = {doUseRandomMass}\n"           +
+                            $"doUseSingleLargeMass = {doUseSingleLargeMass}\n" +
+                            $"doClearBuffer = {doClearBuffer}\n"               +
+                            $"renderDelay = {renderDelay}\n"                   +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -289,8 +291,13 @@ namespace my
                 mass = 5000;
             }
 
-            if (id != uint.MaxValue)
-                totalMass += mass;
+            if (doUseSingleLargeMass)
+            {
+                if (id == 0)
+                {
+                    mass = 99999999;
+                }
+            }
 
             //size = mass < 500 ? 1 : mass / 25000;
 
@@ -298,6 +305,9 @@ namespace my
             size = size < 1 ? 1 : size;
 
             angle = 0;
+
+            if (id != uint.MaxValue)
+                totalMass += mass;
 
             return;
         }
