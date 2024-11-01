@@ -326,7 +326,7 @@ namespace my
             float thisCenterX = reducedSumX / reducedMass;
             float thisCenterY = reducedSumY / reducedMass;
 
-            factor = 0.000001f;
+            //factor = 0.000001f;
             factor = 0.0000000001f / N;
 
             DX = thisCenterX - x;
