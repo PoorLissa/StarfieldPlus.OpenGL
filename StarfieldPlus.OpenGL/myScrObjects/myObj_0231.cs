@@ -331,7 +331,7 @@ namespace my
 
             DX = thisCenterX - x;
             DY = thisCenterY - y;
-            d2 = DX * DX + DY * DY + 0.00001f;
+            //d2 = DX * DX + DY * DY + 0.00001f;
             d2 = DX * DX + DY * DY;
 
             if (d2 > 0)
