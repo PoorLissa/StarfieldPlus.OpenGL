@@ -114,7 +114,7 @@ namespace my
 
         private static int N = 0, shape = 0, moveMode = 0;
         private static int localCenterX = 0, localCenterY = 0, localMode = 0, chanceMin = 1, chanceMax = 1;
-        private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false;
+        private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false, doUseColorPicker = false;
         private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9, maxOpacity = 1;
         private static float constSpd = 1.0f;
 
@@ -138,7 +138,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
             shape = rand.Next(5);
@@ -152,12 +152,13 @@ namespace my
         private void initLocal()
         {
             N = (N == 0) ? 100 + rand.Next(100) : N;
-            N = 111111;
+            N = 111111 + rand.Next(123456);
 
             doUseRandomMass = myUtils.randomBool(rand);
             doUseCenters = myUtils.randomChance(rand, 2, 3);
             doClearBuffer = myUtils.randomBool(rand);
             doUseSingleLargeMass = myUtils.randomChance(rand, 1, 5);
+            doUseColorPicker = myUtils.randomChance(rand, 1, 3);
 
             // doUseCenters chance
             {
@@ -344,6 +345,11 @@ namespace my
 
             if (id != uint.MaxValue)
                 totalMass += mass;
+
+            if (doUseColorPicker)
+            {
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+            }
 
             return;
         }
