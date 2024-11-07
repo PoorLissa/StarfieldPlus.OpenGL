@@ -113,7 +113,7 @@ namespace my
         private float mass, size, A, R, G, B, angle;
 
         private static int N = 0, shape = 0, moveMode = 0;
-        private static int localCenterX = 0, localCenterY = 0, localMode = 0, chanceMin = 1, chanceMax = 1;
+        private static int localCenterX = 0, localCenterY = 0, localMode = 0, chanceMin = 1, chanceMax = 1, tmpX = 0, tmpY = 0, tmpMax = 0;
         private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false, doUseColorPicker = false;
         private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9, maxOpacity = 1;
         private static float constSpd = 1.0f;
@@ -165,12 +165,13 @@ namespace my
                 chanceMax = 1 + rand.Next(33);
                 do { chanceMin = 1 + rand.Next(11);
                 } while (chanceMax < chanceMin);
-            }
 
+                tmpMax = 1 + rand.Next(23);
+            }
 
             renderDelay = 3;
             moveMode = rand.Next(5);
-            localMode = rand.Next(4);
+            localMode = rand.Next(5);
 
             localCenterX = rand.Next(2 * gl_Width) - gl_Width / 2;
             localCenterY = rand.Next(2 * gl_Width) - gl_Width / 2 - (gl_Width - gl_Height) / 2;
@@ -273,6 +274,18 @@ namespace my
 
                             x = localCenterX + rnd1 + rand.Next(75) * myUtils.randomSign(rand) + rand.Next(50) * myUtils.randomSign(rand) + rand.Next(23) * myUtils.randomSign(rand);
                             y = localCenterY + rnd2 + rand.Next(75) * myUtils.randomSign(rand) + rand.Next(50) * myUtils.randomSign(rand) + rand.Next(23) * myUtils.randomSign(rand);
+                        }
+                        break;
+
+                    case 4:
+                        {
+                            int rad = rand.Next(tmpMax);
+
+                            x = localCenterX + tmpX;
+                            y = localCenterY + tmpY;
+
+                            tmpX += rand.Next(rad) * myUtils.randomSign(rand);
+                            tmpY += rand.Next(rad) * myUtils.randomSign(rand);
                         }
                         break;
                 }
