@@ -113,9 +113,9 @@ namespace my
         private float mass, size, A, R, G, B, angle;
 
         private static int N = 0, shape = 0, moveMode = 0;
-        private static int localCenterX = 0, localCenterY = 0, localMode = 0;
+        private static int localCenterX = 0, localCenterY = 0, localMode = 0, chanceMin = 1, chanceMax = 1;
         private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false;
-        private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9;
+        private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9, maxOpacity = 1;
         private static float constSpd = 1.0f;
 
         private static float totalMass = 0;
@@ -155,13 +155,21 @@ namespace my
             N = 111111;
 
             doUseRandomMass = myUtils.randomBool(rand);
-            doUseCenters = myUtils.randomBool(rand);
+            doUseCenters = myUtils.randomChance(rand, 2, 3);
             doClearBuffer = myUtils.randomBool(rand);
             doUseSingleLargeMass = myUtils.randomChance(rand, 1, 5);
 
+            // doUseCenters chance
+            {
+                chanceMax = 1 + rand.Next(33);
+                do { chanceMin = 1 + rand.Next(11);
+                } while (chanceMax < chanceMin);
+            }
+
+
             renderDelay = 3;
             moveMode = rand.Next(5);
-            localMode = rand.Next(2);
+            localMode = rand.Next(4);
 
             localCenterX = rand.Next(2 * gl_Width) - gl_Width / 2;
             localCenterY = rand.Next(2 * gl_Width) - gl_Width / 2 - (gl_Width - gl_Height) / 2;
@@ -171,6 +179,7 @@ namespace my
             localB = myUtils.randFloat(rand);
 
             constSpd = 0.0001f + myUtils.randFloat(rand);
+            maxOpacity = 0.25f + myUtils.randFloat(rand) * 0.75f;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -185,6 +194,8 @@ namespace my
                             $"doUseRandomMass = {doUseRandomMass}\n"           +
                             $"doUseSingleLargeMass = {doUseSingleLargeMass}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"               +
+                            $"maxOpacity = {myUtils.fStr(maxOpacity)}\n"       +
+                            $"chance = {chanceMin} of {chanceMax}\n"           +
                             $"renderDelay = {renderDelay}\n"                   +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -213,7 +224,7 @@ namespace my
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
 
-            if (doUseCenters)
+            if (doUseCenters && myUtils.randomChance(rand, chanceMin, chanceMax))
             {
                 // Get new local center
                 if (myUtils.randomChance(rand, 1, 1111))
@@ -227,17 +238,41 @@ namespace my
                 }
 
                 // Get localized coordinates:
+
                 switch (localMode)
                 {
                     case 0:
-                        x = localCenterX + myUtils.randomSign(rand) * rand.Next(111);
-                        y = localCenterY + myUtils.randomSign(rand) * rand.Next(111);
+                        {
+                            x = localCenterX + myUtils.randomSign(rand) * rand.Next(111);
+                            y = localCenterY + myUtils.randomSign(rand) * rand.Next(111);
+                        }
                         break;
 
                     case 1:
-                        int rad = 10 + rand.Next(123);
-                        x = localCenterX + myUtils.randomSign(rand) * rand.Next(rad);
-                        y = localCenterY + myUtils.randomSign(rand) * rand.Next(rad);
+                        {
+                            int rad = 10 + rand.Next(123);
+                            x = localCenterX + myUtils.randomSign(rand) * rand.Next(rad);
+                            y = localCenterY + myUtils.randomSign(rand) * rand.Next(rad);
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            int rnd = rand.Next(222) * myUtils.randomSign(rand);
+                            x = localCenterX + rnd;
+                            y = localCenterY + rnd;
+                        }
+                        break;
+
+                    case 3:
+                        {
+                            int rad = 80 + rand.Next(33);
+                            int rnd1 = rand.Next(rad) * myUtils.randomSign(rand);
+                            int rnd2 = rand.Next(rad) * myUtils.randomSign(rand);
+
+                            x = localCenterX + rnd1 + rand.Next(75) * myUtils.randomSign(rand) + rand.Next(50) * myUtils.randomSign(rand) + rand.Next(23) * myUtils.randomSign(rand);
+                            y = localCenterY + rnd2 + rand.Next(75) * myUtils.randomSign(rand) + rand.Next(50) * myUtils.randomSign(rand) + rand.Next(23) * myUtils.randomSign(rand);
+                        }
                         break;
                 }
 
@@ -295,7 +330,8 @@ namespace my
             {
                 if (id == 0)
                 {
-                    mass = 99999999;
+                    //mass = 99999999.0f * 100;
+                    mass = 99999999.0f * 1;
                 }
             }
 
@@ -355,7 +391,7 @@ namespace my
             if (--cnt == 0)
             {
                 cnt = 33 + rand.Next(133);
-                A = myUtils.randFloat(rand);
+                A = myUtils.randFloat(rand) * maxOpacity;
             }
 
             return;
