@@ -114,7 +114,7 @@ namespace my
 
         private static int N = 0, shape = 0, moveMode = 0;
         private static int localCenterX = 0, localCenterY = 0, localMode = 0, chanceMin = 1, chanceMax = 1, tmpX = 0, tmpY = 0, tmpMax = 0;
-        private static int nTrailMax = 321;
+        private static int nTrails = 0, nTrailsQty = 0, trailRatio = 1, nTrailLengthMin = 0, nTrailLengthMax = 0;
         private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false;
         private static bool doUseColorPicker = false, doUseTrails = false;
         private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9, maxOpacity = 1;
@@ -157,6 +157,17 @@ namespace my
         {
             N = 111111 + rand.Next(123456);
 
+            trailRatio = 66;                    // Ratio of particles with a trail to the total number of particles
+            nTrailsQty = N / trailRatio;        // Exact number of particles with a trail
+
+            nTrailLengthMin = 33;               // Trail min length
+            nTrailLengthMax = 133;              // Trail length = nTrailLengthMin + rand(nTrailLengthMax);
+
+            if (myUtils.randomChance(rand, 1, 3))
+            {
+                nTrailLengthMax = 133 + rand.Next(99);
+            }
+
             doUseRandomMass = myUtils.randomBool(rand);
             doUseCenters = myUtils.randomChance(rand, 2, 3);
             doClearBuffer = myUtils.randomBool(rand);
@@ -174,7 +185,7 @@ namespace my
             }
 
             renderDelay = 3;
-            moveMode = rand.Next(5);
+            moveMode = rand.Next(8);
             localMode = rand.Next(5);
 
             localCenterX = rand.Next(2 * gl_Width) - gl_Width / 2;
@@ -331,6 +342,35 @@ namespace my
                     dy *= Math.Abs((x - gl_x0) / gl_x0);
                     break;
 
+                case 5:
+                    dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+                    break;
+
+                case 6:
+                    dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+                    break;
+
+                case 7:
+                    if (myUtils.randomChance(rand, 1, 2))
+                    {
+                        dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+                    }
+                    else
+                    {
+                        dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+                    }
+                    break;
+
+                case 99:
+                    if (myUtils.randomChance(rand, 1, 2))
+                    {
+                        dx = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+                    }
+                    else
+                    {
+                        dy = myUtils.randomSign(rand) * (float)rand.NextDouble() * 3;
+                    }
+                    break;
             }
 
             if (doUseRandomMass)
@@ -370,9 +410,10 @@ namespace my
             }
 
             // Trails
-            if (doUseTrails && myUtils.randomChance(rand, 1, 66))
+            if (doUseTrails && nTrails < nTrailsQty && myUtils.randomChance(rand, 1, trailRatio))
             {
-                int nTrail = 33 + rand.Next(133);
+                nTrails++;
+                int nTrail = nTrailLengthMin + rand.Next(nTrailLengthMax);
 
                 // Initialize Trail
                 if (trail == null)
@@ -619,7 +660,7 @@ namespace my
             myPrimitive.init_Ellipse();
 
             if (doUseTrails)
-                myPrimitive.init_LineInst(N * nTrailMax);
+                myPrimitive.init_LineInst(nTrailsQty * (nTrailLengthMin + nTrailLengthMax));
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
