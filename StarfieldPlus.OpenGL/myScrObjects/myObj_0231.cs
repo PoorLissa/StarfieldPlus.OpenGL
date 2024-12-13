@@ -114,7 +114,9 @@ namespace my
 
         private static int N = 0, shape = 0, moveMode = 0;
         private static int localCenterX = 0, localCenterY = 0, localMode = 0, chanceMin = 1, chanceMax = 1, tmpX = 0, tmpY = 0, tmpMax = 0;
-        private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false, doUseColorPicker = false;
+        private static int nTrailMax = 321;
+        private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false;
+        private static bool doUseColorPicker = false, doUseTrails = false;
         private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9, maxOpacity = 1;
         private static float constSpd = 1.0f;
 
@@ -123,6 +125,8 @@ namespace my
         private static float weightedSumY = 0;
         private static float centerX = 0;
         private static float centerY = 0;
+
+        private myParticleTrail trail = null;
 
         private static myScreenGradient grad = null;
 
@@ -151,7 +155,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            N = (N == 0) ? 100 + rand.Next(100) : N;
             N = 111111 + rand.Next(123456);
 
             doUseRandomMass = myUtils.randomBool(rand);
@@ -159,6 +162,7 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doUseSingleLargeMass = myUtils.randomChance(rand, 1, 5);
             doUseColorPicker = myUtils.randomChance(rand, 1, 3);
+            doUseTrails = myUtils.randomChance(rand, 1, 2);
 
             // doUseCenters chance
             {
@@ -196,6 +200,7 @@ namespace my
                             $"doUseRandomMass = {doUseRandomMass}\n"           +
                             $"doUseSingleLargeMass = {doUseSingleLargeMass}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"               +
+                            $"doUseTrails = {doUseTrails}\n"                   +
                             $"maxOpacity = {myUtils.fStr(maxOpacity)}\n"       +
                             $"chance = {chanceMin} of {chanceMax}\n"           +
                             $"renderDelay = {renderDelay}\n"                   +
@@ -364,6 +369,27 @@ namespace my
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
             }
 
+            // Trails
+            if (doUseTrails && myUtils.randomChance(rand, 1, 66))
+            {
+                int nTrail = 33 + rand.Next(133);
+
+                // Initialize Trail
+                if (trail == null)
+                {
+                    trail = new myParticleTrail(nTrail, x, y);
+                }
+                else
+                {
+                    trail.reset(x, y);
+                }
+
+                if (trail != null)
+                {
+                    trail.updateDa(A);
+                }
+            }
+
             return;
         }
 
@@ -420,8 +446,14 @@ namespace my
 
         protected override void Show()
         {
+            if (doUseTrails && trail != null)
+                trail.update(x, y);
+
             x += dx;
             y += dy;
+
+            if (doUseTrails && trail != null)
+                trail.Show(R, G, B, 0.33f);
 
             float size2x = size * 2;
 
@@ -526,6 +558,9 @@ namespace my
                 {
                     calculateTotalCenterOfMass();
 
+                    if (doUseTrails)
+                        myPrimitive._LineInst.ResetBuffer();
+
                     inst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
@@ -539,6 +574,9 @@ namespace my
                         var obj = list[i] as myObj_0231;
                         obj.Show();
                     }
+
+                    if (doUseTrails)
+                        myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
                     {
@@ -580,6 +618,9 @@ namespace my
 
             myPrimitive.init_Ellipse();
 
+            if (doUseTrails)
+                myPrimitive.init_LineInst(N * nTrailMax);
+
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
@@ -607,7 +648,6 @@ namespace my
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
 
     }
 };
