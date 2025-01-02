@@ -152,8 +152,8 @@ namespace my
                 // Initial speed of small particles
                 if (doUseInitSpd)
                 {
-                    dx = myUtils.randFloat(rand) * 0.1f;
-                    dy = myUtils.randFloat(rand) * 0.1f;
+                    dx = myUtils.randFloatSigned(rand) * 0.1f;
+                    dy = myUtils.randFloatSigned(rand) * 0.1f;
                 }
 
                 size = 2;
