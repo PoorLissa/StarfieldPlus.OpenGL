@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, colorMode = 0, cntMax = 1500;
         private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false;
-        private static float dimAlpha = 0.05f, x0 = 0, y0 = 0, r1, r2, g1, g2, b1, b2;
+        private static float dimAlpha = 0.05f, x0 = 0, y0 = 0, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
 
         private myParticleTrail trail = null;
         private static myScreenGradient grad = null;
@@ -48,7 +48,9 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(1000) + 10000;
-                n = 2 + rand.Next(7);
+                n = myUtils.randomChance(rand, 4, 5)
+                    ? 2 + rand.Next(7)
+                    : 7 + rand.Next(33);
 
                 shape = rand.Next(5);
             }
@@ -74,6 +76,8 @@ namespace my
             colorMode = rand.Next(3);
             rndMassMode = rand.Next(3);
             largeMassFactor = 1 + rand.Next(11);
+
+            trailOpacity = 0.33f;
 
             renderDelay = rand.Next(3) + 3;
 
@@ -272,7 +276,7 @@ namespace my
             y += dy;
 
             if (trail != null)
-                trail.Show(R, G, B, 0.33f);
+                trail.Show(R, G, B, trailOpacity);
 
             float size2x = size * 2;
 
