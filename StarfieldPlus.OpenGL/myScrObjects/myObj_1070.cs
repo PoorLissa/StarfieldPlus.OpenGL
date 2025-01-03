@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 
 /*
-    - Simplified gravity -- lots of small objects vs a few massive ones
+    - Simplified gravity -- lots of light objects vs a few massive objects
+    - Light objects do not interact with each other, only with massive ones
 */
 
 
@@ -23,7 +24,7 @@ namespace my
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
         private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, colorMode = 0, cntMax = 1500;
-        private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false;
+        private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false, doUseLrgGravity = false;
         private static float dimAlpha = 0.05f, x0 = 0, y0 = 0, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
 
         private myParticleTrail trail = null;
@@ -53,6 +54,11 @@ namespace my
                     : 7 + rand.Next(33);
 
                 shape = rand.Next(5);
+
+                if (myUtils.randomChance(rand, 1, 3))
+                {
+                    trailLength = 3 + rand.Next(trailLength * 2);
+                }
             }
 
             initLocal();
@@ -63,11 +69,11 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 10, 11);
             doUseInitSpd = myUtils.randomBool(rand);
             doChangeLocation = myUtils.randomChance(rand, 1, 5);
             doMoveLrgBodies = myUtils.randomChance(rand, 1, 5);
+            doUseLrgGravity = myUtils.randomChance(rand, 1, 5);
 
             r1 = myUtils.randFloat(rand);
             g1 = myUtils.randFloat(rand);
@@ -99,9 +105,11 @@ namespace my
                             $"doUseInitSpd = {doUseInitSpd}\n"          +
                             $"doChangeLocation = {doChangeLocation}\n"  +
                             $"doMoveLrgBodies = {doMoveLrgBodies}\n"    +
+                            $"doUseLrgGravity = {doUseLrgGravity}\n"    +
                             $"colorMode = {colorMode}\n"                +
                             $"rndMassMode = {rndMassMode}\n"            +
                             $"largeMassFactor = {largeMassFactor}\n"    +
+                            $"trailLength = {trailLength}\n"            +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -251,7 +259,35 @@ namespace my
             else
             {
                 // Large mass bodies
-                angle += dAngle;
+
+                if (doUseLrgGravity)
+                {
+                    float factor = 0.000000000001f;
+                    factor *= 0.0000001f;
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        if (id != i)
+                        {
+                            var other = list[i] as myObj_1070;
+
+                            float DX = other.x - x;
+                            float DY = other.y - y;
+
+                            float d2 = DX * DX + DY * DY;
+
+                            if (d2 > 0)
+                            {
+                                float dist = (float)Math.Sqrt(d2);
+
+                                float F = factor * mass * other.mass / d2;
+
+                                dx += F * DX;
+                                dy += F * DY;
+                            }
+                        }
+                    }
+                }
 
                 if (doChangeLocation && --cnt == 0)
                 {
@@ -260,6 +296,8 @@ namespace my
                     x = rand.Next(gl_Width);
                     y = rand.Next(gl_Height);
                 }
+
+                angle += dAngle;
             }
 
             return;
@@ -326,6 +364,12 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
+            // Populate large bodies
+            while (list.Count < n)
+            {
+                list.Add(new myObj_1070());
+            }
+
             while (!Glfw.WindowShouldClose(window))
             {
                 int Count = list.Count;
@@ -339,14 +383,9 @@ namespace my
                 // Dim screen
                 {
                     if (doClearBuffer)
-                    {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -392,11 +431,13 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+
+            if (doClearBuffer == false)
+                grad.SetOpacity(0.1f);
 
             myPrimitive.init_LineInst(N * trailLength);
 
