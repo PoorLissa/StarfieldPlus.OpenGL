@@ -80,7 +80,7 @@ namespace my
             b1 = myUtils.randFloat(rand);
 
             colorMode = rand.Next(3);
-            rndMassMode = rand.Next(3);
+            rndMassMode = rand.Next(5);
             largeMassFactor = 1 + rand.Next(11);
 
             trailOpacity = 0.33f;
@@ -101,6 +101,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                            +
                             myUtils.strCountOf(list.Count, N)           +
+                            $"n = {n}\n"                                +
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"doUseInitSpd = {doUseInitSpd}\n"          +
                             $"doChangeLocation = {doChangeLocation}\n"  +
@@ -180,10 +181,18 @@ namespace my
                         break;
 
                     case 1:
-                        mass = 1.0f + rand.Next(7);
+                        mass = 1.0f + myUtils.randFloat(rand) * 0.1f;
                         break;
 
                     case 2:
+                        mass = 1.0f + rand.Next(7);
+                        break;
+
+                    case 3:
+                        mass = 1.0f + rand.Next(7) * myUtils.randFloat(rand) * 2;
+                        break;
+
+                    case 4:
                         mass = 1.0f + rand.Next(7) + myUtils.randFloat(rand);
                         break;
                 }
@@ -217,7 +226,7 @@ namespace my
         {
             if (id >= n)
             {
-                float DX = 0, DY = 0, dist = 0, F = 0, factor = 0, d2 = 0;
+                double DX = 0, DY = 0, dist = 0, F = 0, factor = 0, d2 = 0;
 
                 factor = 0.0000001f;
                 factor *= 0.1f;
@@ -233,13 +242,12 @@ namespace my
 
                     if (d2 > 0)
                     {
-                        dist = (float)Math.Sqrt(d2);
+                        dist = Math.Sqrt(d2);
 
-                        //F = factor * mass * bigObj.mass / dist;
                         F = factor * mass * bigObj.mass / d2;
 
-                        dx += F * DX;
-                        dy += F * DY;
+                        dx += (float)(F * DX);
+                        dy += (float)(F * DY);
                     }
                 }
 
