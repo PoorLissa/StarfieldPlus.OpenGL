@@ -23,7 +23,7 @@ namespace my
         private float x, y, dx, dy, mass;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, colorMode = 0, cntMax = 1500;
+        private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, colorMode = 0, cntMax = 1500, genRate = 1;
         private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false, doUseLrgGravity = false;
         private static float dimAlpha = 0.05f, x0 = 0, y0 = 0, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
 
@@ -58,6 +58,11 @@ namespace my
                 if (myUtils.randomChance(rand, 1, 3))
                 {
                     trailLength = 3 + rand.Next(trailLength * 2);
+                }
+
+                if (myUtils.randomChance(rand, 1, 3))
+                {
+                    genRate = rand.Next(31) + 1;
                 }
             }
 
@@ -111,6 +116,7 @@ namespace my
                             $"rndMassMode = {rndMassMode}\n"            +
                             $"largeMassFactor = {largeMassFactor}\n"    +
                             $"trailLength = {trailLength}\n"            +
+                            $"genRate = {genRate}\n"                    +
                             $"renderDelay = {renderDelay}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -423,7 +429,7 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (Count < N)
+                if (Count < N && cnt % genRate == 0)
                 {
                     list.Add(new myObj_1070());
                 }
