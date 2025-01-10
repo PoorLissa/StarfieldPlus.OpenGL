@@ -52,7 +52,7 @@ namespace my
             {
                 N = rand.Next(1000) + 10000;
 
-                switch (rand.Next(10))
+                switch (rand.Next(20))
                 {
                     case 0:
                         n = 11 + rand.Next(66);
@@ -60,6 +60,7 @@ namespace my
 
                     case 1:
                     case 2:
+                    case 3:
                         n = 7 + rand.Next(33);
                         break;
 
