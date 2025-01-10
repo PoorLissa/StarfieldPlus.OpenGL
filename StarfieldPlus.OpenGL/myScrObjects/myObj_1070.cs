@@ -23,9 +23,11 @@ namespace my
         private float x, y, dx, dy, mass;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, colorMode = 0, cntMax = 1500, genRate = 1;
+        private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, colorMode = 0, cntMax = 1500, genRate = 1, nOrigin = 1;
         private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false, doUseLrgGravity = false;
-        private static float dimAlpha = 0.05f, x0 = 0, y0 = 0, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
+        private static float dimAlpha = 0.05f, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
+
+        private static float[] origin = null;
 
         private myParticleTrail trail = null;
         private static myScreenGradient grad = null;
@@ -49,9 +51,22 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(1000) + 10000;
-                n = myUtils.randomChance(rand, 4, 5)
-                    ? 2 + rand.Next(7)
-                    : 7 + rand.Next(33);
+
+                switch (rand.Next(10))
+                {
+                    case 0:
+                        n = 11 + rand.Next(66);
+                        break;
+
+                    case 1:
+                    case 2:
+                        n = 7 + rand.Next(33);
+                        break;
+
+                    default:
+                        n = 2 + rand.Next(7);
+                        break;
+                }
 
                 shape = rand.Next(5);
 
@@ -64,6 +79,25 @@ namespace my
                 {
                     genRate = rand.Next(31) + 1;
                 }
+
+                switch (rand.Next(10))
+                {
+                    case 0:
+                        nOrigin = 3;
+                        break;
+
+                    case 1:
+                    case 2:
+                    case 3:
+                        nOrigin = 2;
+                        break;
+
+                    default:
+                        nOrigin = 1;
+                        break;
+                }
+
+                origin = new float[nOrigin * 2];
             }
 
             initLocal();
@@ -92,8 +126,14 @@ namespace my
 
             renderDelay = rand.Next(3) + 3;
 
-            x0 = rand.Next(gl_Width);
-            y0 = rand.Next(gl_Height);
+            for (int i = 0; i < nOrigin*2; i+=2)
+            {
+                float x0 = rand.Next(gl_Width);
+                float y0 = rand.Next(gl_Height);
+
+                origin[i+0] = x0;
+                origin[i+1] = y0;
+            }
 
             return;
         }
@@ -107,6 +147,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                            +
                             myUtils.strCountOf(list.Count, N)           +
                             $"n = {n}\n"                                +
+                            $"nOrigin = {nOrigin}\n"                    +
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"doUseInitSpd = {doUseInitSpd}\n"          +
                             $"doChangeLocation = {doChangeLocation}\n"  +
@@ -165,8 +206,22 @@ namespace my
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Width);
 
-                x = x0;
-                y = y0;
+                switch (nOrigin)
+                {
+                    case 1:
+                        x = origin[0];
+                        y = origin[1];
+                        break;
+
+                    case 2:
+                    case 3:
+                        {
+                            int i = rand.Next(nOrigin);
+                            x = origin[i+0];
+                            y = origin[i+1];
+                        }
+                        break;
+                }
 
                 // Initial speed of small particles
                 if (doUseInitSpd)
