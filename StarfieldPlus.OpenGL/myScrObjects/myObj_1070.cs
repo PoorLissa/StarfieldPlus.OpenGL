@@ -23,7 +23,7 @@ namespace my
         private float x, y, dx, dy, mass;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, colorMode = 0, cntMax = 1500, genRate = 1, nOrigin = 1;
+        private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, rndMassN = 0, colorMode = 0, cntMax = 1500, genRate = 1, nOrigin = 1;
         private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false, doUseLrgGravity = false;
         private static float dimAlpha = 0.05f, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
 
@@ -120,7 +120,9 @@ namespace my
             b1 = myUtils.randFloat(rand);
 
             colorMode = rand.Next(3);
-            rndMassMode = rand.Next(5);
+            rndMassMode = rand.Next(6);
+            rndMassN = 3 + rand.Next(8);
+
             largeMassFactor = 1 + rand.Next(11);
 
             trailOpacity = 0.33f;
@@ -256,6 +258,10 @@ namespace my
 
                     case 4:
                         mass = 1.0f + rand.Next(7) + myUtils.randFloat(rand);
+                        break;
+
+                    case 5:
+                        mass = 1.0f + 0.25f * rand.Next(rndMassN);
                         break;
                 }
 
