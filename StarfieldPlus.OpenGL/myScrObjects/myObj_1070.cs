@@ -335,7 +335,7 @@ namespace my
                         A = 1.0f;
                 }
 
-                if (--lifeCnt == 0)
+                if (doUseShortLife && --lifeCnt == 0)
                 {
                     generateNew();
                 }
