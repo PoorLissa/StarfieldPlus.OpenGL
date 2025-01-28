@@ -18,13 +18,13 @@ namespace my
         public static int Priority => 9999910;
 		public static System.Type Type => typeof(myObj_1070);
 
-        private int cnt;
+        private int cnt, lifeCnt;
 
         private float x, y, dx, dy, mass;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
         private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, rndMassN = 0, colorMode = 0, cntMax = 1500, genRate = 1, nOrigin = 1;
-        private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false, doUseLrgGravity = false;
+        private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false, doUseLrgGravity = false, doUseShortLife = false;
         private static float dimAlpha = 0.05f, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
 
         private static float[] origin = null;
@@ -114,6 +114,7 @@ namespace my
             doChangeLocation = myUtils.randomChance(rand, 1, 5);
             doMoveLrgBodies = myUtils.randomChance(rand, 1, 5);
             doUseLrgGravity = myUtils.randomChance(rand, 1, 5);
+            doUseShortLife = myUtils.randomChance(rand, 1, 2);
 
             r1 = myUtils.randFloat(rand);
             g1 = myUtils.randFloat(rand);
@@ -156,6 +157,7 @@ namespace my
                             $"doChangeLocation = {doChangeLocation}\n"  +
                             $"doMoveLrgBodies = {doMoveLrgBodies}\n"    +
                             $"doUseLrgGravity = {doUseLrgGravity}\n"    +
+                            $"doUseShortLife = {doUseShortLife}\n"      +
                             $"colorMode = {colorMode}\n"                +
                             $"rndMassMode = {rndMassMode}\n"            +
                             $"largeMassFactor = {largeMassFactor}\n"    +
@@ -205,6 +207,7 @@ namespace my
             else
             {
                 cnt = 100 + rand.Next(100);
+                lifeCnt = 666 + rand.Next(666);
 
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Width);
@@ -330,6 +333,11 @@ namespace my
 
                     if (A > 1.0f)
                         A = 1.0f;
+                }
+
+                if (--lifeCnt == 0)
+                {
+                    generateNew();
                 }
             }
             else
