@@ -23,7 +23,7 @@ namespace my
         private float x, y, dx, dy, mass;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, rndMassN = 0, colorMode = 0, cntMax = 1500, genRate = 1, nOrigin = 1;
+        private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, rndMassN = 0, colorMode = 0, cntMax = 1500, genRate = 1, nOrigin = 1, initSpdMode = 0, originMode = 0;
         private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false, doUseLrgGravity = false, doUseShortLife = false;
         private static float dimAlpha = 0.05f, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
 
@@ -124,10 +124,10 @@ namespace my
             rndMassMode = rand.Next(6);
             rndMassN = 3 + rand.Next(8);
 
+            initSpdMode = rand.Next(6);
+            originMode = rand.Next(13);
             largeMassFactor = 1 + rand.Next(11);
-
             trailOpacity = 0.33f;
-
             renderDelay = rand.Next(3) + 3;
 
             for (int i = 0; i < nOrigin*2; i+=2)
@@ -152,8 +152,10 @@ namespace my
                             myUtils.strCountOf(list.Count, N)           +
                             $"n = {n}\n"                                +
                             $"nOrigin = {nOrigin}\n"                    +
+                            $"originMode = {originMode}\n"              +
                             $"doClearBuffer = {doClearBuffer}\n"        +
                             $"doUseInitSpd = {doUseInitSpd}\n"          +
+                            $"initSpdMode = {initSpdMode}\n"            +
                             $"doChangeLocation = {doChangeLocation}\n"  +
                             $"doMoveLrgBodies = {doMoveLrgBodies}\n"    +
                             $"doUseLrgGravity = {doUseLrgGravity}\n"    +
@@ -181,13 +183,14 @@ namespace my
 
         protected override void generateNew()
         {
+            dx = dy = 0;
+
             if (id < n)
             {
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Height);
 
                 dAngle = myUtils.randFloatSigned(rand) * 0.1f;
-                dx = dy = 0;
 
                 if (doMoveLrgBodies)
                 {
@@ -209,22 +212,79 @@ namespace my
                 cnt = 100 + rand.Next(100);
                 lifeCnt = 666 + rand.Next(666);
 
-                x = rand.Next(gl_Width);
-                y = rand.Next(gl_Width);
-
-                switch (nOrigin)
+                // Select, where we generate our particles
+                switch (originMode)
                 {
-                    case 1:
-                        x = origin[0];
-                        y = origin[1];
+                    // Start at the top:
+                    case 0:
+                        x = rand.Next(gl_Width);
+                        y = 0;
                         break;
 
+                    // Start at the bottom:
+                    case 1:
+                        x = rand.Next(gl_Width);
+                        y = gl_Height;
+                        break;
+
+                    // Start left:
                     case 2:
+                        y = rand.Next(gl_Height);
+                        x = 0;
+                        break;
+
+                    // Start right:
                     case 3:
+                        y = rand.Next(gl_Height);
+                        x = gl_Width;
+                        break;
+
+                    // Start on the orbit of fixed position(s)
+                    case 4:
+                    case 5:
+                    case 6:
                         {
-                            int i = rand.Next(nOrigin);
-                            x = origin[i+0];
-                            y = origin[i+1];
+                            switch (nOrigin)
+                            {
+                                case 1:
+                                    x = origin[0];
+                                    y = origin[1];
+                                    break;
+
+                                default:
+                                    {
+                                        int i = 2 * rand.Next(nOrigin);
+                                        x = origin[i + 0];
+                                        y = origin[i + 1];
+                                    }
+                                    break;
+                            }
+
+                            float angle = myUtils.randFloat(rand) * 123;
+
+                            x = x + (float)Math.Sin(angle) * 23;
+                            y = y + (float)Math.Cos(angle) * 23;
+                        }
+                        break;
+
+                    // Start at a fixed position(s)
+                    default:
+                        {
+                            switch (nOrigin)
+                            {
+                                case 1:
+                                    x = origin[0];
+                                    y = origin[1];
+                                    break;
+
+                                default:
+                                    {
+                                        int i = 2 * rand.Next(nOrigin);
+                                        x = origin[i + 0];
+                                        y = origin[i + 1];
+                                    }
+                                    break;
+                            }
                         }
                         break;
                 }
@@ -232,8 +292,21 @@ namespace my
                 // Initial speed of small particles
                 if (doUseInitSpd)
                 {
-                    dx = myUtils.randFloatSigned(rand) * 0.1f;
-                    dy = myUtils.randFloatSigned(rand) * 0.1f;
+                    switch (initSpdMode)
+                    {
+                        case 0: case 1:
+                            dx = myUtils.randFloatSigned(rand) * 0.1f;
+                            break;
+
+                        case 2: case 3:
+                            dy = myUtils.randFloatSigned(rand) * 0.1f;
+                            break;
+
+                        default:
+                            dx = myUtils.randFloatSigned(rand) * 0.1f;
+                            dy = myUtils.randFloatSigned(rand) * 0.1f;
+                            break;
+                    }
                 }
 
                 size = 2;
@@ -335,7 +408,7 @@ namespace my
                         A = 1.0f;
                 }
 
-                if (doUseShortLife && --lifeCnt == 0)
+                if (doUseShortLife && --lifeCnt < 1)
                 {
                     generateNew();
                 }
