@@ -15,7 +15,7 @@ namespace my
     public class myObj_1070 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 20;
 		public static System.Type Type => typeof(myObj_1070);
 
         private int cnt, lifeCnt;
@@ -366,14 +366,13 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private const double factor_small = 0.00000001;
+
         protected override void Move()
         {
             if (id >= n)
             {
-                double DX = 0, DY = 0, dist = 0, F = 0, factor = 0, d2 = 0;
-
-                factor = 0.0000001f;
-                factor *= 0.1f;
+                double DX = 0, DY = 0, F = 0, d2 = 0;
 
                 for (int i = 0; i < n; i++)
                 {
@@ -386,9 +385,10 @@ namespace my
 
                     if (d2 > 0)
                     {
-                        dist = Math.Sqrt(d2);
+                        //dist = Math.Sqrt(d2);
 
-                        F = factor * mass * bigObj.mass / d2;
+                        F = factor_small * mass * bigObj.mass / d2;
+                        //F = factor_small * mass * bigObj.mass * d2 / dist;
 
                         dx += (float)(F * DX);
                         dy += (float)(F * DY);

@@ -25,7 +25,7 @@ namespace my
         private static int N = 0, n = 0, shape = 0, rate = 1, rateBase = 50, genLocationMode = 0, genOrderMode = 0,
                            sizeBase = 3, sizeMode = 0, waveSize = 1, waveSizeBase = 3000, moveMode = 0;
         private static bool doFillShapes = true, doUseRandomSpeed = true, doUseGravity = true;
-        private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f, gravityValue = 0.0f, randSpeedFactor = 0;
+        private static float dimAlpha = 0.05f, Speed = 1.0f, speedBase = 1.0f, gravityValue = 0.0f, randSpeedFactor = 0, maxA = 1;
 
         private static int deadCnt = 0;
 
@@ -87,6 +87,8 @@ namespace my
 
             randSpeedFactor = 0.01f * rand.Next(6);
 
+            maxA = 0.1f + 0.01f * rand.Next(51);
+
             return;
         }
 
@@ -106,6 +108,7 @@ namespace my
                             $"waveSize = {waveSize}\n"                                        +
                             $"doUseRandomSpeed = {doUseRandomSpeed}\n"                        +
                             $"renderDelay = {renderDelay}\n"                                  +
+                            $"maxA = {myUtils.fStr(maxA)}\n"                                  +
                             $"dimAlpha = {myUtils.fStr(dimAlpha)}\n"                          +
                             $"randSpeedFactor = {myUtils.fStr(randSpeedFactor)}\n"            +
                             $"gravity = {myUtils.fStr(doUseGravity ? gravityValue : 0)}\n"    +
@@ -217,7 +220,7 @@ namespace my
                         break;
                 }
 
-                A = myUtils.randFloat(rand, 0.01f);
+                A = myUtils.randFloat(rand, 0.01f) * maxA;
             }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
