@@ -90,6 +90,7 @@ namespace my
             rotationFactor = myUtils.randFloat(rand) * 0.05f;
             dAngleStatic = 0.01f;
 
+            maxSize = 3 + rand.Next(5);
             minSize = rand.Next(maxSize);
 
             Rad = 200;
