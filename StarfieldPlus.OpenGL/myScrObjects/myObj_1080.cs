@@ -14,15 +14,17 @@ namespace my
     public class myObj_1080 : myObject
     {
         // Priority
-        public static int Priority => 99999910;
+        public static int Priority => 999910;
 		public static System.Type Type => typeof(myObj_1080);
 
         private float x, y, dy, rad;
-        private float size, a, A, R, G, B, angle = 0;
+        private float size, a, A, R, G, B, rotAngle = 0, angle = 0, dAngle = 0;
 
-        private static int N = 0, shape = 0, opacityMode = 0, radMode = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, dAngle = 0.01f;
+        private static int N = 0, shape = 0, opacityMode = 0, radMode = 0, rotationMode = 0, nTrail = 100, trailMode = 0, minSize = 4, maxSize = 6, Rad = 100;
+        private static bool doFillShapes = false, doAllocateAtOnce = false;
+        private static float dimAlpha = 0.05f, dAngleStatic = 0.01f, rotationFactor = 0;
+
+        private myParticleTrail trail = null;
 
         private static myScreenGradient grad = null;
 
@@ -73,16 +75,31 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doAllocateAtOnce = myUtils.randomBool(rand);
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes = myUtils.randomBool(rand);
-doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 19, 20);
 
             radMode = rand.Next(2);
             opacityMode = rand.Next(2);
+            rotationMode = rand.Next(5);
+            trailMode = rand.Next(2);
 
             renderDelay = rand.Next(3) + 3;
 
-            dAngle = 0.01f;
+            rotationFactor = myUtils.randFloat(rand) * 0.05f;
+            dAngleStatic = 0.01f;
+
+            minSize = rand.Next(maxSize);
+
+            Rad = 200;
+
+            switch (rand.Next(3))
+            {
+                case 0: Rad += rand.Next(100); break;
+                case 1: Rad += rand.Next(300); break;
+                case 2: Rad += rand.Next(500); break;
+            }
 
             return;
         }
@@ -93,11 +110,14 @@ doClearBuffer = true;
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
-                            $"radMode = {radMode}\n"          +
-                            $"opacityMode = {opacityMode}\n"  +
-                            $"renderDelay = {renderDelay}\n"  +
+            string str = $"Obj = {Type}\n\n"                    +
+                            myUtils.strCountOf(list.Count, N)   +
+                            $"maxSize = {maxSize}\n"            +
+                            $"minSize = {minSize}\n"            +
+                            $"radMode = {radMode}\n"            +
+                            $"opacityMode = {opacityMode}\n"    +
+                            $"rotationMode = {rotationMode}\n"  +
+                            $"renderDelay = {renderDelay}\n"    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -115,12 +135,8 @@ doClearBuffer = true;
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = gl_y0;
-
-            dy = 0;
-
             angle = myUtils.randFloatSigned(rand) * 321;
+            rotAngle = myUtils.randFloatSigned(rand) * 321;
 
             switch (radMode)
             {
@@ -129,14 +145,43 @@ doClearBuffer = true;
                     break;
 
                 case 1:
-                    rad = 300;
+                    rad = Rad;
                     break;
             }
 
+            switch (rotationMode)
+            {
+                case 0:
+                case 1:
+                    dAngle = 0;
+                    break;
+
+                case 2:
+                    dAngle = myUtils.randFloat(rand) * rotationFactor * (+1);
+                    break;
+
+                case 3:
+                    dAngle = myUtils.randFloat(rand) * rotationFactor * (-1);
+                    break;
+
+                case 4:
+                    dAngle = myUtils.randFloatSigned(rand) * rotationFactor;
+                    break;
+            }
+
+            x = rand.Next(gl_Width);
+            y = gl_y0 + (float)Math.Sin(rotAngle) * rad;
+
+            dy = 0;
             size = 1;
 
             A = myUtils.randFloat(rand, 0.25f);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            if (trail == null)
+                trail = new myParticleTrail(nTrail, x, y);
+
+            trail.updateDa(A);
 
             return;
         }
@@ -145,10 +190,13 @@ doClearBuffer = true;
 
         protected override void Move()
         {
-            var sin = (float)Math.Sin(angle);
-            var cos = (float)Math.Cos(angle);
+            trail.update(x, y);
+
+            var sin = (float)Math.Sin(rotAngle);
+            var cos = (float)Math.Cos(rotAngle);
 
             y = gl_y0 + sin * rad;
+            rotAngle += dAngleStatic;
             angle += dAngle;
 
             switch (opacityMode)
@@ -162,7 +210,7 @@ doClearBuffer = true;
                     break;
             }
 
-            size = 6 - cos * 4;
+            size = maxSize - cos * (minSize > 0 ? minSize : 0.5f);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -205,8 +253,18 @@ doClearBuffer = true;
                     break;
             }
 
-            myPrimitive._LineInst.setInstanceCoords(x, y, x, gl_y0);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, 0.1f);
+            switch (trailMode)
+            {
+                case 0:
+                    myPrimitive._LineInst.setInstanceCoords(x, y, x, gl_y0);
+                    myPrimitive._LineInst.setInstanceColor(R, G, B, 0.1f);
+                    break;
+
+                case 1:
+                    if (list.Count < 2000)
+                        trail.Show(R, G, B, a * 0.33f);
+                    break;
+            }
 
             return;
         }
@@ -220,7 +278,7 @@ doClearBuffer = true;
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
-            while (list.Count < N)
+            while (doAllocateAtOnce && list.Count < N)
             {
                 list.Add(new myObj_1080());
             }
@@ -297,7 +355,7 @@ doClearBuffer = true;
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
-            myPrimitive.init_LineInst(N);
+            myPrimitive.init_LineInst(N * nTrail);
 
             return;
         }
