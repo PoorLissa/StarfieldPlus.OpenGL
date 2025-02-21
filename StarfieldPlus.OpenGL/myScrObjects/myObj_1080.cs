@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 
 /*
@@ -21,7 +22,7 @@ namespace my
         private float size, a, A, R, G, B, rotAngle = 0, angle = 0, dAngle = 0;
 
         private static int N = 0, shape = 0, opacityMode = 0, radMode = 0, rotationMode = 0, nTrail = 100, trailMode = 0, minSize = 4, maxSize = 6, Rad = 100;
-        private static bool doFillShapes = false, doAllocateAtOnce = false;
+        private static bool doFillShapes = false, doAllocateAtOnce = false, doUseSinWave = false;
         private static float dimAlpha = 0.05f, dAngleStatic = 0.01f, rotationFactor = 0;
 
         private myParticleTrail trail = null;
@@ -79,6 +80,7 @@ namespace my
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes = myUtils.randomBool(rand);
             doClearBuffer = myUtils.randomChance(rand, 19, 20);
+            doUseSinWave = myUtils.randomChance(rand, 1, 7);
 
             radMode = rand.Next(2);
             opacityMode = rand.Next(2);
@@ -116,6 +118,7 @@ namespace my
                             $"maxSize = {maxSize}\n"            +
                             $"minSize = {minSize}\n"            +
                             $"radMode = {radMode}\n"            +
+                            $"doUseSinWave = {doUseSinWave}\n"  +
                             $"opacityMode = {opacityMode}\n"    +
                             $"rotationMode = {rotationMode}\n"  +
                             $"renderDelay = {renderDelay}\n"    +
@@ -171,6 +174,13 @@ namespace my
             }
 
             x = rand.Next(gl_Width);
+
+            if (doUseSinWave)
+            {
+                // Recalc rotAngle to make a wave
+                rotAngle = (float)Math.Sin(x * 0.0075);
+            }
+
             y = gl_y0 + (float)Math.Sin(rotAngle) * rad;
 
             dy = 0;
