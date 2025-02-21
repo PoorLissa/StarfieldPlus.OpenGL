@@ -2,6 +2,8 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 
 
 /*
@@ -14,7 +16,7 @@ namespace my
     public class myObj_0520 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 9999910;
         public static System.Type Type => typeof(myObj_0520);
 
         private float x, y, dSize, maxSize;
@@ -305,6 +307,9 @@ namespace my
             }
 
 
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
 
             uint cnt = 0;
             initShapes();
@@ -387,7 +392,20 @@ namespace my
                 }
 
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
+                //System.Threading.Thread.Sleep(renderDelay);
+
+
+                // Calculate the time to sleep to maintain a consistent frame rate
+                long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+                long targetFrameTime = 16; // For ~60 FPS
+                long sleepTime = targetFrameTime - elapsedMilliseconds;
+
+                if (sleepTime > 0)
+                {
+                    System.Threading.Thread.Sleep((int)sleepTime);
+                }
+
+                stopwatch.Restart();
             }
 
             return;
