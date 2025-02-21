@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
+    - Pseudo 3d: rotating 'tube'
 */
 
 
@@ -14,7 +14,7 @@ namespace my
     public class myObj_1080 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1080);
 
         private float x, y, dy, rad;

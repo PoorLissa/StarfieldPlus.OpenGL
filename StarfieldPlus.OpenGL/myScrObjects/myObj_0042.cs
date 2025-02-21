@@ -166,7 +166,7 @@ namespace my
 
         protected override string CollectCurrentInfo(ref int width, ref int height)
         {
-            height = 700;
+            height = 730;
 
             string getShape(int shape)
             {

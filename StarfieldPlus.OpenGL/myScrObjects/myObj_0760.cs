@@ -23,7 +23,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 23;
 		public static System.Type Type => typeof(myObj_0760);
 
         private int state;

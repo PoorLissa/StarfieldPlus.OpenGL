@@ -74,6 +74,12 @@ namespace my
             shape = rand.Next(5);
             moveMode = rand.Next(moveModeCnt + 1);
 
+            if (myUtils.randomChance(rand, 1, 3))
+            {
+                int [] favModes = { 59, 106 };
+                moveMode = favModes[rand.Next(favModes.Length)];
+            }
+
             doClearBuffer = false;
             doFillShapes = myUtils.randomBool(rand);
             connectionMode = rand.Next(9);

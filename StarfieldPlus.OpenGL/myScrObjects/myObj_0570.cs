@@ -97,8 +97,6 @@ namespace my
             cnt = rand.Next(666) + 111;
             size = rand.Next(11) + 3;
 
-cnt = 1111;
-
             x = rand.Next(gl_Width  + 400) - 200;
             y = rand.Next(gl_Height + 400) - 200;
 

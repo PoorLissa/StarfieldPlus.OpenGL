@@ -216,7 +216,7 @@ public class ScreenSaver
         register(my.myObj_1050.Type);       // Roaming lines, no buffer clearing
         register(my.myObj_1060.Type);       // Draw texture's pixels only if their color is close to a target color
         register(my.myObj_1070.Type);       // Simplified gravity -- lots of light objects vs a few massive ones
-        register(my.myObj_1080.Type);       // ...
+        register(my.myObj_1080.Type);       // Pseudo 3d: rotating 'tube'
 
         // несколько партиклов, которые в ограниченной терротории рандомно двигаются туда и сюда.
         // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.
