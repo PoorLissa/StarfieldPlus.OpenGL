@@ -16,7 +16,7 @@ namespace my
     public class myObj_0520 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 10;
         public static System.Type Type => typeof(myObj_0520);
 
         private float x, y, dSize, maxSize;
@@ -306,10 +306,9 @@ namespace my
                 return;
             }
 
-
+            long targetFrameTime = 13, sleepTime = 0;
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-
 
             uint cnt = 0;
             initShapes();
@@ -392,18 +391,12 @@ namespace my
                 }
 
                 cnt++;
-                //System.Threading.Thread.Sleep(renderDelay);
-
 
                 // Calculate the time to sleep to maintain a consistent frame rate
-                long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-                long targetFrameTime = 16; // For ~60 FPS
-                long sleepTime = targetFrameTime - elapsedMilliseconds;
+                sleepTime = targetFrameTime - stopwatch.ElapsedMilliseconds;
 
                 if (sleepTime > 0)
-                {
-                    System.Threading.Thread.Sleep((int)sleepTime);
-                }
+                    Thread.Sleep((int)sleepTime);
 
                 stopwatch.Restart();
             }
