@@ -77,6 +77,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"colorMode = {colorMode}\n"      +
                             $"renderDelay = {renderDelay}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -319,7 +320,10 @@ namespace my
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
+            float lineWidth = 1.0f + myUtils.randFloat(rand) * rand.Next(9);
+
             myPrimitive.init_LineInst(N);
+            myPrimitive._LineInst.setLineWidth(lineWidth);
 
             return;
         }
