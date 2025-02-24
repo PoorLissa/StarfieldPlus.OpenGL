@@ -7,7 +7,7 @@ using System.Threading;
 
 
 /*
-    - ...
+    - Like Starfield, but instead of flying dots we have flying lines (made of 2 dots with the same angle, but slightly different speed)
 */
 
 
@@ -23,7 +23,7 @@ namespace my
         private float x2, y2, dx2, dy2;
         private float size, A, R, G, B, angle, dAngle;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, colorMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -61,6 +61,8 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
+
+            colorMode = rand.Next(2);
 
             renderDelay = rand.Next(11) + 3;
 
@@ -114,9 +116,19 @@ namespace my
             size = 3;
 
             A = 0.25f;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
+
+            switch (colorMode)
+            {
+                case 0:
+                    colorPicker.getColor(rand.Next(gl_Width), gl_Height, ref R, ref G, ref B);
+                    break;
+
+                case 1:
+                    R = (float)rand.NextDouble();
+                    G = (float)rand.NextDouble();
+                    B = (float)rand.NextDouble();
+                    break;
+            }
 
             dAngle = myUtils.randFloat(rand) * 0.1f;
 

@@ -82,7 +82,6 @@ public class ScreenSaver
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
     // - make a grid like in conway's life, and then get an image and put grid cells using image's color; when the image is done, select another image and so on
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
-    // - like starfield, but instead of flying dots we have flying lines (made of 2 dots with the same angle, but slightly different speed)
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
@@ -219,7 +218,7 @@ public class ScreenSaver
         register(my.myObj_1060.Type);       // Draw texture's pixels only if their color is close to a target color
         register(my.myObj_1070.Type);       // Simplified gravity -- lots of light objects vs a few massive ones
         register(my.myObj_1080.Type);       // Pseudo 3d: rotating 'tube'
-        register(my.myObj_1090.Type);       // ...
+        register(my.myObj_1090.Type);       // Like Starfield, but instead of flying dots we have flying lines (made of 2 dots with the same angle, but slightly different speed)
 
         // несколько партиклов, которые в ограниченной терротории рандомно двигаются туда и сюда.
         // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.
