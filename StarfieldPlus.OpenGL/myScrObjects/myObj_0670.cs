@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Nested rectangles. Lots of smaller particles are bouncing off the rectangles' edges
 */
 
 

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
+    - Multiple particles moving along circular trajectories
 */
 
 namespace my

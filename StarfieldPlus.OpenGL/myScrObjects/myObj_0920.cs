@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 
 /*
-    - 
+    - Radially moving multipla particles with a color shift
 */
 
 

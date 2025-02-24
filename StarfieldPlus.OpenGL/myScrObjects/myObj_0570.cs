@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Some spots using the color of an image. Linear connections between these shapes
 */
 
 
@@ -71,7 +71,6 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                      	 +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +

@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 
 /*
-    - ...
+    - Slowly growing shapes, originating in or near to the center
 */
 
 

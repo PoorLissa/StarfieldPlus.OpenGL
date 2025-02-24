@@ -160,18 +160,18 @@ public class ScreenSaver
         register(my.myObj_0541.Type);       // Falling alphabet letters (Matrix style), ver2
         register(my.myObj_0550.Type);       // Orbits of different size + a small planet is moving along each orbit
         register(my.myObj_0560.Type);       // Pixelating an image with average colors
-        register(my.myObj_0570.Type);       // ...
+        register(my.myObj_0570.Type);       // Some spots using the color of an image. Linear connections between these shapes
         register(my.myObj_0580.Type);       // Gravity n-body
         register(my.myObj_0590.Type);       // Particle moves as a result of an average of n other particles movement
         register(my.myObj_0600.Type);       // Pendulum
-        register(my.myObj_0610.Type);       // ...
+        register(my.myObj_0610.Type);       // Snake-like patterns, stupid implementation
         register(my.myObj_0620.Type);       // Rectangles with width/height that are changing constantly; while width is increasing, height is decreasing, and vice versa
         register(my.myObj_0630.Type);       // Rotating circles made of letters and symbols
         register(my.myObj_0640.Type);       // Create random rectangles, but put them on the screen only when they don't intersect any existing rectangles
         register(my.myObj_0641.Type);       // Create random circles, but put them on the screen only when they don't intersect any existing circles
         register(my.myObj_0650.Type);       // Drawing symbols using the color sampled from an image
-        register(my.myObj_0660.Type);       // ...
-        register(my.myObj_0670.Type);       // ...
+        register(my.myObj_0660.Type);       // Particle waves originating from the center. Particles in every wave are interconnected
+        register(my.myObj_0670.Type);       // Nested rectangles. Lots of smaller particles are bouncing off the rectangles' edges
         register(my.myObj_0680.Type);       // Scrolling wall of "text"
         register(my.myObj_0690.Type);       // Circularly moving particles with discrete curvature
         register(my.myObj_0691.Type);       // Pseudo 3d based off myObj_690
@@ -187,7 +187,7 @@ public class ScreenSaver
         register(my.myObj_0790.Type);       // Two-point swaps
         register(my.myObj_0800.Type);       // Rows of Triangles
         register(my.myObj_0810.Type);       // Raster scan of an image
-        register(my.myObj_0820.Type);       // ...
+        register(my.myObj_0820.Type);       // Spirally rotating squares
         register(my.myObj_0830.Type);       // Thin texture lines moving top to bottom of the screen
         register(my.myObj_0840.Type);       // Trains moving across the screen
         register(my.myObj_0850.Type);       // 3 rotating points per particle, making a rotating triangle
@@ -197,21 +197,21 @@ public class ScreenSaver
         register(my.myObj_0890.Type);       // Desktop pieces falling down in a matrix-style
         register(my.myObj_0900.Type);       // Waveforms moving sideways, v1
         register(my.myObj_0901.Type);       // Waveforms moving sideways, v2
-        register(my.myObj_0910.Type);       // ...
-        register(my.myObj_0920.Type);       // ...
+        register(my.myObj_0910.Type);       // Radially moving multiple particles, with an underlyuing image
+        register(my.myObj_0920.Type);       // Radially moving multipla particles with a color shift
         register(my.myObj_0930.Type);       // Stack of circle shapes moving with a delay
         register(my.myObj_0940.Type);       // Circular shapes made of instanced lines
         register(my.myObj_0950.Type);       // Very narrow window from a texture stretched to full-screen
         register(my.myObj_0960.Type);       // Pulsing grids
-        register(my.myObj_0970.Type);       // ...
+        register(my.myObj_0970.Type);       // Static rectangles drawn inside each other with a color shift
         register(my.myObj_0980.Type);       // Edge finding random algorythm
         register(my.myObj_0990.Type);       // Square/Rectangle Tunnel
-        register(my.myObj_0992.Type);       // ...
+        register(my.myObj_0992.Type);       // Slowly growing shapes, originating in or near to the center
         register(my.myObj_1000.Type);       // Bouncing particles inside grid cells
         register(my.myObj_1010.Type);       // Lightnings
-        register(my.myObj_1020.Type);       // ...
-        register(my.myObj_1021.Type);       // ...
-        register(my.myObj_1030.Type);       // ...
+        register(my.myObj_1020.Type);       // Multiple particles moving along circular trajectories
+        register(my.myObj_1021.Type);       // The same as 1020, but on a offscreen texture, thus no traces are left
+        register(my.myObj_1030.Type);       // Lightnings, take 2
         register(my.myObj_1040.Type);       // Tiled image transitioning to another image over time
         register(my.myObj_1050.Type);       // Roaming lines, no buffer clearing
         register(my.myObj_1060.Type);       // Draw texture's pixels only if their color is close to a target color

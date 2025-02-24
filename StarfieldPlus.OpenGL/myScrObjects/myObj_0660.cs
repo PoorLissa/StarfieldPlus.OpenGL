@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Particle waves originating from the center. Particles in every wave are interconnected
 */
 
 

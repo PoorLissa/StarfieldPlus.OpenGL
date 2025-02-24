@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Radially moving multiple particles, with an underlyuing image
 */
 
 
