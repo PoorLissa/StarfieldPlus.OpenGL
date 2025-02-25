@@ -58,8 +58,8 @@ public class ScreenSaver
     // - divide the screen in squares and swap them randomly
     // - gravity
     // - gravity towards center, but the particles also bounce off the borders of the screen
-    // - sort all the screen pixels
     // - gravity, where the color of a pixel is its mass
+    // - sort all the screen pixels
     // - divide in squares and each square gets its own blur factor
     // - sperm floating towards the center
     // - cover everything in spiralling traingles
@@ -219,10 +219,6 @@ public class ScreenSaver
         register(my.myObj_1070.Type);       // Simplified gravity -- lots of light objects vs a few massive ones
         register(my.myObj_1080.Type);       // Pseudo 3d: rotating 'tube'
         register(my.myObj_1090.Type);       // Like Starfield, but instead of flying dots we have flying lines (made of 2 dots with the same angle, but slightly different speed)
-
-        // несколько партиклов, которые в ограниченной терротории рандомно двигаются туда и сюда.
-        // Они соединяются один раз при создании по цепочке, пока не соединятся по кругу.
-        // Дальше они движутся, а соединения рисуются все время одни и те же
 
         register(my.myObj_9998.Type);       // Test rotating shape, unfinished yet good
         registerTests(register);            // Register additional testing objects
