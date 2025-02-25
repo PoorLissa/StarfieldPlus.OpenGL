@@ -2,8 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
+using StarfieldPlus.OpenGL.myUtils;
 
 
 /*
@@ -22,10 +21,10 @@ namespace my
         private int cnt;
         private float x1, y1, dx1, dy1;
         private float x2, y2, dx2, dy2;
-        private float size, A, R, G, B, angle, dAngle;
+        private float size, a, A, R, G, B, angle, dAngle;
 
         private static int N = 0, shape = 0, colorMode = 0;
-        private static bool doFillShapes = false;
+        private static bool doFillShapes = false, doAllocateAtOnce = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
@@ -61,6 +60,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doAllocateAtOnce = myUtils.randomChance(rand, 1, 2);
             doClearBuffer = myUtils.randomChance(rand, 4, 5);
 
             colorMode = rand.Next(2);
@@ -76,10 +76,10 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
-                            $"colorMode = {colorMode}\n"      +
-                            $"renderDelay = {renderDelay}\n"  +
+            string str = $"Obj = {Type}\n\n"                        +
+                            myUtils.strCountOf(list.Count, N)       +
+                            $"colorMode = {colorMode}\n"            +
+                            $"frameRate = {stopwatch.GetRate()}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -153,6 +153,7 @@ namespace my
 
             size = 3;
 
+            a = 0.1f + myUtils.randFloat(rand) * 0.20f;
             A = 0.1f + myUtils.randFloat(rand) * 0.25f;
 
             switch (colorMode)
@@ -260,7 +261,7 @@ namespace my
 
             // Draw line
             myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
-            myPrimitive._LineInst.setInstanceColor(R, G, B, 0.25f);
+            myPrimitive._LineInst.setInstanceColor(R, G, B, a);
 
             doDraw(x1, y1);
             doDraw(x2, y2);
@@ -275,11 +276,15 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            long targetFrameTime = 13, sleepTime = 0;
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             clearScreenSetup(doClearBuffer, 0.1f);
+
+            while (doAllocateAtOnce && list.Count < N)
+            {
+                list.Add(new myObj_1090());
+            }
+
+            stopwatch = new myStopwatch();
+            stopwatch.Start();
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -336,16 +341,8 @@ namespace my
                     list.Add(new myObj_1090());
                 }
 
+                stopwatch.WaitAndRestart();
                 cnt++;
-                //System.Threading.Thread.Sleep(renderDelay);
-
-                // Calculate the time to sleep to maintain a consistent frame rate
-                sleepTime = targetFrameTime - stopwatch.ElapsedMilliseconds;
-
-                if (sleepTime > 0)
-                    Thread.Sleep((int)sleepTime);
-
-                stopwatch.Restart();
             }
 
             return;

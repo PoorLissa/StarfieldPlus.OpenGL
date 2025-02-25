@@ -204,6 +204,7 @@
     <Compile Include="myScrObjects\myObj_0210.cs" />
     <Compile Include="myScrObjects\myObj_0200.cs" />
     <Compile Include="myScrObjects\myObj_9998.cs" />
+    <Compile Include="myUtils\__myStopwatch.cs" />
     <Compile Include="myUtils\__distributionTester.cs" />
     <Compile Include="myUtils\__funcGenerator.cs" />
     <Compile Include="myUtils\__ini_file.cs" />

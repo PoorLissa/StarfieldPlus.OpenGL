@@ -8,6 +8,8 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Drawing.Text;
+using StarfieldPlus.OpenGL.myUtils;
+using System.Media;
 
 
 #pragma warning disable CS0162                      // Unreachable code warnings
@@ -51,6 +53,7 @@ namespace my
         protected static List<myObject> list = null;
         protected static myColorPicker colorPicker = null;
         protected static myInstancedPrimitive inst = null;
+        protected static myStopwatch stopwatch = null;
 
         protected static BgrDrawMode bgrDrawMode = BgrDrawMode.NEVER;
         protected static float       bgrOpacity = 0.01f;
@@ -187,6 +190,7 @@ namespace my
             if (Glfw.GetKey(window, GLFW.Keys.Up) == GLFW.InputState.Press)
             {
                 renderDelay++;
+                stopwatch?.MakeFaster();
                 return;
             }
 
@@ -194,6 +198,7 @@ namespace my
             if (Glfw.GetKey(window, GLFW.Keys.Down) == GLFW.InputState.Press)
             {
                 renderDelay -= (renderDelay > 0) ? 1 : 0;
+                stopwatch?.MakeSlower();
                 return;
             }
 
@@ -265,6 +270,12 @@ namespace my
             }
             catch (System.Exception ex)
             {
+                if (true)
+                {
+                    var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
+                    player.Play();
+                }
+
                 MessageBox.Show($"{this.ToString()} says:\n{ex.Message}\n\n{ex.StackTrace}", "Process Exception", MessageBoxButtons.OK);
             }
 
