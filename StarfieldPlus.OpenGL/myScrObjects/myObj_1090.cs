@@ -19,6 +19,7 @@ namespace my
         public static int Priority => 99999910;
 		public static System.Type Type => typeof(myObj_1090);
 
+        private int cnt;
         private float x1, y1, dx1, dy1;
         private float x2, y2, dx2, dy2;
         private float size, A, R, G, B, angle, dAngle;
@@ -60,7 +61,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
+            doClearBuffer = myUtils.randomChance(rand, 4, 5);
 
             colorMode = rand.Next(2);
 
@@ -96,27 +97,63 @@ namespace my
 
         protected override void generateNew()
         {
+            cnt = 33 + rand.Next(33);
+
             float alpha = myUtils.randFloat(rand) * 321;
+            float sin = (float)Math.Sin(alpha);
+            float cos = (float)Math.Cos(alpha);
 
             x1 = x2 = gl_x0;
             y1 = y2 = gl_y0;
 
-            float spd = 5.0f;
+            float spd = 3.0f;
 
             dx1 = myUtils.randFloatSigned(rand, 0.1f) * spd;
             dy1 = myUtils.randFloatSigned(rand, 0.1f) * spd;
 
-            float ratio = 1.0f + myUtils.randFloat(rand, 0.2f);
+            float ratio = 1.0f + myUtils.randFloat(rand, 0.1f) * 0.2f;
 
             dx2 = dx1 * ratio;
             dy2 = dy1 * ratio;
 
-            x1 = x2 += dx1 * 10;
-            y1 = y2 += dy1 * 10;
+            x1 += dx1 * 10;
+            y1 += dy1 * 10;
+            x2 += dx1 * 10;
+            y2 += dy1 * 10;
+
+            if (!false)
+            {
+                int rad = 123;
+
+                x1 = gl_x0 + sin * rad;
+                y1 = gl_y0 + cos * rad;
+
+                if (true)
+                {
+                    x2 = x1;
+                    y2 = y1;
+                }
+
+                x2 = gl_x0 + sin * (rad + 50);
+                y2 = gl_y0 + cos * (rad + 50);
+
+                //x2 = gl_x0 + sin * (rad - 33);
+                //y2 = gl_y0 + cos * (rad - 33);
+
+                var localSpd = 1.0f + myUtils.randFloat(rand) * rand.Next(3);
+
+                //localSpd = spd;
+
+                dx1 = sin * localSpd;
+                dy1 = cos * localSpd;
+
+                dx2 = dx1 * ratio;
+                dy2 = dy1 * ratio;
+            }
 
             size = 3;
 
-            A = 0.25f;
+            A = 0.1f + myUtils.randFloat(rand) * 0.25f;
 
             switch (colorMode)
             {
@@ -140,36 +177,39 @@ namespace my
 
         protected override void Move()
         {
-            x1 += dx1;
-            y1 += dy1;
-
-            x2 += dx2;
-            y2 += dy2;
-
-            angle += dAngle;
-
-            if (x1 < 0 && x2 < 0)
+            if (--cnt < 0)
             {
-                generateNew();
-                return;
-            }
+                x1 += dx1;
+                y1 += dy1;
 
-            if (x1 > gl_Width && x2 > gl_Width)
-            {
-                generateNew();
-                return;
-            }
+                x2 += dx2;
+                y2 += dy2;
 
-            if (y1 < 0 && y2 < 0)
-            {
-                generateNew();
-                return;
-            }
+                angle += dAngle;
 
-            if (y1 > gl_Height && y2 > gl_Height)
-            {
-                generateNew();
-                return;
+                if (x1 < 0 && x2 < 0)
+                {
+                    generateNew();
+                    return;
+                }
+
+                if (x1 > gl_Width && x2 > gl_Width)
+                {
+                    generateNew();
+                    return;
+                }
+
+                if (y1 < 0 && y2 < 0)
+                {
+                    generateNew();
+                    return;
+                }
+
+                if (y1 > gl_Height && y2 > gl_Height)
+                {
+                    generateNew();
+                    return;
+                }
             }
 
             return;
@@ -218,6 +258,7 @@ namespace my
                 }
             }
 
+            // Draw line
             myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
             myPrimitive._LineInst.setInstanceColor(R, G, B, 0.25f);
 
