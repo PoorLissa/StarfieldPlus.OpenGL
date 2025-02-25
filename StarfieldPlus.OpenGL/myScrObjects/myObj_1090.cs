@@ -100,6 +100,7 @@ namespace my
             cnt = 33 + rand.Next(33);
 
             float alpha = myUtils.randFloat(rand) * 321;
+
             float sin = (float)Math.Sin(alpha);
             float cos = (float)Math.Cos(alpha);
 
@@ -127,6 +128,9 @@ namespace my
 
                 x1 = gl_x0 + sin * rad;
                 y1 = gl_y0 + cos * rad;
+
+                //x1 = gl_x0 + sin * rad + rand.Next(33) - 16;
+                //y1 = gl_y0 + cos * rad + rand.Next(33) - 16;
 
                 if (true)
                 {
