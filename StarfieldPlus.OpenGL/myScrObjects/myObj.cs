@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Drawing.Text;
 using StarfieldPlus.OpenGL.myUtils;
 using System.Media;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 
 #pragma warning disable CS0162                      // Unreachable code warnings
@@ -276,7 +277,9 @@ namespace my
                     player.Play();
                 }
 
-                MessageBox.Show($"{this.ToString()} says:\n{ex.Message}\n\n{ex.StackTrace}", "Process Exception", MessageBoxButtons.OK);
+                var time = DateTime.Now.ToString();
+
+                MessageBox.Show($"{this.ToString()} says:\n{ex.Message}\n\n{ex.StackTrace}", $"Process Exception {time}", MessageBoxButtons.OK);
             }
 
             return;
