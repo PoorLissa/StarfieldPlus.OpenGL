@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
+using System.Media;
 using System.Windows.Forms;
 
 
@@ -528,7 +529,15 @@ namespace my
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ex.Message}", "myColorPicker", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                if (true)
+                {
+                    var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
+                    player.Play();
+                }
+
+                var time = DateTime.Now.ToString();
+
+                MessageBox.Show($"{ex.Message}", $"myColorPicker {time}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             return;
