@@ -537,7 +537,7 @@ namespace my
 
                 var time = DateTime.Now.ToString();
 
-                MessageBox.Show($"{ex.Message}", $"myColorPicker {time}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show($"{ex.Message}\r\n{ex.StackTrace}", $"myColorPicker {time}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             return;
