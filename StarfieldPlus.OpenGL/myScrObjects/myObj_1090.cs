@@ -7,6 +7,8 @@ using StarfieldPlus.OpenGL.myUtils;
 
 /*
     - Like Starfield, but instead of flying dots we have flying lines (made of 2 dots with the same angle, but slightly different speed)
+
+    -- unfinished
 */
 
 
@@ -15,7 +17,7 @@ namespace my
     public class myObj_1090 : myObject
     {
         // Priority
-        public static int Priority => 99999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1090);
 
         private int cnt;

@@ -239,7 +239,7 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        // Get average color at a rectangle, as float R-G-B ([0..1]-[0..1]-[0..1])
+        // Get average color from a rectangle, as float R-G-B ([0..1]-[0..1]-[0..1])
         public void getColorAverage(float x, float y, int width, int height, ref float R, ref float G, ref float B)
         {
             R = G = B = 0;
@@ -264,7 +264,32 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        // Get average color at a rectangle, as float R-G-B ([0..1]-[0..1]-[0..1])
+        // Get average color from a rectangle, as float R-G-B ([0..255]-[0..255]-[0..255])
+        public void getColorAverage_Int(float x, float y, int width, int height, ref float R, ref float G, ref float B)
+        {
+            R = G = B = 0;
+
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
+                    getColor((int)x + i, (int)y + j, ref gl_r, ref gl_g, ref gl_b);
+                    R += gl_r;
+                    G += gl_g;
+                    B += gl_b;
+                }
+            }
+
+            float factor = 1.0f / (width * height);
+
+            R *= factor;
+            G *= factor;
+            B *= factor;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Get average color with a step from a rectangle, as float R-G-B ([0..1]-[0..1]-[0..1])
         public void getColorAverage(int x, int y, int width, int height, ref float R, ref float G, ref float B, int step = 1)
         {
             int cnt = 0;
