@@ -21,13 +21,13 @@ namespace my
         }
 
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 3;
 		public static System.Type Type => typeof(myObj_1100);
 
         private float x, y;
         private float A, R, G, B;
 
-        private static int N = 0, step = 20;
+        private static int N = 0, step = 10;
         private static bool doFillShapes = true;
         private static float dimAlpha = 0.05f;
 
