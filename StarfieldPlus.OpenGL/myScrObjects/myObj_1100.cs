@@ -168,7 +168,7 @@ namespace my
                 G = g / 255.0f;
                 B = b / 255.0f;
 
-                myPrimitive._RectangleInst.setInstanceCoords(x, 100, n-2, cnt * 100);
+                myPrimitive._RectangleInst.setInstanceCoords(x, 100, n-2, 123 + cnt * 33);
                 myPrimitive._RectangleInst.setInstanceColor(R, G, B, 1);
                 myPrimitive._RectangleInst.setInstanceAngle(0);
 
