@@ -220,6 +220,8 @@ public class ScreenSaver
         register(my.myObj_1080.Type);       // Pseudo 3d: rotating 'tube'
         register(my.myObj_1090.Type);       // Like Starfield, but instead of flying dots we have flying lines (made of 2 dots with the same angle, but slightly different speed)
         register(my.myObj_1100.Type);       // ...
+        register(my.myObj_1110.Type);       // Progress bars
+        register(my.myObj_1120.Type);       // Black hole
 
         register(my.myObj_9998.Type);       // Test rotating shape, unfinished yet good
         registerTests(register);            // Register additional testing objects
