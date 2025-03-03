@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using StarfieldPlus.OpenGL.myUtils;
 
 
 /*
@@ -23,7 +24,7 @@ namespace my
 
         private static int N = 0, shape = 0;
         private static bool doFillShapes = false, doAccelerate = false;
-        private static float dimAlpha = 0.05f, X, Y, Rad;
+        private static float dimAlpha = 0.05f, X, Y, Rad, maxOpacity = 1;
 
         private static myScreenGradient grad = null;
 
@@ -68,6 +69,8 @@ namespace my
             Y = gl_y0;
             Rad = 333 + rand.Next(333);
 
+            maxOpacity = 0.5f;
+
             return;
         }
 
@@ -98,14 +101,24 @@ namespace my
 
         protected override void generateNew()
         {
+            float dX = 0, dY = 0, dist = 0;
+
             cnt = 100 + rand.Next(123);
 
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Width) - (gl_Width - gl_Height) / 2;
+            int off = 600;
+            int W = gl_Width + off;
 
-            float dX = x - X;
-            float dY = y - Y;
-            float dist = (float)Math.Sqrt(dX * dX + dY * dY);
+            // Make sure the particle generates outside of the event horizon
+            do
+            {
+                x = rand.Next(W) - off/2;
+                y = rand.Next(W) - (gl_Width - gl_Height) / 2 - off/2;
+
+                dX = x - X;
+                dY = y - Y;
+                dist = (float)Math.Sqrt(dX * dX + dY * dY);
+            }
+            while (dist < Rad * 1.25f);
 
             if (doAccelerate)
             {
@@ -120,17 +133,10 @@ namespace my
             }
 
             size = rand.Next(3) + 3;
-
             dAngle = myUtils.randFloatSigned(rand) * 0.05f;
 
-            A = myUtils.randFloat(rand, 0.25f);
+            A = myUtils.randFloat(rand, 0.25f) * maxOpacity;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            if (dist < Rad)
-            {
-                size = 1;
-                A = 0.2f;
-            }
 
             return;
         }
@@ -158,7 +164,7 @@ namespace my
 
             if (dist < Rad)
             {
-                A -= 0.02f;
+                A -= 0.02f * maxOpacity;
                 size -= 0.02f;
 
                 dx *= 1.01f;
@@ -181,7 +187,7 @@ namespace my
             {
                 if (--cnt == 0)
                 {
-                    A = myUtils.randFloat(rand, 0.25f);
+                    A = myUtils.randFloat(rand, 0.25f) * maxOpacity;
                     cnt = 100 + rand.Next(123);
                 }
             }
@@ -241,6 +247,9 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
+            stopwatch = new myStopwatch();
+            stopwatch.Start();
+
             while (!Glfw.WindowShouldClose(window))
             {
                 int Count = list.Count;
@@ -296,8 +305,8 @@ namespace my
                     list.Add(new myObj_1120());
                 }
 
+                stopwatch.WaitAndRestart();
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
