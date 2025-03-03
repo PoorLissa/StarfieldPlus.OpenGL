@@ -99,7 +99,7 @@ namespace my
             cnt = 100 + rand.Next(123);
 
             x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            y = rand.Next(gl_Width) - (gl_Width - gl_Height) / 2;
 
             dx = dy = 0;
             size = rand.Next(3) + 3;
@@ -144,6 +144,9 @@ namespace my
             {
                 A -= 0.02f;
                 size -= 0.02f;
+
+                dx *= 1.01f;
+                dy *= 1.01f;
 
                 if (A < 0)
                     generateNew();
@@ -209,9 +212,6 @@ namespace my
         {
             uint cnt = 0;
             initShapes();
-
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
