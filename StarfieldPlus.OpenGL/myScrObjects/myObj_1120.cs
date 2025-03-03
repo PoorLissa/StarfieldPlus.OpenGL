@@ -15,7 +15,7 @@ namespace my
     public class myObj_1120 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1120);
 
         private int cnt;
@@ -245,7 +245,13 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.1f);
+            float lineThickness = 1.0f;
+            float dThickneess = 0.025f;
+
+#if false
+            while (list.Count < N)
+                list.Add(new myObj_1120());
+#endif
 
             stopwatch = new myStopwatch();
             stopwatch.Start();
@@ -263,22 +269,26 @@ namespace my
                 // Dim screen
                 {
                     if (doClearBuffer)
-                    {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
                 }
 
                 // Render Frame
                 {
                     inst.ResetBuffer();
 
-                    myPrimitive._Ellipse.SetColor(1, 1, 1, 0.05f);
-                    myPrimitive._Ellipse.Draw(X - Rad, Y - Rad, 2 * Rad, 2 * Rad, false);
+                    // Draw event horizon
+                    {
+                        myPrimitive._Ellipse.setLineThickness(lineThickness);
+                        myPrimitive._Ellipse.SetColor(1, 1, 1, 0.05f);
+                        myPrimitive._Ellipse.Draw(X - Rad, Y - Rad, 2 * Rad, 2 * Rad, false);
+
+                        lineThickness += dThickneess;
+
+                        if (lineThickness > 13.0f || lineThickness < 1.0f)
+                            dThickneess *= -1;
+                    }
 
                     for (int i = 0; i != Count; i++)
                     {
@@ -316,11 +326,13 @@ namespace my
 
         private void initShapes()
         {
-            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+
+            if (doClearBuffer == false)
+                grad.SetOpacity(0.05f);
 
             myPrimitive.init_Ellipse();
 

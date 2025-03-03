@@ -14,6 +14,7 @@ using System.Diagnostics;
         For every such neighbour, check its child particles vs the current one
 
         todo: check all the todos
+        todo: test loop unrolling here
 */
 
 
