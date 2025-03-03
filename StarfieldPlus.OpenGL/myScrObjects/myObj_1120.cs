@@ -3,8 +3,6 @@ using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
 using StarfieldPlus.OpenGL.myUtils;
-using System.Diagnostics;
-using System.IO;
 
 
 /*
