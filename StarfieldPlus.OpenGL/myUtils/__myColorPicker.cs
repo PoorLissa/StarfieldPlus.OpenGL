@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Media;
 using System.Windows.Forms;
@@ -15,6 +16,10 @@ namespace my
         private Random   _rand = null;
         private Graphics _g = null;
         private string   _f = "n/a";
+
+        private int _bytesPerPixel;
+        private int _stride;
+        private Rectangle _imgRect;
 
         private static int _W = -1, _H = -1, gl_R = -1, gl_G = -1, gl_B = -1, gl_r = -1, gl_g = -1, gl_b = -1;
         private static bool isRlocked = false, isGlocked = false, isBlocked = false;
@@ -36,6 +41,7 @@ namespace my
         {
             _W = Width;
             _H = Height;
+            _imgRect = new Rectangle(0, 0, _W, _H);
 
             _rand = new Random((int)DateTime.Now.Ticks);
             _mode = mode;                                   // color mode
@@ -164,6 +170,18 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        private void initReader()
+        {
+            _imgRect.X = 0;
+            _imgRect.Y = 0;
+            _imgRect.Width = _W;
+            _imgRect.Height = _H;
+
+            _bytesPerPixel = Image.GetPixelFormatSize(_img.PixelFormat) / 8;
+        }
+
+        // -------------------------------------------------------------------------
+
         public void setPixel(int x, int y, int A = 255)
         {
             if (x > -1 && y > -1 && x < _img.Width && y < _img.Height)
@@ -244,16 +262,21 @@ namespace my
         {
             R = G = B = 0;
 
-            for (int i = 0; i < width; i++)
+            // LockBits once for the whole area
+            var bmpData = _img.LockBits(_imgRect, ImageLockMode.ReadOnly, _img.PixelFormat);
             {
-                for (int j = 0; j < height; j++)
+                for (int i = 0; i < width; i++)
                 {
-                    getColor((int)x + i, (int)y + j, ref gl_r, ref gl_g, ref gl_b);
-                    R += gl_r;
-                    G += gl_g;
-                    B += gl_b;
+                    for (int j = 0; j < height; j++)
+                    {
+                        getColor((int)x + i, (int)y + j, ref gl_r, ref gl_g, ref gl_b, bmpData);
+                        R += gl_r;
+                        G += gl_g;
+                        B += gl_b;
+                    }
                 }
             }
+            _img.UnlockBits(bmpData);
 
             float factor = color255f / (width * height);
 
@@ -269,16 +292,21 @@ namespace my
         {
             R = G = B = 0;
 
-            for (int i = 0; i < width; i++)
+            // LockBits once for the whole area
+            var bmpData = _img.LockBits(_imgRect, ImageLockMode.ReadOnly, _img.PixelFormat);
             {
-                for (int j = 0; j < height; j++)
+                for (int i = 0; i < width; i++)
                 {
-                    getColor((int)x + i, (int)y + j, ref gl_r, ref gl_g, ref gl_b);
-                    R += gl_r;
-                    G += gl_g;
-                    B += gl_b;
+                    for (int j = 0; j < height; j++)
+                    {
+                        getColor((int)x + i, (int)y + j, ref gl_r, ref gl_g, ref gl_b, bmpData);
+                        R += gl_r;
+                        G += gl_g;
+                        B += gl_b;
+                    }
                 }
             }
+            _img.UnlockBits(bmpData);
 
             float factor = 1.0f / (width * height);
 
@@ -295,20 +323,25 @@ namespace my
             int cnt = 0;
             R = G = B = 0;
 
-            for (int i = x; i < x + width; i += step)
+            // LockBits once for the whole area
+            var bmpData = _img.LockBits(_imgRect, ImageLockMode.ReadOnly, _img.PixelFormat);
             {
-                for (int j = y; j < y + height; j += step)
+                for (int i = x; i < x + width; i += step)
                 {
-                    if (i > -1 && j > -1 && i < _W && j < _H)
+                    for (int j = y; j < y + height; j += step)
                     {
-                        getColor(i, j, ref gl_r, ref gl_g, ref gl_b);
-                        R += gl_r;
-                        G += gl_g;
-                        B += gl_b;
-                        cnt++;
+                        if (i > -1 && j > -1 && i < _W && j < _H)
+                        {
+                            getColor(i, j, ref gl_r, ref gl_g, ref gl_b, bmpData);
+                            R += gl_r;
+                            G += gl_g;
+                            B += gl_b;
+                            cnt++;
+                        }
                     }
                 }
             }
+            _img.UnlockBits(bmpData);
 
             float f = (cnt == 0) ? 0 : color255f / cnt;
 
@@ -319,8 +352,49 @@ namespace my
 
         // -------------------------------------------------------------------------
 
+        // Fast alternative to '_img.GetPixel(x, y)'
+        // Works ~1.5 times faster
+        private void getPixelFast(int x, int y, ref int R, ref int G, ref int B, BitmapData bmpData = null)
+        {
+            if (bmpData == null)
+            {
+                bmpData = _img.LockBits(_imgRect, ImageLockMode.ReadOnly, _img.PixelFormat);
+
+                unsafe
+                {
+                    byte* ptr = (byte*)bmpData.Scan0;           // 1st line of the bmp
+                    byte* row = ptr + (y * bmpData.Stride);     // target row
+                    var offset = x * _bytesPerPixel;            // target pixel
+
+                    B = row[offset + 0];
+                    G = row[offset + 1];
+                    R = row[offset + 2];
+
+                    //byte alpha = row[x * bytesPerPixel + 3];
+                }
+
+                _img.UnlockBits(bmpData);
+            }
+            else
+            {
+                // Proceed with reading pixel data, as LockBits is already in effect
+                unsafe
+                {
+                    byte* ptr = (byte*)bmpData.Scan0;           // 1st line of the bmp
+                    byte* row = ptr + (y * bmpData.Stride);     // target row
+                    var offset = x * _bytesPerPixel;            // target pixel
+
+                    B = row[offset + 0];
+                    G = row[offset + 1];
+                    R = row[offset + 2];
+                }
+            }
+        }
+
+        // -------------------------------------------------------------------------
+
         // Get color at a point, as R-G-B
-        public void getColor(int x, int y, ref int R, ref int G, ref int B)
+        public void getColor(int x, int y, ref int R, ref int G, ref int B, BitmapData bmpData = null)
         {
             switch (_mode)
             {
@@ -332,11 +406,7 @@ namespace my
                     if (_img != null)
                     {
                         fixCoordinates(ref x, ref y);
-                        var pixel = _img.GetPixel(x, y);
-
-                        R = pixel.R;
-                        G = pixel.G;
-                        B = pixel.B;
+                        getPixelFast(x, y, ref R, ref G, ref B, bmpData);
                     }
                     break;
 
@@ -370,11 +440,7 @@ namespace my
                     if (_img != null)
                     {
                         fixCoordinates(ref x, ref y);
-                        var pixel = _img.GetPixel(x, y);
-
-                        R = pixel.R;
-                        G = pixel.G;
-                        B = pixel.B;
+                        getPixelFast(x, y, ref R, ref G, ref B);
                     }
                     break;
 
@@ -404,11 +470,7 @@ namespace my
 
                     if (_img != null)
                     {
-                        var pixel = _img.GetPixel(x, y);
-
-                        R = pixel.R;
-                        G = pixel.G;
-                        B = pixel.B;
+                        getPixelFast(x, y, ref R, ref G, ref B);
                     }
                     break;
 
@@ -441,11 +503,7 @@ namespace my
                 case 4:
                     if (_img != null)
                     {
-                        var pixel = _img.GetPixel(x, y);
-
-                        R = pixel.R;
-                        G = pixel.G;
-                        B = pixel.B;
+                        getPixelFast(x, y, ref R, ref G, ref B);
                     }
                     break;
 
@@ -540,6 +598,7 @@ namespace my
                 if (_img == null)
                 {
                     _img = new Bitmap(Width, Height);
+                    initReader();
 
                     if (_g != null)
                     {
@@ -613,6 +672,7 @@ namespace my
                 if (image != null && image != string.Empty)
                 {
                     _img = new Bitmap(image);
+                    initReader();
 
                     //if (_img.Width <= Width || _img.Height <= Height)
                     {
@@ -920,6 +980,7 @@ namespace my
             int a, x, y, w, h, r = 0, g = 0, b = 0;
 
             _img = new Bitmap(Width, Height);
+            initReader();
 
             if (_g != null)
             {

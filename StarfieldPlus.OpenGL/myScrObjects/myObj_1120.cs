@@ -3,6 +3,8 @@ using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
 using StarfieldPlus.OpenGL.myUtils;
+using System.Diagnostics;
+using System.IO;
 
 
 /*
@@ -15,8 +17,8 @@ namespace my
     public class myObj_1120 : myObject
     {
         // Priority
-        public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1120);
+        public static int Priority => 9999910;
+        public static System.Type Type => typeof(myObj_1120);
 
         private int cnt;
         private float x, y, dx, dy;
@@ -41,7 +43,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT);
             list = new List<myObject>();
 
             // Global unmutable constants
@@ -242,13 +244,32 @@ namespace my
 
         protected override void Process(Window window)
         {
+/*
+            float R = 0, G = 0, B = 0;
+            var stpw = new Stopwatch();
+            stpw.Start();
+
+            for (int i = 0; i < 9999999; i++)
+            {
+                float x = rand.Next(gl_Width);
+                float y = rand.Next(gl_Height);
+
+                //colorPicker.getColorAverage(x, y, 10, 10, ref R, ref G, ref B);
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+            }
+
+            stpw.Stop();
+            System.IO.File.AppendAllText("c:\\_maxx\\__test.txt", stpw.ElapsedMilliseconds.ToString() + Environment.NewLine);
+            return;
+*/
+
             uint cnt = 0;
             initShapes();
 
             float lineThickness = 1.0f;
             float dThickneess = 0.025f;
 
-#if false
+#if !false
             while (list.Count < N)
                 list.Add(new myObj_1120());
 #endif
