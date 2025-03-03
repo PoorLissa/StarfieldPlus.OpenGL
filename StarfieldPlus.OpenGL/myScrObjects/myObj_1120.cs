@@ -22,7 +22,7 @@ namespace my
         private float size, A, R, G, B, angle = 0, dAngle;
 
         private static int N = 0, shape = 0;
-        private static bool doFillShapes = false;
+        private static bool doFillShapes = false, doAccelerate = false;
         private static float dimAlpha = 0.05f, X, Y, Rad;
 
         private static myScreenGradient grad = null;
@@ -58,14 +58,15 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 10, 11);
+            doClearBuffer = myUtils.randomChance(rand, 999, 1000);
             doFillShapes = myUtils.randomChance(rand, 2, 3);
+            doAccelerate = myUtils.randomBool(rand);
 
             renderDelay = rand.Next(11) + 3;
 
             X = gl_x0;
             Y = gl_y0;
-            Rad = 333;
+            Rad = 333 + rand.Next(333);
 
             return;
         }
@@ -76,9 +77,10 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
-                            $"renderDelay = {renderDelay}\n"  +
+            string str = $"Obj = {Type}\n\n"                   +
+                            myUtils.strCountOf(list.Count, N)  +
+                            $"doAccelerate = {doAccelerate}\n" +
+                            $"renderDelay = {renderDelay}\n"   +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -101,17 +103,28 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Width) - (gl_Width - gl_Height) / 2;
 
-            dx = dy = 0;
+            float dX = x - X;
+            float dY = y - Y;
+            float dist = (float)Math.Sqrt(dX * dX + dY * dY);
+
+            if (doAccelerate)
+            {
+                dx = dy = 0;
+            }
+            else
+            {
+                float spd = -0.75f;
+
+                dx = spd * dX / dist;
+                dy = spd * dY / dist;
+            }
+
             size = rand.Next(3) + 3;
 
             dAngle = myUtils.randFloatSigned(rand) * 0.05f;
 
             A = myUtils.randFloat(rand, 0.25f);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            float dX = x - X;
-            float dY = y - Y;
-            float dist = (float)Math.Sqrt(dX * dX + dY * dY);
 
             if (dist < Rad)
             {
@@ -130,12 +143,15 @@ namespace my
 
             float dX = x - X;
             float dY = y - Y;
-            float spd = 0.005f;
-
             float dist = (float)Math.Sqrt(dX * dX + dY * dY);
 
-            dx -= spd * dX / dist;
-            dy -= spd * dY / dist;
+            if (doAccelerate)
+            {
+                float spd = 0.003f;
+
+                dx -= spd * dX / dist;
+                dy -= spd * dY / dist;
+            }
 
             x += dx;
             y += dy;
@@ -147,6 +163,16 @@ namespace my
 
                 dx *= 1.01f;
                 dy *= 1.01f;
+
+                if (doAccelerate == false)
+                {
+                    dx *= 1.025f;
+                    dy *= 1.025f;
+                }
+
+                R += 0.02f;
+                G += 0.02f;
+                B += 0.02f;
 
                 if (A < 0)
                     generateNew();
