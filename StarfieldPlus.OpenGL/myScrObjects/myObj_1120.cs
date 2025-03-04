@@ -41,7 +41,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT);
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
             list = new List<myObject>();
 
             // Global unmutable constants
@@ -64,8 +64,6 @@ namespace my
             doAccelerate = myUtils.randomBool(rand);
             doFollowBgrColor = myUtils.randomChance(rand, 1, 5);
 
-            renderDelay = rand.Next(11) + 3;
-
             X = gl_x0;
             Y = gl_y0;
             Rad = 333 + rand.Next(333);
@@ -85,7 +83,6 @@ namespace my
                             myUtils.strCountOf(list.Count, N)          +
                             $"doAccelerate = {doAccelerate}\n"         +
                             $"doFollowBgrColor = {doFollowBgrColor}\n" +
-                            $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -272,7 +269,7 @@ namespace my
             float lineThickness = 1.0f;
             float dThickneess = 0.025f;
 
-#if !false
+#if false
             while (list.Count < N)
                 list.Add(new myObj_1120());
 #endif
