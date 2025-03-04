@@ -23,7 +23,7 @@ namespace my
         private float size, A, R, G, B, angle = 0, dAngle;
 
         private static int N = 0, shape = 0;
-        private static bool doFillShapes = false, doAccelerate = false;
+        private static bool doFillShapes = false, doAccelerate = false, doFollowBgrColor = false;
         private static float dimAlpha = 0.05f, X, Y, Rad, maxOpacity = 1;
 
         private static myScreenGradient grad = null;
@@ -62,6 +62,7 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 999, 1000);
             doFillShapes = myUtils.randomChance(rand, 2, 3);
             doAccelerate = myUtils.randomBool(rand);
+            doFollowBgrColor = myUtils.randomChance(rand, 1, 5);
 
             renderDelay = rand.Next(11) + 3;
 
@@ -80,10 +81,11 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                   +
-                            myUtils.strCountOf(list.Count, N)  +
-                            $"doAccelerate = {doAccelerate}\n" +
-                            $"renderDelay = {renderDelay}\n"   +
+            string str = $"Obj = {Type}\n\n"                           +
+                            myUtils.strCountOf(list.Count, N)          +
+                            $"doAccelerate = {doAccelerate}\n"         +
+                            $"doFollowBgrColor = {doFollowBgrColor}\n" +
+                            $"renderDelay = {renderDelay}\n"           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -191,6 +193,9 @@ namespace my
                     cnt = 100 + rand.Next(123);
                 }
             }
+
+            if (doFollowBgrColor && myUtils.randomChance(rand, 1, 25))
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
         }
