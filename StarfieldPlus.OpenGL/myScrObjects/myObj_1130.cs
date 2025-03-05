@@ -41,7 +41,11 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            var colorMode = myUtils.randomChance(rand, 2, 3)
+                ? myColorPicker.colorMode.SNAPSHOT_OR_IMAGE
+                : myColorPicker.colorMode.RANDOM_MODE;
+
+            colorPicker = new myColorPicker(gl_Width, gl_Height, colorMode);
             list = new List<myObject>();
 
             // Global unmutable constants

@@ -81,12 +81,12 @@ namespace my
             frameRate = 1 + (myUtils.randomChance(rand, 2, 3) ? rand.Next(11) : rand.Next(33));
 
             // In case the colorPicker targets an image, drawMode could be 3
-            drawMode = colorPicker.getMode() < 2 ? rand.Next(4) : rand.Next(3);     // Draw cells mode
-            lightMode = rand.Next(2);                                               // Light (0) vs Dark (1) theme
-            clearMode = rand.Next(2);                                               // The way dead cells behave
+            drawMode = colorPicker.isImage() ? rand.Next(4) : rand.Next(3);     // Draw cells mode
+            lightMode = rand.Next(2);                                           // Light (0) vs Dark (1) theme
+            clearMode = rand.Next(2);                                           // The way dead cells behave
 
-            doUseRandBgr = myUtils.randomBool(rand);                                // If true, the cells will be cleared with bgr color that is slightly randomly offset (where applicable)
-            doUseRandCellColor = myUtils.randomBool(rand);                          // The same, but for the main cell color
+            doUseRandBgr = myUtils.randomBool(rand);                            // If true, the cells will be cleared with bgr color that is slightly randomly offset (where applicable)
+            doUseRandCellColor = myUtils.randomBool(rand);                      // The same, but for the main cell color
 
             if (drawMode == 3)
                 clearMode = rand.Next(5);

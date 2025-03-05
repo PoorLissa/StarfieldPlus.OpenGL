@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, shape = 0;
         private static bool doFillShapes = false, doAccelerate = false, doFollowBgrColor = false;
-        private static float dimAlpha = 0.05f, X, Y, Rad, maxOpacity = 1;
+        private static float X, Y, Rad, maxOpacity = 1;
 
         private static myScreenGradient grad = null;
 

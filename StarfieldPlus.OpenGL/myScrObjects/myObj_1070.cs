@@ -25,7 +25,7 @@ namespace my
 
         private static int N = 0, n = 2, shape = 0, trailLength = 50, largeMassFactor = 1, rndMassMode = 0, rndMassN = 0, colorMode = 0, cntMax = 1500, genRate = 1, nOrigin = 1, initSpdMode = 0, originMode = 0;
         private static bool doFillShapes = false, doUseInitSpd = false, doChangeLocation = false, doMoveLrgBodies = false, doUseLrgGravity = false, doUseShortLife = false;
-        private static float dimAlpha = 0.05f, r1, r2, g1, g2, b1, b2, trailOpacity = 0.1f;
+        private static float r1, g1, b1, trailOpacity = 0.1f;
 
         private static float[] origin = null;
 

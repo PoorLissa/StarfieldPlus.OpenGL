@@ -356,7 +356,7 @@ namespace my
             getShader_001(ref rand, ref header, ref main);
             shaderShadow = new myFreeShader(header, main);
 
-            if (colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE || colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT)
+            if (colorPicker.isImage())
             {
                 tex = new myTexRectangle(colorPicker.getImg());
             }

@@ -80,7 +80,7 @@ namespace my
             doShowConnections  = myUtils.randomChance(rand, 1, 3);
 
             // In case the colorPicker has an underlying image, we might want to draw every particle using the image color at this particular point
-            if (colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE || colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT)
+            if (colorPicker.isImage())
             {
                 if (myUtils.randomChance(rand, 1, 7))
                 {

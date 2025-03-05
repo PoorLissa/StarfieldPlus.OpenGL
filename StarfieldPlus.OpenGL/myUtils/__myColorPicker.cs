@@ -11,14 +11,14 @@ namespace my
 {
     public class myColorPicker
     {
-        private int      _mode = -1, _rndMode = -1, _rndVariator = -1;
+        private int       _rndMode = -1, _rndVariator = -1;
+        private colorMode _mode;
         private Bitmap   _img = null;
         private Random   _rand = null;
         private Graphics _g = null;
         private string   _f = "n/a";
 
         private int _bytesPerPixel;
-        private int _stride;
         private Rectangle _imgRect;
 
         private static int _W = -1, _H = -1, gl_R = -1, gl_G = -1, gl_B = -1, gl_r = -1, gl_g = -1, gl_b = -1;
@@ -27,44 +27,41 @@ namespace my
         private static string _fileName = null;
 
         private enum scaleParams { scaleToWidth, scaleToHeight };
-        public enum  colorMode { SNAPSHOT, IMAGE, SINGLE_RANDOM, RANDOM, TEXTURE, GRAY, SNAPSHOT_OR_IMAGE };
+        public enum  colorMode { RANDOM_MODE = -2, SNAPSHOT_OR_IMAGE = -1, SNAPSHOT, IMAGE, SINGLE_RANDOM, RANDOM, TEXTURE, GRAY };
 
         // -------------------------------------------------------------------------
 
-        public myColorPicker(int Width, int Height, myColorPicker.colorMode mode) : this(Width, Height, (int)mode)
-        {
-        }
-
-        // -------------------------------------------------------------------------
-
-        public myColorPicker(int Width, int Height, int mode = -1)
+        public myColorPicker(int Width, int Height, colorMode mode = colorMode.RANDOM_MODE)
         {
             _W = Width;
             _H = Height;
             _imgRect = new Rectangle(0, 0, _W, _H);
 
             _rand = new Random((int)DateTime.Now.Ticks);
-            _mode = mode;                                   // color mode
             _rndMode = _rand.Next(6);                       // random color mode
             _rndVariator = 25 + _rand.Next(75);             // random color variator
 
             // Select mode
-            if (_fileName != null)
             {
-                _mode = (int)colorMode.IMAGE;
-            }
-            else
-            {
-                if (_mode < 0)
+                if (_fileName != null)
                 {
-                    _mode = _rand.Next(6);
+                    _mode = colorMode.IMAGE;
                 }
                 else
                 {
-                    // Select random mode out of [0, 1]
-                    if (_mode == (int)colorMode.SNAPSHOT_OR_IMAGE)
+                    switch (mode)
                     {
-                        _mode = _rand.Next(999) % 2;
+                        case colorMode.RANDOM_MODE:
+                            _mode = (colorMode)_rand.Next(6);           // [0 .. 5]
+                            break;
+
+                        case colorMode.SNAPSHOT_OR_IMAGE:
+                            _mode = (colorMode)(_rand.Next(999) % 2);   // [0 .. 1]
+                            break;
+
+                        default:
+                            _mode = mode;
+                            break;
                     }
                 }
             }
@@ -72,17 +69,17 @@ namespace my
             switch (_mode)
             {
                 // Use Desktop Snapshot
-                case 0:
+                case colorMode.SNAPSHOT:
                     getSnapshot(Width, Height);
                     break;
 
                 // Use External Picture
-                case 1:
+                case colorMode.IMAGE:
                     getCustomPicture(Width, Height);
                     break;
 
                 // Use Custom Made Texture
-                case 4:
+                case colorMode.TEXTURE:
                     buildTexture(Width, Height);
                     break;
 
@@ -111,14 +108,14 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        public void setMode(int mode)
+        public void setMode(colorMode mode)
         {
             _mode = mode;
         }
 
         // -------------------------------------------------------------------------
 
-        public int getMode()
+        public colorMode getMode()
         {
             return _mode;
         }
@@ -127,8 +124,15 @@ namespace my
 
         public string getModeStr()
         {
-            colorMode m = (colorMode)(_mode);
-            return m.ToString();
+            return ((colorMode)_mode).ToString();
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Returns true when colorPicker targets a bitmap image (custom image or a snapshot)
+        public bool isImage()
+        {
+            return _mode == colorMode.IMAGE || _mode == colorMode.SNAPSHOT;
         }
 
         // -------------------------------------------------------------------------
@@ -398,10 +402,8 @@ namespace my
         {
             switch (_mode)
             {
-                // Get Color from Snapshot
-                case 0:
-                // Get Color from custom image
-                case 1:
+                case colorMode.SNAPSHOT:
+                case colorMode.IMAGE:
 
                     if (_img != null)
                     {
@@ -411,7 +413,7 @@ namespace my
                     break;
 
                 // Single Random Color -- to get different shades of this color, use Alpha channel
-                case 2:
+                case colorMode.SINGLE_RANDOM:
 
                     // Run once per session
                     if (gl_R < 0 && gl_G < 0 && gl_B < 0)
@@ -431,12 +433,12 @@ namespace my
 
                 // Random Color (of 6 different types)
                 // todo: See if someting like that could be implemented: https://color.adobe.com/create/color-wheel
-                case 3:
+                case colorMode.RANDOM:
                     getRandomColor(ref R, ref G, ref B);
                     break;
 
                 // Custom texture
-                case 4:
+                case colorMode.TEXTURE:
                     if (_img != null)
                     {
                         fixCoordinates(ref x, ref y);
@@ -445,7 +447,7 @@ namespace my
                     break;
 
                 // Shades of Gray
-                default:
+                case colorMode.GRAY:
                     R = _rand.Next(256);
                     G = R;
                     B = G;
@@ -463,10 +465,8 @@ namespace my
         {
             switch (_mode)
             {
-                // Get Color from Snapshot
-                case 0:
-                // Get Color from custom image
-                case 1:
+                case colorMode.SNAPSHOT:
+                case colorMode.IMAGE:
 
                     if (_img != null)
                     {
@@ -475,7 +475,7 @@ namespace my
                     break;
 
                 // Single Random Color -- to get different shades of this color, use Alpha channel
-                case 2:
+                case colorMode.SINGLE_RANDOM:
 
                     // Run once per session
                     if (gl_R < 0 && gl_G < 0 && gl_B < 0)
@@ -495,12 +495,12 @@ namespace my
 
                 // Random Color (of 6 different types)
                 // todo: See if someting like that could be implemented: https://color.adobe.com/create/color-wheel
-                case 3:
+                case colorMode.RANDOM:
                     getRandomColor(ref R, ref G, ref B);
                     break;
 
                 // Custom texture
-                case 4:
+                case colorMode.TEXTURE:
                     if (_img != null)
                     {
                         getPixelFast(x, y, ref R, ref G, ref B);
@@ -508,7 +508,7 @@ namespace my
                     break;
 
                 // Shades of Gray
-                default:
+                case colorMode.GRAY:
                     R = _rand.Next(256);
                     G = R;
                     B = G;

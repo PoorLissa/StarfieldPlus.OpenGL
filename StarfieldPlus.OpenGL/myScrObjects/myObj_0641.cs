@@ -41,9 +41,9 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            int mode = myUtils.randomChance(rand, 1, 2)
-                ? (int)myColorPicker.colorMode.SNAPSHOT_OR_IMAGE
-                : -1;
+            var mode = myUtils.randomChance(rand, 1, 2)
+                ? myColorPicker.colorMode.SNAPSHOT_OR_IMAGE
+                : myColorPicker.colorMode.RANDOM_MODE;
 
             colorPicker = new myColorPicker(gl_Width, gl_Height, mode);
             list = new List<myObject>();

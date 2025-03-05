@@ -18,7 +18,7 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1080);
 
-        private float x, y, dy, rad;
+        private float x, y, rad;
         private float size, a, A, R, G, B, rotAngle = 0, angle = 0, dAngle = 0;
 
         private static int N = 0, shape = 0, opacityMode = 0, radMode = 0, rotationMode = 0, nTrail = 100, trailMode = 0, minSize = 4, maxSize = 6, Rad = 100;
@@ -183,7 +183,6 @@ namespace my
 
             y = gl_y0 + (float)Math.Sin(rotAngle) * rad;
 
-            dy = 0;
             size = 1;
 
             A = myUtils.randFloat(rand, 0.25f);

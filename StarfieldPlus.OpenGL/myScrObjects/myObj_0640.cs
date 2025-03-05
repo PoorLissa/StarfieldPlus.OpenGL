@@ -51,7 +51,7 @@ namespace my
 
                 drawMode = 0;
 
-                if (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT || colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE)
+                if (colorPicker.isImage())
                     if (myUtils.randomChance(rand, 1, 3))
                         drawMode = 2 + rand.Next(2);        // 2 .. 3
             }

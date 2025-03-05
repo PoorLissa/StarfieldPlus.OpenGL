@@ -1,6 +1,5 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
 
 
@@ -39,11 +38,11 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            int mode = myUtils.randomChance(rand, 1, 3)
-                ? -1
-                : (int)myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
+            var colorMode = myUtils.randomChance(rand, 1, 3)
+                ? myColorPicker.colorMode.RANDOM_MODE
+                : myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
 
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: mode);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: colorMode);
             list = new List<myObject>();
 
             // Global unmutable constants

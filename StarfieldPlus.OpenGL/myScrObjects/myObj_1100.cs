@@ -12,20 +12,18 @@ namespace my
 {
     public class myObj_1100 : myObject
     {
-        class dataItem
-        {
-            float R;
-            float G;
-            float B;
+/*
+        class dataItem {
+            float R; float G; float B;
             int cnt;
         }
-
+*/
         // Priority
         public static int Priority => 3;
 		public static System.Type Type => typeof(myObj_1100);
 
         private float x, y;
-        private float A, R, G, B;
+        private float R, G, B;
 
         private static int N = 0, step = 10;
         private static bool doFillShapes = true;
@@ -148,7 +146,7 @@ namespace my
         {
             float size2x = step * 2;
 
-            int x = 0;
+            x = 0;
 
             int n = gl_Width / _data.Count;
 

@@ -64,8 +64,8 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 10, 11);
             doFillShapes  = myUtils.randomChance(rand, 1, 3);
             doTraceColor  = myUtils.randomChance(rand, 1, 2) &&
-                                        (colorPicker.getMode() == (int)myColorPicker.colorMode.SNAPSHOT ||
-                                         colorPicker.getMode() == (int)myColorPicker.colorMode.IMAGE
+                                        (colorPicker.getMode() == myColorPicker.colorMode.SNAPSHOT ||
+                                         colorPicker.getMode() == myColorPicker.colorMode.IMAGE
             );
 
             rotateMode = rand.Next(3);

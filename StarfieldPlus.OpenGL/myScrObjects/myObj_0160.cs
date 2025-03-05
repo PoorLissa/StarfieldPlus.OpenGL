@@ -70,7 +70,7 @@ namespace my
             drawMode = rand.Next(2);
 
             // But when colorPicker has an image, the mode is set to '1' with the probability of 2/3
-            if (colorPicker.getMode() < 2)
+            if (colorPicker.isImage())
                 if (rand.Next(3) > 0)
                     drawMode = 2;
 
@@ -321,7 +321,7 @@ namespace my
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
 
-            if (colorPicker.getMode() < 2)
+            if (colorPicker.isImage())
             {
                 tex = new myTexRectangle(colorPicker.getImg());
             }

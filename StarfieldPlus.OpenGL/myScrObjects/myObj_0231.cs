@@ -117,7 +117,7 @@ namespace my
         private static int nTrails = 0, nTrailsQty = 0, trailRatio = 1, nTrailLengthMin = 0, nTrailLengthMax = 0;
         private static bool doFillShapes = true, doUseRandomMass = false, doUseCenters = false, doUseSingleLargeMass = false;
         private static bool doUseColorPicker = false, doUseTrails = false;
-        private static float dimAlpha = 0.05f, localR = 0, localG = 0, localB = 9, maxOpacity = 1;
+        private static float localR = 0, localG = 0, localB = 9, maxOpacity = 1;
         private static float constSpd = 1.0f;
 
         private static float totalMass = 0;

@@ -197,7 +197,7 @@ namespace my
             }
 
             // Adjust the color in case colorPicker returns const color
-            if (colorPicker.getMode() == (int)myColorPicker.colorMode.SINGLE_RANDOM)
+            if (colorPicker.getMode() == myColorPicker.colorMode.SINGLE_RANDOM)
             {
                 R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
                 G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
@@ -205,7 +205,7 @@ namespace my
             }
 
             // Adjust the color in case colorPicker returns const color
-            if (colorPicker.getMode() == (int)myColorPicker.colorMode.GRAY)
+            if (colorPicker.getMode() == myColorPicker.colorMode.GRAY)
             {
                 R += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
                 G += myUtils.randomSign(rand) * myUtils.randFloat(rand) * 0.1f;
