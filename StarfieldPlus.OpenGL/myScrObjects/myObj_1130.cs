@@ -65,7 +65,7 @@ namespace my
             doClearBuffer = false;
             doFillShapes = true;
 
-            mode = rand.Next(3);
+            mode = rand.Next(5);
 
             dimAlpha = myUtils.randomChance(rand, 1, 2)
                 ? myUtils.randFloat(rand) * 0.002f
@@ -119,6 +119,7 @@ namespace my
                     sizeFactorY = 1.05f;
                     break;
 
+                // Square
                 case 1:
                     sizex = 60;
                     sizey = 60;
@@ -127,7 +128,26 @@ namespace my
                     sizeFactorY = 1.1f;
                     break;
 
+                // Random horizontal rectangle
                 case 2:
+                    sizey = 30 + rand.Next(21);
+                    sizex = (int)(sizey * (1.0f + myUtils.randFloat(rand, 0.2f)));
+
+                    sizeFactorX = 1.20f;
+                    sizeFactorY = 1.05f;
+                    break;
+
+                // Random square
+                case 3:
+                    sizex = 30 + rand.Next(41);
+                    sizey = sizex;
+
+                    sizeFactorX = 1.1f;
+                    sizeFactorY = 1.1f;
+                    break;
+
+                // Random rectangle
+                case 4:
                     sizex = 30 + rand.Next(33);
                     sizey = 30 + rand.Next(33);
 

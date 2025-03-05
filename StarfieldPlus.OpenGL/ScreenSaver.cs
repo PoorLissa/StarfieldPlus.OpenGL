@@ -82,6 +82,7 @@ public class ScreenSaver
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
     // - make a grid like in conway's life, and then get an image and put grid cells using image's color; when the image is done, select another image and so on
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
+    // - multiple generators of shapes (similar to myObj_0992) scattered across the screen; the shapes should not grow too big though
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
