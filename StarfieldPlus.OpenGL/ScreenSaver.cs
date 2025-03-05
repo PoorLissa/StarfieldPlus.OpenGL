@@ -222,6 +222,7 @@ public class ScreenSaver
         register(my.myObj_1100.Type);       // ...
         register(my.myObj_1110.Type);       // Progress bars
         register(my.myObj_1120.Type);       // Black hole
+        register(my.myObj_1130.Type);       // ...
 
         register(my.myObj_9998.Type);       // Test rotating shape, unfinished yet good
         registerTests(register);            // Register additional testing objects

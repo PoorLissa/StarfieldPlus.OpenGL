@@ -15,7 +15,7 @@ namespace my
     public class myObj_1120 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 99910;
         public static System.Type Type => typeof(myObj_1120);
 
         private int cnt;
@@ -245,6 +245,7 @@ namespace my
         protected override void Process(Window window)
         {
 /*
+            // Speed test of getting bitmap color with locking mechanism (faster than before)
             float R = 0, G = 0, B = 0;
             var stpw = new Stopwatch();
             stpw.Start();
