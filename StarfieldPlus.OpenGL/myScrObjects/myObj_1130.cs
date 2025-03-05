@@ -159,17 +159,10 @@ namespace my
                 float size2x = sizex * 2;
                 float size2y = sizey * 2;
 
-                switch ((myColorPicker.colorMode)colorPicker.getMode())
-                {
-                    case myColorPicker.colorMode.SNAPSHOT:
-                    case myColorPicker.colorMode.IMAGE:
-                        colorPicker.getColorAverage(x, y, (int)size2x, (int)size2y, ref R, ref G, ref B);
-                        break;
-
-                    default:
-                        colorPicker.getColor(x, y, ref R, ref G, ref B);
-                        break;
-                }
+                if (colorPicker.isImage())
+                    colorPicker.getColorAverage(x, y, (int)size2x, (int)size2y, ref R, ref G, ref B);
+                else
+                    colorPicker.getColor(x, y, ref R, ref G, ref B);
 
                 myPrimitive._RectangleInst.setInstanceCoords(x, y, size2x, size2y);
                 myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
@@ -178,6 +171,7 @@ namespace my
 
             if (firstIteration)
             {
+                // Draw central figure
                 offsetx = 0;
                 firstIteration = false;
 
@@ -198,6 +192,7 @@ namespace my
 
                 if (firstLine)
                 {
+                    // Draw central line (2 figures at a time)
                     X = x - offsetx;
                     Y = y;
                     doDraw(X, Y);
@@ -222,6 +217,7 @@ namespace my
                 }
                 else
                 {
+                    // Draw 2 lines (4 figures) at a time
                     X = (int)(x - offsetx);
                     Y = (int)(y - offsety);
                     doDraw(X, Y);
