@@ -15,7 +15,7 @@ namespace my
     public class myObj_1130 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 99999910;
 		public static System.Type Type => typeof(myObj_1130);
 
         private bool firstIteration, firstLine;
@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, shape = 0, gap = 3, mode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.005f, sizeFactorX = 1, sizeFactorY = 1;
+        private static float dimAlpha = 0.15f, sizeFactorX = 1, sizeFactorY = 1;
 
         private static myScreenGradient grad = null;
 
@@ -65,7 +65,11 @@ namespace my
             doClearBuffer = false;
             doFillShapes = true;
 
-            mode = rand.Next(2);
+            mode = rand.Next(3);
+
+            dimAlpha = myUtils.randomChance(rand, 1, 2)
+                ? myUtils.randFloat(rand) * 0.002f
+                : 0;
 
             renderDelay = rand.Next(3) + 3;
         }
@@ -80,6 +84,7 @@ namespace my
                             myUtils.strCountOf(list.Count, N)                 +
                             $"mode = {mode}\n"                                +
                             $"renderDelay = {renderDelay}\n"                  +
+                            $"dimAlpha: {myUtils.fStr(dimAlpha)}\n"           +
                             $"colorPicker mode: {colorPicker.getModeStr()}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -117,6 +122,14 @@ namespace my
                 case 1:
                     sizex = 60;
                     sizey = 60;
+
+                    sizeFactorX = 1.1f;
+                    sizeFactorY = 1.1f;
+                    break;
+
+                case 2:
+                    sizex = 30 + rand.Next(33);
+                    sizey = 30 + rand.Next(33);
 
                     sizeFactorX = 1.1f;
                     sizeFactorY = 1.1f;
