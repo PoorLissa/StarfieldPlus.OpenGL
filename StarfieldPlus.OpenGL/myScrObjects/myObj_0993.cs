@@ -72,7 +72,7 @@ namespace my
         {
             doClearBuffer = true;
             doMoveParent = myUtils.randomChance(rand, 4, 5);
-            doFillShapes = myUtils.randomChance(rand, 1, 2);
+            doFillShapes = myUtils.randomChance(rand, 4, 5);
 
             colorMode = rand.Next(3);
             spawnFreqMode = rand.Next(2);
