@@ -3,6 +3,7 @@ using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using StarfieldPlus.OpenGL.myUtils;
 
 
 /*
@@ -15,7 +16,7 @@ namespace my
     public class myObj_1130 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 99999910;
 		public static System.Type Type => typeof(myObj_1130);
 
         private bool firstIteration, firstLine;
@@ -64,6 +65,7 @@ namespace my
         {
             doClearBuffer = false;
             doFillShapes = true;
+doFillShapes = false;
 
             mode = rand.Next(5);
 
@@ -159,13 +161,67 @@ namespace my
             offsetx = 0;
             offsety = 0;
 
-            A = 1;
+            A = 0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Move()
         {
+            // Gradually increase opacity while redrawing the same blocks;
+            // When opacity reaches 1, set it to low value again and go to next block
+            A += 0.1f;
+
+            if (A > 1.0f)
+            {
+                A = 0.1f;
+
+                if (firstIteration)
+                {
+                    offsetx = 0;
+                    firstIteration = false;
+                }
+                else
+                {
+                    offsetx += 2 * sizex + gap;
+
+                    if (firstLine)
+                    {
+                        if (offsetx > gl_x0 + sizex)
+                        {
+                            offsetx = 0;
+                            offsety += sizey;
+
+                            sizex /= sizeFactorX;
+                            sizey /= sizeFactorY;
+
+                            offsety += sizey + gap;
+
+                            firstLine = false;
+                            firstIteration = true;
+                            A = 0.9f;
+                        }
+                    }
+                    else
+                    {
+                        if (offsetx > gl_x0 + sizex)
+                        {
+                            offsetx = 0;
+                            offsety += sizey;
+
+                            sizex /= sizeFactorX;
+                            sizey /= sizeFactorY;
+
+                            offsety += sizey + gap;
+
+                            firstIteration = true;
+                            A = 0.9f;
+                        }
+                    }
+                }
+            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -191,10 +247,6 @@ namespace my
 
             if (firstIteration)
             {
-                // Draw central figure
-                offsetx = 0;
-                firstIteration = false;
-
                 if (firstLine)
                 {
                     doDraw(gl_x0, gl_y0);
@@ -207,39 +259,17 @@ namespace my
             }
             else
             {
-                float X = 0, Y = 0;
-                offsetx += 2 * sizex + gap;
-
                 if (firstLine)
                 {
                     // Draw central line (2 figures at a time)
-                    X = x - offsetx;
-                    Y = y;
-                    doDraw(X, Y);
-
-                    X = x + offsetx;
-                    Y = y;
-                    doDraw(X, Y);
-
-                    if (X > gl_Width)
-                    {
-                        offsetx = 0;
-                        offsety += sizey;
-
-                        sizex /= sizeFactorX;
-                        sizey /= sizeFactorY;
-
-                        offsety += sizey + gap;
-
-                        firstLine = false;
-                        firstIteration = true;
-                    }
+                    doDraw(x - offsetx, y);
+                    doDraw(x + offsetx, y);
                 }
                 else
                 {
                     // Draw 2 lines (4 figures) at a time
-                    X = (int)(x - offsetx);
-                    Y = (int)(y - offsety);
+                    float X = x - offsetx;
+                    float Y = y - offsety;
                     doDraw(X, Y);
 
                     X = x + offsetx;
@@ -254,23 +284,10 @@ namespace my
                     Y = y + offsety;
                     doDraw(X, Y);
 
-                    if (X > gl_Width)
+                    if ((offsetx > gl_x0 && offsety > gl_y0) || sizex <= 0 || sizey <= 0)
                     {
-                        offsetx = 0;
-                        offsety += sizey;
-
-                        sizex /= sizeFactorX;
-                        sizey /= sizeFactorY;
-
-                        offsety += sizey + gap;
-
-                        firstIteration = true;
-
-                        if ((X > gl_Width && Y > gl_Height) || sizex <= 0 || sizey <= 0)
-                        {
-                            glClear(GL_COLOR_BUFFER_BIT);
-                            generateNew();
-                        }
+                        glClear(GL_COLOR_BUFFER_BIT);
+                        generateNew();
                     }
                 }
             }
@@ -284,6 +301,14 @@ namespace my
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f, true);
+
+            while (list.Count < N)
+            {
+                list.Add(new myObj_1130());
+            }
+
+            stopwatch = new myStopwatch();
+            stopwatch.Start();
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -309,17 +334,15 @@ namespace my
                 }
 
                 // Render Frame
-                if (cnt == 5)
                 {
-                    cnt = 0;
                     inst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_1130;
 
-                        obj.Show();
                         obj.Move();
+                        obj.Show();
                     }
 
                     if (doFillShapes)
@@ -334,13 +357,8 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (Count < N)
-                {
-                    list.Add(new myObj_1130());
-                }
-
+                stopwatch.WaitAndRestart();
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;

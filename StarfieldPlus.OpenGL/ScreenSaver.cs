@@ -82,7 +82,6 @@ public class ScreenSaver
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
     // - make a grid like in conway's life, and then get an image and put grid cells using image's color; when the image is done, select another image and so on
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
-    // - multiple generators of shapes (similar to myObj_0992) scattered across the screen; the shapes should not grow too big though
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
@@ -209,6 +208,7 @@ public class ScreenSaver
         register(my.myObj_0980.Type);       // Edge finding random algorythm
         register(my.myObj_0990.Type);       // Square/Rectangle Tunnel
         register(my.myObj_0992.Type);       // Slowly growing shapes, originating in or near to the center
+        register(my.myObj_0993.Type);       // Slowly growing shapes (similar to myObj_0992), originating from multiple generators
         register(my.myObj_1000.Type);       // Bouncing particles inside grid cells
         register(my.myObj_1010.Type);       // Lightnings
         register(my.myObj_1020.Type);       // Multiple particles moving along circular trajectories

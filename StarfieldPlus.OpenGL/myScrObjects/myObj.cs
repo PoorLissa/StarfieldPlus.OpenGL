@@ -191,7 +191,7 @@ namespace my
             if (Glfw.GetKey(window, GLFW.Keys.Up) == GLFW.InputState.Press)
             {
                 renderDelay++;
-                stopwatch?.MakeFaster();
+                stopwatch?.MakeSlower();
                 return;
             }
 
@@ -199,7 +199,7 @@ namespace my
             if (Glfw.GetKey(window, GLFW.Keys.Down) == GLFW.InputState.Press)
             {
                 renderDelay -= (renderDelay > 0) ? 1 : 0;
-                stopwatch?.MakeSlower();
+                stopwatch?.MakeFaster();
                 return;
             }
 

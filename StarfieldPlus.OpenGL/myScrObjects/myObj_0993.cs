@@ -2,41 +2,43 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using StarfieldPlus.OpenGL.myUtils;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 
 /*
-    - Slowly growing shapes, originating in or near to the center
+    - Slowly growing shapes (similar to myObj_0992), originating from multiple generators
 */
 
 
 namespace my
 {
-    public class myObj_0992 : myObject
+    public class myObj_0993 : myObject
     {
         // Priority
-        public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_0992);
+        public static int Priority => 99910;
+		public static System.Type Type => typeof(myObj_0993);
 
-        private int cnt;
+        private int cnt, parent_id, colorCnt;
         private bool isAlive;
         private float x, y, w, h;
         private float A, R, G, B, angle = 0;
+        private float ytFactor, growFactor;
 
-        private static int N = 0, shape = 0, colorMode = 0, maxCnt = 1, colorCnt = 0;
-        private static bool doFillShapes = false, doMoveCenter = false;
-        private static float dimAlpha = 0.05f, whRatio = 1, t = 0, dt = 0, ytFactor = 0;
+        private static int N = 0, n = 0, shape = 0, maxCnt = 1, maxSize = 1, initSize = 1, colorMode = 0, spawnFreqMode = 0, initSizeMode = 0, growMode = 0;
+        private static bool doFillShapes = false, doMoveParent = false;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0;
 
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_0992()
+        public myObj_0993()
         {
+            parent_id = -1;
+
             if (id != uint.MaxValue)
                 generateNew();
-
-            if (id > 0)
-                isAlive = false;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -49,19 +51,15 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 333;
-
-                whRatio = 1.0f + myUtils.randFloat(rand) * 3;
+                N = 3333;
+                n = rand.Next(13) + 3;
 
                 maxCnt = 33;
-                colorCnt = 33;
+                maxSize = 200;
 
                 dt = 0.1f * (rand.Next(5) + 1);
 
-                shape = myUtils.randomChance(rand, 4, 5) ? 2 : rand.Next(5);
                 shape = rand.Next(5);
-
-                ytFactor = myUtils.randFloat(rand) + rand.Next(3);
             }
 
             initLocal();
@@ -72,12 +70,16 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = true;
-            doFillShapes = true;
-            doMoveCenter = myUtils.randomChance(rand, 4, 5);
+            doMoveParent = myUtils.randomChance(rand, 4, 5);
+            doFillShapes = myUtils.randomChance(rand, 1, 2);
 
-            colorMode = doMoveCenter ? 0 : rand.Next(2);
+            colorMode = rand.Next(3);
+            spawnFreqMode = rand.Next(2);
+            initSizeMode = rand.Next(3);
+            growMode = rand.Next(3);
+
+            initSize = 1 + rand.Next(50);
 
             renderDelay = rand.Next(3) + 1;
 
@@ -90,16 +92,16 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            string fStr(float f) { return f.ToString("0.000"); }
-
-            string str = $"Obj = {Type}\n\n"                         +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"shape = {shape}\n"                     +
-                            $"colorMode = {colorMode}\n"             +
-                            $"doMoveCenter = {doMoveCenter}\n"       +
-                            $"whRatio = {fStr(whRatio)}\n"           +
-                            $"renderDelay = {renderDelay}\n"         +
+            string str = $"Obj = {Type}\n\n"                       +
+                            myUtils.strCountOf(list.Count, N)      +
+                            $"n = {n}\n"                           +
+                            $"shape = {shape}\n"                   +
+                            $"colorMode = {colorMode}\n"           +
+                            $"initSizeMode = {initSizeMode}\n"     +
+                            $"spawnFreqMode = {spawnFreqMode}\n"   +
+                            $"growMode = {growMode}\n"             +
+                            $"doMoveParent = {doMoveParent}\n"     +
+                            $"frameRate = {stopwatch.GetRate()}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -117,17 +119,48 @@ namespace my
 
         protected override void generateNew()
         {
-            if (id == 0)
+            if (id < n)
             {
+                // Generator
                 isAlive = false;
 
-                cnt = maxCnt;
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
 
-                h = 50;
-                w = h;
+                switch (growMode)
+                {
+                    case 0:
+                        growFactor = 1.001f;
+                        break;
 
-                x = gl_x0;
-                y = gl_y0;
+                    case 1:
+                        growFactor = 1.001f + myUtils.randFloat(rand) * 0.003f;
+                        break;
+
+                    case 2:
+                        // Child particle will have its own growFactor
+                        break;
+                }
+
+                switch (initSizeMode)
+                {
+                    case 0:
+                        h = w = initSize;
+                        break;
+
+                    case 1:
+                        h = w = rand.Next(50);
+                        break;
+
+                    case 2:
+                        // Child particle will generate its own size
+                        break;
+                }
+
+                cnt = maxCnt + rand.Next(maxCnt);           // The first cnt is set to be different for every generator; this way, they're out of sync
+                colorCnt = 33 + rand.Next(21);
+
+                ytFactor = myUtils.randFloat(rand) + rand.Next(3);
 
                 R = (float)rand.NextDouble();
                 G = (float)rand.NextDouble();
@@ -135,16 +168,36 @@ namespace my
             }
             else
             {
-                var parent = list[0] as myObj_0992;
+                // Particle
+                if (parent_id < 0)
+                {
+                    isAlive = false;
+                    parent_id = rand.Next(n);
+                }
+                else
+                {
+                    isAlive = true;
+                }
 
-                isAlive = true;
-
-                angle = myUtils.randFloatSigned(rand) * rand.Next(123);
+                var parent = list[parent_id] as myObj_0993;
 
                 x = parent.x;
                 y = parent.y;
-                w = parent.w;
-                h = parent.h;
+
+                switch (initSizeMode)
+                {
+                    case 0:
+                    case 1:
+                        w = parent.w;
+                        h = parent.h;
+                        break;
+
+                    case 2:
+                        w = h = rand.Next(50);
+                        break;
+                }
+
+                angle = myUtils.randFloatSigned(rand) * rand.Next(123);
 
                 A = 0.25f;
 
@@ -157,24 +210,25 @@ namespace my
                         break;
 
                     case 1:
-                        if (--colorCnt == 0)
-                        {
-                            parent.R = (float)rand.NextDouble();
-                            parent.G = (float)rand.NextDouble();
-                            parent.B = (float)rand.NextDouble();
+                        R = parent.R + myUtils.randFloatSigned(rand) * 0.1f;
+                        G = parent.G + myUtils.randFloatSigned(rand) * 0.1f;
+                        B = parent.B + myUtils.randFloatSigned(rand) * 0.1f;
+                        break;
 
-                            R = parent.R;
-                            G = parent.G;
-                            B = parent.B;
+                    case 2:
+                        colorPicker.getColor(x, y, ref R, ref G, ref B);
+                        break;
+                }
 
-                            colorCnt = 11 + rand.Next(23);
-                        }
-                        else
-                        {
-                            R = parent.R + myUtils.randFloatSigned(rand) * 0.1f;
-                            G = parent.G + myUtils.randFloatSigned(rand) * 0.1f;
-                            B = parent.B + myUtils.randFloatSigned(rand) * 0.1f;
-                        }
+                switch (growMode)
+                {
+                    case 0:
+                    case 1:
+                        growFactor = parent.growFactor;
+                        break;
+
+                    case 2:
+                        growFactor = 1.001f + myUtils.randFloat(rand) * 0.003f;
                         break;
                 }
             }
@@ -186,27 +240,57 @@ namespace my
 
         protected override void Move()
         {
-            if (id == 0)
+            if (id < n)
             {
                 if (--cnt == 0)
                 {
-                    cnt = maxCnt;
-
-                    if (doMoveCenter)
+                    switch (spawnFreqMode)
                     {
-                        x += 50 * (float)Math.Cos(t);
+                        case 0:
+                            cnt = maxCnt;
+                            break;
+
+                        case 1:
+                            cnt = 5 + rand.Next(2 * maxCnt);
+                            break;
+                    }
+
+                    if (myUtils.randomChance(rand, 1, 666))
+                        generateNew();
+
+                    if (doMoveParent)
+                    {
+                        x += 33 * (float)Math.Cos(t);
                         y += 33 * (float)Math.Cos(t * ytFactor);
                         t += dt;
                     }
 
-                    for (int i = 1; i < list.Count; i++)
+                    for (int i = n; i < list.Count; i++)
                     {
-                        var obj = list[i] as myObj_0992;
+                        var obj = list[i] as myObj_0993;
 
-                        if (obj.isAlive == false)
+                        // Restore to life one single child particle
+                        if (obj.parent_id == this.id && obj.isAlive == false)
                         {
                             obj.generateNew();
                             break;
+                        }
+                    }
+
+                    if (colorMode == 1)
+                    {
+                        // Change parent color
+                        if (--colorCnt == 0)
+                        {
+                            do
+                            {
+                                R = (float)rand.NextDouble();
+                                G = (float)rand.NextDouble();
+                                B = (float)rand.NextDouble();
+                            }
+                            while (R + G + B < 0.25f);
+
+                            colorCnt = 33 + rand.Next(21);
                         }
                     }
                 }
@@ -215,12 +299,10 @@ namespace my
             {
                 if (isAlive)
                 {
-                    float factor = 1.001f;
+                    w *= growFactor;
+                    h *= growFactor;
 
-                    w *= factor;
-                    h *= factor;
-
-                    if (w > gl_x0 || h > gl_y0)
+                    if (w > maxSize || h > maxSize)
                     {
                         A -= 0.0025f;
 
@@ -247,7 +329,7 @@ namespace my
                 {
                     // Instanced squares
                     case 0:
-                        myPrimitive._RectangleInst.setInstanceCoords(x - w, y - h, w * 2, h * 2);
+                        myPrimitive._RectangleInst.setInstanceCoords(x - w, y - w, size2x, size2x);
                         myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
                         myPrimitive._RectangleInst.setInstanceAngle(angle);
                         break;
@@ -260,7 +342,7 @@ namespace my
 
                     // Instanced circles
                     case 2:
-                        myPrimitive._EllipseInst.setInstanceCoords(x, y, w * 2, angle);
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
                         myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
                         break;
 
@@ -289,6 +371,9 @@ namespace my
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+            stopwatch = new myStopwatch();
+            stopwatch.Start();
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -319,7 +404,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_0992;
+                        var obj = list[i] as myObj_0993;
 
                         obj.Show();
                         obj.Move();
@@ -328,7 +413,7 @@ namespace my
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.1f);
+                        inst.SetColorA(-0.5f);
                         inst.Draw(true);
                     }
 
@@ -339,11 +424,11 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_0992());
+                    list.Add(new myObj_0993());
                 }
 
+                stopwatch.WaitAndRestart();
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
