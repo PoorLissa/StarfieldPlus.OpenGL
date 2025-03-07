@@ -15,7 +15,7 @@ namespace my
     public class myObj_1140 : myObject
     {
         // Priority
-        public static int Priority => 999999910;
+        public static int Priority => 9999910;
 		public static System.Type Type => typeof(myObj_1140);
 
         private float x, y, t, dt, tRad, dtRad;
@@ -48,7 +48,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 5;
+                N = 105;
 
                 shape = rand.Next(5);
             }
@@ -100,7 +100,7 @@ moveMode = 1;
 
         protected override void generateNew()
         {
-            rad = Rad = 100 + rand.Next(gl_y0);
+            rad = Rad = 100 + rand.Next(gl_x0);
             t = 0;
             tRad = 0;
             dt = 0.025f + myUtils.randFloat(rand) * 0.01f;
