@@ -80,7 +80,6 @@ public class ScreenSaver
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
     // - snake that does not cross itself (use lists of vertical and horizontal lines the snake consists of)
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
-    // - make a grid like in conway's life, and then get an image and put grid cells using image's color; when the image is done, select another image and so on
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
@@ -121,7 +120,7 @@ public class ScreenSaver
         register(my.myObj_0130.Type);       // Growing shapes -- Rain circles alike -- no buffer clearing
         register(my.myObj_0131.Type);       // Growing shapes -- Rain circles alike
         register(my.myObj_0132.Type);       // Splines
-        register(my.myObj_0140.Type);       // Grid with moving rectangle lenses -- TBD -- looks strange
+        register(my.myObj_0140.Type);       // A random image viewer which displays 2 different images at different opacity
         register(my.myObj_0150.Type);       // Conway's Life
         register(my.myObj_0160.Type);       // Desktop: Ever fading away pieces
         register(my.myObj_0170.Type);       // Desktop: Diminishing pieces
@@ -198,8 +197,8 @@ public class ScreenSaver
         register(my.myObj_0890.Type);       // Desktop pieces falling down in a matrix-style
         register(my.myObj_0900.Type);       // Waveforms moving sideways, v1
         register(my.myObj_0901.Type);       // Waveforms moving sideways, v2
-        register(my.myObj_0910.Type);       // Radially moving multiple particles, with an underlyuing image
-        register(my.myObj_0920.Type);       // Radially moving multipla particles with a color shift
+        register(my.myObj_0910.Type);       // Radially moving multiple particles, with an underlying image
+        register(my.myObj_0920.Type);       // Radially moving multiple particles with a color shift
         register(my.myObj_0930.Type);       // Stack of circle shapes moving with a delay
         register(my.myObj_0940.Type);       // Circular shapes made of instanced lines
         register(my.myObj_0950.Type);       // Very narrow window from a texture stretched to full-screen

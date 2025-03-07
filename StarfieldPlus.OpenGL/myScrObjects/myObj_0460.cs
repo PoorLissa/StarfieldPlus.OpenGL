@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 
 /*
-    - point cyclically moves on a spiral, constantly leaving a trail. Trail is made of particles that move outwards from the center OR in a point's opposite direction
+    - Generator cyclically moves along a spiral, constantly leaving a trail;
+    - Trail is made of particles that move outwards from the center OR in a point's opposite direction
 */
 
 
@@ -20,8 +21,11 @@ namespace my
         private float x, y, dx, dy, oldx, oldy, rad;
         private float size, A, R, G, B, angle = 0, dAngle = 0;
 
-        private static int N = 0, n = 1, shape = 0, generatorMoveMode = 0, pointDirMode = 0, pointMoveMode = 0;
-        private static bool doFillShapes = false, doShowTrails = true, doRandomizeSpeedVector = true;
+        private myParticleTrail trail = null;
+        private myParticleTrail Trail = null;
+
+        private static int N = 0, n = 1, shape = 0, generatorMoveMode = 0, pointDirMode = 0, pointMoveMode = 0, nTrail = 20, nMainTrail = 100;
+        private static bool doFillShapes = false, doRandomizeSpeedVector = true, doUseTrails = false;
         private static float dimAlpha = 0.05f, t = 0, dt = 0, tRad = 0, dtRad = 0, timeFactor = 0, gravityFactor = 1;
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -48,7 +52,11 @@ namespace my
                 n = 1;
                 N += n;
 
+                nMainTrail = 10 + rand.Next(333);
+
                 shape = rand.Next(5);
+
+                doUseTrails = myUtils.randomBool(rand);
             }
 
             initLocal();
@@ -63,14 +71,23 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
-            doShowTrails  = myUtils.randomBool(rand);
             doRandomizeSpeedVector = myUtils.randomBool(rand);
 
-            generatorMoveMode = rand.Next(2);
+            generatorMoveMode = rand.Next(6);
             pointMoveMode     = rand.Next(5);
             pointDirMode      = rand.Next(5);
 
             dimAlpha = 0.15f;
+
+            // Set up dt (The less is dt, the larger becomes final radius)
+            {
+                dt = myUtils.randomSign(rand) * 0.033f;
+                dtRad = 0.033f;
+
+                //dt *= 0.1f;
+                //timeFactor *= 2;
+                //rad /= 3; -- change it in generateNew
+            }
 
             // Set Time Factor
             {
@@ -85,17 +102,22 @@ namespace my
                     case 1:
                         timeFactor = rand.Next(maxTimeFactor) + 1 + myUtils.randFloat(rand);
                         break;
+
+                    case 2:
+                        dtRad = 0.000001f;
+                        break;
+
+                    case 3:
+                        dtRad = 0.001f * 0.333f;
+                        break;
+
+                    case 4:
+                        break;
+
+                    case 5:
+                        timeFactor = 10 + rand.Next(30);
+                        break;
                 }
-            }
-
-            // Set up dt (The less is dt, the larger becomes final radius)
-            {
-                dt = myUtils.randomSign(rand) * 0.033f;
-                dtRad = 0.033f;
-
-                //dt *= 0.1f;
-                //timeFactor *= 2;
-                //rad /= 3; -- change it in generateNew
             }
 
             // Set Gravity Factor
@@ -116,8 +138,6 @@ namespace my
                 }
             }
 
-            renderDelay = rand.Next(11) + 3;
-
             return;
         }
 
@@ -130,7 +150,9 @@ namespace my
             string str = $"Obj = {Type}\n\n"                                     	+
                             myUtils.strCountOf(list.Count, N)                       +
                             $"doClearBuffer = {doClearBuffer}\n"                    +
-                            $"doShowTrails = {doShowTrails}\n"                      +
+                            $"doUseTrails = {doUseTrails}\n"                        +
+                            $"nTrail = {nTrail}\n"                                  +
+                            $"nMainTrail = {nMainTrail}\n"                          +
                             $"doRandomizeSpeedVector = {doRandomizeSpeedVector}\n"  +
                             $"generatorMoveMode = {generatorMoveMode}\n"            +
                             $"pointDirMode = {pointDirMode}\n"                      +
@@ -159,14 +181,23 @@ namespace my
                 rad = 666;
                 //rad /= 5;
 
-                x = rand.Next(gl_Width);
-                y = rand.Next(gl_Height);
+                x = gl_x0 + (float)Math.Sin(t) * rad;
+                y = gl_y0 + (float)Math.Cos(t) * rad;
 
-                oldx = 0;
-                oldy = 0;
-
+                oldx = oldy = 0;
                 size = 5;
                 A = 1;
+
+                if (Trail == null)
+                {
+                    Trail = new myParticleTrail(nMainTrail, x, y);
+                }
+                else
+                {
+                    Trail.reset(x, y);
+                }
+
+                Trail?.updateDa(A * 0.75f);
             }
             else
             {
@@ -274,10 +305,35 @@ namespace my
                 A = myUtils.randFloat(rand, 0.1f) * 0.5f;
                 angle = myUtils.randFloat(rand);
                 dAngle = myUtils.randFloat(rand) * myUtils.randomSign(rand) * 0.01f;
+
+                // Initialize trail
+                if (doUseTrails)
+                {
+                    if (trail == null)
+                    {
+                        trail = new myParticleTrail(nTrail, x, y);
+                    }
+                    else
+                    {
+                        trail.reset(x, y);
+                    }
+
+                    trail?.updateDa(0.25f);
+                }
             }
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
+#if false
+            if (id == 0)
+            {
+                R = G = B = 0.66f;
+            }
+            else
+            {
+                R = G = B = 0.1f;
+            }
+#endif
             return;
         }
 
@@ -302,6 +358,31 @@ namespace my
                     case 1:
                         rad -= (float)Math.Sin(tRad * timeFactor) * 10;
                         break;
+
+                    case 2:
+                        rad -= (float)Math.Sin(tRad * 3) * 10;
+                        break;
+
+                    // Simple spiral -- expandng and contracting
+                    case 3:
+                        rad = 666 - (float)Math.Sin(tRad) * 500;
+                        break;
+
+                    // Elliptic trajectory which randomly changes its radius
+                    case 4:
+                        rad = myUtils.randomChance(rand, 1, 1000)
+                            ? rad = rand.Next(999) + 100
+                            : rad;
+                        break;
+
+                    // Elliptic/sine trajectory which randomly changes its radius
+                    case 5:
+                        rad = myUtils.randomChance(rand, 1, 1000)
+                            ? rad = rand.Next(999) + 100
+                            : rad;
+
+                        rad += (float)Math.Sin(tRad * timeFactor) * 7;
+                        break;
                 }
             }
             else
@@ -319,7 +400,7 @@ namespace my
                 x += dx;
                 y += dy;
 
-                // Keep track of the trail
+                // Keep track of the trail -- not used anymore
                 oldx += dx * 0.75f;
                 oldy += dy * 0.75f;
 
@@ -359,6 +440,11 @@ namespace my
         {
             float size2x = size * 2;
 
+            trail?.update(x, y);
+            trail?.Show(R, G, B, A);
+            Trail?.update(x, y);
+            Trail?.Show(R, G, B, A);
+
             switch (shape)
             {
                 // Instanced squares
@@ -393,12 +479,6 @@ namespace my
                     break;
             }
 
-            if (doShowTrails && id > n)
-            {
-                myPrimitive._LineInst.setInstanceCoords(x, y, oldx, oldy);
-                myPrimitive._LineInst.setInstanceColor(1, 1, 1, doClearBuffer ? 0.05f : 0.02f);
-            }
-
             return;
         }
 
@@ -408,9 +488,6 @@ namespace my
         {
             uint cnt = 0;
             initShapes();
-
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
 
             if (doClearBuffer)
             {
@@ -422,6 +499,9 @@ namespace my
                 dimScreenRGB_SetRandom(0.1f);
                 glDrawBuffer(GL_FRONT_AND_BACK);
             }
+
+            stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch();
+            stopwatch.Start();
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -475,8 +555,8 @@ namespace my
                     list.Add(new myObj_0460());
                 }
 
+                stopwatch.WaitAndRestart();
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -489,7 +569,7 @@ namespace my
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
-            myPrimitive.init_LineInst(N);
+            myPrimitive.init_LineInst(nMainTrail + (doUseTrails ? N * nTrail : 1));
 
             return;
         }

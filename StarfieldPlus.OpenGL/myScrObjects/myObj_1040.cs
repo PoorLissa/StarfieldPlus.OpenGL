@@ -85,6 +85,7 @@ namespace my
                             $"gl_cnt = {gl_cnt}\n"                     +
                             $"cntThreshold = {cntThreshold}\n"         +
                             $"renderDelay = {renderDelay}\n"           +
+                            $"progress: {gl_cnt} of {cntThreshold}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
