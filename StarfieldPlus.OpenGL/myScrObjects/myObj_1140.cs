@@ -15,7 +15,7 @@ namespace my
     public class myObj_1140 : myObject
     {
         // Priority
-        public static int Priority => 9999910;
+        public static int Priority => 99910;
 		public static System.Type Type => typeof(myObj_1140);
 
         private float x, y, t, dt, tRad, dtRad;
@@ -61,13 +61,11 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 10, 11);
+            doClearBuffer = myUtils.randomChance(rand, 29, 30);
             doFillShapes = myUtils.randomChance(rand, 4, 5);
 
             dirMode = rand.Next(3);
             moveMode = rand.Next(2);
-
-moveMode = 1;
 
             renderDelay = rand.Next(3) + 1;
 
