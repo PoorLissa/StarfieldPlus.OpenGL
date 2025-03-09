@@ -15,15 +15,16 @@ namespace my
     public class myObj_1140 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 9910;
 		public static System.Type Type => typeof(myObj_1140);
 
+        private int cnt;
         private float x, y, t, dt, tRad, dtRad;
         private float size, A, R, G, B, rad, Rad, angle = 0, dAngle;
 
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrail = 100, dirMode = 0, moveMode = 0;
+        private static int N = 0, n = 0, shape = 0, nTrail = 100, dirMode = 0, moveMode = 0, dtMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -47,8 +48,9 @@ namespace my
 
             // Global unmutable constants
             {
+                n = 333;
                 N = rand.Next(10) + 10;
-                N = 105;
+                N = 105 + n;
 
                 shape = rand.Next(5);
             }
@@ -61,15 +63,12 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 29, 30);
+            doClearBuffer = true;
             doFillShapes = myUtils.randomChance(rand, 4, 5);
 
             dirMode = rand.Next(3);
             moveMode = rand.Next(2);
-
-            renderDelay = rand.Next(3) + 1;
-
-            return;
+            dtMode = rand.Next(5);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -80,6 +79,9 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"dirMode = {dirMode}\n"          +
+                            $"moveMode = {moveMode}\n"        +
+                            $"dtMode = {dtMode}\n"            +
                             $"renderDelay = {renderDelay}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -98,54 +100,94 @@ namespace my
 
         protected override void generateNew()
         {
-            rad = Rad = 100 + rand.Next(gl_x0);
-            t = 0;
-            tRad = 0;
-            dt = 0.025f + myUtils.randFloat(rand) * 0.01f;
-
-            dtRad = myUtils.randFloat(rand) * 0.001f;
-
-            x = gl_x0 + (float)Math.Sin(t) * rad;
-            y = gl_y0 + (float)Math.Cos(t) * rad;
-
-            size = rand.Next(9) + 3;
-
-            dAngle = myUtils.randFloatSigned(rand, 0.1f) * 0.01f;
-
-            A = 0.35f + myUtils.randFloat(rand) * 0.35f;
-
-            do
+            if (id < n)
             {
-                R = (float)rand.NextDouble();
-                G = (float)rand.NextDouble();
-                B = (float)rand.NextDouble();
+                cnt = 333 + rand.Next(333);
+
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
+
+                R = G = B = myUtils.randFloat(rand, 0.75f);
+                A = 0.01f + myUtils.randFloat(rand) * 0.1f;
+
+                size = rand.Next(3) + 1;
+                angle = myUtils.randFloatSigned(rand) * 321;
             }
-            while (R + G + B < 0.25f);
-
-            switch (dirMode)
+            else
             {
-                case 0:
-                case 1:
-                    dt *= (dirMode == 0 ? +1 : -1);
-                    break;
+                cnt = 1111 + rand.Next(1234);
 
-                case 2:
-                    dt *= myUtils.randomSign(rand);
-                    break;
-            }
+                rad = Rad = 100 + rand.Next(gl_x0);
+                t = 0;
+                tRad = 0;
 
-            // Initialize trail
-            {
-                if (trail == null)
+                switch (dtMode)
                 {
-                    trail = new myParticleTrail(nTrail, x, y);
-                }
-                else
-                {
-                    trail.reset(x, y);
+                    case 0:
+                        dt = 0.0025f;
+                        break;
+
+                    case 1:
+                        dt = 0.0025f + myUtils.randFloat(rand) * 0.003f;
+                        break;
+
+                    case 2:
+                        dt = 0.005f + myUtils.randFloat(rand) * 0.005f;
+                        break;
+
+                    case 3:
+                        dt = 0.01f + myUtils.randFloat(rand) * 0.01f;
+                        break;
+
+                    case 4:
+                        dt = 0.025f + myUtils.randFloat(rand) * 0.01f;
+                        break;
                 }
 
-                trail?.updateDa(A);
+                dtRad = myUtils.randFloat(rand) * 0.001f;
+
+                x = gl_x0 + (float)Math.Sin(t) * rad;
+                y = gl_y0 + (float)Math.Cos(t) * rad;
+
+                size = rand.Next(9) + 3;
+
+                dAngle = myUtils.randFloatSigned(rand, 0.1f) * 0.01f;
+
+                A = 0.35f + myUtils.randFloat(rand) * 0.35f;
+
+                do
+                {
+                    R = (float)rand.NextDouble();
+                    G = (float)rand.NextDouble();
+                    B = (float)rand.NextDouble();
+                }
+                while (R + G + B < 0.25f);
+
+                switch (dirMode)
+                {
+                    case 0:
+                    case 1:
+                        dt *= (dirMode == 0 ? +1 : -1);
+                        break;
+
+                    case 2:
+                        dt *= myUtils.randomSign(rand);
+                        break;
+                }
+
+                // Initialize trail
+                {
+                    if (trail == null)
+                    {
+                        trail = new myParticleTrail(nTrail, x, y);
+                    }
+                    else
+                    {
+                        trail.reset(x, y);
+                    }
+
+                    trail?.updateDa(A);
+                }
             }
 
             return;
@@ -155,22 +197,34 @@ namespace my
 
         protected override void Move()
         {
-            x = gl_x0 + (float)Math.Sin(t) * rad;
-            y = gl_y0 + (float)Math.Cos(t) * rad;
-
-            t += dt;
-            tRad += dtRad;
-            angle += dAngle;
-
-            switch (moveMode)
+            if (id < n)
             {
-                case 0:
-                    rad = Rad;
-                    break;
+                ;
+            }
+            else
+            {
+                x = gl_x0 + (float)Math.Sin(t) * rad;
+                y = gl_y0 + (float)Math.Cos(t) * rad;
 
-                case 1:
-                    rad = Rad + (float)Math.Sin(tRad) * 10;
-                    break;
+                t += dt;
+                tRad += dtRad;
+                angle += dAngle;
+
+                switch (moveMode)
+                {
+                    case 0:
+                        rad = Rad;
+                        break;
+
+                    case 1:
+                        rad = Rad + (float)Math.Sin(tRad) * 10;
+                        break;
+                }
+            }
+
+            if (--cnt == 0)
+            {
+                generateNew();
             }
 
             return;
@@ -182,8 +236,8 @@ namespace my
         {
             float size2x = size * 2;
 
-            trail.update(x, y);
-            trail.Show(R, G, B, A);
+            trail?.update(x, y);
+            trail?.Show(R, G, B, A);
 
             switch (shape)
             {
@@ -250,10 +304,6 @@ namespace my
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
                         grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
                     }
                 }
 

@@ -224,6 +224,7 @@ public class ScreenSaver
         register(my.myObj_1120.Type);       // Black hole
         register(my.myObj_1130.Type);       // Filling the screen with lines of blocks with constantly diminishing size
         register(my.myObj_1140.Type);       // Spiraling particles with long tails
+        register(my.myObj_1150.Type);       // ...
 
         register(my.myObj_9998.Type);       // Test rotating shape, unfinished yet good
         registerTests(register);            // Register additional testing objects

@@ -2,35 +2,33 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
-using StarfieldPlus.OpenGL.myUtils;
 
 
 /*
-    - Black hole
+    - 
 */
 
 
 namespace my
 {
-    public class myObj_1120 : myObject
+    public class myObj_1150 : myObject
     {
         // Priority
         public static int Priority => 9910;
-        public static System.Type Type => typeof(myObj_1120);
+		public static System.Type Type => typeof(myObj_1150);
 
-        private int cnt;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle;
 
-        private static int N = 0, shape = 0;
-        private static bool doFillShapes = false, doAccelerate = false, doFollowBgrColor = false;
-        private static float X, Y, Rad, maxOpacity = 1;
+        private static int N = 0, n = 1, shape = 0, angleMode = 0, moveMode = 0;
+        private static bool doFillShapes = false;
+        private static float dimAlpha = 0.05f, dA = 1;
 
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1120()
+        public myObj_1150()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -46,7 +44,8 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(33333) + 3333;
+                N = 3333;
+                n = 1 + rand.Next(3);
 
                 shape = rand.Next(5);
             }
@@ -59,16 +58,15 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 999, 1000);
-            doFillShapes = myUtils.randomChance(rand, 2, 3);
-            doAccelerate = myUtils.randomBool(rand);
-            doFollowBgrColor = myUtils.randomChance(rand, 1, 5);
+            doClearBuffer = myUtils.randomBool(rand);
+            doFillShapes = myUtils.randomBool(rand);
 
-            X = gl_x0;
-            Y = gl_y0;
-            Rad = 333 + rand.Next(333);
+            angleMode = rand.Next(4);
+            moveMode = rand.Next(3);
+            renderDelay = rand.Next(3) + 1;
 
-            maxOpacity = 0.5f;
+            dA = 0.0002f;
+            dA = 0.0001f + myUtils.randFloat(rand) * 0.002f;
 
             return;
         }
@@ -79,10 +77,11 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                           +
-                            myUtils.strCountOf(list.Count, N)          +
-                            $"doAccelerate = {doAccelerate}\n"         +
-                            $"doFollowBgrColor = {doFollowBgrColor}\n" +
+            string str = $"Obj = {Type}\n\n"                  +
+                            myUtils.strCountOf(list.Count, N) +
+                            $"n = {n}\n"                      +
+                            $"dA = {myUtils.fStr(dA)}\n"      +
+                            $"renderDelay = {renderDelay}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -100,42 +99,54 @@ namespace my
 
         protected override void generateNew()
         {
-            float dX = 0, dY = 0, dist = 0;
-
-            cnt = 100 + rand.Next(123);
-
-            int off = 600;
-            int W = gl_Width + off;
-
-            // Make sure the particle generates outside of the event horizon
-            do
+            if (id < n)
             {
-                x = rand.Next(W) - off/2;
-                y = rand.Next(W) - (gl_Width - gl_Height) / 2 - off/2;
+                float speedFactor = 2.0f;
 
-                dX = x - X;
-                dY = y - Y;
-                dist = (float)Math.Sqrt(dX * dX + dY * dY);
-            }
-            while (dist < Rad * 1.25f);
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
 
-            if (doAccelerate)
-            {
-                dx = dy = 0;
+                dx = myUtils.randFloatSigned(rand, 0.25f) * speedFactor;
+                dy = myUtils.randFloatSigned(rand, 0.25f) * speedFactor;
+
+                size = 3;
+
+                A = 0.5f;
+                R = G = B = 1;
             }
             else
             {
-                float spd = -0.75f;
+                var parent_id = rand.Next(n);
+                var parent = list[parent_id] as myObj_1150;
 
-                dx = spd * dX / dist;
-                dy = spd * dY / dist;
+                x = parent.x;
+                y = parent.y;
+                dx = dy = 0;
+                size = 1;
+
+                A = myUtils.randFloat(rand);
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                angle = myUtils.randFloat(rand) * 321;
+
+                float dAngleFactor = 0.001f;
+
+                switch (angleMode)
+                {
+                    case 0:
+                    case 1:
+                        dAngle = myUtils.randFloatSigned(rand) * dAngleFactor;
+                        break;
+
+                    case 2:
+                        dAngle = myUtils.randFloat(rand) * dAngleFactor * +1;
+                        break;
+
+                    case 3:
+                        dAngle = myUtils.randFloat(rand) * dAngleFactor * -1;
+                        break;
+                }
             }
-
-            size = rand.Next(3) + 3;
-            dAngle = myUtils.randFloatSigned(rand) * 0.05f;
-
-            A = myUtils.randFloat(rand, 0.25f) * maxOpacity;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
         }
@@ -144,55 +155,95 @@ namespace my
 
         protected override void Move()
         {
-            angle += dAngle;
-
-            float dX = x - X;
-            float dY = y - Y;
-            float dist = (float)Math.Sqrt(dX * dX + dY * dY);
-
-            if (doAccelerate)
-            {
-                float spd = 0.003f;
-
-                dx -= spd * dX / dist;
-                dy -= spd * dY / dist;
-            }
-
             x += dx;
             y += dy;
 
-            if (dist < Rad)
+            if (id < n)
             {
-                A -= 0.02f * maxOpacity;
-                size -= 0.02f;
-
-                dx *= 1.01f;
-                dy *= 1.01f;
-
-                if (doAccelerate == false)
+                switch (moveMode)
                 {
-                    dx *= 1.025f;
-                    dy *= 1.025f;
-                }
+                    case 0:
+                        {
+                            if (x <= 0 || x >= gl_Width)
+                                dx *= -1;
 
-                R += 0.02f;
-                G += 0.02f;
-                B += 0.02f;
+                            if (y <= 0 || y >= gl_Height)
+                                dy *= -1;
+                        }
+                        break;
+
+                    case 1:
+                        {
+                            if (x < 0)
+                                dx += 0.01f;
+
+                            if (x > gl_Width)
+                                dx -= 0.01f;
+
+                            if (y < 0)
+                                dy += 0.01f;
+
+                            if (y > gl_Height)
+                                dy -= 0.01f;
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            if (myUtils.randomChance(rand, 1, 333))
+                            {
+                                if (dx != 0)
+                                {
+                                    dx = 0;
+                                    dy = myUtils.randFloatSigned(rand, 0.25f) * 2;
+                                }
+                                else
+                                {
+                                    dy = 0;
+                                    dx = myUtils.randFloatSigned(rand, 0.25f) * 2;
+                                }
+                            }
+
+                            if (x < 0)
+                            {
+                                x = 0;
+                                dx = 0;
+                                dy = myUtils.randFloatSigned(rand, 0.25f) * 2;
+                            }
+
+                            if (x > gl_Width)
+                            {
+                                x = gl_Width;
+                                dx = 0;
+                                dy = myUtils.randFloatSigned(rand, 0.25f) * 2;
+                            }
+
+                            if (y < 0)
+                            {
+                                y = 0;
+                                dy = 0;
+                                dx = myUtils.randFloatSigned(rand, 0.25f) * 2;
+                            }
+
+                            if (y > gl_Height)
+                            {
+                                y = gl_Height;
+                                dy = 0;
+                                dx = myUtils.randFloatSigned(rand, 0.25f) * 2;
+                            }
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                A -= dA;
+                size += 0.1f;
+                angle += dAngle;
 
                 if (A < 0)
                     generateNew();
             }
-            else
-            {
-                if (--cnt == 0)
-                {
-                    A = myUtils.randFloat(rand, 0.25f) * maxOpacity;
-                    cnt = 100 + rand.Next(123);
-                }
-            }
-
-            if (doFollowBgrColor && myUtils.randomChance(rand, 1, 25))
-                colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
         }
@@ -244,39 +295,10 @@ namespace my
 
         protected override void Process(Window window)
         {
-/*
-            // Speed test of getting bitmap color with locking mechanism (faster than before)
-            float R = 0, G = 0, B = 0;
-            var stpw = new Stopwatch();
-            stpw.Start();
-
-            for (int i = 0; i < 9999999; i++)
-            {
-                float x = rand.Next(gl_Width);
-                float y = rand.Next(gl_Height);
-
-                //colorPicker.getColorAverage(x, y, 10, 10, ref R, ref G, ref B);
-                colorPicker.getColor(x, y, ref R, ref G, ref B);
-            }
-
-            stpw.Stop();
-            System.IO.File.AppendAllText("c:\\_maxx\\__test.txt", stpw.ElapsedMilliseconds.ToString() + Environment.NewLine);
-            return;
-*/
-
             uint cnt = 0;
             initShapes();
 
-            float lineThickness = 1.0f;
-            float dThickneess = 0.025f;
-
-#if false
-            while (list.Count < N)
-                list.Add(new myObj_1120());
-#endif
-
-            stopwatch = new myStopwatch();
-            stopwatch.Start();
+            clearScreenSetup(doClearBuffer, 0.1f);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -300,21 +322,9 @@ namespace my
                 {
                     inst.ResetBuffer();
 
-                    // Draw event horizon
-                    {
-                        myPrimitive._Ellipse.setLineThickness(lineThickness);
-                        myPrimitive._Ellipse.SetColor(1, 1, 1, 0.05f);
-                        myPrimitive._Ellipse.Draw(X - Rad, Y - Rad, 2 * Rad, 2 * Rad, false);
-
-                        lineThickness += dThickneess;
-
-                        if (lineThickness > 13.0f || lineThickness < 1.0f)
-                            dThickneess *= -1;
-                    }
-
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1120;
+                        var obj = list[i] as myObj_1150;
 
                         obj.Show();
                         obj.Move();
@@ -334,11 +344,11 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_1120());
+                    list.Add(new myObj_1150());
                 }
 
-                stopwatch.WaitAndRestart();
                 cnt++;
+                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -348,15 +358,13 @@ namespace my
 
         private void initShapes()
         {
+            myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
-            if (doClearBuffer == false)
-                grad.SetOpacity(0.05f);
-
-            myPrimitive.init_Ellipse();
+            grad.SetOpacity(doClearBuffer ? 1 : 0.2f);
 
             return;
         }

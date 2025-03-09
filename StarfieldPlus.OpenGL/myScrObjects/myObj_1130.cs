@@ -14,14 +14,14 @@ namespace my
     public class myObj_1130 : myObject
     {
         // Priority
-        public static int Priority => 99910;
+        public static int Priority => 9910;
 		public static System.Type Type => typeof(myObj_1130);
 
         private bool firstIteration, firstLine;
         private float x, y;
         private float sizex, sizey, offsetx, offsety, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, gap = 3, mode = 0;
+        private static int N = 0, shape = 0, gap = 3, sizeMode = 0, placeMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.15f, sizeFactorX = 1, sizeFactorY = 1;
 
@@ -64,7 +64,7 @@ namespace my
             doClearBuffer = false;
             doFillShapes = true;
 
-            mode = rand.Next(5);
+            sizeMode = rand.Next(5);
 
             dimAlpha = myUtils.randomChance(rand, 1, 2)
                 ? myUtils.randFloat(rand) * 0.002f
@@ -81,7 +81,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                                  +
                             myUtils.strCountOf(list.Count, N)                 +
-                            $"mode = {mode}\n"                                +
+                            $"sizeMode = {sizeMode}\n"                        +
                             $"renderDelay = {renderDelay}\n"                  +
                             $"dimAlpha: {myUtils.fStr(dimAlpha)}\n"           +
                             $"colorPicker mode: {colorPicker.getModeStr()}\n" +
@@ -108,7 +108,7 @@ namespace my
             x = gl_x0;
             y = gl_y0;
 
-            switch (mode)
+            switch (sizeMode)
             {
                 case 0:
                     sizex = 60;
@@ -265,21 +265,10 @@ namespace my
                 else
                 {
                     // Draw 2 lines (4 figures) at a time
-                    float X = x - offsetx;
-                    float Y = y - offsety;
-                    doDraw(X, Y);
-
-                    X = x + offsetx;
-                    Y = y - offsety;
-                    doDraw(X, Y);
-
-                    X = x - offsetx;
-                    Y = y + offsety;
-                    doDraw(X, Y);
-
-                    X = x + offsetx;
-                    Y = y + offsety;
-                    doDraw(X, Y);
+                    doDraw(x - offsetx, y - offsety);
+                    doDraw(x + offsetx, y - offsety);
+                    doDraw(x - offsetx, y + offsety);
+                    doDraw(x + offsetx, y + offsety);
 
                     if ((offsetx > gl_x0 && offsety > gl_y0) || sizex <= 0 || sizey <= 0)
                     {
