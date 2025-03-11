@@ -222,9 +222,12 @@ namespace my
                 }
             }
 
-            if (--cnt == 0)
+            if (--cnt < 0)
             {
-                generateNew();
+                A -= 0.01f;
+
+                if (A < 0)
+                    generateNew();
             }
 
             return;
