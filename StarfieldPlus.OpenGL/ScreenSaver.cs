@@ -81,6 +81,7 @@ public class ScreenSaver
     // - snake that does not cross itself (use lists of vertical and horizontal lines the snake consists of)
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
+    // - grid of hexgons, where some of them are slightly larger and drop shadow, making it a pseudo 3d hex field
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
