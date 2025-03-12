@@ -17,12 +17,13 @@ namespace my
         public static int Priority => 99999910;
 		public static System.Type Type => typeof(myObj_1160);
 
-        private float x, y;
+        private int lifeCounter;
+        private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0;
+        private static int N = 0, n = 0, baseSize = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0, sinPi3 = 0, lineWidth = 1;
 
         private static myScreenGradient grad = null;
 
@@ -39,12 +40,20 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            var colorMode = myUtils.randomChance(rand, 1, 5)
+                ? myColorPicker.colorMode.RANDOM_MODE
+                : myColorPicker.colorMode.SNAPSHOT_OR_IMAGE;
+
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: colorMode);
             list = new List<myObject>();
 
             // Global unmutable constants
             {
-                N = 1;
+                n = 1 + rand.Next(3);
+                N = 11 + rand.Next(50);
+
+                baseSize = 20;
+                sinPi3 = (float)Math.Sin(Math.PI / 3);
             }
 
             initLocal();
@@ -56,7 +65,8 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = true;
+            doClearBuffer = false;
+            doFillShapes = myUtils.randomChance(rand, 4, 5);
 
             renderDelay = rand.Next(11) + 3;
 
@@ -71,6 +81,8 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"n = {n}\n"                      +
+                            $"baseSize = {baseSize}\n"        +
                             $"renderDelay = {renderDelay}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -89,11 +101,42 @@ namespace my
 
         protected override void generateNew()
         {
-            x = -rand.Next(33);
-            y = -rand.Next(33);
+            if (id < n)
+            {
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
 
-            size = rand.Next(23) + 11;
-            A = 1;
+                dx = myUtils.randFloatSigned(rand, 0.25f) * 3;
+                dy = myUtils.randFloatSigned(rand, 0.25f) * 3;
+            }
+            else
+            {
+                // Aligh hex to the grid
+                {
+                    //x = rand.Next(gl_Width + 100);
+                    //y = rand.Next(gl_Height + 200);
+
+                    int parent_id = rand.Next(n);
+                    var parent = list[parent_id] as myObj_1160;
+
+                    x = parent.x + rand.Next(401) - 200;
+                    y = parent.y + rand.Next(401) - 200;
+
+                    x -= x % (3 * baseSize / 2);
+                    y -= y % (int)(baseSize * sinPi3 * 2);
+
+                    if (x % baseSize / 2 != 0)
+                    {
+                        y -= (int)(baseSize * sinPi3);
+                    }
+                }
+
+                A = myUtils.randFloat(rand, 0.25f);
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                size = baseSize - 2;
+                lifeCounter = rand.Next(33) + 1;
+            }
 
             return;
         }
@@ -102,22 +145,40 @@ namespace my
 
         protected override void Move()
         {
+            if (id < n)
+            {
+                x += dx;
+                y += dy;
+
+                if (x < 0)
+                    dx += 0.2f;
+
+                if (y < 0)
+                    dy += 0.2f;
+
+                if (x > gl_Width)
+                    dx -= 0.2f;
+
+                if (y > gl_Height)
+                    dy -= 0.2f;
+            }
+            else
+            {
+                if (--lifeCounter == 0)
+                {
+                    generateNew();
+                }
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Show()
         {
-            for (int i = (int)x; i < gl_Width; i++)
-            {
-                for (int j = (int)y; j < gl_Width; j++)
-                {
-                }
-            }
+            myPrimitive._HexagonInst.setInstanceCoords(x, y, size * 3.0f, angle);
+            myPrimitive._HexagonInst.setInstanceColor(R, G, B, 0.1f);
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            myPrimitive._HexagonInst.setInstanceCoords(x, y, size, angle);
+            myPrimitive._HexagonInst.setInstanceCoords(x, y, size * 2, angle);
             myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
         }
 
@@ -195,9 +256,10 @@ namespace my
         {
             myPrimitive.init_ScrDimmer();
 
-            int qty = (int)((gl_Width / size) * (gl_Height / size)) + 333;
+            //int qty = (int)((gl_Width / size) * (gl_Height / size)) + 333;
+            //base.initShapes(4, qty, 0);
 
-            base.initShapes(4, qty, 0);
+            base.initShapes(4, N * 2, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
