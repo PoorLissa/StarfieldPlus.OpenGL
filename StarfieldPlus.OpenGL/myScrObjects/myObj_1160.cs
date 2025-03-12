@@ -14,7 +14,7 @@ namespace my
     public class myObj_1160 : myObject
     {
         // Priority
-        public static int Priority => 99999910;
+        public static int Priority => 9910;
 		public static System.Type Type => typeof(myObj_1160);
 
         private int lifeCounter;
@@ -50,7 +50,7 @@ namespace my
             // Global unmutable constants
             {
                 n = 1 + rand.Next(3);
-                N = 11 + rand.Next(50);
+                N = 11 + rand.Next(150);
 
                 baseSize = 20;
                 sinPi3 = (float)Math.Sin(Math.PI / 3);
@@ -175,8 +175,8 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._HexagonInst.setInstanceCoords(x, y, size * 3.0f, angle);
-            myPrimitive._HexagonInst.setInstanceColor(R, G, B, 0.1f);
+            //myPrimitive._HexagonInst.setInstanceCoords(x, y, size * 3.0f, angle);
+            //myPrimitive._HexagonInst.setInstanceColor(R, G, B, 0.1f);
 
             myPrimitive._HexagonInst.setInstanceCoords(x, y, size * 2, angle);
             myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
@@ -189,7 +189,7 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.1f);
+            clearScreenSetup(doClearBuffer, 0.1f, true);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -204,14 +204,10 @@ namespace my
                 // Dim screen
                 {
                     if (doClearBuffer)
-                    {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
+                    dimScreen(dimAlpha);
                 }
 
                 // Render Frame
@@ -263,6 +259,7 @@ namespace my
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+            grad.SetOpacity(0.025f);
 
             return;
         }
