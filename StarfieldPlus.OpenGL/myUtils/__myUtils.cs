@@ -48,9 +48,20 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        // Return random float from the interval [min, 1.0f + min]
         public static float randFloat(Random r, float min = 0.0f)
         {
             return (float)r.NextDouble() + min;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Return random float which is clamped to the interval [min, 1.0f]
+        public static float randFloatClamped(Random r, float min)
+        {
+            float val = (float)r.NextDouble() + min;
+
+            return val > 1.0f ? 1.0f : val;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

@@ -13,10 +13,15 @@ namespace StarfieldPlus.OpenGL.myUtils
         private int _sleepTime;
         private long _targetFrameTime;
 
-        public myStopwatch(long frameRate = 13)
+        public myStopwatch(bool doStart = false, long frameRate = 13)
         {
             _targetFrameTime = frameRate;
             _stopwatch = new Stopwatch();
+
+            if (doStart)
+            {
+                Start();
+            }
         }
 
         public void Start()

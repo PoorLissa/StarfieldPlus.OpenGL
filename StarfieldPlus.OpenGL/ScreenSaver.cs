@@ -81,6 +81,7 @@ public class ScreenSaver
     // - snake that does not cross itself (use lists of vertical and horizontal lines the snake consists of)
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
+    // - Hexagon grid with a pseudo 3d effect
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
@@ -225,7 +226,7 @@ public class ScreenSaver
         register(my.myObj_1130.Type);       // Filling the screen with lines of blocks with constantly diminishing size
         register(my.myObj_1140.Type);       // Spiraling particles with long tails
         register(my.myObj_1150.Type);       // ...
-        register(my.myObj_1160.Type);       // Hexagon grid with a pseudo 3d effect
+        register(my.myObj_1160.Type);       // Partial hexagon grid moving along a moving particle
 
         register(my.myObj_9998.Type);       // Test rotating shape, unfinished yet good
         registerTests(register);            // Register additional testing objects

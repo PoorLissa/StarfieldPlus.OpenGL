@@ -178,6 +178,8 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
+            //stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
+
             while (!Glfw.WindowShouldClose(window))
             {
                 int Count = list.Count;
