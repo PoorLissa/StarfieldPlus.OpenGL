@@ -472,7 +472,7 @@ namespace my
     public class myObj_0990 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_0990);
 
         private int cnt;

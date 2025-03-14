@@ -14,7 +14,7 @@ namespace my
     public class myObj_1130 : myObject
     {
         // Priority
-        public static int Priority => 9910;
+        public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1130);
 
         private bool firstIteration, firstLine;
@@ -64,7 +64,7 @@ namespace my
             doClearBuffer = false;
             doFillShapes = true;
 
-            sizeMode = rand.Next(5);
+            sizeMode = rand.Next(6);
 
             dimAlpha = myUtils.randomChance(rand, 1, 2)
                 ? myUtils.randFloat(rand) * 0.002f
@@ -84,6 +84,8 @@ namespace my
                             $"sizeMode = {sizeMode}\n"                        +
                             $"renderDelay = {renderDelay}\n"                  +
                             $"dimAlpha: {myUtils.fStr(dimAlpha)}\n"           +
+                            $"sizeFactorX = {myUtils.fStr(sizeFactorX)}\n"    +
+                            $"sizeFactorY = {myUtils.fStr(sizeFactorY)}\n"    +
                             $"colorPicker mode: {colorPicker.getModeStr()}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -153,6 +155,15 @@ namespace my
                     sizeFactorX = 1.1f;
                     sizeFactorY = 1.1f;
                     break;
+
+                // Horizontal rectangle, only width changes over time
+                case 5:
+                    sizex = 60;
+                    sizey = 10;
+
+                    sizeFactorX = 1.05f + myUtils.randFloat(rand) * 0.15f;
+                    sizeFactorY = 1.00f;
+                    break;
             }
 
             offsetx = 0;
@@ -167,7 +178,7 @@ namespace my
         {
             // Gradually increase opacity while redrawing the same blocks;
             // When opacity reaches 1, set it to low value again and go to next block
-            A += 0.1f;
+            A += 1.1f;
 
             if (A > 1.0f)
             {
@@ -270,7 +281,7 @@ namespace my
                     doDraw(x - offsetx, y + offsety);
                     doDraw(x + offsetx, y + offsety);
 
-                    if ((offsetx > gl_x0 && offsety > gl_y0) || sizex <= 0 || sizey <= 0)
+                    if ((offsetx > gl_x0 && offsety > gl_y0) || sizex <= 1 || sizey <= 1)
                     {
                         glClear(GL_COLOR_BUFFER_BIT);
                         generateNew();
