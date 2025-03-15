@@ -227,7 +227,7 @@ public class ScreenSaver
         register(my.myObj_1140.Type);       // Spiraling particles with long tails
         register(my.myObj_1150.Type);       // ...
         register(my.myObj_1160.Type);       // Partial hexagon grid moving along a moving particle
-        register(my.myObj_1170.Type);       // ...
+        register(my.myObj_1170.Type);       // Scrolling texture images
 
         register(my.myObj_9998.Type);       // Test rotating shape, unfinished yet good
         registerTests(register);            // Register additional testing objects

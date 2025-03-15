@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Scrolling images
+    - Scrolling texture images
 */
 
 
