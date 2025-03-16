@@ -14,20 +14,21 @@ namespace my
     public class myObj_0011 : myObject
     {
         // Priority
-        public static int Priority => 10;
+        public static int Priority => 99999910;
 		public static System.Type Type => typeof(myObj_0011);
 
         // ---------------------------------------------------------------------------------------------------------------
 
         private class myObj_0011_Particle
         {
-            public int count;
-            public float x, y, dx, dy;
+            public int count, rad;
+            public float x, y, dx, dy, x0, y0;
+            public float angle, dAngle;
         };
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        private static int N = 1, pN = 1, moveMode = 0, borderOffset = 0;
+        private static int N = 1, pN = 1, moveMode = 0, rotationMode = 0, radMode = 0, borderOffset = 0;
         private static bool doCleanOnce = false, doAddAtOnce = false;
         private static float dimAlpha = 0.01f, t = 0, maxOpacity = 0;
 
@@ -69,7 +70,10 @@ namespace my
             maxOpacity = 0.025f + myUtils.randFloat(rand) * 0.33f;
             renderDelay = rand.Next(11) + 10;
             stepsPerFrame = rand.Next(10) + 1;
-            moveMode = rand.Next(2);
+            moveMode = rand.Next(3);
+            rotationMode = rand.Next(4);
+            radMode = rand.Next(4);
+
             dimAlpha = 0.1f;
 
             // Sometimes with the large number of objects, the opacity is too large or too small;
@@ -108,6 +112,8 @@ namespace my
                             $"pN = {pN}\n"                                      +
                             $"maxOpacity = {maxOpacity.ToString("0.000")}f\n"   +
                             $"moveMode = {moveMode}\n"                          +
+                            $"radMode = {radMode}\n"                            +
+                            $"rotationMode = {rotationMode}\n"                  +
                             $"borderOffset = {borderOffset}\n"                  +
                             $"doClearBuffer = {doClearBuffer}\n"                +
                             $"stepsPerFrame = {stepsPerFrame}\n"                +
@@ -121,6 +127,10 @@ namespace my
 
         protected override void generateNew()
         {
+            rad = rand.Next(gl_Width) + 333;
+            x0 = rand.Next(gl_Width);
+            y0 = rand.Next(gl_Height);
+
             float speedFactor = 0.01f / stepsPerFrame;
 
             if (particles.Count == 0)
@@ -132,28 +142,116 @@ namespace my
                 item.x = rand.Next(gl_Width);
                 item.y = rand.Next(gl_Height);
 
+                float itemdAngle = myUtils.randFloatClamped(rand, 0.25f) * 0.01f;
+
                 switch (moveMode)
                 {
-                    case 00: case 01:
-                        item.dx = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
-                        item.dy = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
-                        break;
-
-                    case 02:
-                        item.dx = myUtils.randFloat(rand) * rand.Next(1234);
-                        item.dy = myUtils.randFloat(rand) * myUtils.randomSign(rand);
-                        break;
-
-                    case 03:
-                        if (myUtils.randomChance(rand, 1, 2))
+                    // Linear motion
+                    case 00:
+                    case 01:
                         {
                             item.dx = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
-                            item.dy = 0;
-                        }
-                        else
-                        {
                             item.dy = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
-                            item.dx = 0;
+                        }
+                        break;
+
+                    // Rotation around the common center
+                    case 02:
+                        {
+                            switch (radMode)
+                            {
+                                case 0: item.rad = rad; break;
+                                case 1: item.rad = rand.Next(rad) + 123; break;
+                                case 2: item.rad = rad + rand.Next(123); break;
+                            }
+
+                            switch (rotationMode)
+                            {
+                                case 0:
+                                    item.dAngle = itemdAngle;
+                                    break;
+
+                                case 1:
+                                    item.dAngle = itemdAngle;
+                                    item.dAngle *= myUtils.randomSign(rand);
+                                    break;
+
+                                case 2:
+                                    item.dAngle = myUtils.randFloatClamped(rand, 0.25f) * 0.01f;
+                                    break;
+
+                                case 3:
+                                    item.dAngle = myUtils.randFloatClamped(rand, 0.25f) * 0.01f;
+                                    item.dAngle *= myUtils.randomSign(rand);
+                                    break;
+                            }
+
+                            item.angle = rand.Next(123) * myUtils.randFloat(rand);
+                            item.x = gl_x0 + (float)(Math.Sin(item.angle) * item.rad);
+                            item.y = gl_y0 + (float)(Math.Cos(item.angle) * item.rad);
+                        }
+                        break;
+
+                    // Rotation around different centers
+                    case 03:
+                        {
+                            switch (radMode)
+                            {
+                                case 0: item.rad = rad; break;
+                                case 1: item.rad = rand.Next(rad) + 123; break;
+                                case 2: item.rad = rad + rand.Next(123); break;
+                            }
+
+                            switch (rotationMode)
+                            {
+                                case 0:
+                                    item.dAngle = itemdAngle;
+                                    break;
+
+                                case 1:
+                                    item.dAngle = itemdAngle;
+                                    item.dAngle *= myUtils.randomSign(rand);
+                                    break;
+
+                                case 2:
+                                    item.dAngle = myUtils.randFloatClamped(rand, 0.25f) * 0.01f;
+                                    break;
+
+                                case 3:
+                                    item.dAngle = myUtils.randFloatClamped(rand, 0.25f) * 0.01f;
+                                    item.dAngle *= myUtils.randomSign(rand);
+                                    break;
+                            }
+
+                            item.angle = rand.Next(123) * myUtils.randFloat(rand);
+
+                            item.x0 = x0;
+                            item.y0 = y0;
+
+                            item.x = item.x0 + (float)(Math.Sin(item.angle) * item.rad);
+                            item.y = item.y0 + (float)(Math.Cos(item.angle) * item.rad);
+                        }
+                        break;
+
+                    case 04:
+                        {
+                            item.dx = myUtils.randFloat(rand) * rand.Next(1234);
+                            item.dy = myUtils.randFloat(rand) * myUtils.randomSign(rand);
+                        }
+                        break;
+
+                    case 05:
+                        {
+                            if (myUtils.randomChance(rand, 1, 2))
+                            {
+                                item.dx = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
+                                item.dy = 0;
+                            }
+                            else
+                            {
+                                item.dy = (rand.Next(1111) + 111) * myUtils.randomSign(rand) * speedFactor;
+                                item.dx = 0;
+                            }
                         }
                         break;
                 }
@@ -171,7 +269,6 @@ namespace my
 
             x0 = rand.Next(gl_Width);
             y0 = rand.Next(gl_Height);
-            rad = rand.Next(666) + 123;
 
             return;
         }
@@ -204,7 +301,7 @@ namespace my
 
                 switch (moveMode)
                 {
-                    // Bounce off the borders
+                    // Linear motion: Bounce off the borders
                     case 00:
                         {
                             item.x += item.dx;
@@ -224,7 +321,7 @@ namespace my
                         }
                         break;
 
-                    // Slowly change speed vector
+                    // Linear motion: Slowly change speed vector
                     case 01:
                         {
                             item.x += item.dx;
@@ -244,7 +341,27 @@ namespace my
                         }
                         break;
 
+                    // Rotation around the common center
                     case 02:
+                        {
+                            item.x = gl_x0 + (float)Math.Sin(item.angle) * item.rad;
+                            item.y = gl_y0 + (float)Math.Cos(item.angle) * item.rad;
+
+                            item.angle += item.dAngle;
+                        }
+                        break;
+
+                    // Rotation around different centers
+                    case 03:
+                        {
+                            item.x = item.x0 + (float)Math.Sin(item.angle) * item.rad;
+                            item.y = item.y0 + (float)Math.Cos(item.angle) * item.rad;
+
+                            item.angle += item.dAngle;
+                        }
+                        break;
+
+                    case 04:
                         {
                             item.x = x0 + (int)(Math.Sin(item.dx) * (rand.Next(rad) + rad));
                             item.y = y0 + (int)(Math.Cos(item.dx) * (rand.Next(rad) + rad));
@@ -252,7 +369,7 @@ namespace my
                         }
                         break;
 
-                    case 03:
+                    case 05:
                         {
                             item.x += item.dx;
                             item.y += item.dy;
