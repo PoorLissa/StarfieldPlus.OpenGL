@@ -82,6 +82,29 @@ public class ScreenSaver
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
     // - Hexagon grid with a pseudo 3d effect
+    // - Doom style prysms:
+    /*
+                if (id == 0)
+                {
+                    int x1 = 0;
+                    int y1 = 150;
+                    int x2 = 300;
+                    int y2 = 0;
+                    int x3 = 300;
+                    int y3 = 300;
+                    int x4 = 600;
+                    int y4 = 150;
+
+                    p4.SetColor(1.0f, 0.25f, 0.25f, 0.00001f);
+                    p4.Draw(x1, y1, x2, y2, x3, y3, x4, y4, !false);
+
+                    p4.SetColor(0.25f, 1.0f, 0.25f, 0.00001f);
+                    p4.Draw(x1, y1, x3, y3, x1, y1 + 300, x3, y3 + 300, !false);
+
+                    p4.SetColor(0.25f, 0.25f, 1.0f, 0.00001f);
+                    p4.Draw(x4, y4, x3, y3, x4, y4 + 300, x3, y3 + 300, !false);
+                }
+    */
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
