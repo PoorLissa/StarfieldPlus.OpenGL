@@ -160,6 +160,7 @@ public class ScreenSaver
         register(my.myObj_0320.Type);       // Spiralling doodles made of squares
         register(my.myObj_0330.Type);       // Textures, Take 1
         register(my.myObj_0340.Type);       // Grid of hexagons
+        register(my.myObj_0341.Type);       // Grid of rhombuses
         register(my.myObj_0350.Type);       // Moving groups of small particles. Particles within the group are connected to each other
         register(my.myObj_0360.Type);       // Moving particles; each particle is connected to 5 other random particles
         register(my.myObj_0370.Type);       // The image is split into big number of particles that fall down
