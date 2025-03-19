@@ -19,12 +19,12 @@ namespace my
 
         private bool isAlive;
         private int parent_id;
-        private float x, y, dx, dy;
-        private float size, dSize, A, R, G, B, angle = 0;
+        private float x, y;
+        private float size, dSize, A, R, G, B, angle = 0, alpha, dAlpha;
 
-        private static int N = 0, n = 0, shape = 0, colorMode = 0, angleMode = 0, spawnQtyMode = 0;
+        private static int N = 0, n = 0, shape = 0, colorMode = 0, angleMode = 0, spawnQtyMode = 0, alphaMode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, dSizeGlobal = 0;
+        private static float dimAlpha = 0.05f, dSizeGlobal = 0, maxDalpha = 1;
 
         private static myScreenGradient grad = null;
 
@@ -72,6 +72,14 @@ namespace my
             angleMode = rand.Next(3);
             colorMode = rand.Next(4);
             spawnQtyMode = rand.Next(3);
+            alphaMode = rand.Next(3);
+
+            switch (rand.Next(3))
+            {
+                case 0: maxDalpha = 0.1f; break;
+                case 1: maxDalpha = 0.5f; break;
+                case 2: maxDalpha = 0.9f; break;
+            }
 
             switch (rand.Next(3))
             {
@@ -103,6 +111,7 @@ namespace my
                             $"angleMode = {angleMode}\n"                   +
                             $"colorMode = {colorMode}\n"                   +
                             $"spawnQtyMode = {spawnQtyMode}\n"             +
+                            $"alphaMode = {alphaMode}\n"                   +
                             $"dSizeGlobal = {myUtils.fStr(dSizeGlobal)}\n" +
                             $"colorPicker = {colorPicker.getModeStr()}\n"  +
                             $"file: {colorPicker.GetFileName()}"
@@ -133,6 +142,7 @@ namespace my
                 dSize = 0.9f;
                 dSize = 0.75f + myUtils.randFloat(rand) * 2;
                 angle = myUtils.randFloat(rand) * 321;
+                dAlpha = 0.005f + myUtils.randFloat(rand) * maxDalpha;
 
                 // Set parent color
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -143,8 +153,20 @@ namespace my
                 dSize = dSizeGlobal;
 
                 var parent = list[parent_id] as myObj_1190;
+                float alpha = 0;
 
-                var alpha = myUtils.randFloat(rand) * 321;
+                switch (alphaMode)
+                {
+                    case 0:
+                    case 1:
+                        alpha = myUtils.randFloat(rand) * 321;
+                        break;
+
+                    case 2:
+                        alpha = parent.alpha;
+                        parent.alpha += parent.dAlpha;
+                        break;
+                }
 
                 x = parent.x + (float)Math.Sin(alpha) * parent.size;
                 y = parent.y + (float)Math.Cos(alpha) * parent.size;
