@@ -294,6 +294,7 @@ namespace my
         // Get average color from a rectangle, as float R-G-B ([0..255]-[0..255]-[0..255])
         public void getColorAverage_Int(float x, float y, int width, int height, ref float R, ref float G, ref float B)
         {
+            int hitCnt = 0;
             R = G = B = 0;
 
             // LockBits once for the whole area
@@ -307,12 +308,13 @@ namespace my
                         R += gl_r;
                         G += gl_g;
                         B += gl_b;
+                        hitCnt++;
                     }
                 }
             }
             _img.UnlockBits(bmpData);
 
-            float factor = 1.0f / (width * height);
+            float factor = (hitCnt == 0) ? 0 : 1.0f / hitCnt;
 
             R *= factor;
             G *= factor;
@@ -324,7 +326,7 @@ namespace my
         // Get average color with a step from a rectangle, as float R-G-B ([0..1]-[0..1]-[0..1])
         public void getColorAverage(int x, int y, int width, int height, ref float R, ref float G, ref float B, int step = 1)
         {
-            int cnt = 0;
+            int hitCnt = 0;
             R = G = B = 0;
 
             // LockBits once for the whole area
@@ -340,18 +342,18 @@ namespace my
                             R += gl_r;
                             G += gl_g;
                             B += gl_b;
-                            cnt++;
+                            hitCnt++;
                         }
                     }
                 }
             }
             _img.UnlockBits(bmpData);
 
-            float f = (cnt == 0) ? 0 : color255f / cnt;
+            float factor = (hitCnt == 0) ? 0 : color255f / hitCnt;
 
-            R *= f;
-            G *= f;
-            B *= f;
+            R *= factor;
+            G *= factor;
+            B *= factor;
         }
 
         // -------------------------------------------------------------------------
@@ -975,9 +977,18 @@ namespace my
 
         private void buildTexture(int Width, int Height)
         {
-            SolidBrush br = new SolidBrush(Color.Black);
+            int r = 0, g = 0, b = 0;
 
-            int a, x, y, w, h, r = 0, g = 0, b = 0;
+            // Ger random dark color
+            do
+            {
+                r = _rand.Next(50);
+                g = _rand.Next(50);
+                b = _rand.Next(50);
+
+            } while (r + g + b > 50);
+
+            SolidBrush br = new SolidBrush(Color.FromArgb(1, r, g, b));
 
             _img = new Bitmap(Width, Height);
             initReader();
@@ -990,24 +1001,98 @@ namespace my
 
             _g = Graphics.FromImage(_img);
 
-            // Black background
+            // Fill background
             _g.FillRectangle(br, 0, 0, Width, Height);
 
-            // Add random colored rectangles
-            for (int i = 0; i < Height; i += 10)
+            // Create texture and put it on the _img
+            switch (_rand.Next(2))
             {
-                x = _rand.Next( Width) - Height / 3;
-                y = _rand.Next(Height) - Height / 3;
+                case 0:
+                    makeTexture1(Width, Height, _g, br);
+                    break;
 
-                w = i;
-                h = i;
+                case 1:
+                    makeTexture2(Width, Height, _g, br);
+                    break;
+            }
+
+            return;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Use random colored rectangles -- horizontal or vertical
+        private void makeTexture1(int W, int H, Graphics gr, SolidBrush br)
+        {
+            int r = 0, g = 0, b = 0;
+
+            for (int i = 0; i < H; i += 10)
+            {
+                int x = _rand.Next(W) - H / 3;
+                int y = _rand.Next(H) - H / 3;
+
+                int w = i;
+                int h = i;
 
                 getRandomColor(ref r, ref g, ref b);
 
-                a = _rand.Next(13) + 5;
+                int a = _rand.Next(13) + 5;
                 br.Color = Color.FromArgb(a, r, g, b);
-                _g.FillRectangle(br, x, y, w, h);
+                gr.FillRectangle(br, x, y, w, h);
             }
+
+            return;
+        }
+
+        // -------------------------------------------------------------------------
+
+        // Use random colored rectangles -- rotated by degree
+        private void makeTexture2(int W, int H, Graphics gr, SolidBrush br)
+        {
+            Rectangle rect = new Rectangle(0, 0, 0, 0);
+
+            int step = 10 + _rand.Next(11);
+            int r = 0, g = 0, b = 0;
+            int angle = _rand.Next(360), dAngle = 360 / (H / step);
+            int angleMode = _rand.Next(3), squareMode = _rand.Next(2);
+
+            for (int i = 0; i < H; i += step)
+            {
+                var state = _g.Save();                                                      // Save the Graphics object's state
+
+                rect.X = _rand.Next(W) - H / 3;
+                rect.Y = _rand.Next(H) - H / 3;
+                rect.Width  = i;
+                rect.Height = i;
+                rect.Height += (squareMode == 0) ? 0 : _rand.Next(rect.Width/2);
+
+                getRandomColor(ref r, ref g, ref b);
+
+                int a = _rand.Next(13) + 5;
+                br.Color = Color.FromArgb(a, r, g, b);
+
+                switch (angleMode)
+                {
+                    case 0:
+                        break;
+
+                    case 1:
+                        angle = _rand.Next(360);
+                        break;
+
+                    case 2:
+                        angle += dAngle;
+                        break;
+                }
+
+                _g.TranslateTransform(rect.X + rect.Width/2, rect.Y + rect.Height/2);       // Set the rotation point (center of the rectangle)
+                _g.RotateTransform(angle);                                                  // Rotate the Graphics object by angle
+                _g.TranslateTransform(-(rect.X + rect.Width/2), -(rect.Y + rect.Height/2)); // Move the origin back to the top-left corner of the rectangle
+                _g.FillRectangle(br, rect);                                                 // Fill the rotated rectangle
+                _g.Restore(state);                                                          // Restore the Graphics object to its original state
+            }
+
+            return;
         }
 
         // -------------------------------------------------------------------------

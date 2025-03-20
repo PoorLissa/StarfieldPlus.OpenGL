@@ -76,6 +76,7 @@ namespace my
 
             var typeToReturn = _dic[objId];
 
+            // Clear dictionary, as we won't be needing it again in this session
             if (doClearDictionary)
             {
                 _dic.Clear();
