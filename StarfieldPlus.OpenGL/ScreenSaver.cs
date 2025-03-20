@@ -261,7 +261,7 @@ public class ScreenSaver
         };
 
 #if false
-        _obj = (my.myObject)System.Activator.CreateInstance(myObj_9999_test_002c.Type);
+        _obj = (my.myObject)System.Activator.CreateInstance(my.myObj_9999_test_002c.Type);
 #else
         foreach (var t in types)
         {
