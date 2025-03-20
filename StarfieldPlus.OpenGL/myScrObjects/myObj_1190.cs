@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Generators expand and spawn particles along their circumference
 */
 
 
@@ -67,6 +67,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 4, 5);
+            doFillShapes = myUtils.randomChance(rand, 1, 3);
 
             angleMode = rand.Next(3);
             colorMode = rand.Next(4);
@@ -131,6 +132,7 @@ namespace my
                             myUtils.strCountOf(list.Count, N)              +
                             $"n = {n}\n"                                   +
                             $"doClearBuffer = {doClearBuffer}\n"           +
+                            $"doFillShapes = {doFillShapes}\n"             +
                             $"angleMode = {angleMode}\n"                   +
                             $"colorMode = {colorMode}\n"                   +
                             $"spawnQtyMode = {spawnQtyMode}\n"             +
@@ -181,11 +183,13 @@ namespace my
 
                 switch (alphaMode)
                 {
+                    // Spiraling pattern
                     case 0:
                         alpha = parent.alpha;
                         parent.alpha += parent.dAlpha;
                         break;
 
+                    // Circular pattern
                     default:
                         alpha = myUtils.randFloat(rand) * 321;
                         break;
