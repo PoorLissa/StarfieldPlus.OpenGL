@@ -24,7 +24,7 @@ namespace my
 
         private static int N = 0, n = 0, shape = 0, colorMode = 0, angleMode = 0, spawnQtyMode = 0, alphaMode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, dSizeGlobal = 0, maxDalpha = 1;
+        private static float dimAlpha = 0.05f, dAglobal = 0, dSizeGlobal = 0, maxDalpha = 1;
 
         private static myScreenGradient grad = null;
 
@@ -66,13 +66,12 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 4, 5);
 
             angleMode = rand.Next(3);
             colorMode = rand.Next(4);
             spawnQtyMode = rand.Next(3);
-            alphaMode = rand.Next(3);
+            alphaMode = rand.Next(5);
 
             switch (rand.Next(3))
             {
@@ -96,6 +95,29 @@ namespace my
                     break;
             }
 
+            switch (rand.Next(5))
+            {
+                case 0:
+                    dAglobal = 0.001f;
+                    break;
+
+                case 1:
+                    dAglobal = 0.001f + myUtils.randFloat(rand) * 0.005f;
+                    break;
+
+                case 2:
+                    dAglobal = 0.0025f;
+                    break;
+
+                case 3:
+                    dAglobal = 0.0025f + myUtils.randFloat(rand) * 0.005f;
+                    break;
+
+                case 4:
+                    dAglobal = 0.005f + myUtils.randFloat(rand) * 0.01f;
+                    break;
+            }
+
             return;
         }
 
@@ -108,11 +130,13 @@ namespace my
             string str = $"Obj = {Type}\n\n"                               +
                             myUtils.strCountOf(list.Count, N)              +
                             $"n = {n}\n"                                   +
+                            $"doClearBuffer = {doClearBuffer}\n"           +
                             $"angleMode = {angleMode}\n"                   +
                             $"colorMode = {colorMode}\n"                   +
                             $"spawnQtyMode = {spawnQtyMode}\n"             +
                             $"alphaMode = {alphaMode}\n"                   +
                             $"dSizeGlobal = {myUtils.fStr(dSizeGlobal)}\n" +
+                            $"dAglobal = {myUtils.fStr(dAglobal)}\n"       +
                             $"colorPicker = {colorPicker.getModeStr()}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -158,13 +182,12 @@ namespace my
                 switch (alphaMode)
                 {
                     case 0:
-                    case 1:
-                        alpha = myUtils.randFloat(rand) * 321;
-                        break;
-
-                    case 2:
                         alpha = parent.alpha;
                         parent.alpha += parent.dAlpha;
+                        break;
+
+                    default:
+                        alpha = myUtils.randFloat(rand) * 321;
                         break;
                 }
 
@@ -277,7 +300,7 @@ namespace my
                 if (isAlive)
                 {
                     size += dSize;
-                    A -= 0.0025f;
+                    A -= dAglobal;
 
                     if (A < 0 || size > 333)
                         isAlive = false;
