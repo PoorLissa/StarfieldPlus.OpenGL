@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /*
     - several layers of mutually repellent particles simulating liquid;
     - 'air' bubbles are raising from the bottom, moving the particles apart, and eventually reaching the surface
-    - #unfinished
+    - #unfinished, looks like crap
 */
 
 

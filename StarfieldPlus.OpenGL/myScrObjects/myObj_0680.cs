@@ -1,13 +1,10 @@
 ﻿using GLFW;
 using static OpenGL.GL;
-using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Reflection;
 
 
 /*
-    - Scrolling wall of "text"
+    - Scrolling wall of pseudo text
 */
 
 

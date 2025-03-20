@@ -22,6 +22,8 @@
 #pragma warning disable IDE1006
 
 
+using my;
+
 public class ScreenSaver
 {
     private my.myObject _obj = null;
@@ -193,10 +195,10 @@ public class ScreenSaver
             my.myObj_0630.Type,     // Rotating circles made of letters and symbols
             my.myObj_0640.Type,     // Create random rectangles, but put them on the screen only when they don't intersect any existing rectangles
             my.myObj_0641.Type,     // Create random circles, but put them on the screen only when they don't intersect any existing circles
-            my.myObj_0650.Type,     // Drawing symbols using the color sampled from an image
+            my.myObj_0650.Type,     // Drawing characters using the color sampled from an image
             my.myObj_0660.Type,     // Particle waves originating from the center. Particles in every wave are interconnected
             my.myObj_0670.Type,     // Nested rectangles. Lots of smaller particles are bouncing off the rectangles' edges
-            my.myObj_0680.Type,     // Scrolling wall of "text"
+            my.myObj_0680.Type,     // Scrolling wall of pseudo text
             my.myObj_0690.Type,     // Circularly moving particles with discrete curvature
             my.myObj_0691.Type,     // Pseudo 3d based off myObj_690
             my.myObj_0700.Type,     // Straight lines that reflect backwards
@@ -258,14 +260,17 @@ public class ScreenSaver
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
         };
 
+#if false
+        _obj = (my.myObject)System.Activator.CreateInstance(myObj_9999_test_002c.Type);
+#else
         foreach (var t in types)
         {
             my.myObj_Prioritizer.RegisterClass(t);
         }
 
         // Randomly pick one single object
-        _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true);
-
+        _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true, doClearDictionary: true);
+#endif
         return;
     }
 

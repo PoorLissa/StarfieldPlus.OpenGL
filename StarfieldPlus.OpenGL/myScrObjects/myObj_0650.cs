@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Drawing random symbols using the color sampled from an image
+    - Drawing random characters using the color sampled from an image
 */
 
 

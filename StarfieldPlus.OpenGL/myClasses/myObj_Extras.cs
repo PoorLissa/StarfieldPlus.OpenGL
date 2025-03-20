@@ -45,7 +45,7 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Return random object from the pool of registered classes, adjusted for each Type's priority
-        public static my.myObject GetRandomObject(bool usePriority = true)
+        public static my.myObject GetRandomObject(bool usePriority, bool doClearDictionary)
         {
             int objId = 0;
 
@@ -75,6 +75,11 @@ namespace my
             }
 
             var typeToReturn = _dic[objId];
+
+            if (doClearDictionary)
+            {
+                _dic.Clear();
+            }
 
             // Instantiate object of the selected type and return it
             return (my.myObject)System.Activator.CreateInstance(typeToReturn);
