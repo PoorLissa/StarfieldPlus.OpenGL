@@ -74,9 +74,9 @@ public class ScreenSaver
     // - grid over an image. grid pulses, increasing and decreasing its cells size. each cell is displaying average img color
 
     // todo:
-    // - try bezier curves: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
-    // - try neural cellular automata: https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
-    // - number of rotating lines. the length of each line is changing over time
+    // - try bezier curves:             https://en.wikipedia.org/wiki/B%C3%A9zier_curve
+    // - try neural cellular automata:  https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
+    // - try Delaunay triangulation:    https://en.wikipedia.org/wiki/Delaunay_triangulation
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
@@ -256,13 +256,14 @@ public class ScreenSaver
             my.myObj_1180.Type,     // ...
             my.myObj_1190.Type,     // Generators expand and spawn particles along their circumference
             my.myObj_1200.Type,     // Pseudo 3d 'tooth like' pyramids
+            my.myObj_1210.Type,     // Rotating lines aligned to grid
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
         };
 
-#if !false
-        _obj = (my.myObject)System.Activator.CreateInstance(my.myObj_1200.Type);
+#if false
+        _obj = (my.myObject)System.Activator.CreateInstance(my.myObj_0960.Type);
 #else
         foreach (var t in types)
         {
