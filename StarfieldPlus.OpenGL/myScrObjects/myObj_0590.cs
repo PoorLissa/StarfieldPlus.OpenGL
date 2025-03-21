@@ -30,8 +30,8 @@ namespace my
         private float size;
         private myParticleTrail trail = null;
 
-        private static int N = 0, n = 0, moveMode = 0, nTrail = 0;
-        private static bool doFillShapes = false, doUseTrails = false;
+        private static int N = 0, n = 0, moveMode = 0, nTrail = 0, lineWidth = 1, connectionMode = 0, connectionDist = 0;
+        private static bool doFillShapes = false, doUseTrails = false, doUseZsize = false;
         private static float dimAlpha = 0.05f;
 
         private static myFreeShader shader = null;
@@ -83,7 +83,13 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doUseZsize = myUtils.randomBool(rand);
+
             moveMode = rand.Next(2);
+            connectionMode = rand.Next(3);
+
+            lineWidth = 1 + rand.Next(6);
+            connectionDist = 333 + rand.Next(666);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -93,15 +99,17 @@ namespace my
             height = 600;
 
             string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
 
             string str = $"Obj = {Type}\n\n"                      	 +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"n = {n}\n"                             +
                             $"doUseTrails = {doUseTrails}\n"         +
+                            $"doUseZsize = {doUseZsize}\n"           +
                             $"nTrail = {nTrail}\n"                   +
                             $"moveMode = {moveMode}\n"               +
-                            $"renderDelay = {renderDelay}\n"         +
+                            $"connectionMode = {connectionMode}\n"   +
+                            $"connectionDist = {connectionDist}\n"   +
+                            $"lineWidth = {lineWidth}\n"             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -161,10 +169,7 @@ namespace my
                 trail = new myParticleTrail(nTrail, X, Y);
             }
 
-            if (trail != null)
-            {
-                trail.updateDa(A);
-            }
+            trail?.updateDa(A);
 
             return;
         }
@@ -176,7 +181,7 @@ namespace my
             // Update trail info
             if (doUseTrails)
             {
-                trail.update(X, Y);
+                trail?.update(X, Y);
             }
 
             for (int i = 0; i < n; i++)
@@ -262,30 +267,67 @@ namespace my
             Y /= n;
             Z /= n;
 
-            // Draw the trail
-            if (doUseTrails)
-            {
-                trail.Show(R, G, B, A);
-            }
+            float mySize = doUseZsize
+                ? size * (Z + 1) / 1000
+                : size;
 
             shader.SetColor(R, G, B, A);
             shader.Draw(X, Y, 5, 5, 10);
-            shader.Draw(X, Y, size, size, 10);
+            shader.Draw(X, Y, mySize, mySize, 10);
 
-            if (id > 0)
+            // Display connections between primary particles
+            switch (connectionMode)
             {
-                var prev = list[(int)id - 1] as myObj_0590;
+                // No connections
+                case 0:
+                    break;
 
-                myPrimitive._LineInst.setInstanceCoords(X, Y, prev.X, prev.Y);
-                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
+                // Simple stupid connections prev to next
+                case 1:
+                    {
+                        if (id > 0)
+                        {
+                            var prev = list[(int)id - 1] as myObj_0590;
 
-                if (id == N-1)
-                {
-                    var first = list[0] as myObj_0590;
+                            myPrimitive._LineInst.setInstanceCoords(X, Y, prev.X, prev.Y);
+                            myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
 
-                    myPrimitive._LineInst.setInstanceCoords(X, Y, first.X, first.Y);
-                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
-                }
+                            if (id == N - 1)
+                            {
+                                var first = list[0] as myObj_0590;
+
+                                myPrimitive._LineInst.setInstanceCoords(X, Y, first.X, first.Y);
+                                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.1f);
+                            }
+                        }
+                    }
+                    break;
+
+                // Smart proximity connections
+                case 2:
+                    {
+                        for (int i = 0; i < list.Count; i++)
+                        {
+                            if (i != id)
+                            {
+                                var other = list[i] as myObj_0590;
+
+                                float dx = X - other.X;
+                                float dy = Y - other.Y;
+
+                                float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                                if (dist < connectionDist)
+                                {
+                                    float opacity = 0.5f * (1.0f * connectionDist - dist) / connectionDist;
+
+                                    myPrimitive._LineInst.setInstanceCoords(X, Y, other.X, other.Y);
+                                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, opacity);
+                                }
+                            }
+                        }
+                    }
+                    break;
             }
 
             return;
@@ -309,6 +351,8 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
                 //glDrawBuffer(GL_DEPTH_BUFFER_BIT);
             }
+
+            stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -359,6 +403,22 @@ namespace my
                     inst.Draw(false);
 
                     myPrimitive._LineInst.Draw();
+
+                    // Draw the trail -- use a separate call to maintain tail line width
+                    if (doUseTrails)
+                    {
+                        myPrimitive._LineInst.ResetBuffer();
+                        myPrimitive._LineInst.setLineWidth(lineWidth);
+
+                        for (int i = 0; i != Count; i++)
+                        {
+                            var obj = list[i] as myObj_0590;
+                            obj.trail?.Show(obj.R, obj.G, obj.B, obj.A);
+                        }
+
+                        myPrimitive._LineInst.Draw();
+                        myPrimitive._LineInst.setLineWidth(1);
+                    }
                 }
 
                 if (Count < N)
@@ -366,8 +426,8 @@ namespace my
                     list.Add(new myObj_0590());
                 }
 
+                stopwatch.WaitAndRestart();
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
@@ -378,7 +438,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            myPrimitive.init_LineInst(doUseTrails ? (N + N * nTrail) : N);
+            myPrimitive.init_LineInst(doUseTrails ? (N * N + N * nTrail) : N * N);
 
             base.initShapes(2, N * n, 0);
 
