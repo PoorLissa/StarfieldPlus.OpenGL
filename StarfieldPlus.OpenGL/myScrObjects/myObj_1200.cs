@@ -19,10 +19,11 @@ namespace my
 
         private bool dir;
         private float x, y, dx, dy, w1, w2;
-        private float a, A, R, G, B;
+        private float a, A, R1, G1, B1, R2, G2, B2;
 
-        private static int N = 0, mode = 0, opacityMode = 0, widthMode = 0, mode2offset = 0;
+        private static int N = 0, mode = 0, colorMode = 0, opacityMode = 0, widthMode = 0, addMode = 0, mode2offset = 0;
         private static float dimAlpha = 0.05f, darkFactor = 1, xSpdFactor = 1;
+        private static float sR = 0.1f, sG = 0.1f, sB = 0.1f;
 
         private static myScreenGradient grad = null;
         private static Polygon4 p4 = null;
@@ -48,10 +49,11 @@ namespace my
                 N = rand.Next(10) + 10;
                 N = 33;
 
-                mode = rand.Next(3);
+                mode = rand.Next(4);
                 widthMode = rand.Next(2);
+                addMode = rand.Next(2);
 
-                if (mode == 2)
+                if (mode == 2 || mode == 3)
                     N *= 2;
             }
 
@@ -63,14 +65,18 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
             doClearBuffer = true;
 
-            opacityMode = rand.Next(3);
+            colorMode = rand.Next(2);
+            opacityMode = rand.Next(4);
             mode2offset = 111 + rand.Next(666);
 
             darkFactor = 0.5f + 0.001f * rand.Next(250);
             xSpdFactor = 0.1f + myUtils.randFloat(rand) * 0.9f;
+
+            sR = 0.1f;
+            sG = 0.1f;
+            sB = 0.1f;
 
             return;
         }
@@ -84,7 +90,9 @@ namespace my
             string str = $"Obj = {Type}\n\n"                             +
                             myUtils.strCountOf(list.Count, N)            +
                             $"mode = {mode}\n"                           +
+                            $"addMode = {addMode}\n"                     +
                             $"widthMode = {widthMode}\n"                 +
+                            $"colorMode = {colorMode}\n"                 +
                             $"opacityMode = {opacityMode}\n"             +
                             $"mode2offset = {mode2offset}\n"             +
                             $"xSpdFactor = {myUtils.fStr(xSpdFactor)}\n" +
@@ -117,6 +125,7 @@ namespace my
                     break;
 
                 case 2:
+                case 3:
                     dir = myUtils.randomBool(rand);
                     break;
             }
@@ -134,13 +143,34 @@ namespace my
                 w2 = w1;
 
             a = 0;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            switch (colorMode)
+            {
+                case 0:
+                    colorPicker.getColor(x, y, ref R1, ref G1, ref B1);
+                    break;
+
+                case 1:
+                    R1 = sR;
+                    G1 = sG;
+                    B1 = sB;
+
+                    sR += myUtils.randomChance(rand, 1, 2) ? 0.9f / N : 0;
+                    sG += myUtils.randomChance(rand, 1, 2) ? 0.9f / N : 0;
+                    sB += myUtils.randomChance(rand, 1, 2) ? 0.9f / N : 0;
+                    break;
+            }
+
+            R2 = R1 * darkFactor;
+            G2 = G1 * darkFactor;
+            B2 = B1 * darkFactor;
 
             switch (opacityMode)
             {
                 case 0: A = 0.9f; break;
                 case 1: A = 1.0f; break;
                 case 2: A = myUtils.randomBool(rand) ? 0.9f : 1.0f; break;
+                case 3: A = myUtils.randFloatClamped(rand, 0.25f); break;
             }
 
             return;
@@ -178,6 +208,25 @@ namespace my
                         }
                     }
                     break;
+
+                case 3:
+                    if (dir)
+                    {
+                        top = gl_y0 - gl_y0/2;
+                        bottom = gl_y0;
+
+                        top = gl_y0 - gl_y0/2;
+                        bottom = gl_y0 + gl_y0/2;
+                    }
+                    else
+                    {
+                        top = gl_y0;
+                        bottom = gl_y0 + gl_y0/2;
+
+                        top = gl_y0 - gl_y0/2;
+                        bottom = gl_y0 + gl_y0/2;
+                    }
+                    break;
             }
 
             if (x < 0 && dx < 0)
@@ -186,85 +235,95 @@ namespace my
             if (x > gl_Width && dx > 0)
                 dx *= -1;
 
-            if (dir && y < top && dy < 0)
-                dy *= -1;
+            if (dir)
+            {
+                if (y < top && dy < 0)
+                    dy *= -1;
 
-            if (dir && y > bottom && dy > 0)
-                dy *= -1;
+                if (y > bottom && dy > 0)
+                    dy *= -1;
+            }
+            else
+            {
+                if (y < top && dy < 0)
+                    dy *= -1;
 
-            if (!dir && y < top && dy < 0)
-                dy *= -1;
-
-            if (!dir && y > bottom && dy > 0)
-                dy *= -1;
+                if (y > bottom && dy > 0)
+                    dy *= -1;
+            }
 
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
+        private void drawTriangle(int bottom, bool doFill)
+        {
+            myPrimitive._Triangle.SetColor(R1, G1, B1, a);
+            myPrimitive._Triangle.Draw(x, y, x - w1, bottom, x, bottom, doFill);
+
+            myPrimitive._Triangle.SetColor(R2, G2, B2, a);
+            myPrimitive._Triangle.Draw(x, y, x + w2, bottom, x, bottom, doFill);
+
+            // Draw outline
+            myPrimitive._Triangle.SetColor(0, 0, 0, a);
+            myPrimitive._Triangle.Draw(x, y, x - w1, bottom, x, bottom, false);
+            myPrimitive._Triangle.Draw(x, y, x + w2, bottom, x, bottom, false);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void drawTriangleUpsideDown(int top, bool doFill)
+        {
+            myPrimitive._Triangle.SetColor(R1, G1, B1, a);
+            myPrimitive._Triangle.Draw(x, y, x - w1, top, x, top, doFill);
+
+            myPrimitive._Triangle.SetColor(R2, G2, B2, a);
+            myPrimitive._Triangle.Draw(x, y, x + w2, top, x, top, doFill);
+
+            // Draw outline
+            myPrimitive._Triangle.SetColor(0, 0, 0, a);
+            myPrimitive._Triangle.Draw(x, y, x - w1, top, x, top, false);
+            myPrimitive._Triangle.Draw(x, y, x + w2, top, x, top, false);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
         protected override void Show()
         {
-            bool doFill = !false;
+            bool doFill = true;
 
             if (true)
             {
                 switch (mode)
                 {
                     case 0:
-                        {
-                            myPrimitive._Triangle.SetColor(R, G, B, a);
-                            myPrimitive._Triangle.Draw(x, y, x - w1, gl_Height, x, gl_Height, doFill);
-
-                            myPrimitive._Triangle.SetColor(R * darkFactor, G * darkFactor, B * darkFactor, a);
-                            myPrimitive._Triangle.Draw(x, y, x + w2, gl_Height, x, gl_Height, doFill);
-
-                            myPrimitive._Triangle.SetColor(0, 0, 0, a);
-                            myPrimitive._Triangle.Draw(x, y, x - w1, gl_Height, x, gl_Height, false);
-                            myPrimitive._Triangle.Draw(x, y, x + w2, gl_Height, x, gl_Height, false);
-                        }
+                        drawTriangle(gl_Height, doFill);
                         break;
 
                     case 1:
-                        {
-                            myPrimitive._Triangle.SetColor(R, G, B, a);
-                            myPrimitive._Triangle.Draw(x, y, x - w1, 0, x, 0, doFill);
-
-                            myPrimitive._Triangle.SetColor(R * darkFactor, G * darkFactor, B * darkFactor, a);
-                            myPrimitive._Triangle.Draw(x, y, x + w2, 0, x, 0, doFill);
-
-                            myPrimitive._Triangle.SetColor(0, 0, 0, a);
-                            myPrimitive._Triangle.Draw(x, y, x - w1, 0, x, 0, false);
-                            myPrimitive._Triangle.Draw(x, y, x + w2, 0, x, 0, false);
-                        }
+                        drawTriangleUpsideDown(0, doFill);
                         break;
 
                     case 2:
+                        if (dir)
                         {
-                            if (dir)
-                            {
-                                myPrimitive._Triangle.SetColor(R, G, B, a);
-                                myPrimitive._Triangle.Draw(x, y, x - w1, gl_Height, x, gl_Height, doFill);
+                            drawTriangle(gl_Height, doFill);
+                        }
+                        else
+                        {
+                            drawTriangleUpsideDown(0, doFill);
+                        }
+                        break;
 
-                                myPrimitive._Triangle.SetColor(R * darkFactor, G * darkFactor, B * darkFactor, a);
-                                myPrimitive._Triangle.Draw(x, y, x + w2, gl_Height, x, gl_Height, doFill);
-
-                                myPrimitive._Triangle.SetColor(0, 0, 0, a);
-                                myPrimitive._Triangle.Draw(x, y, x - w1, gl_Height, x, gl_Height, false);
-                                myPrimitive._Triangle.Draw(x, y, x + w2, gl_Height, x, gl_Height, false);
-                            }
-                            else
-                            {
-                                myPrimitive._Triangle.SetColor(R, G, B, a);
-                                myPrimitive._Triangle.Draw(x, y, x - w1, 0, x, 0, doFill);
-
-                                myPrimitive._Triangle.SetColor(R * darkFactor, G * darkFactor, B * darkFactor, a);
-                                myPrimitive._Triangle.Draw(x, y, x + w2, 0, x, 0, doFill);
-
-                                myPrimitive._Triangle.SetColor(0, 0, 0, a);
-                                myPrimitive._Triangle.Draw(x, y, x - w1, 0, x, 0, false);
-                                myPrimitive._Triangle.Draw(x, y, x + w2, 0, x, 0, false);
-                            }
+                    case 3:
+                        if (dir)
+                        {
+                            drawTriangle(gl_y0, doFill);
+                        }
+                        else
+                        {
+                            drawTriangleUpsideDown(gl_y0, doFill);
                         }
                         break;
                 }
@@ -272,7 +331,7 @@ namespace my
                 return;
             }
 
-            myPrimitive._Triangle.SetColor(R, G, B, A);
+            myPrimitive._Triangle.SetColor(R1, G1, B1, a);
             myPrimitive._Triangle.Draw(0, 0, x, y, gl_Width, 0, doFill);
 
             float x1 = 0;
@@ -284,7 +343,7 @@ namespace my
             float x4 = x;
             float y4 = gl_Height;
 
-            p4.SetColor(R * 0.75f, G * 0.75f, B * 0.75f, A);
+            p4.SetColor(R1 * 0.75f, G1 * 0.75f, B1 * 0.75f, A);
             //p4.Draw(x1, y1, x2, y2, x3, y3, x4, y4, doFill);
 
             x1 = x;
@@ -296,7 +355,7 @@ namespace my
             x4 = gl_Width;
             y4 = gl_Height;
 
-            p4.SetColor(R * 1.2f, G * 1.2f, B * 1.2f, A);
+            p4.SetColor(R1 * 1.2f, G1 * 1.2f, B1 * 1.2f, A);
             //p4.Draw(x1, y1, x2, y2, x3, y3, x4, y4, doFill);
 
 /*
@@ -338,15 +397,8 @@ namespace my
 
                 // Dim screen
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -362,7 +414,23 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_1200());
+                    bool doAdd = false;
+
+                    switch (addMode)
+                    {
+                        case 0:
+                            doAdd = true;
+                            break;
+
+                        case 1:
+                            doAdd = myUtils.randomChance(rand, 1, 111);
+                            break;
+                    }
+
+                    if (doAdd)
+                    {
+                        list.Add(new myObj_1200());
+                    }
                 }
 
                 stopwatch.WaitAndRestart();
