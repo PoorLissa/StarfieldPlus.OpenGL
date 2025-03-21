@@ -255,6 +255,7 @@ public class ScreenSaver
             my.myObj_1170.Type,     // Scrolling texture images
             my.myObj_1180.Type,     // ...
             my.myObj_1190.Type,     // Generators expand and spawn particles along their circumference
+            my.myObj_1200.Type,     // Pseudo 3d 'tooth like' pyramids
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
