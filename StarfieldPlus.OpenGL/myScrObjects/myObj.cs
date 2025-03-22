@@ -11,6 +11,7 @@ using System.Drawing.Text;
 using StarfieldPlus.OpenGL.myUtils;
 using System.Media;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
+using System.Security.AccessControl;
 
 
 #pragma warning disable CS0162                      // Unreachable code warnings
@@ -43,6 +44,7 @@ namespace my
 
         public static int gl_Width, gl_Height, gl_x0, gl_y0, renderDelay = 25, stepsPerFrame = 1;
         private static uint s_id = uint.MaxValue;
+        private static string filePath = "zzz.log";
 
 #if !DEBUG
         private static double cursorx = 0, cursory = 0;
@@ -71,6 +73,26 @@ namespace my
 
             if (colorPicker == null)
             {
+                {
+                    try
+                    {
+                        filePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\" + filePath;
+
+                        // Create log file and immediately close it
+                        if (!System.IO.File.Exists(filePath))
+                            System.IO.File.Create(filePath).Close();
+
+                        // Get access privileges to the file
+                        FileSecurity security = System.IO.File.GetAccessControl(filePath);
+                        security.AddAccessRule(new FileSystemAccessRule("Everyone", FileSystemRights.Write, AccessControlType.Allow));
+                        System.IO.File.SetAccessControl(filePath, security);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Log Exception", MessageBoxButtons.OK);
+                    }
+                }
+
                 gl_x0 = gl_Width  / 2;
                 gl_y0 = gl_Height / 2;
 
@@ -224,6 +246,8 @@ namespace my
         {
             try
             {
+                Log(" ---------------------- ");
+
                 // Get Monitor Off and Sleep timeout values
                 getWindowsTimeouts();
 
@@ -255,7 +279,9 @@ namespace my
 
                 // Main Procedure
                 {
+                    Log("Scr: Process");
                     Process(openGL_Window);
+                    Log("Scr: PostProcess");
                     PostProcess(openGL_Window);
                 }
 
@@ -266,11 +292,16 @@ namespace my
                 // Finally, in case we've reached all the timeouts, put the PC to sleep before exiting
                 if (Program.gl_State == Program.STATE.MANAGED_SLEEP)
                 {
+                    Log("Scr: SetSuspendState");
                     Application.SetSuspendState(PowerState.Suspend, true, true);
                 }
+
+                Log("Scr: Graceful Exit");
             }
             catch (System.Exception ex)
             {
+                Log($"Scr: System.Exception {ex.Message}");
+
                 if (true)
                 {
                     var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
@@ -289,19 +320,18 @@ namespace my
 
         protected void Log(string str)
         {
-#if DEBUG
             try
             {
-                using (System.IO.StreamWriter sw = System.IO.File.AppendText("zzz.log"))
+                using (System.IO.StreamWriter sw = System.IO.File.AppendText(filePath))
                 {
-                    sw.WriteLine(str);
+                    var dt = DateTime.Now.ToString();
+                    sw.WriteLine($"{dt} : " + str);
                 }
             }
             catch (System.Exception ex)
             {
                 MessageBox.Show(ex.Message, "Log Exception", MessageBoxButtons.OK);
             }
-#endif
         }
 
         // ---------------------------------------------------------------------------------------------------------------
