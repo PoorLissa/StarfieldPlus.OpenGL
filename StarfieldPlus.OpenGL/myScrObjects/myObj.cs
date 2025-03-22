@@ -246,7 +246,7 @@ namespace my
         {
             try
             {
-                Log(" ---------------------- ");
+                Log($" ------------- {this.GetType().Name} ------------- ");
 
                 // Get Monitor Off and Sleep timeout values
                 getWindowsTimeouts();
@@ -318,7 +318,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        protected void Log(string str)
+        public static void Log(string str)
         {
             try
             {

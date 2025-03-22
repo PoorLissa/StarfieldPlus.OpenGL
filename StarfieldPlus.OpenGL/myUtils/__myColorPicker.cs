@@ -615,6 +615,8 @@ namespace my
             }
             catch (Exception ex)
             {
+                myObject.Log($"Scr: System.Exception {ex.Message}");
+
                 if (true)
                 {
                     var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
