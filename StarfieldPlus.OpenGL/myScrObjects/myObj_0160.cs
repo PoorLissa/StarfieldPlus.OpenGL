@@ -146,7 +146,7 @@ namespace my
             doDraw = true;
 
             x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            y = rand.Next(gl_Height + 100);
 
             if (doUseCells)
             {
