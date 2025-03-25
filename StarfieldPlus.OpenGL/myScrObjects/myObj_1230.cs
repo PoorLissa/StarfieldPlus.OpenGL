@@ -5,33 +5,37 @@ using System.Collections.Generic;
 
 
 /*
-    - Empty object. Use as a template to create new objects
+    - 
 */
 
 
 namespace my
 {
-    public class myObj_empty : myObject
+    public class myObj_1230 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_empty);
+		public static System.Type Type => typeof(myObj_1230);
 
+        private bool isAlive;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, mode = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.05f, alpha = 0, dAlpha = 0, aMin = 0, aMax = 0, spd = 0;
 
+        private static myObj_1230 gen = null;
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_empty()
+        public myObj_1230()
         {
             if (id != uint.MaxValue)
                 generateNew();
+
+            isAlive = false;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -44,7 +48,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
+                N = 3000;
 
                 shape = rand.Next(5);
             }
@@ -57,7 +61,14 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 1, 2);
+            doClearBuffer = myUtils.randomChance(rand, 19, 20);
+            doFillShapes = myUtils.randomChance(rand, 2, 3);
+
+            mode = rand.Next(4);
+            mode = 0;
+
+            spd = 1.0f + myUtils.randFloat(rand) * rand.Next(5);
+            dAlpha = 0.01f + myUtils.randFloat(rand) * 0.1f;
 
             return;
         }
@@ -68,8 +79,10 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
+            string str = $"Obj = {Type}\n\n"                     +
+                            myUtils.strCountOf(list.Count, N)    +
+                            $"spd = {myUtils.fStr(spd)}\n"       +
+                            $"dAlpha = {myUtils.fStr(dAlpha)}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -87,20 +100,50 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
+            if (id == 0)
+            {
+                gen = this;
 
-            dx = myUtils.randFloat(rand);
-            dy = myUtils.randFloat(rand);
+                switch (mode)
+                {
+                    case 0:
+                        aMin = 0;
+                        aMax = (float)Math.PI;
+                        alpha = aMin;
 
-            size = rand.Next(11) + 3;
+                        x = gl_x0;
+                        y = gl_Height;
+                        break;
+                }
+            }
+            else
+            {
+                isAlive = true;
 
-            A = 1;
-            R = (float)rand.NextDouble();
-            G = (float)rand.NextDouble();
-            B = (float)rand.NextDouble();
+                x = gen.x;
+                y = gen.y;
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+                float ALPHA = alpha;
+
+                switch (mode)
+                {
+                    case 0:
+                        ALPHA += (float)Math.PI;
+                        break;
+                }
+
+                dx = spd * (float)Math.Cos(ALPHA);
+                dy = spd * (float)Math.Sin(ALPHA);
+
+                size = 3;
+
+                A = 0.25f;
+                R = (float)rand.NextDouble();
+                G = (float)rand.NextDouble();
+                B = (float)rand.NextDouble();
+
+                R = G = B = 0.33f;
+            }
 
             return;
         }
@@ -109,12 +152,40 @@ namespace my
 
         protected override void Move()
         {
-            x += dx;
-            y += dy;
-
-            if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+            if (id == 0)
             {
-                generateNew();
+                alpha += dAlpha;
+
+                int Count = list.Count;
+
+                for (int i = 1; i < Count; i++)
+                {
+                    var obj = list[i] as myObj_1230;
+
+                    if (obj.isAlive == false)
+                    {
+                        obj.generateNew();
+                        break;
+                    }
+                }
+
+                if (alpha > aMax && dAlpha > 0)
+                    dAlpha *= -1;
+
+                if (alpha < aMin && dAlpha < 0)
+                    dAlpha *= -1;
+            }
+            else
+            {
+                x += dx;
+                y += dy;
+
+                //colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+                {
+                    isAlive = false;
+                }
             }
 
             return;
@@ -124,40 +195,43 @@ namespace my
 
         protected override void Show()
         {
-            float size2x = size * 2;
-
-            switch (shape)
+            if (isAlive)
             {
-                // Instanced squares
-                case 0:
-                    myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                    myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
-                    myPrimitive._RectangleInst.setInstanceAngle(angle);
-                    break;
+                float size2x = size * 2;
 
-                // Instanced triangles
-                case 1:
-                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
-                    break;
+                switch (shape)
+                {
+                    // Instanced squares
+                    case 0:
+                        myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._RectangleInst.setInstanceAngle(angle);
+                        break;
 
-                // Instanced circles
-                case 2:
-                    myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
-                    break;
+                    // Instanced triangles
+                    case 1:
+                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                // Instanced pentagons
-                case 3:
-                    myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
-                    break;
+                    // Instanced circles
+                    case 2:
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                        break;
 
-                // Instanced hexagons
-                case 4:
-                    myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
-                    myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
-                    break;
+                    // Instanced pentagons
+                    case 3:
+                        myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced hexagons
+                    case 4:
+                        myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                        break;
+                }
             }
 
             return;
@@ -170,10 +244,12 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            // Disable VSYNC if needed
-            // Glfw.SwapInterval(0);
-
             clearScreenSetup(doClearBuffer, 0.1f);
+
+            while (list.Count < 100)
+            {
+                list.Add(new myObj_1230());
+            }
 
             stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
 
@@ -206,7 +282,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_empty;
+                        var obj = list[i] as myObj_1230;
 
                         obj.Show();
                         obj.Move();
@@ -226,7 +302,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_empty());
+                    list.Add(new myObj_1230());
                 }
 
                 stopwatch.WaitAndRestart();
