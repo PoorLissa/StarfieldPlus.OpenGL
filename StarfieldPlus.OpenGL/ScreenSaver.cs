@@ -251,7 +251,7 @@ public class ScreenSaver
             my.myObj_1130.Type,     // Filling the screen with lines of blocks with constantly diminishing size
             my.myObj_1140.Type,     // Spiraling particles with long tails
             my.myObj_1150.Type,     // ...
-            my.myObj_1160.Type,     // Partial hexagon grid moving along a moving particle
+            my.myObj_1160.Type,     // Partial hexagon grid revealed in the vicinity of a moving particle
             my.myObj_1170.Type,     // Scrolling texture images
             my.myObj_1180.Type,     // ...
             my.myObj_1190.Type,     // Generators expand and spawn particles along their circumference
