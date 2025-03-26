@@ -21,8 +21,8 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, dAngle;
 
-        private static int N = 0, shape = 0, mode = 0, alive;
-        private static bool doFillShapes = false, is_dAlphaGrowing = true, doShiftDAlpha = false;
+        private static int N = 0, shape = 0, mode = 0, sizeMode = 0, alive;
+        private static bool doFillShapes = false, is_dAlphaGrowing = true, doShiftDAlpha = false, doUseExtraSkip = false;
         private static float dimAlpha = 0.05f, alpha = 0, dAlpha = 0, dAlphaMin = 0, dAlphaMax = 0, aMin = 0, aMax = 0, spd = 0, t = 0;
 
         private static myObj_1230 gen = null;
@@ -48,7 +48,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 3000;
+                N = 15000;
 
                 shape = rand.Next(5);
             }
@@ -64,14 +64,20 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 19, 20);
             doFillShapes = myUtils.randomChance(rand, 2, 3);
             doShiftDAlpha = myUtils.randomChance(rand, 2, 3);
+            doUseExtraSkip = myUtils.randomChance(rand, 1, 2);
 
             mode = rand.Next(4);
+            sizeMode = rand.Next(7);
             mode = 0;
 
             spd = 1.0f + myUtils.randFloat(rand) * rand.Next(5);
             dAlpha = 0.01f + myUtils.randFloat(rand) * 0.1f;
 
-            dAlpha /= 3;
+#if false
+            dAlpha = 0.045f / 1;
+            spd = 1;
+            doShiftDAlpha = false;
+#endif
 
             dAlphaMin = 0.001f;
             dAlphaMax = 0.200f;
@@ -92,10 +98,12 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n"       +
                             $"doFillShapes = {doFillShapes}\n"         +
                             $"doShiftDAlpha = {doShiftDAlpha}\n"       +
+                            $"doUseExtraSkip = {doUseExtraSkip}\n"     +
                             $"is_dAlphaGrowing = {is_dAlphaGrowing}\n" +
-                            $"alive = {alive}\n"                       +
+                            $"total alive = {alive}\n"                 +
                             $"spd = {myUtils.fStr(spd)}\n"             +
                             $"dAlpha = {myUtils.fStr(dAlpha)}\n"       +
+                            $"sizeMode = {sizeMode}\n"                 +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -148,10 +156,41 @@ namespace my
                 dx = spd * (float)Math.Cos(ALPHA);
                 dy = spd * (float)Math.Sin(ALPHA);
 
-                size = 3;
+                switch (sizeMode)
+                {
+                    case 0:
+                        size = 1;
+                        break;
+
+                    case 1:
+                        size = 2;
+                        break;
+
+                    case 2:
+                        size = 3;
+                        break;
+
+                    case 3:
+                        size = 3 + rand.Next(3);
+                        break;
+
+                    case 4:
+                        size = 1 + rand.Next(11);
+                        break;
+
+                    case 5:
+                        size = 1 + rand.Next(33);
+                        break;
+
+                    case 6:
+                        size = 1 + rand.Next(50);
+                        break;
+                }
+
                 dAngle = myUtils.randFloat(rand) * 0.001f;
 
-                A = 0.5f + myUtils.randFloat(rand) * 0.5f;
+                A = 0.75f + myUtils.randFloat(rand) * 0.25f;
+
                 R = (float)rand.NextDouble();
                 G = (float)rand.NextDouble();
                 B = (float)rand.NextDouble();
@@ -168,10 +207,15 @@ namespace my
         {
             if (id == 0)
             {
-                alpha += dAlpha;
+                if (doUseExtraSkip)
+                {
+                    alpha += dAlpha;
+                }
 
                 int Count = list.Count;
                 int cnt = 0;
+                int repeats = 7;
+                float dAlphaSmall = dAlpha / repeats;
 
                 for (int i = 1; i < Count; i++)
                 {
@@ -180,8 +224,9 @@ namespace my
                     if (obj.isAlive == false)
                     {
                         obj.generateNew();
-                        
-                        if (++cnt == 3)
+                        alpha += dAlphaSmall;
+
+                        if (++cnt == repeats)
                             break;
                     }
                 }
@@ -223,7 +268,11 @@ namespace my
                     x += dx;
                     y += dy;
 
+                    dx *= 1.0005f;
+                    dy *= 1.0005f;
+
                     angle += dAngle;
+                    A -= 0.0002f;
 
                     //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -256,7 +305,7 @@ namespace my
 
                     // Instanced triangles
                     case 1:
-                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size, angle);
                         myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
                         break;
 
@@ -292,7 +341,7 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
-            while (list.Count < 100)
+            while (list.Count < N)
             {
                 list.Add(new myObj_1230());
             }

@@ -45,41 +45,44 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Return random object from the pool of registered classes, adjusted for each Type's priority
-        public static my.myObject GetRandomObject(bool usePriority, bool doClearDictionary, bool useThisType, Type t)
+        public static my.myObject GetRandomObject(bool doUsePriority, bool doClearDictionary, bool doUseThisType, Type t)
         {
-            if (useThisType && t != null)
+            Type typeToReturn;
+
+            if (doUseThisType && t != null)
             {
-                return (my.myObject)System.Activator.CreateInstance(t);
-            }
-
-            int objId = 0;
-
-            var rand = new Random(Guid.NewGuid().GetHashCode());
-
-            if (usePriority)
-            {
-                // Add one, as there will be no dictionary entry with id = 0
-                objId = rand.Next(_totalPriority) + 1;
-
-                while (!_dic.ContainsKey(objId))
-                    objId++;
+                typeToReturn = t;
             }
             else
             {
-                // No priority: get an item by its index
-                objId = rand.Next(_dic.Count);
+                int objId = 0;
+                var rand = new Random(Guid.NewGuid().GetHashCode());
 
-                foreach (var obj in _dic)
+                if (doUsePriority)
                 {
-                    if (objId-- == 0)
+                    // Add one, as there will be no dictionary entry with id = 0
+                    objId = rand.Next(_totalPriority) + 1;
+
+                    while (!_dic.ContainsKey(objId))
+                        objId++;
+                }
+                else
+                {
+                    // No priority: get an item by its index
+                    objId = rand.Next(_dic.Count);
+
+                    foreach (var obj in _dic)
                     {
-                        objId = obj.Key;
-                        break;
+                        if (objId-- == 0)
+                        {
+                            objId = obj.Key;
+                            break;
+                        }
                     }
                 }
-            }
 
-            var typeToReturn = _dic[objId];
+                typeToReturn = _dic[objId];
+            }
 
             // Clear dictionary, as we won't be needing it again in this session
             if (doClearDictionary)

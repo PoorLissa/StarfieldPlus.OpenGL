@@ -270,8 +270,10 @@ public class ScreenSaver
         }
 
         // Randomly pick one single object
-        _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true, doClearDictionary: true);
-
+        _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority: true,
+                                        doClearDictionary: true,
+                                        doUseThisType: false,
+                                        my.myObj_1230.Type);
         return;
     }
 
