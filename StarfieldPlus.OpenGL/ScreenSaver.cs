@@ -264,9 +264,6 @@ public class ScreenSaver
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
         };
 
-#if false
-        _obj = (my.myObject)System.Activator.CreateInstance(my.myObj_1230.Type);
-#else
         foreach (var t in types)
         {
             my.myObj_Prioritizer.RegisterClass(t);
@@ -274,7 +271,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(usePriority: true, doClearDictionary: true);
-#endif
+
         return;
     }
 

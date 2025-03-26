@@ -45,8 +45,13 @@ namespace my
         // ---------------------------------------------------------------------------------------------------------------
 
         // Return random object from the pool of registered classes, adjusted for each Type's priority
-        public static my.myObject GetRandomObject(bool usePriority, bool doClearDictionary)
+        public static my.myObject GetRandomObject(bool usePriority, bool doClearDictionary, bool useThisType, Type t)
         {
+            if (useThisType && t != null)
+            {
+                return (my.myObject)System.Activator.CreateInstance(t);
+            }
+
             int objId = 0;
 
             var rand = new Random(Guid.NewGuid().GetHashCode());

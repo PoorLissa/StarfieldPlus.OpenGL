@@ -22,8 +22,8 @@ namespace my
         private float size, A, R, G, B, angle = 0, dAngle;
 
         private static int N = 0, shape = 0, mode = 0, alive;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, alpha = 0, dAlpha = 0, aMin = 0, aMax = 0, spd = 0, t = 0;
+        private static bool doFillShapes = false, is_dAlphaGrowing = true, doShiftDAlpha = false;
+        private static float dimAlpha = 0.05f, alpha = 0, dAlpha = 0, dAlphaMin = 0, dAlphaMax = 0, aMin = 0, aMax = 0, spd = 0, t = 0;
 
         private static myObj_1230 gen = null;
         private static myScreenGradient grad = null;
@@ -63,6 +63,7 @@ namespace my
         {
             doClearBuffer = myUtils.randomChance(rand, 19, 20);
             doFillShapes = myUtils.randomChance(rand, 2, 3);
+            doShiftDAlpha = myUtils.randomChance(rand, 2, 3);
 
             mode = rand.Next(4);
             mode = 0;
@@ -71,6 +72,11 @@ namespace my
             dAlpha = 0.01f + myUtils.randFloat(rand) * 0.1f;
 
             dAlpha /= 3;
+
+            dAlphaMin = 0.001f;
+            dAlphaMax = 0.200f;
+
+            is_dAlphaGrowing = true;
 
             return;
         }
@@ -81,11 +87,15 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                     +
-                            myUtils.strCountOf(list.Count, N)    +
-                            $"alive = {alive}\n"                 +
-                            $"spd = {myUtils.fStr(spd)}\n"       +
-                            $"dAlpha = {myUtils.fStr(dAlpha)}\n" +
+            string str = $"Obj = {Type}\n\n"                           +
+                            myUtils.strCountOf(list.Count, N)          +
+                            $"doClearBuffer = {doClearBuffer}\n"       +
+                            $"doFillShapes = {doFillShapes}\n"         +
+                            $"doShiftDAlpha = {doShiftDAlpha}\n"       +
+                            $"is_dAlphaGrowing = {is_dAlphaGrowing}\n" +
+                            $"alive = {alive}\n"                       +
+                            $"spd = {myUtils.fStr(spd)}\n"             +
+                            $"dAlpha = {myUtils.fStr(dAlpha)}\n"       +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -183,21 +193,44 @@ namespace my
                     dAlpha *= -1;
 
                 //dAlpha += (float)Math.Sin(t) * 0.001f;
-                t += 0.001f;
 
+                if (doShiftDAlpha)
+                {
+                    float ddAlpha = 0.0001f;
+
+                    if (is_dAlphaGrowing)
+                    {
+                        dAlpha += dAlpha > 0 ? +ddAlpha : -ddAlpha;
+
+                        if (Math.Abs(dAlpha) > dAlphaMax)
+                            is_dAlphaGrowing = false;
+                    }
+                    else
+                    {
+                        dAlpha += dAlpha > 0 ? -ddAlpha : +ddAlpha;
+
+                        if (Math.Abs(dAlpha) < dAlphaMin)
+                            is_dAlphaGrowing = true;
+                    }
+                }
+
+                t += 0.001f;
             }
             else
             {
-                x += dx;
-                y += dy;
-
-                angle += dAngle;
-
-                //colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-                if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+                if (isAlive)
                 {
-                    isAlive = false;
+                    x += dx;
+                    y += dy;
+
+                    angle += dAngle;
+
+                    //colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                    if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+                    {
+                        isAlive = false;
+                    }
                 }
             }
 
