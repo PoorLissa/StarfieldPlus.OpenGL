@@ -257,14 +257,14 @@ public class ScreenSaver
             my.myObj_1190.Type,     // Generators expand and spawn particles along their circumference
             my.myObj_1200.Type,     // Pseudo 3d 'tooth like' pyramids
             my.myObj_1210.Type,     // Rotating lines aligned to grid
-            my.myObj_1220.Type,     // ...
+            my.myObj_1220.Type,     // Centers of rotation attached to a grid
             my.myObj_1230.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
         };
 
-#if !false
+#if false
         _obj = (my.myObject)System.Activator.CreateInstance(my.myObj_1230.Type);
 #else
         foreach (var t in types)

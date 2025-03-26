@@ -19,11 +19,11 @@ namespace my
 
         private bool isAlive;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, A, R, G, B, angle = 0, dAngle;
 
-        private static int N = 0, shape = 0, mode = 0;
+        private static int N = 0, shape = 0, mode = 0, alive;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, alpha = 0, dAlpha = 0, aMin = 0, aMax = 0, spd = 0;
+        private static float dimAlpha = 0.05f, alpha = 0, dAlpha = 0, aMin = 0, aMax = 0, spd = 0, t = 0;
 
         private static myObj_1230 gen = null;
         private static myScreenGradient grad = null;
@@ -70,6 +70,8 @@ namespace my
             spd = 1.0f + myUtils.randFloat(rand) * rand.Next(5);
             dAlpha = 0.01f + myUtils.randFloat(rand) * 0.1f;
 
+            dAlpha /= 3;
+
             return;
         }
 
@@ -81,6 +83,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                     +
                             myUtils.strCountOf(list.Count, N)    +
+                            $"alive = {alive}\n"                 +
                             $"spd = {myUtils.fStr(spd)}\n"       +
                             $"dAlpha = {myUtils.fStr(dAlpha)}\n" +
                             $"file: {colorPicker.GetFileName()}"
@@ -136,8 +139,9 @@ namespace my
                 dy = spd * (float)Math.Sin(ALPHA);
 
                 size = 3;
+                dAngle = myUtils.randFloat(rand) * 0.001f;
 
-                A = 0.25f;
+                A = 0.5f + myUtils.randFloat(rand) * 0.5f;
                 R = (float)rand.NextDouble();
                 G = (float)rand.NextDouble();
                 B = (float)rand.NextDouble();
@@ -157,6 +161,7 @@ namespace my
                 alpha += dAlpha;
 
                 int Count = list.Count;
+                int cnt = 0;
 
                 for (int i = 1; i < Count; i++)
                 {
@@ -165,7 +170,9 @@ namespace my
                     if (obj.isAlive == false)
                     {
                         obj.generateNew();
-                        break;
+                        
+                        if (++cnt == 3)
+                            break;
                     }
                 }
 
@@ -174,11 +181,17 @@ namespace my
 
                 if (alpha < aMin && dAlpha < 0)
                     dAlpha *= -1;
+
+                //dAlpha += (float)Math.Sin(t) * 0.001f;
+                t += 0.001f;
+
             }
             else
             {
                 x += dx;
                 y += dy;
+
+                angle += dAngle;
 
                 //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -278,6 +291,7 @@ namespace my
 
                 // Render Frame
                 {
+                    alive = 0;
                     inst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
@@ -286,6 +300,8 @@ namespace my
 
                         obj.Show();
                         obj.Move();
+
+                        alive += obj.isAlive ? 1 : 0;
                     }
 
                     if (doFillShapes)

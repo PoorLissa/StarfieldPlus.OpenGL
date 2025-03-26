@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - ...
+    - Centers of rotation attached to a grid
 */
 
 
@@ -17,11 +17,12 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1220);
 
-        private float x, y, x0, y0, dx, dy, rad, mass, alpha;
+        private float x, y, x0, y0, dx, dy, rad, mass, alpha, dAlpha;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, gridStepX = 1, gridStepY = 1;
-        private static bool doFillShapes = false;
+        private static int N = 0, shape = 0, gridStepX = 1, gridStepY = 1, radConst = 1;
+        private static int radMode = 0, radMode2 = 0, dAlphaMode = 0;
+        private static bool doFillShapes = false, doUseImgColor = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
@@ -39,13 +40,16 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            var colorMode = myUtils.randomChance(rand, 8, 9)
+                ? myColorPicker.colorMode.SNAPSHOT_OR_IMAGE
+                : myColorPicker.colorMode.RANDOM_MODE;
+
+            colorPicker = new myColorPicker(gl_Width, gl_Height, colorMode);
             list = new List<myObject>();
 
             // Global unmutable constants
             {
-                N = rand.Next(1000) + 10000;
-                //N = 111;
+                N = rand.Next(1000) + 50000;
 
                 shape = rand.Next(5);
             }
@@ -58,18 +62,25 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomBool(rand);
-            doClearBuffer = myUtils.randomChance(rand, 19, 20);
+            doClearBuffer = myUtils.randomChance(rand, 2, 3);
+            doFillShapes = myUtils.randomChance(rand, 1, 2);
+            doUseImgColor = myUtils.randomChance(rand, 1, 5);
 
-            gridStepX = rand.Next(150) + 50;
-            gridStepY = rand.Next(150) + 50;
+            radMode = rand.Next(7);
+            radMode2 = myUtils.randomChance(rand, 4, 5) ? 0 : 1;
+            dAlphaMode = rand.Next(6);
+
+            int minStep = 33 + rand.Next(17);
+
+            gridStepX = rand.Next(150) + minStep;
+            gridStepY = rand.Next(150) + minStep;
 
             if (rand.Next(2) == 0)
             {
                 gridStepY = gridStepX;
             }
 
-            //gridStepY = gridStepX = 33;
+            radConst = 33 + rand.Next(133);
 
             return;
         }
@@ -80,9 +91,16 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
-                            $"renderDelay = {renderDelay}\n"  +
+            string str = $"Obj = {Type}\n\n"                     +
+                            myUtils.strCountOf(list.Count, N)    +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"doFillShapes = {doFillShapes}\n"   +
+                            $"doUseImgColor = {doUseImgColor}\n" +
+                            $"dAlphaMode = {dAlphaMode}\n"       +
+                            $"radMode = {radMode}\n"             +
+                            $"radMode2 = {radMode2}\n"           +
+                            $"gridStepX = {gridStepX}\n"         +
+                            $"gridStepY = {gridStepY}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -113,9 +131,79 @@ namespace my
             dy = y - y0;
 
             size = rand.Next(3) + 3;
+            size = 4;
             mass = 1.0f + myUtils.randFloat(rand);
             alpha = myUtils.randFloat(rand) * 321;
-            rad = (float)Math.Sqrt(dx*dx + dy*dy);
+
+            // radMode
+            {
+                switch (radMode)
+                {
+                    // Const radius
+                    case 0:
+                        rad = radConst;
+                        break;
+
+                    // Radius is a half grid step
+                    case 1:
+                        rad = gridStepX / 2;
+                        break;
+
+                    // Radius is actual distance from this point to the center of rotation
+                    case 2:
+                        rad = (float)Math.Sqrt(dx * dx + dy * dy);
+                        break;
+
+                    // Radius is a half of actual distance from this point to the center of rotation
+                    case 3:
+                        rad = (float)Math.Sqrt(dx * dx + dy * dy) / 2;
+                        break;
+
+                    // Half of a grid step OR random dist within this number
+                    case 4:
+                        rad = gridStepX / 2;
+                        if (myUtils.randomChance(rand, 1, 2))
+                            rad = rand.Next((int)rad);
+                        break;
+
+                    // Sin?..
+                    case 5:
+                        rad = (float)Math.Sin(x) * 100;
+                        break;
+
+                    // Sin?..
+                    case 6:
+                        rad = (float)Math.Sin(id) * 100;
+                        break;
+                }
+            }
+
+            // dAlphaMode
+            {
+                switch (dAlphaMode)
+                {
+                    case 0:
+                    case 1:
+                        dAlpha = 0.01f;
+                        break;
+
+                    case 2:
+                    case 3:
+                        dAlpha = myUtils.randFloatClamped(rand, 0.1f) * 0.02f;
+                        break;
+
+                    case 4:
+                    case 5:
+                        dAlpha = (float)Math.Sin(rad) * 0.03f;
+                        break;
+                }
+
+                // In odd modes rotation goes 2 ways
+                if (dAlphaMode % 2 == 1)
+                {
+                    dAlpha *= myUtils.randomBool(rand) ? +1 : -1;
+                }
+            }
 
             A = myUtils.randFloatClamped(rand, 0.1f);
             colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -132,26 +220,14 @@ namespace my
             x = x0 + (float)Math.Sin(alpha) * rad;
             y = y0 + (float)Math.Cos(alpha) * rad;
 
-            alpha += 0.1f;
+            alpha += dAlpha;
 
-            rad += (float)Math.Sin(alpha * 0.1f) * 0.1f;
+            rad += radMode2 == 1
+                ? (float)Math.Sin(alpha * 0.1f) * 0.1f
+                : 0;
 
-            return;
-
-            x += dx;
-            y += dy;
-
-            float dX = x - x0;
-            float dY = y - y0;
-            float distSq = dX * dX + dY * dY + 0.001f;
-
-            distSq = (float)Math.Sqrt(distSq);
-
-            float factor = 0.5f;
-            float F = factor * mass / distSq;
-
-            dx -= F * dX;
-            dy -= F * dY;
+            if (doUseImgColor && myUtils.randomChance(rand, 1, 33))
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
         }
