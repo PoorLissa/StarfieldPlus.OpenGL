@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Several generators that produce concentric circles of small opacity
 */
 
 
