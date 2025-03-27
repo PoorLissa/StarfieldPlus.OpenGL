@@ -259,6 +259,7 @@ public class ScreenSaver
             my.myObj_1210.Type,     // Rotating lines aligned to grid
             my.myObj_1220.Type,     // Centers of rotation attached to a grid
             my.myObj_1230.Type,     // ...
+            my.myObj_1240.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -273,7 +274,7 @@ public class ScreenSaver
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority: true,
                                         doClearDictionary: true,
                                         doUseThisType: false,
-                                        my.myObj_1230.Type);
+                                        my.myObj_1240.Type);
         return;
     }
 
