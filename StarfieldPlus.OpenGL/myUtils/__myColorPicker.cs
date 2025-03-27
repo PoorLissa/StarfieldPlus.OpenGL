@@ -595,12 +595,18 @@ namespace my
         // Take a snapshot of a current desktop
         private void getSnapshot(int Width, int Height)
         {
+            int pos = 0;
+
             try
             {
                 if (_img == null)
                 {
+                    pos = 1;
+
                     _img = new Bitmap(Width, Height);
                     initReader();
+
+                    pos = 2;
 
                     if (_g != null)
                     {
@@ -608,14 +614,24 @@ namespace my
                         _g = null;
                     }
 
+                    pos = 3;
+
                     _g = Graphics.FromImage(_img);
+
+                    pos = 4;
+
                     _g.CopyFromScreen(Point.Empty, Point.Empty, new Size(Width, Height));
+
+                    pos = 5;
+
                     _f = "[ Desktop Snapshot ]";
+
+                    pos = 6;
                 }
             }
             catch (Exception ex)
             {
-                myObject.Log($"Scr: System.Exception in getSnapshot(): {ex.Message}\n\n{ex.StackTrace}");
+                myObject.Log($"Scr: System.Exception in getSnapshot(): pos = {pos} : {ex.Message}\n\n{ex.StackTrace}");
 
 #if false
                 var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
