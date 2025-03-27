@@ -615,16 +615,13 @@ namespace my
             }
             catch (Exception ex)
             {
-                myObject.Log($"Scr: System.Exception {ex.Message}");
+                myObject.Log($"Scr: System.Exception in getSnapshot(): {ex.Message}\n\n{ex.StackTrace}");
 
-                if (true)
-                {
-                    var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
-                    player.Play();
-                }
-
+#if false
+                var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
+                player.Play();
+#endif
                 var time = DateTime.Now.ToString();
-
                 MessageBox.Show($"{ex.Message}\r\n{ex.StackTrace}", $"myColorPicker {time}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 

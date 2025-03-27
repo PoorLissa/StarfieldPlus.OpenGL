@@ -300,16 +300,14 @@ namespace my
             }
             catch (System.Exception ex)
             {
-                Log($"Scr: System.Exception {ex.Message}");
+                Log($"Scr: System.Exception in Process() : {ex.Message}\n\n{ex.StackTrace}");
 
-                if (true)
-                {
-                    var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
-                    player.Play();
-                }
+#if false
+                var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
+                player.Play();
+#endif
 
                 var time = DateTime.Now.ToString();
-
                 MessageBox.Show($"{this.ToString()} says:\n{ex.Message}\n\n{ex.StackTrace}", $"Process Exception {time}", MessageBoxButtons.OK);
             }
 
