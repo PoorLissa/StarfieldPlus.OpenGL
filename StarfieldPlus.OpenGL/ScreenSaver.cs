@@ -84,6 +84,7 @@ public class ScreenSaver
     // - a whole screen graph, where all the connections are not straight lines, but lightning-like sectional curves that change over time
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
     // - Hexagon grid with a pseudo 3d effect
+    // - Beam of particles directed at a black hole (or just massive) object, and is able to escape its gravitation, but is scattered around
     // - Doom style prysms:
     /*
                 if (id == 0)
