@@ -11,26 +11,25 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_1250 : myObject
+    public class myObj_1260 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1250);
+		public static System.Type Type => typeof(myObj_1260);
 
-        private int dir;
-        private float x, y, dy, size, dSize;
-        private float A, R, G, B;
-        private float dyFactor, sizeFactor;
+        private float x, y, dx, dy;
+        private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, mode = 0;
+        private static int N = 0, n = 0, shape = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
+        private static float X, Y, X0, Y0, Rad, maxOpacity = 1;
 
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1250()
+        public myObj_1260()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -46,8 +45,10 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-                N = 11;
+                N = 1000;
+                n = 1;
+
+                shape = rand.Next(5);
             }
 
             initLocal();
@@ -58,9 +59,17 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = false;
-            doFillShapes = true;
-            mode = rand.Next(3);
+            doClearBuffer = myUtils.randomChance(rand, 1, 2);
+
+            X = gl_x0;
+            Y = gl_y0;
+            Rad = 333 + rand.Next(333);
+            maxOpacity = 0.5f;
+
+            X0 = X + rand.Next((int)Rad * 2) - Rad;
+            Y0 = Y + rand.Next((int)Rad * 2) - Rad;
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -71,7 +80,6 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
-                            $"mode = {mode}\n"                +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -89,72 +97,33 @@ namespace my
 
         protected override void generateNew()
         {
-            dir = rand.Next(2);
-
-            size = rand.Next(50) + 100;
-
-            x = rand.Next(gl_Width);
-            size = rand.Next(100) + 100;
-            dSize = 2.5f + myUtils.randFloatClamped(rand, 0.25f) * 1.5f;
-
-            switch (mode)
+            if (id < n)
             {
-                case 0:
-                    {
-                        switch (dir)
-                        {
-                            case 0:
-                                y = gl_Height + rand.Next(200);
-                                dy = 20 + rand.Next(10);
-                                break;
+                x = 0;
+                y = 0;
+                dx = dy = 0;
+            }
+            else
+            {
+                var parent = list[rand.Next(n)] as myObj_1260;
 
-                            case 1:
-                                y = 0 - rand.Next(200);
-                                dy = -20 - rand.Next(10);
-                                break;
-                        }
-                    }
-                    break;
+                x = parent.x;
+                y = parent.y;
 
-                case 1:
-                    {
-                        // [0.2 .. 0.8]
-                        dyFactor = 0.2f + myUtils.randFloat(rand) * 0.6f;
+                var dX = x - X0;
+                var dY = y - Y0;
 
-                        switch (dir)
-                        {
-                            case 0:
-                                y = gl_Height + rand.Next(200);
-                                break;
+                var dist = (float)Math.Sqrt(dX * dX + dY * dY);
 
-                            case 1:
-                                y = 0 - rand.Next(200);
-                                break;
-                        }
-                    }
-                    break;
+                float spd = -5.0f - myUtils.randFloat(rand) * 2;
 
-                case 2:
-                    {
-                        // [0.2 .. 0.8]
-                        dyFactor = 0.2f + myUtils.randFloat(rand) * 0.6f;
-                        sizeFactor = 0.92f + myUtils.randFloat(rand) * 0.05f;
-
-                        switch (dir)
-                        {
-                            case 0:
-                                y = gl_Height + rand.Next(200);
-                                break;
-
-                            case 1:
-                                y = 0 - rand.Next(200);
-                                break;
-                        }
-                    }
-                    break;
+                dx = spd * dX / dist;
+                dy = spd * dY / dist;
             }
 
-            A = 1;
+            size = 3;
+
+            A = myUtils.randFloat(rand) * 0.75f;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
@@ -168,40 +137,15 @@ namespace my
 
         protected override void Move()
         {
-            switch (mode)
+            if (id >= n)
             {
-                case 0:
-                    {
-                        y -= dy;
-                        dy -= dir == 1 ? +0.4f : -0.4f;
-                        size -= dSize;
-                    }
-                    break;
+                x += dx;
+                y += dy;
 
-                case 1:
-                    {
-                        dy = size * 0.5f * dyFactor;
-                        y += dir == 1 ? +dy : -dy;
-                        size -= dSize;
-                    }
-                    break;
-
-                case 2:
-                    {
-                        dy = size * 0.5f * dyFactor;
-                        y += dir == 1 ? +dy : -dy;
-                        size *= sizeFactor;
-                    }
-                    break;
-            }
-
-            R += myUtils.randFloat(rand) * 0.025f;
-            G += myUtils.randFloat(rand) * 0.025f;
-            B += myUtils.randFloat(rand) * 0.025f;
-
-            if (size < 1)
-            {
-                generateNew();
+                if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
+                {
+                    generateNew();
+                }
             }
 
             return;
@@ -211,16 +155,46 @@ namespace my
 
         protected override void Show()
         {
-            if (dir == 0)
+            if (id >= n)
             {
-                myPrimitive._TriangleInst.setInstanceCoords(x, y, size, 0);
-                myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                float size2x = size * 2;
+
+                switch (shape)
+                {
+                    // Instanced squares
+                    case 0:
+                        myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._RectangleInst.setInstanceAngle(angle);
+                        break;
+
+                    // Instanced triangles
+                    case 1:
+                        myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced circles
+                    case 2:
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced pentagons
+                    case 3:
+                        myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                        break;
+
+                    // Instanced hexagons
+                    case 4:
+                        myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                        break;
+                }
             }
-            else
-            {
-                myPrimitive._TriangleInst.setInstanceCoords(x, y, size, (float)Math.PI);
-                myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
-            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -230,13 +204,12 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.1f, true);
+            float lineThickness = 1.0f;
+            float dThickneess = 0.025f;
+
+            clearScreenSetup(doClearBuffer, 0.1f);
 
             stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
-
-            grad.SetOpacity(1);
-            grad.Draw();
-            grad.SetOpacity(0.005f);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -251,18 +224,35 @@ namespace my
                 // Dim screen
                 {
                     if (doClearBuffer)
+                    {
                         glClear(GL_COLOR_BUFFER_BIT);
-
-                    grad.Draw();
+                        grad.Draw();
+                    }
+                    else
+                    {
+                        dimScreen(dimAlpha);
+                    }
                 }
 
                 // Render Frame
                 {
                     inst.ResetBuffer();
 
+                    // Draw event horizon
+                    {
+                        myPrimitive._Ellipse.setLineThickness(lineThickness);
+                        myPrimitive._Ellipse.SetColor(1, 1, 1, 0.05f);
+                        myPrimitive._Ellipse.Draw(X - Rad, Y - Rad, 2 * Rad, 2 * Rad, false);
+
+                        lineThickness += dThickneess;
+
+                        if (lineThickness > 13.0f || lineThickness < 1.0f)
+                            dThickneess *= -1;
+                    }
+
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1250;
+                        var obj = list[i] as myObj_1260;
 
                         obj.Show();
                         obj.Move();
@@ -271,7 +261,7 @@ namespace my
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.99f);
+                        inst.SetColorA(-0.5f);
                         inst.Draw(true);
                     }
 
@@ -282,7 +272,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_1250());
+                    list.Add(new myObj_1260());
                 }
 
                 stopwatch.WaitAndRestart();
@@ -297,11 +287,12 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(1, N, 0);
+            base.initShapes(shape, N, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
-            grad.SetOpacity(0.005f);
+
+            myPrimitive.init_Ellipse();
 
             return;
         }

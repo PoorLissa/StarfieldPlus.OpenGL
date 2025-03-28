@@ -262,6 +262,7 @@ public class ScreenSaver
             my.myObj_1230.Type,     // ...
             my.myObj_1240.Type,     // Several generators that produce concentric circles of small opacity
             my.myObj_1250.Type,     // ...
+            my.myObj_1260.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -274,7 +275,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : !false, my.myObj_1250.Type);
+                                                    doUseCustomType : !false, my.myObj_1260.Type);
         return;
     }
 
