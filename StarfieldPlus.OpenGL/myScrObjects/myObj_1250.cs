@@ -17,10 +17,12 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1250);
 
+        private int dir;
         private float x, y, dy, size, dSize;
         private float A, R, G, B;
+        private float dyFactor, sizeFactor;
 
-        private static int N = 0;
+        private static int N = 0, mode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -46,6 +48,7 @@ namespace my
             {
                 N = rand.Next(10) + 10;
                 N = 11;
+                N = 1;
             }
 
             initLocal();
@@ -59,6 +62,8 @@ namespace my
             doClearBuffer = false;
             doFillShapes = true;
 
+            mode = rand.Next(3);
+
             return;
         }
 
@@ -70,6 +75,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"mode = {mode}\n"                +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -87,43 +93,79 @@ namespace my
 
         protected override void generateNew()
         {
+            dir = rand.Next(2);
+
             size = rand.Next(50) + 100;
 
-            switch (rand.Next(2))
+            x = rand.Next(gl_Width);
+            size = rand.Next(100) + 100;
+            dSize = 2.5f + myUtils.randFloatClamped(rand, 0.25f) * 1.5f;
+
+mode = 2;
+
+            switch (mode)
             {
                 case 0:
-                    y = gl_Height + rand.Next(200);
-                    dy = 20 + rand.Next(10);
+                    {
+                        switch (dir)
+                        {
+                            case 0:
+                                y = gl_Height + rand.Next(200);
+                                dy = 20 + rand.Next(10);
+                                break;
+
+                            case 1:
+                                y = 0 - rand.Next(200);
+                                dy = -20 - rand.Next(10);
+                                break;
+                        }
+                    }
                     break;
 
                 case 1:
-                    y = 0 - rand.Next(200);
-                    dy = -20 - rand.Next(10);
+                    {
+                        // [0.2 .. 0.8]
+                        dyFactor = 0.2f + myUtils.randFloat(rand) * 0.6f;
+
+                        switch (dir)
+                        {
+                            case 0:
+                                y = gl_Height + rand.Next(200);
+                                break;
+
+                            case 1:
+                                y = 0 - rand.Next(200);
+                                break;
+                        }
+                    }
+                    break;
+
+                case 2:
+                    {
+                        // [0.2 .. 0.8]
+                        dyFactor = 0.2f + myUtils.randFloat(rand) * 0.6f;
+                        sizeFactor = 0.92f + myUtils.randFloat(rand) * 0.05f;
+
+                        switch (dir)
+                        {
+                            case 0:
+                                y = gl_Height + rand.Next(200);
+                                break;
+
+                            case 1:
+                                y = 0 - rand.Next(200);
+                                break;
+                        }
+                    }
                     break;
             }
 
-            x = rand.Next(gl_Width);
-            size = rand.Next(100) + 100;
-            dSize = 2.5f + myUtils.randFloatClamped(rand, 0.25f) * 1.5f;
-
-/*
-            x = rand.Next(gl_Width);
-            y = gl_Height + rand.Next(200);
-
-            dy = 20 + rand.Next(30);
-            dSize = 1.0f + myUtils.randFloatClamped(rand, 0.25f) * rand.Next(7);
-
-            size = rand.Next(100) + 100;
-            dSize = 2.5f + myUtils.randFloatClamped(rand, 0.25f) * 1.5f;
-            dy = 20 + rand.Next(10);
-*/
             A = 1;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
 
             //colorPicker.getColor(x, y, ref R, ref G, ref B);
-            //R = G = B = 0.33f;
 
             return;
         }
@@ -132,9 +174,32 @@ namespace my
 
         protected override void Move()
         {
-            y -= dy;
-            dy -= dy > 0 ? 0.4f : -0.4f;
-            size -= dSize;
+            switch (mode)
+            {
+                case 0:
+                    {
+                        y -= dy;
+                        dy -= dir == 1 ? +0.4f : -0.4f;
+                        size -= dSize;
+                    }
+                    break;
+
+                case 1:
+                    {
+                        dy = size * 0.5f * dyFactor;
+                        y += dir == 1 ? +dy : -dy;
+                        size -= dSize;
+                    }
+                    break;
+
+                case 2:
+                    {
+                        dy = size * 0.5f * dyFactor;
+                        y += dir == 1 ? +dy : -dy;
+                        size *= sizeFactor;
+                    }
+                    break;
+            }
 
             R += myUtils.randFloat(rand) * 0.025f;
             G += myUtils.randFloat(rand) * 0.025f;
@@ -152,7 +217,7 @@ namespace my
 
         protected override void Show()
         {
-            if (dy > 0)
+            if (dir == 0)
             {
                 myPrimitive._TriangleInst.setInstanceCoords(x, y, size, 0);
                 myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
