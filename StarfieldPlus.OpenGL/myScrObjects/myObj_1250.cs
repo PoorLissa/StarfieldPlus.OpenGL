@@ -45,7 +45,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 3;
+                N = 11;
             }
 
             initLocal();
@@ -89,20 +89,41 @@ namespace my
         {
             size = rand.Next(50) + 100;
 
+            switch (rand.Next(2))
+            {
+                case 0:
+                    y = gl_Height + rand.Next(200);
+                    dy = 20 + rand.Next(10);
+                    break;
+
+                case 1:
+                    y = 0 - rand.Next(200);
+                    dy = -20 - rand.Next(10);
+                    break;
+            }
+
             x = rand.Next(gl_Width);
-            y = gl_Height + rand.Next(200) - 100;
+            size = rand.Next(100) + 100;
+            dSize = 2.5f + myUtils.randFloatClamped(rand, 0.25f) * 1.5f;
+
+/*
+            x = rand.Next(gl_Width);
+            y = gl_Height + rand.Next(200);
 
             dy = 20 + rand.Next(30);
-            dSize = 0.5f + myUtils.randFloat(rand) * rand.Next(3);
+            dSize = 1.0f + myUtils.randFloatClamped(rand, 0.25f) * rand.Next(7);
 
+            size = rand.Next(100) + 100;
+            dSize = 2.5f + myUtils.randFloatClamped(rand, 0.25f) * 1.5f;
+            dy = 20 + rand.Next(10);
+*/
             A = 1;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
 
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            R = G = B = 0.33f;
+            //colorPicker.getColor(x, y, ref R, ref G, ref B);
+            //R = G = B = 0.33f;
 
             return;
         }
@@ -112,7 +133,12 @@ namespace my
         protected override void Move()
         {
             y -= dy;
+            dy -= dy > 0 ? 0.4f : -0.4f;
             size -= dSize;
+
+            R += myUtils.randFloat(rand) * 0.025f;
+            G += myUtils.randFloat(rand) * 0.025f;
+            B += myUtils.randFloat(rand) * 0.025f;
 
             if (size < 1)
             {
@@ -126,8 +152,16 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._TriangleInst.setInstanceCoords(x, y, size, 0);
-            myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+            if (dy > 0)
+            {
+                myPrimitive._TriangleInst.setInstanceCoords(x, y, size, 0);
+                myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+            }
+            else
+            {
+                myPrimitive._TriangleInst.setInstanceCoords(x, y, size, (float)Math.PI);
+                myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -137,9 +171,13 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.1f);
+            clearScreenSetup(doClearBuffer, 0.1f, true);
 
             stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
+
+            grad.SetOpacity(1);
+            grad.Draw();
+            grad.SetOpacity(0.005f);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -174,7 +212,7 @@ namespace my
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
+                        inst.SetColorA(-0.99f);
                         inst.Draw(true);
                     }
 
@@ -204,6 +242,7 @@ namespace my
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+            grad.SetOpacity(0.005f);
 
             return;
         }
