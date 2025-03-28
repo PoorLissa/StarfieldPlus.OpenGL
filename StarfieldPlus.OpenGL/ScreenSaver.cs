@@ -261,7 +261,7 @@ public class ScreenSaver
             my.myObj_1220.Type,     // Centers of rotation attached to a grid
             my.myObj_1230.Type,     // ...
             my.myObj_1240.Type,     // Several generators that produce concentric circles of small opacity
-            my.myObj_1250.Type,     // Several generators that produce concentric circles of small opacity
+            my.myObj_1250.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
