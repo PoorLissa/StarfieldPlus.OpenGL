@@ -101,6 +101,10 @@ namespace my
             {
                 x = 0;
                 y = 0;
+
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
+
                 dx = dy = 0;
             }
             else
@@ -119,14 +123,18 @@ namespace my
 
                 dx = spd * dX / dist;
                 dy = spd * dY / dist;
+
+                //B = ((float)Math.Abs(spd) - 5) / 2;
             }
 
-            size = 3;
+            size = 2;
 
             A = myUtils.randFloat(rand) * 0.75f;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
             B = (float)rand.NextDouble();
+
+            //R = G = 0.33f;
 
             //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
@@ -141,6 +149,26 @@ namespace my
             {
                 x += dx;
                 y += dy;
+
+                if (x > X - Rad && x < X + Rad)
+                {
+                    if (y > Y - Rad && y < Y + Rad)
+                    {
+                        float dX = X - x;
+                        float dY = Y - y;
+
+                        float dist = (float)Math.Sqrt(dX * dX + dY * dY);
+
+                        if (dist <= Rad)
+                        {
+                            float sp_dist = 0.05f / dist;
+
+                            dx -= dX * sp_dist;
+                            dy -= dY * sp_dist;
+                        }
+                    }
+                }
+
 
                 if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
                 {
