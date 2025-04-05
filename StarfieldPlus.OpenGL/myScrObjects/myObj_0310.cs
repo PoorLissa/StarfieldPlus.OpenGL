@@ -1372,6 +1372,9 @@ namespace my
             }
 
 
+            stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
+
+
             while (!Glfw.WindowShouldClose(window))
             {
                 int Count = list.Count;
@@ -1422,7 +1425,7 @@ namespace my
                     if (Count < N)
                         list.Add(new myObj_0310());
 
-                System.Threading.Thread.Sleep(renderDelay);
+                stopwatch.WaitAndRestart();
                 t += dt;
 
 #if false
