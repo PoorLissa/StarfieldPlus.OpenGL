@@ -182,7 +182,7 @@ public class Polygon4 : myPrimitive
 
         string fragMain =
             $@"
-                float mixValue = myColor.z;
+                float mixValue = myColor.w;
 
                 if (myGradient == 1)
                 {{

@@ -85,29 +85,6 @@ public class ScreenSaver
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
     // - Hexagon grid with a pseudo 3d effect
     // - Beam of particles directed at a black hole (or just massive) object, and is able to escape its gravitation, but is scattered around
-    // - Doom style prysms:
-    /*
-                if (id == 0)
-                {
-                    int x1 = 0;
-                    int y1 = 150;
-                    int x2 = 300;
-                    int y2 = 0;
-                    int x3 = 300;
-                    int y3 = 300;
-                    int x4 = 600;
-                    int y4 = 150;
-
-                    p4.SetColor(1.0f, 0.25f, 0.25f, 0.00001f);
-                    p4.Draw(x1, y1, x2, y2, x3, y3, x4, y4, !false);
-
-                    p4.SetColor(0.25f, 1.0f, 0.25f, 0.00001f);
-                    p4.Draw(x1, y1, x3, y3, x1, y1 + 300, x3, y3 + 300, !false);
-
-                    p4.SetColor(0.25f, 0.25f, 1.0f, 0.00001f);
-                    p4.Draw(x4, y4, x3, y3, x4, y4 + 300, x3, y3 + 300, !false);
-                }
-    */
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
@@ -264,6 +241,7 @@ public class ScreenSaver
             my.myObj_1250.Type,     // ...
             my.myObj_1260.Type,     // ...
             my.myObj_1270.Type,     // Straight lines symmetrically originating from starting points
+            my.myObj_1280.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -276,7 +254,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : false, my.myObj_0310.Type);
+                                                    doUseCustomType : !false, my.myObj_1280.Type);
         return;
     }
 
