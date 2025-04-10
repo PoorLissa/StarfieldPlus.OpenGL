@@ -21,7 +21,7 @@ namespace my
         private float x, y, dx, dy;
         private float sizeX, sizeY, A, R, G, B;
 
-        private static int N = 0, spdMax = 1;
+        private static int N = 0, spdMax = 1, waitTimeMax = 1;
         private static int opacityMode = 0, sizeMode = 0;
         private static float dimAlpha = 0.05f, sizeYfactor = 1;
 
@@ -65,6 +65,7 @@ namespace my
             opacityMode = rand.Next(4);
 
             spdMax = 1 + rand.Next(5);
+            waitTimeMax = rand.Next(150);
             sizeYfactor = 1.0f + myUtils.randFloat(rand) * (rand.Next(3) + 1);
 
             return;
@@ -81,6 +82,7 @@ namespace my
                             $"opacityMode = {opacityMode}\n"               +
                             $"sizeMode = {sizeMode}\n"                     +
                             $"spdMax = {spdMax}\n"                         +
+                            $"waitTimeMax = {waitTimeMax}\n"               +
                             $"sizeYfactor = {myUtils.fStr(sizeYfactor)}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -99,7 +101,7 @@ namespace my
 
         protected override void generateNew()
         {
-            cnt = 10 + rand.Next(123);
+            cnt = 10 + rand.Next(waitTimeMax);
 
             x = rand.Next(gl_Width);
             y = gl_Height + 100 + rand.Next(123);
@@ -170,7 +172,7 @@ namespace my
             {
                 if (--cnt == 0)
                 {
-                    cnt = 10 + rand.Next(123);
+                    cnt = 10 + rand.Next(waitTimeMax);
                     dy *= -1;
                 }
                 else
