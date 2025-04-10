@@ -18,7 +18,7 @@ namespace my
 		public static System.Type Type => typeof(myObj_1260);
 
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, a, A, R, G, B, angle, dAngle;
 
         private static int N = 0, n = 0, shape = 0;
         private static bool doFillShapes = false;
@@ -124,11 +124,15 @@ namespace my
                 dx = spd * dX / dist;
                 dy = spd * dY / dist;
 
+                angle = 0;
+                dAngle = myUtils.randFloat(rand) * 0.0001f * myUtils.randomSign(rand);
+
                 //B = ((float)Math.Abs(spd) - 5) / 2;
             }
 
             size = 2;
 
+            a = 0;
             A = myUtils.randFloat(rand) * 0.75f;
             R = (float)rand.NextDouble();
             G = (float)rand.NextDouble();
@@ -149,6 +153,12 @@ namespace my
             {
                 x += dx;
                 y += dy;
+                angle += dAngle;
+
+                if (a < A)
+                {
+                    a += 0.001f;
+                }
 
                 if (x > X - Rad && x < X + Rad)
                 {
@@ -168,7 +178,6 @@ namespace my
                         }
                     }
                 }
-
 
                 if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
                 {
@@ -192,32 +201,32 @@ namespace my
                     // Instanced squares
                     case 0:
                         myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
-                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._RectangleInst.setInstanceColor(R, G, B, a);
                         myPrimitive._RectangleInst.setInstanceAngle(angle);
                         break;
 
                     // Instanced triangles
                     case 1:
                         myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
-                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._TriangleInst.setInstanceColor(R, G, B, a);
                         break;
 
                     // Instanced circles
                     case 2:
                         myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
-                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._EllipseInst.setInstanceColor(R, G, B, a);
                         break;
 
                     // Instanced pentagons
                     case 3:
                         myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
-                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._PentagonInst.setInstanceColor(R, G, B, a);
                         break;
 
                     // Instanced hexagons
                     case 4:
                         myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
-                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
+                        myPrimitive._HexagonInst.setInstanceColor(R, G, B, a);
                         break;
                 }
             }
