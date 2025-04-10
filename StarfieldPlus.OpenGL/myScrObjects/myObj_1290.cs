@@ -21,6 +21,7 @@ namespace my
         private float x, y, dx, dy, height;
         private float sizeX, sizeY, A, R, G, B;
 
+        private static bool doDrawBottom = false;
         private static int N = 0, spdMax = 1, waitTimeMax = 1;
         private static int mode = 0, opacityMode = 0, sizeMode = 0;
         private static float dimAlpha = 0.05f, sizeYfactor = 1;
@@ -78,6 +79,8 @@ namespace my
             waitTimeMax = rand.Next(150);
             sizeYfactor = 1.0f + myUtils.randFloat(rand) * (rand.Next(3) + 1);
 
+            doDrawBottom = myUtils.randomBool(rand);
+
             return;
         }
 
@@ -91,6 +94,7 @@ namespace my
                             myUtils.strCountOf(list.Count, N)               +
                             $"mode = {mode}\n"                              +
                             $"opacityMode = {opacityMode}\n"                +
+                            $"doDrawBottom = {doDrawBottom}\n"              +
                             $"sizeMode = {sizeMode}\n"                      +
                             $"spdMax = {spdMax}\n"                          +
                             $"waitTimeMax = {waitTimeMax}\n"                +
@@ -232,8 +236,11 @@ namespace my
             p4.SetColor(0, 0, 0, 1);
             p4.Draw(x1, y1, x2, y2, x3, y3, x4, y4, false);
 
-            p4.SetColor(0, 0, 0, 0.75f);
-            p4.Draw(x1, y1 + height, x2, y2 + height, x3, y3 + height, x4, y4 + height, false);
+            if (doDrawBottom)
+            {
+                p4.SetColor(0, 0, 0, 0.1f);
+                p4.Draw(x1, y1 + height, x2, y2 + height, x3, y3 + height, x4, y4 + height, !false);
+            }
 
             p4.SetColor(R * 1.1f, G * 1.1f, B * 1.1f, A);
             p4.Draw(x1, y1, x3, y3, x1 + bottomOffset, y1 + height, x3, y3 + height, true);
