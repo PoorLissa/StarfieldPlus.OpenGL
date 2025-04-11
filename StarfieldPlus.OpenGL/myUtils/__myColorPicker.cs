@@ -410,7 +410,19 @@ namespace my
                     if (_img != null)
                     {
                         fixCoordinates(ref x, ref y);
-                        getPixelFast(x, y, ref R, ref G, ref B, bmpData);
+
+                        if (!false)
+                        {
+                            var pixel = _img.GetPixel(x, y);
+
+                            R = pixel.R;
+                            G = pixel.G;
+                            B = pixel.B;
+                        }
+                        else
+                        {
+                            getPixelFast(x, y, ref R, ref G, ref B, bmpData);
+                        }
                     }
                     break;
 
