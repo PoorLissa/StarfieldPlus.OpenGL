@@ -243,6 +243,7 @@ public class ScreenSaver
             my.myObj_1270.Type,     // Straight lines symmetrically originating from starting points
             my.myObj_1280.Type,     // Doom style prysms
             my.myObj_1290.Type,     // Prysms
+            my.myObj_1300.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -255,7 +256,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : !false, my.myObj_1300.Type);
+                                                    doUseCustomType : false, my.myObj_1300.Type);
         return;
     }
 

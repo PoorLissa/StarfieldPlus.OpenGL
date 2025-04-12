@@ -372,6 +372,8 @@ namespace my
                     byte* row = ptr + (y * bmpData.Stride);     // target row
                     var offset = x * _bytesPerPixel;            // target pixel
 
+                    offset = x * 4;
+
                     B = row[offset + 0];
                     G = row[offset + 1];
                     R = row[offset + 2];
@@ -411,7 +413,7 @@ namespace my
                     {
                         fixCoordinates(ref x, ref y);
 
-                        if (!false)
+                        if (!true)
                         {
                             var pixel = _img.GetPixel(x, y);
 
@@ -701,7 +703,6 @@ namespace my
                 if (image != null && image != string.Empty)
                 {
                     _img = new Bitmap(image);
-                    initReader();
 
                     //if (_img.Width <= Width || _img.Height <= Height)
                     {
@@ -717,6 +718,9 @@ namespace my
 
                         _img = resizeImage(_img, Width, Height, param);
                     }
+
+                    // Do this AFTER the resizing, as the number of bytes per pixes changes while resizing!
+                    initReader();
 
                     if (_g != null)
                     {
