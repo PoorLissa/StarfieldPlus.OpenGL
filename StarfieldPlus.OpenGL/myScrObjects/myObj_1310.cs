@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 
 /*
@@ -22,7 +23,7 @@ namespace my
         private float a, b, c;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, n = 0, shape = 0, moveMode = 0, opacityMode = 0;
+        private static int N = 0, n = 0, gridStep = 1,  shape = 0, mode = 0, placeMode = 0, moveMode = 0, opacityMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -46,8 +47,8 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10000) + 12345;
-                n = 1;
+                N = rand.Next(30000) + 30000;
+                n = 3 + rand.Next(11);
 
                 shape = rand.Next(5);
             }
@@ -61,8 +62,13 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
+            doFillShapes = myUtils.randomChance(rand, 1, 2);
 
+            gridStep = 5 + rand.Next(16);
+
+            mode = rand.Next(4);
             moveMode = rand.Next(2);
+            placeMode = rand.Next(2);
 
             return;
         }
@@ -75,7 +81,11 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"n = {n}\n"                      +
+                            $"gridStep = {gridStep}\n"        +
                             $"moveMode = {moveMode}\n"        +
+                            $"placeMode = {placeMode}\n"      +
+                            $"opacityMode = {opacityMode}\n"  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -96,33 +106,114 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
+            switch (placeMode)
+            {
+                case 1:
+                    x -= x % gridStep;
+                    y -= y % gridStep;
+                    break;
+            }
+
             if (id < n)
             {
-                dx = myUtils.randFloatSigned(rand, 0.2f) * 3;
-                dy = myUtils.randFloatSigned(rand, 0.2f) * 3;
+                switch (mode)
+                {
+                    // Circular shapes
+                    case 0:
+                        {
+                            dx = myUtils.randFloatSigned(rand, 0.2f) * 5;
+                            dy = myUtils.randFloatSigned(rand, 0.2f) * 5;
 
-                size = 1;
+                            size = 1;
 
-                R = G = B = A = 0;
+                            R = G = B = A = 0;
 
-                a = 7;
-                b = -3;
-                c = 5000;
+                        }
+                        break;
+
+                    case 1:
+                        {
+                            switch (rand.Next(2))
+                            {
+                                case 0:
+                                    x = 0;
+                                    dx = myUtils.randFloat(rand, 0.2f) * +5;
+                                    break;
+
+                                case 1:
+                                    x = gl_Width;
+                                    dx = myUtils.randFloat(rand, 0.2f) * -5;
+                                    break;
+                            }
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            switch (rand.Next(2))
+                            {
+                                case 0:
+                                    y = 0;
+                                    dy = myUtils.randFloat(rand, 0.2f) * +5;
+                                    break;
+
+                                case 1:
+                                    y = gl_Height;
+                                    dy = myUtils.randFloat(rand, 0.2f) * -5;
+                                    break;
+                            }
+                        }
+                        break;
+
+                    case 3:
+                        {
+                            switch (rand.Next(4))
+                            {
+                                case 0:
+                                    x = y = 0;
+                                    dx = myUtils.randFloat(rand, 0.2f) * +5;
+                                    dy = 0;
+                                    break;
+
+                                case 1:
+                                    x = y = gl_Width;
+                                    dx = myUtils.randFloat(rand, 0.2f) * -5;
+                                    dy = 0;
+                                    break;
+
+                                case 2:
+                                    x = y = 0;
+                                    dx = 0;
+                                    dy = myUtils.randFloat(rand, 0.2f) * +5;
+                                    break;
+
+                                case 3:
+                                    x = y = gl_Height;
+                                    dx = 0;
+                                    dy = myUtils.randFloat(rand, 0.2f) * -5;
+                                    break;
+                            }
+                        }
+                        break;
+
+                    case 11:
+                        {
+                            a = 7;
+                            b = -3;
+                            c = 5000;
+                        }
+                        break;
+                }
             }
             else
             {
-                cnt = 333 + rand.Next(333);
+                cnt = 222 + rand.Next(333);
                 size = rand.Next(3) + 3;
                 size = 2;
-
-                R = (float)rand.NextDouble();
-                G = (float)rand.NextDouble();
-                B = (float)rand.NextDouble();
-
-                R = G = B = 0.5f;
+                angle = myUtils.randFloat(rand) * 321;
 
                 A = 0.1f;
-                //colorPicker.getColor(x, y, ref R, ref G, ref B);
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
             }
 
             return;
@@ -132,110 +223,12 @@ namespace my
 
         protected override void Move()
         {
-            if (id < n)
+            switch (mode)
             {
-                x += dx;
-                y += dy;
-
-                a += 0.02f;
-                //b += 0.01f;
-
-                c -= 33;
-
-                int maxDist = 250;
-
-                for (int i = n; i < list.Count; i++)
-                {
-                    var other = list[i] as myObj_1310;
-
-                    float d = (float)(Math.Abs(a * other.x + b * other.y + c) / (Math.Sqrt(a * a + b * b)));
-
-                    var dX = x - other.x;
-                    var dY = y - other.y;
-
-                    //var dist = Math.Sqrt(dX * dX + dY * dY);
-
-                    var dist = d;
-                    maxDist = 50;
-
-opacityMode = 0;
-
-                    switch (opacityMode)
-                    {
-                        case 0:
-                            {
-                                if (dist > maxDist)
-                                {
-                                    other.A = other.A > 0.1f ? other.A : 0.1f;
-                                }
-                                else
-                                {
-                                    other.A = (float)((1.0 * maxDist - dist) / maxDist);
-                                }
-                            }
-                            break;
-
-                        case 1:
-                            {
-                                if (dist > maxDist)
-                                {
-                                    other.A -= (other.A > 0.1f) ? 0.003f : 0;
-                                }
-                                else
-                                {
-                                    //other.A = (float)((1.0 * maxDist - dist) / maxDist);
-
-                                    other.A += 0.03f * (float)((1.0 * maxDist - dist) / maxDist);
-                                }
-                            }
-                            break;
-                    }
-                }
-
-                switch (moveMode)
-                {
-                    case 0:
-                        {
-                            if (x < 0 && dx < 0)
-                                dx *= -1;
-
-                            if (y < 0 && dy < 0)
-                                dy *= -1;
-
-                            if (x > gl_Width && dx > 0)
-                                dx *= -1;
-
-                            if (y > gl_Height && dy > 0)
-                                dy *= -1;
-                        }
-                        break;
-
-                    case 1:
-                        {
-                            if (x < 0)
-                                dx += 0.01f;
-
-                            if (y < 0)
-                                dy += 0.01f;
-
-                            if (x > gl_Width)
-                                dx -= 0.01f;
-
-                            if (y > gl_Height)
-                                dy -= 0.01f;
-                        }
-                        break;
-                }
-            }
-            else
-            {
-                if (--cnt < 0)
-                {
-                    A -= 0.0001f;
-
-                    if (A < 0)
-                        generateNew();
-                }
+                case 0: move_0(); break;
+                case 1: move_1(); break;
+                case 2: move_2(); break;
+                case 3: move_3(); break;
             }
 
             return;
@@ -376,5 +369,289 @@ opacityMode = 0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        private void move_0()
+        {
+            if (id < n)
+            {
+                x += dx;
+                y += dy;
+
+                int maxDist = 333;
+
+                for (int i = n; i < list.Count; i++)
+                {
+                    var other = list[i] as myObj_1310;
+
+                    var dX = x - other.x;
+                    var dY = y - other.y;
+
+                    var dist = Math.Sqrt(dX * dX + dY * dY);
+
+                    switch (opacityMode)
+                    {
+                        case 0:
+                            {
+                                if (dist > maxDist)
+                                {
+                                    other.A = other.A > 0.1f ? other.A : 0.1f;
+                                }
+                                else
+                                {
+                                    other.A = (float)((1.0 * maxDist - dist) / maxDist);
+                                }
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                if (dist > maxDist)
+                                {
+                                    other.A -= (other.A > 0.1f) ? 0.003f : 0;
+                                }
+                                else
+                                {
+                                    //other.A = (float)((1.0 * maxDist - dist) / maxDist);
+
+                                    other.A += 0.03f * (float)((1.0 * maxDist - dist) / maxDist);
+                                }
+                            }
+                            break;
+                    }
+                }
+
+                switch (moveMode)
+                {
+                    case 0:
+                        {
+                            if (x < 0 && dx < 0)
+                                dx *= -1;
+
+                            if (y < 0 && dy < 0)
+                                dy *= -1;
+
+                            if (x > gl_Width && dx > 0)
+                                dx *= -1;
+
+                            if (y > gl_Height && dy > 0)
+                                dy *= -1;
+                        }
+                        break;
+
+                    case 1:
+                        {
+                            if (x < 0)
+                                dx += 0.023f;
+
+                            if (y < 0)
+                                dy += 0.023f;
+
+                            if (x > gl_Width)
+                                dx -= 0.023f;
+
+                            if (y > gl_Height)
+                                dy -= 0.023f;
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                if (--cnt < 0)
+                {
+                    generateNew();
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move_1()
+        {
+            if (id < n)
+            {
+                x += dx;
+                y += dy;
+
+                int maxDist = 25;
+
+                for (int i = n; i < list.Count; i++)
+                {
+                    var other = list[i] as myObj_1310;
+                    var dist = (float)Math.Abs(x - other.x);
+
+                    switch (opacityMode)
+                    {
+                        case 0:
+                            {
+                                if (dist > maxDist)
+                                {
+                                    other.A = other.A > 0.1f ? other.A : 0.1f;
+                                }
+                                else
+                                {
+                                    other.A = (float)((1.0 * maxDist - dist) / maxDist);
+                                }
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                if (dist > maxDist)
+                                {
+                                    other.A -= (other.A > 0.1f) ? 0.003f : 0;
+                                }
+                                else
+                                {
+                                    other.A += 0.03f * (float)((1.0 * maxDist - dist) / maxDist);
+                                }
+                            }
+                            break;
+                    }
+                }
+
+                if (x < -100 || x > gl_Width + 100)
+                    generateNew();
+            }
+            else
+            {
+                if (--cnt < 0)
+                {
+                    generateNew();
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move_2()
+        {
+            if (id < n)
+            {
+                x += dx;
+                y += dy;
+
+                int maxDist = 25;
+
+                for (int i = n; i < list.Count; i++)
+                {
+                    var other = list[i] as myObj_1310;
+                    var dist = (float)Math.Abs(y - other.y);
+
+                    switch (opacityMode)
+                    {
+                        case 0:
+                            {
+                                if (dist > maxDist)
+                                {
+                                    other.A = other.A > 0.1f ? other.A : 0.1f;
+                                }
+                                else
+                                {
+                                    other.A = (float)((1.0 * maxDist - dist) / maxDist);
+                                }
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                if (dist > maxDist)
+                                {
+                                    other.A -= (other.A > 0.1f) ? 0.003f : 0;
+                                }
+                                else
+                                {
+                                    other.A += 0.03f * (float)((1.0 * maxDist - dist) / maxDist);
+                                }
+                            }
+                            break;
+                    }
+                }
+
+                if (x < -100 || x > gl_Width + 100)
+                    generateNew();
+            }
+            else
+            {
+                if (--cnt < 0)
+                {
+                    generateNew();
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void move_3()
+        {
+            if (id < n)
+            {
+                x += dx;
+                y += dy;
+
+                int maxDist = 25;
+
+                for (int i = n; i < list.Count; i++)
+                {
+                    var other = list[i] as myObj_1310;
+                    var dist = dy == 0
+                        ? (float)Math.Abs(x - other.x)
+                        : (float)Math.Abs(y - other.y);
+
+                    switch (opacityMode)
+                    {
+                        case 0:
+                            {
+                                if (dist > maxDist)
+                                {
+                                    other.A = other.A > 0.1f ? other.A : 0.1f;
+                                }
+                                else
+                                {
+                                    other.A = (float)((1.0 * maxDist - dist) / maxDist);
+                                }
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                if (dist > maxDist)
+                                {
+                                    other.A -= (other.A > 0.1f) ? 0.003f : 0;
+                                }
+                                else
+                                {
+                                    other.A += 0.03f * (float)((1.0 * maxDist - dist) / maxDist);
+                                }
+                            }
+                            break;
+                    }
+                }
+
+                if (x < -100 || x > gl_Width + 100)
+                    generateNew();
+
+                if (y < -100 || y > gl_Height + 100)
+                    generateNew();
+            }
+            else
+            {
+                if (--cnt < 0)
+                {
+                    generateNew();
+                }
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     }
 };
