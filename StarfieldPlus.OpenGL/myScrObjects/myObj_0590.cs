@@ -17,6 +17,7 @@ namespace my
         private class data
         {
             public float x, y, z, dx, dy, dz;
+            public float x0, y0, rad, angle, dAngle;
         };
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -30,7 +31,7 @@ namespace my
         private float size;
         private myParticleTrail trail = null;
 
-        private static int N = 0, n = 0, moveMode = 0, nTrail = 0, lineWidth = 1, connectionMode = 0, connectionDist = 0;
+        private static int N = 0, n = 0, moveMode = 0, nTrail = 0, lineWidth = 1, connectionMode = 0, connectionDist = 0, maxRad = 0;
         private static bool doFillShapes = false, doUseTrails = false, doUseZsize = false;
         private static float dimAlpha = 0.05f;
 
@@ -85,11 +86,13 @@ namespace my
         {
             doUseZsize = myUtils.randomBool(rand);
 
-            moveMode = rand.Next(2);
+            moveMode = rand.Next(3);
             connectionMode = rand.Next(3);
 
             lineWidth = 1 + rand.Next(6);
             connectionDist = 333 + rand.Next(666);
+
+            maxRad = 333 + rand.Next(999);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -147,6 +150,19 @@ namespace my
                 d.dx = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(5) + 11);
                 d.dy = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(5) + 11);
                 d.dz = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(5) + 11);
+
+                // for the radial motion
+                {
+                    d.x0 = d.x;
+                    d.y0 = d.y;
+                    d.z = 1;
+                    d.rad = 33 + rand.Next(maxRad);
+                    d.angle = myUtils.randFloat(rand) * 321;
+                    d.dAngle = myUtils.randFloatSigned(rand, 0.1f) * 0.05f;
+
+                    d.x = d.x0 + d.rad * (float)Math.Sin(d.angle);
+                    d.y = d.y0 + d.rad * (float)Math.Cos(d.angle);
+                }
 
                 dataList.Add(d);
 
@@ -237,6 +253,14 @@ namespace my
 
                             if (d.z > 1000)
                                 d.dz -= spd;
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            d.x = d.x0 + d.rad * (float)Math.Sin(d.angle);
+                            d.y = d.y0 + d.rad * (float)Math.Cos(d.angle);
+                            d.angle += d.dAngle;
                         }
                         break;
                 }
