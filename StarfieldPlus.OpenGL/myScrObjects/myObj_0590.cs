@@ -31,9 +31,9 @@ namespace my
         private float size;
         private myParticleTrail trail = null;
 
-        private static int N = 0, n = 0, moveMode = 0, nTrail = 0, lineWidth = 1, connectionMode = 0, connectionDist = 0, maxRad = 0;
-        private static bool doFillShapes = false, doUseTrails = false, doUseZsize = false;
-        private static float dimAlpha = 0.05f;
+        private static int N = 0, n = 0, moveMode = 0, dAngleMode = 0, nTrail = 0, lineWidth = 1, connectionMode = 0, connectionDist = 0, maxRad = 0;
+        private static bool doFillShapes = false, doUseTrails = false, doUseZsize = false, doUseOnlyStraightMoves = false;
+        private static float dimAlpha = 0.05f, s_dAngle;
 
         private static myFreeShader shader = null;
 
@@ -85,14 +85,17 @@ namespace my
         private void initLocal()
         {
             doUseZsize = myUtils.randomBool(rand);
+            doUseOnlyStraightMoves = myUtils.randomChance(rand, 1, 3);
 
             moveMode = rand.Next(3);
             connectionMode = rand.Next(3);
+            dAngleMode = rand.Next(4);
 
             lineWidth = 1 + rand.Next(6);
             connectionDist = 333 + rand.Next(666);
 
             maxRad = 333 + rand.Next(999);
+            s_dAngle = myUtils.randFloat(rand, 0.2f) * 0.05f;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -103,16 +106,19 @@ namespace my
 
             string nStr(int   n) { return n.ToString("N0");    }
 
-            string str = $"Obj = {Type}\n\n"                      	 +
-                            $"N = {nStr(list.Count)} of {nStr(N)}\n" +
-                            $"n = {n}\n"                             +
-                            $"doUseTrails = {doUseTrails}\n"         +
-                            $"doUseZsize = {doUseZsize}\n"           +
-                            $"nTrail = {nTrail}\n"                   +
-                            $"moveMode = {moveMode}\n"               +
-                            $"connectionMode = {connectionMode}\n"   +
-                            $"connectionDist = {connectionDist}\n"   +
-                            $"lineWidth = {lineWidth}\n"             +
+            string str = $"Obj = {Type}\n\n"                      	               +
+                            $"N = {nStr(list.Count)} of {nStr(N)}\n"               +
+                            $"n = {n}\n"                                           +
+                            $"doUseTrails = {doUseTrails}\n"                       +
+                            $"doUseZsize = {doUseZsize}\n"                         +
+                            $"doUseOnlyStraightMoves = {doUseOnlyStraightMoves}\n" +
+                            $"nTrail = {nTrail}\n"                                 +
+                            $"moveMode = {moveMode}\n"                             +
+                            $"dAngleMode = {dAngleMode}\n"                         +
+                            $"s_dAngle = {myUtils.fStr(s_dAngle)}\n"               +
+                            $"connectionMode = {connectionMode}\n"                 +
+                            $"connectionDist = {connectionDist}\n"                 +
+                            $"lineWidth = {lineWidth}\n"                           +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -151,17 +157,47 @@ namespace my
                 d.dy = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(5) + 11);
                 d.dz = myUtils.randFloat(rand) * myUtils.randomSign(rand) * (rand.Next(5) + 11);
 
+                if (doUseOnlyStraightMoves)
+                {
+                    if (myUtils.randomChance(rand, 1, 2))
+                        d.dx = 0;
+                    else
+                        d.dy = 0;
+                }
+
                 // for the radial motion
+                if (moveMode == 2)
                 {
                     d.x0 = d.x;
                     d.y0 = d.y;
                     d.z = 1;
+                    d.dx = 0;
+                    d.dy = 0;
+                    d.dz = 0;
                     d.rad = 33 + rand.Next(maxRad);
                     d.angle = myUtils.randFloat(rand) * 321;
-                    d.dAngle = myUtils.randFloatSigned(rand, 0.1f) * 0.05f;
 
                     d.x = d.x0 + d.rad * (float)Math.Sin(d.angle);
                     d.y = d.y0 + d.rad * (float)Math.Cos(d.angle);
+
+                    switch (dAngleMode)
+                    {
+                        case 0:
+                            d.dAngle = myUtils.randFloat(rand, 0.1f) * 0.05f;
+                            break;
+
+                        case 1:
+                            d.dAngle = myUtils.randFloatSigned(rand, 0.1f) * 0.05f;
+                            break;
+
+                        case 2:
+                            d.dAngle = s_dAngle;
+                            break;
+
+                        case 3:
+                            d.dAngle = s_dAngle * myUtils.randomSign(rand);
+                            break;
+                    }
                 }
 
                 dataList.Add(d);
@@ -261,6 +297,7 @@ namespace my
                             d.x = d.x0 + d.rad * (float)Math.Sin(d.angle);
                             d.y = d.y0 + d.rad * (float)Math.Cos(d.angle);
                             d.angle += d.dAngle;
+                            //d.angle += myUtils.randFloat(rand) * 0.01f;
                         }
                         break;
                 }
@@ -277,14 +314,14 @@ namespace my
 
             for (int i = 0; i < n; i++)
             {
-                var d = dataList[i];
+                var particle = dataList[i];
 
-                myPrimitive._EllipseInst.setInstanceCoords(d.x, d.y, 10, 0);
+                myPrimitive._EllipseInst.setInstanceCoords(particle.x, particle.y, 10, 0);
                 myPrimitive._EllipseInst.setInstanceColor(R, G, B, 0.5f);
 
-                X += d.x;
-                Y += d.y;
-                Z += d.z;
+                X += particle.x;
+                Y += particle.y;
+                Z += particle.z;
             }
 
             X /= n;
