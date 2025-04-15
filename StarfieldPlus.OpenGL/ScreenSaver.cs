@@ -166,7 +166,7 @@ public class ScreenSaver
             my.myObj_0560.Type,     // Pixelating an image with average colors
             my.myObj_0570.Type,     // Some spots using the color of an image. Linear connections between these shapes
             my.myObj_0580.Type,     // Gravity n-body
-            my.myObj_0590.Type,     // Particle moves as a result of an average of n other particles movement
+            my.myObj_0590.Type,     // Particle moves as a result of an average of n other particles' motions
             my.myObj_0600.Type,     // Pendulum
             my.myObj_0610.Type,     // Snake-like patterns, stupid implementation
             my.myObj_0620.Type,     // Rectangles with width/height that are changing constantly; while width is increasing, height is decreasing, and vice versa
