@@ -22,7 +22,7 @@ namespace my
 
         private List<child> _children = null;
 
-        private static int N = 0, shape = 0, maxCnt = 11;
+        private static int N = 0, shape = 0, maxCnt = 11, mode = 0;
         private static bool doFillShapes = false;
 
         private static myScreenGradient grad = null;
@@ -67,6 +67,8 @@ namespace my
         {
             doClearBuffer = myUtils.randomBool(rand);
 
+            mode = rand.Next(2);
+
             renderDelay = rand.Next(3) + 1;
 
             return;
@@ -84,6 +86,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                         +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n" +
                             $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"mode = {mode}\n"                       +
                             $"renderDelay = {renderDelay}\n"         +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -127,8 +130,23 @@ namespace my
                 {
                     var obj = new child();
 
-                    obj.y = y + (rand.Next(21) - 10) * 1.0f * y / gl_Height;
                     obj.x = x + rand.Next(11) - 5;
+
+                    switch (mode)
+                    {
+                        case 0:
+                            {
+                                obj.y = y + (rand.Next(21) - 10) * 1.0f * y / gl_Height;
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                var aaa = (float)Math.Abs(obj.x - gl_x0);
+                                obj.y = y + (rand.Next((int)aaa / 23)) + aaa / 33;
+                            }
+                            break;
+                    }
 
                     obj.cnt = rand.Next(maxCnt) + 3;
                     obj.maxCnt = 11 + rand.Next(33);
@@ -152,8 +170,22 @@ namespace my
                 if (--obj.cnt == 0)
                 {
                     obj.cnt = rand.Next(obj.maxCnt) + 3;
-                    obj.y = y + rand.Next(21) - 10;
-                    obj.y = y + (rand.Next(21) - 10) * 1.5f * y / gl_Height;
+
+                    switch (mode)
+                    {
+                        case 0:
+                            {
+                                obj.y = y + (rand.Next(21) - 10) * 1.5f * y / gl_Height;
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                var aaa = (float)Math.Abs(obj.x - gl_x0);
+                                obj.y = y + (rand.Next((int)aaa / 23)) + aaa / 33;
+                            }
+                            break;
+                    }
                 }
             }
 
