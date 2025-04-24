@@ -180,14 +180,14 @@ namespace my
 
                 if (dx == 0)
                 {
-                    if (y >= Y == dy > 0)
+                    if ((y >= Y && dy > 0) || (y <= Y && dy < 0))
                     {
                         cnt = -10;
                     }
                 }
                 else
                 {
-                    if (x >= X == dx > 0)
+                    if ((x >= X && dx > 0) || (x <= X && dx < 0))
                         cnt = -10;
                 }
             }
@@ -203,7 +203,6 @@ namespace my
 
                     aMax = 0.85f + myUtils.randFloat(rand) * 0.15f;
                     A = 0;
-
                     cnt = rand.Next(100) + 100;
                 }
                 else
@@ -215,6 +214,8 @@ namespace my
                     }
                     else
                     {
+                        aMax = -1;
+
                         if (cnt > 1)
                         {
                             cnt--;
@@ -287,9 +288,9 @@ namespace my
             uint cnt = 0;
             initShapes();
 
+            clearScreenSetup(doClearBuffer, 0.1f, true);
 
-            clearScreenSetup(doClearBuffer, 0.1f);
-
+            stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -329,8 +330,8 @@ namespace my
                     list.Add(new myObj_0072());
                 }
 
+                stopwatch.WaitAndRestart();
                 cnt++;
-                System.Threading.Thread.Sleep(renderDelay);
             }
 
             return;
