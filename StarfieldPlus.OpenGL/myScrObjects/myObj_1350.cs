@@ -17,10 +17,11 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1350);
 
+        private int dir;
         private float x, y, d, alpha, dAlpha;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, mode = 0, dirMode = 0, dMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, Rad = 0, theta = 0;
 
@@ -48,7 +49,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 100000;
+                N = 200000 + rand.Next(123456);
 
                 shape = rand.Next(5);
             }
@@ -62,6 +63,11 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
+            doFillShapes = myUtils.randomChance(rand, 1, 2);
+
+            mode = rand.Next(2);
+            dirMode = rand.Next(3);
+            dMode = rand.Next(2);
 
             Rad = 0;
 
@@ -74,8 +80,13 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
+            string str = $"Obj = {Type}\n\n"                     +
+                            myUtils.strCountOf(list.Count, N)    +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"doFillShapes = {doFillShapes}\n"   +
+                            $"mode = {mode}\n"                   +
+                            $"dirMode = {dirMode}\n"             +
+                            $"dMode = {dMode}\n"                 +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -111,6 +122,18 @@ namespace my
             dAlpha = 1 * 0.0005f;
             angle = alpha;
 
+            switch (dirMode)
+            {
+                case 0:
+                case 1:
+                    dir = dirMode;
+                    break;
+
+                case 2:
+                    dir = rand.Next(2);
+                    break;
+            }
+
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -120,11 +143,39 @@ namespace my
 
         protected override void Move()
         {
-            if (d < Rad)
+            switch (mode)
             {
-                x = gl_x0 + d * (float)Math.Sin(alpha);
-                y = gl_y0 + d * (float)Math.Cos(alpha);
-                alpha += dAlpha;
+                case 0:
+                    {
+                        if (d < Rad)
+                        {
+                            x = gl_x0 + d * (float)Math.Sin(alpha);
+                            y = gl_y0 + d * (float)Math.Cos(alpha);
+                            alpha += dir == 0 ? dAlpha : -dAlpha;
+                        }
+                    }
+                    break;
+
+                case 1:
+                    {
+                        if (Math.Abs(Rad - d) < 33.0)
+                        {
+                            x = gl_x0 + d * (float)Math.Sin(alpha);
+                            y = gl_y0 + d * (float)Math.Cos(alpha);
+                            alpha += dir == 0 ? dAlpha * 3 : -dAlpha * 3;
+                        }
+                    }
+                    break;
+            }
+
+            switch (dMode)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    alpha += dir == 0 ? d * 0.00001f : d * -0.00001f;
+                    break;
             }
 
             return;
