@@ -21,7 +21,7 @@ namespace my
         private float x, y, d, alpha, dAlpha;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, mode = 0, dirMode = 0, dMode = 0;
+        private static int N = 0, shape = 0, mode = 0, dirMode = 0, dMode = 0, minSize = 1;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, Rad = 0, theta = 0;
 
@@ -69,6 +69,8 @@ namespace my
             dirMode = rand.Next(3);
             dMode = rand.Next(2);
 
+            minSize = rand.Next(11) + 1;
+
             Rad = 0;
 
             return;
@@ -87,6 +89,7 @@ namespace my
                             $"mode = {mode}\n"                   +
                             $"dirMode = {dirMode}\n"             +
                             $"dMode = {dMode}\n"                 +
+                            $"minSize = {minSize}\n"             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -104,23 +107,55 @@ namespace my
 
         protected override void generateNew()
         {
-            size = rand.Next(3) + 1;
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
 
-            A = 0.45f + myUtils.randFloat(rand) * 0.25f;
+            float dx = x - gl_x0;
+            float dy = y - gl_y0;
 
-            do
+            d = (float)Math.Sqrt(dx * dx + dy * dy);
+
+            size = rand.Next(3) + minSize;
+
+            if (dx == 0)
             {
-                d = 1 + rand.Next(gl_x0 + 100);
-                alpha = myUtils.randFloat(rand) * 321;
-
-                x = gl_x0 + d * (float)Math.Sin(alpha);
-                y = gl_y0 + d * (float)Math.Cos(alpha);
+                if (dy > 0)
+                {
+                    alpha = 0;
+                }
+                else
+                {
+                    alpha = (float)Math.PI;
+                }
             }
-            while (x < 0 || y < 0 || x > gl_Width || y > gl_Height);
+            else if (dy == 0)
+            {
+                if (dx > 0)
+                {
+                    alpha = (float)Math.PI/2;
+                }
+                else
+                {
+                    alpha = (float)Math.PI + (float)Math.PI/2;
+                }
+            }
+            else
+            {
+                if (dx > 0)
+                {
+                    alpha = (float)(Math.PI/2 - Math.Atan(dy / dx));
+                }
+                else
+                {
+                    alpha = (float)(Math.PI/2 + Math.PI - Math.Atan(dy / dx));
+                }
+            }
 
-            dAlpha = d * 0.00001f;
-            dAlpha = 1 * 0.0005f;
             angle = alpha;
+            dAlpha = 0.0005f;
+
+            x = gl_x0 + d * (float)Math.Sin(alpha);
+            y = gl_y0 + d * (float)Math.Cos(alpha);
 
             switch (dirMode)
             {
@@ -134,6 +169,7 @@ namespace my
                     break;
             }
 
+            A = 0.45f + myUtils.randFloat(rand) * 0.25f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
@@ -149,6 +185,7 @@ namespace my
                     {
                         if (d < Rad)
                         {
+                            angle = alpha;
                             x = gl_x0 + d * (float)Math.Sin(alpha);
                             y = gl_y0 + d * (float)Math.Cos(alpha);
                             alpha += dir == 0 ? dAlpha : -dAlpha;
@@ -160,6 +197,7 @@ namespace my
                     {
                         if (Math.Abs(Rad - d) < 33.0)
                         {
+                            angle = alpha;
                             x = gl_x0 + d * (float)Math.Sin(alpha);
                             y = gl_y0 + d * (float)Math.Cos(alpha);
                             alpha += dir == 0 ? dAlpha * 3 : -dAlpha * 3;
@@ -186,8 +224,6 @@ namespace my
         protected override void Show()
         {
             float size2x = size * 2;
-
-            angle = alpha;
 
             switch (shape)
             {
