@@ -711,7 +711,7 @@ namespace my
 
                         scaleParams param = scaleParams.scaleToWidth;
 
-                        if (Width <= Height)
+                        if (_img.Width <= _img.Height && new Random(System.DateTime.Now.Millisecond).Next(2) == 0)
                         {
                             param = scaleParams.scaleToHeight;
                         }
@@ -768,23 +768,29 @@ namespace my
             {
                 switch (scaleParam)
                 {
+                    // For square or vertical images: image in the center, borders made up from random colors from this image
                     case scaleParams.scaleToHeight:
-                        destRect.Width = src.Width * height / src.Height;
-
-                        if (destRect.Width < width)
                         {
-                            destRect.X = (width - destRect.Width) / 2;
+                            destRect.Width = src.Width * height / src.Height;
+
+                            if (destRect.Width < width)
+                            {
+                                destRect.X = (width - destRect.Width) / 2;
+                            }
                         }
                         break;
 
+                    // Default option
                     case scaleParams.scaleToWidth:
-                        destRect.Height = src.Height * width / src.Width;
-
-                        if (destRect.Height > height)
                         {
-                            int yOffset = destRect.Height - height;
-                            yOffset = _rand.Next(yOffset);
-                            destRect.Y = -yOffset;
+                            destRect.Height = src.Height * width / src.Width;
+
+                            if (destRect.Height > height)
+                            {
+                                int yOffset = destRect.Height - height;
+                                yOffset = _rand.Next(yOffset);
+                                destRect.Y = -yOffset;
+                            }
                         }
                         break;
                 }
@@ -800,12 +806,52 @@ namespace my
 
                 using (var wrapMode = new System.Drawing.Imaging.ImageAttributes())
                 {
+                    if (scaleParam == scaleParams.scaleToHeight)
+                    {
+                        fillBorders(destRect, width, height, (Bitmap)src, gr);
+                    }
+
                     wrapMode.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
                     gr.DrawImage(src, destRect, 0, 0, src.Width, src.Height, GraphicsUnit.Pixel, wrapMode);
                 }
             }
 
             return destImage;
+        }
+
+        // -------------------------------------------------------------------------
+
+        private void fillBorders(Rectangle destRect, int width, int height, Bitmap src, Graphics gr)
+        {
+            var rand = new Random(System.DateTime.Now.Millisecond);
+            System.Drawing.SolidBrush b = new SolidBrush(Color.SeaGreen);
+
+            if (destRect.Width > src.Width)
+            {
+                int lenDiff = width - src.Width;
+
+                for (int i = 0; i < 123000; i++)
+                {
+                    b.Color = src.GetPixel(rand.Next(src.Width), rand.Next(src.Height));
+
+                    int sizePlusX = rand.Next(33);
+                    int sizePlusY = rand.Next(33);
+
+                    int x = rand.Next(lenDiff);
+                    int y = rand.Next(height);
+
+                    if (rand.Next(2) == 0)
+                    {
+                        gr.FillRectangle(b, x, y, 13 + sizePlusX, 13 + sizePlusY);
+                    }
+                    else
+                    {
+                        gr.FillRectangle(b, width - x, y, 13 + sizePlusX, 13 + sizePlusY);
+                    }
+                }
+            }
+
+            return;
         }
 
         // -------------------------------------------------------------------------
