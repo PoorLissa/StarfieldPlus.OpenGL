@@ -704,16 +704,19 @@ namespace my
                 {
                     _img = new Bitmap(image);
 
+                    // Stretch the image, if its size is less than the desktop size
                     //if (_img.Width <= Width || _img.Height <= Height)
                     {
-                        // Stretch the image, if its size is less than the desktop size
-                        // todo: see why some of my 3840x1600 images are displayed incorrectly if not resized here
-
                         scaleParams param = scaleParams.scaleToWidth;
 
-                        if (_img.Width <= _img.Height && new Random(System.DateTime.Now.Millisecond).Next(2) == 0)
+                        float desktopRatio = (float)Width / (float)Height;
+                        float srcRatio = (float)_img.Width / (float)_img.Height;
+
+                        // Scale to height vertical images (or those not wide enough):
+                        if (desktopRatio - srcRatio > 0.1f)
                         {
-                            param = scaleParams.scaleToHeight;
+                            if (new Random(System.DateTime.Now.Millisecond).Next(2) == 0)
+                                param = scaleParams.scaleToHeight;
                         }
 
                         _img = resizeImage(_img, Width, Height, param);
