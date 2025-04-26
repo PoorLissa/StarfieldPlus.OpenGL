@@ -5205,8 +5205,6 @@ namespace my
         {
             initShapes();
 
-            //Glfw.SwapInterval(0);
-
             if (bgrDrawMode == BgrDrawMode.ONCE)
             {
                 glDrawBuffer(GL_FRONT_AND_BACK);
@@ -5220,6 +5218,8 @@ namespace my
             if (doCreateAtOnce)
                 for (int i = 0; i < N; i++)
                     list.Add(new myObj_0330());
+
+            stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
 
             while (!Glfw.WindowShouldClose(window))
             {
@@ -5272,7 +5272,7 @@ namespace my
                     list.Add(new myObj_0330());
                 }
 
-                System.Threading.Thread.Sleep(renderDelay);
+                stopwatch.WaitAndRestart();
                 t += dt;
             }
 
