@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -26,8 +27,10 @@ namespace my
         private static float color255f = 1.0f / 255.0f;
         private static string _fileName = null;
 
+        private static Dictionary<int, (int, int, int)> _colorMap = null;
+
         private enum scaleParams { scaleToWidth, scaleToHeight };
-        public enum  colorMode { RANDOM_MODE = -2, SNAPSHOT_OR_IMAGE = -1, SNAPSHOT, IMAGE, SINGLE_RANDOM, RANDOM, TEXTURE, GRAY };
+        public enum  colorMode { RANDOM_MODE = -2, SNAPSHOT_OR_IMAGE = -1, SNAPSHOT, IMAGE, SINGLE_RANDOM, RANDOM, TEXTURE, GRAY, COLORMAP };
 
         // -------------------------------------------------------------------------
 
@@ -38,7 +41,7 @@ namespace my
             _imgRect = new Rectangle(0, 0, _W, _H);
 
             _rand = new Random((int)DateTime.Now.Ticks);
-            _rndMode = _rand.Next(6);                       // random color mode
+            _rndMode = _rand.Next(7);                       // random color mode
             _rndVariator = 25 + _rand.Next(75);             // random color variator
 
             // Select mode
@@ -52,7 +55,7 @@ namespace my
                     switch (mode)
                     {
                         case colorMode.RANDOM_MODE:
-                            _mode = (colorMode)_rand.Next(6);           // [0 .. 5]
+                            _mode = (colorMode)_rand.Next(7);           // [0 .. 5]
                             break;
 
                         case colorMode.SNAPSHOT_OR_IMAGE:
@@ -81,6 +84,10 @@ namespace my
                 // Use Custom Made Texture
                 case colorMode.TEXTURE:
                     buildTexture(Width, Height);
+                    break;
+
+                case colorMode.COLORMAP:
+                    buildColorMap();
                     break;
 
                 // Use Custom Color
@@ -468,6 +475,17 @@ namespace my
                     G = R;
                     B = G;
                     break;
+
+                // Several predefined colors
+                case colorMode.COLORMAP:
+                    {
+                        int n = _rand.Next(_colorMap.Count);
+
+                        R = _colorMap[n].Item1 + _rand.Next(21) - 10;
+                        G = _colorMap[n].Item2 + _rand.Next(21) - 10;
+                        B = _colorMap[n].Item3 + _rand.Next(21) - 10;
+                    }
+                    break;
             }
 
             return;
@@ -528,6 +546,17 @@ namespace my
                     R = _rand.Next(256);
                     G = R;
                     B = G;
+                    break;
+
+                // Several predefined colors
+                case colorMode.COLORMAP:
+                    {
+                        int n = _rand.Next(_colorMap.Count);
+
+                        R = _colorMap[n].Item1 + _rand.Next(21) - 10;
+                        G = _colorMap[n].Item2 + _rand.Next(21) - 10;
+                        B = _colorMap[n].Item3 + _rand.Next(21) - 10;
+                    }
                     break;
             }
 
@@ -1211,5 +1240,34 @@ namespace my
 
             _g.DrawImage(bmp, destRect, 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel);
         }
+
+        // -------------------------------------------------------------------------
+
+        // Populate color map with colors
+        private void buildColorMap()
+        {
+            _colorMap = new Dictionary<int, (int, int, int)>();
+
+            int size = _rand.Next(7) + 3;
+            int R, G, B;
+
+            for (int i = 0; i < size; i++)
+            {
+                do {
+
+                    R = _rand.Next(256);
+                    G = _rand.Next(256);
+                    B = _rand.Next(256);
+
+                }
+                while (R + G + B < 50);
+
+                _colorMap.Add(i, (R, G, B));
+            }
+
+            return;
+        }
+
+        // -------------------------------------------------------------------------
     }
 };

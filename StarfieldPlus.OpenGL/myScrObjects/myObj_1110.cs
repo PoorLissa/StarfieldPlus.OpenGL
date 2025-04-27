@@ -41,7 +41,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.COLORMAP);
             list = new List<myObject>();
 
             // Global unmutable constants
@@ -75,9 +75,10 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
-                            $"renderDelay = {renderDelay}\n"  +
+            string str = $"Obj = {Type}\n\n"                           +
+                            myUtils.strCountOf(list.Count, N)          +
+                            $"renderDelay = {renderDelay}\n"           +
+                            $"colorMode: {colorPicker.getModeStr()}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
