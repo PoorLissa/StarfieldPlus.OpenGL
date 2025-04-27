@@ -85,7 +85,6 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doClearBuffer = false;
 
             angleGlobal = myUtils.randFloat(rand) * 321;
