@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Semispheres growing into the screen space from the screen borders
 */
 
 
