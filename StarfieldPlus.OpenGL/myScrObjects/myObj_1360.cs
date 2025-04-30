@@ -20,9 +20,9 @@ namespace my
         private float x, y, rad, dRad;
         private float A, R, G, B;
 
-        private static int N = 0, maxRad = 0;
+        private static int N = 0, mode = 0, maxRad = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.05f, dA = 0;
 
         private static myScreenGradient grad = null;
 
@@ -45,8 +45,11 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
+                dA = 0.001f;
 
-                switch (rand.Next(3))
+                mode = rand.Next(4);
+
+                switch (mode)
                 {
                     case 0:
                         maxRad = gl_Width;
@@ -59,6 +62,12 @@ namespace my
                     case 2:
                         maxRad = rand.Next(333) + 222;
                         N = 50;
+                        break;
+
+                    case 3:
+                        maxRad = rand.Next(50) + 11;
+                        N = 50 + rand.Next(25);
+                        dA = 0.003f + myUtils.randFloat(rand) * 0.003f;
                         break;
                 }
             }
@@ -85,7 +94,9 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"mode = {mode}\n"                +
                             $"maxRad = {maxRad}\n"            +
+                            $"dA = {myUtils.fStr(dA)}\n"      +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -143,7 +154,7 @@ namespace my
 
             if (rad > maxRad)
             {
-                A -= 0.001f;
+                A -= dA;
 
                 if (A < 0)
                     generateNew();
