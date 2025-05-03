@@ -217,12 +217,12 @@ namespace my
 
             myPrimitive._Rectangle.setPixelDensityOffset(1);
 
-            glLineWidth(5);
-            myPrimitive._Rectangle.SetColor(R, G, B, 0.25f);
-            myPrimitive._Rectangle.Draw(x, y, size, size, false);
+            glLineWidth(2);
+            myPrimitive._Rectangle.SetColor(R, G, B, 0.15f);
+            myPrimitive._Rectangle.Draw(x - 3, y - 3, size + 6, size + 6, true);
 
             glLineWidth(3);
-            myPrimitive._Rectangle.SetColor(R, G, B, 0.33f);
+            myPrimitive._Rectangle.SetColor(R, G, B, 0.25f);
             myPrimitive._Rectangle.Draw(x, y, size, size, false);
 
             glLineWidth(1);
