@@ -63,7 +63,7 @@ public class myRectangle : myPrimitive
 
             //float fx = 2.0f * x / Width - 1.0f;
 
-            // Shift Width a bit to get rid of incomplete left bottom angle
+            // Shift Width a bit to get rid of incomplete left bottom corner
             //float fx = 2.0f * x / (Width + 1) - 1.0f;
             //float fx = 2.0f * x / (Width) - 1.0f;
             //float fx = (x < Width / 2) ? (w1 * x - 1.0f) : (w2 * x - 1.0f);
