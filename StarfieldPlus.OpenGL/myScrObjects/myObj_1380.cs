@@ -20,8 +20,9 @@ namespace my
 
         private float x, y, dx, dy;
         private float size, A, R, G, B;
+        private float lR, lG, lB;
 
-        private static int N = 0, moveMode = 0;
+        private static int N = 0, moveMode = 0, gridSize = 0, gridOffsetX = 0, gridOffsetY = 0;
 
         private static myScreenGradient grad = null;
         private static myTexRectangle tex = null;
@@ -58,7 +59,18 @@ namespace my
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doClearBuffer = true;
 
+            myUtils.getRandomColor(rand, ref lR, ref lG, ref lB, 0.33f);
+
             moveMode = rand.Next(3);
+            gridSize = 10 + rand.Next(41);
+
+            gridOffsetX = myUtils.randomChance(rand, 1, 2)
+                ? 0
+                : rand.Next(333);
+
+            gridOffsetY = myUtils.randomChance(rand, 1, 2)
+                ? 0
+                : rand.Next(333);
 
             return;
         }
@@ -72,6 +84,8 @@ namespace my
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
                             $"moveMode = {moveMode}\n"        +
+                            $"gridOffsetX = {gridOffsetX}\n"  +
+                            $"gridOffsetY = {gridOffsetY}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -249,6 +263,32 @@ namespace my
 
                 // Render Frame
                 {
+                    myPrimitive._LineInst.ResetBuffer();
+
+                    int offsetX = (gl_Width  % gridSize) / 2;
+                    int offsetY = (gl_Height % gridSize) / 2;
+
+                    for (int i = offsetX; i < gl_Width; i += gridSize)
+                    {
+                        if (i < gridOffsetX || i > gl_Width - gridOffsetX)
+                            continue;
+
+                        myPrimitive._LineInst.setInstanceCoords(i, 0, i, gl_Height);
+                        myPrimitive._LineInst.setInstanceColor(lR, lG, lB, 0.1f);
+                    }
+
+                    for (int i = offsetY; i < gl_Height; i += gridSize)
+                    {
+                        if (i < gridOffsetY || i > gl_Height - gridOffsetY)
+                            continue;
+
+                        myPrimitive._LineInst.setInstanceCoords(0, i, gl_Width, i);
+                        myPrimitive._LineInst.setInstanceColor(lR, lG, lB, 0.1f);
+                    }
+
+                    myPrimitive._LineInst.setLineWidth(1);
+                    myPrimitive._LineInst.Draw();
+
                     for (int i = 0; i != Count; i++)
                     {
                         var obj = list[i] as myObj_1380;
@@ -278,6 +318,8 @@ namespace my
             myPrimitive.init_ScrDimmer();
             myPrimitive.init_Rectangle();
             myPrimitive.init_Line();
+
+            myPrimitive.init_LineInst(gl_Width/gridSize + gl_Height/gridSize + 10);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
