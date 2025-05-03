@@ -211,9 +211,8 @@ namespace my
 
             myPrimitive._Line.Draw(x + lineOffset, 0, x + lineOffset, gl_Height, 10);
             myPrimitive._Line.Draw(0, y + lineOffset, gl_Width, y + lineOffset, 10);
-
-            myPrimitive._Line.Draw(x + lineOffset, 0, x + lineOffset, gl_Height, 10);
-            myPrimitive._Line.Draw(0, y + lineOffset, gl_Width, y + lineOffset, 10);
+            myPrimitive._Line.Draw(x + lineOffset, 0, x + lineOffset, gl_Height, 20);
+            myPrimitive._Line.Draw(0, y + lineOffset, gl_Width, y + lineOffset, 20);
 
             myPrimitive._Rectangle.setPixelDensityOffset(1);
 
