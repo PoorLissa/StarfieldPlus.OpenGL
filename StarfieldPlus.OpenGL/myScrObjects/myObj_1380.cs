@@ -46,6 +46,9 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(23) + 3;
+
+                if (myUtils.randomChance(rand, 1, 111))
+                    N = 33 + rand.Next(666);
             }
 
             initLocal();
@@ -297,7 +300,7 @@ namespace my
                     }
                 }
 
-                if (Count < N && cnt == 500)
+                if (Count < N && cnt == 50)
                 {
                     list.Add(new myObj_1380());
                     cnt = 0;
