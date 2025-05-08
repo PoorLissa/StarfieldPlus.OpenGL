@@ -85,6 +85,7 @@ public class ScreenSaver
     // - like 720, but every line is crossed by lots of short lines of the same color at 90 degrees
     // - Hexagon grid with a pseudo 3d effect
     // - Beam of particles directed at a black hole (or just massive) object, and is able to escape its gravitation, but is scattered around
+    // - A wave of hexagons that moves across the screen, and where the new hex appears, it stars growing until all the screen is covered in solid color
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
