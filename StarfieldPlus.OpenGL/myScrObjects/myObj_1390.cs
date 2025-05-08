@@ -5,30 +5,30 @@ using System.Collections.Generic;
 
 
 /*
-    - Semispheres growing into the screen space from the screen borders
+    - 
 */
 
 
 namespace my
 {
-    public class myObj_1360 : myObject
+    public class myObj_1390 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1360);
+		public static System.Type Type => typeof(myObj_1390);
 
-        private float x, y, rad, dRad;
-        private float A, R, G, B;
+        private float x, y, y0, h, dx, dy;
+        private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, mode = 0, maxRad = 0;
+        private static int N = 0, shape = 0, rad = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, dA = 0;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0, r0 = 0, g0 = 0, b0 = 0;
 
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1360()
+        public myObj_1390()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -44,32 +44,15 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-                dA = 0.001f;
+                N = 200;
 
-                mode = rand.Next(4);
-
-                switch (mode)
+                do
                 {
-                    case 0:
-                        maxRad = gl_Width;
-                        break;
-
-                    case 1:
-                        maxRad = gl_Height;
-                        break;
-
-                    case 2:
-                        maxRad = rand.Next(333) + 222;
-                        N = 50;
-                        break;
-
-                    case 3:
-                        maxRad = rand.Next(50) + 11;
-                        N = 50 + rand.Next(25);
-                        dA = 0.003f + myUtils.randFloat(rand) * 0.003f;
-                        break;
+                    shape = rand.Next(5);
                 }
+                while (shape == 1);
+
+                myUtils.getRandomColor(rand, ref r0, ref b0, ref g0, 0.33f);
             }
 
             initLocal();
@@ -80,8 +63,13 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doClearBuffer = true;
             doFillShapes = true;
+
+            rad = 75;
+
+            dt = 0.005f;
 
             return;
         }
@@ -94,9 +82,6 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
-                            $"mode = {mode}\n"                +
-                            $"maxRad = {maxRad}\n"            +
-                            $"dA = {myUtils.fStr(dA)}\n"      +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -114,34 +99,22 @@ namespace my
 
         protected override void generateNew()
         {
-            switch (rand.Next(4))
-            {
-                case 0:
-                    x = 0;
-                    y = rand.Next(gl_Height);
-                    break;
+            x = id * (gl_Width / N);
+            h = rad * (float)Math.Sin(x);
 
-                case 1:
-                    x = gl_Width;
-                    y = rand.Next(gl_Height);
-                    break;
+            dx = dy = 0;
 
-                case 2:
-                    x = rand.Next(gl_Width);
-                    y = 0;
-                    break;
+            // Global curvature
+            y0 = gl_y0 + (float)Math.Cos(x * 0.001) * 100;
 
-                case 3:
-                    x = rand.Next(gl_Width);
-                    y = gl_Height;
-                    break;
-            }
+            size = 4;
 
-            rad = 0;
-            dRad = myUtils.randFloatClamped(rand, 0.25f) * (rand.Next(4) + 2);
+            A = 0.85f;
+            R = r0;
+            G = g0 + 0.001f * id;
+            B = b0;
 
-            A = 0.25f + myUtils.randFloat(rand) * 0.5f;
-            colorPicker.getColorRand(ref R, ref G, ref B);
+            //colorPicker.getColor(x, y, ref R, ref G, ref B);
 
             return;
         }
@@ -150,15 +123,11 @@ namespace my
 
         protected override void Move()
         {
-            rad += dRad;
+            h = (float)Math.Abs(rad * Math.Sin(x + t));
 
-            if (rad > maxRad)
-            {
-                A -= dA;
+            //size = 2 + 5 * h/rad;
 
-                if (A < 0)
-                    generateNew();
-            }
+            size = 3 + 3 * h / rad;
 
             return;
         }
@@ -167,8 +136,59 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._EllipseInst.setInstanceCoords(x, y, rad, 0);
-            myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+            float size2x = size * 2;
+
+            float y1 = 0, y2 = 0, r = R, g = G, b = B;
+
+            for (int i = 0; i < 2; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        y = y1 = y0 + h;
+                        break;
+
+                    case 1:
+                        y = y2 = y0 - h;
+                        r *= 0.9f;
+                        g *= 0.9f;
+                        b *= 0.9f;
+                        break;
+                }    
+
+                switch (shape)
+                {
+                    // Instanced squares
+                    case 0:
+                        myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+                        myPrimitive._RectangleInst.setInstanceColor(r, g, b, A);
+                        myPrimitive._RectangleInst.setInstanceAngle(angle);
+                        break;
+
+                    // Instanced circles
+                    case 2:
+                        myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._EllipseInst.setInstanceColor(r, g, b, A);
+                        break;
+
+                    // Instanced pentagons
+                    case 3:
+                        myPrimitive._PentagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._PentagonInst.setInstanceColor(r, g, b, A);
+                        break;
+
+                    // Instanced hexagons
+                    case 4:
+                        myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
+                        myPrimitive._HexagonInst.setInstanceColor(r, g, b, A);
+                        break;
+                }
+            }
+
+            myPrimitive._LineInst.setInstanceCoords(x, y1, x, y2);
+            myPrimitive._LineInst.setInstanceColor(1, 1, 1, h/rad);
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -179,6 +199,11 @@ namespace my
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f);
+
+            while (list.Count < N)
+            {
+                list.Add(new myObj_1390());
+            }
 
             stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
 
@@ -208,14 +233,17 @@ namespace my
                 // Render Frame
                 {
                     inst.ResetBuffer();
+                    myPrimitive._LineInst.ResetBuffer();
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1360;
+                        var obj = list[i] as myObj_1390;
 
                         obj.Show();
                         obj.Move();
                     }
+
+                    myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
                     {
@@ -231,11 +259,12 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_1360());
+                    list.Add(new myObj_1390());
                 }
 
                 stopwatch.WaitAndRestart();
                 cnt++;
+                t += dt;
             }
 
             return;
@@ -246,7 +275,9 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(2, N, 0);
+            base.initShapes(shape, N*2, 0);
+
+            myPrimitive.init_LineInst(N);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);

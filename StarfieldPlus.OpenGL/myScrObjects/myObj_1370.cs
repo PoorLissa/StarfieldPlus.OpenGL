@@ -5,30 +5,31 @@ using System.Collections.Generic;
 
 
 /*
-    - Semispheres growing into the screen space from the screen borders
+    - Unfinished
 */
 
 
 namespace my
 {
-    public class myObj_1360 : myObject
+    public class myObj_1370 : myObject
     {
         // Priority
-        public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1360);
+        public static int Priority => 1;
+		public static System.Type Type => typeof(myObj_1370);
 
-        private float x, y, rad, dRad;
-        private float A, R, G, B;
+        private int cnt;
+        private float x, y, dx, dy;
+        private float size, a, dA, A, R, G, B, angle = 0;
 
-        private static int N = 0, mode = 0, maxRad = 0;
+        private static int N = 0, n1 = 0, n2 = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, dA = 0;
+        private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1360()
+        public myObj_1370()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -44,32 +45,10 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
-                dA = 0.001f;
+                N = rand.Next(1000) + 1000;
 
-                mode = rand.Next(4);
-
-                switch (mode)
-                {
-                    case 0:
-                        maxRad = gl_Width;
-                        break;
-
-                    case 1:
-                        maxRad = gl_Height;
-                        break;
-
-                    case 2:
-                        maxRad = rand.Next(333) + 222;
-                        N = 50;
-                        break;
-
-                    case 3:
-                        maxRad = rand.Next(50) + 11;
-                        N = 50 + rand.Next(25);
-                        dA = 0.003f + myUtils.randFloat(rand) * 0.003f;
-                        break;
-                }
+                n1 = 111;
+                n2 = 13;
             }
 
             initLocal();
@@ -94,9 +73,6 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
-                            $"mode = {mode}\n"                +
-                            $"maxRad = {maxRad}\n"            +
-                            $"dA = {myUtils.fStr(dA)}\n"      +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -114,34 +90,41 @@ namespace my
 
         protected override void generateNew()
         {
-            switch (rand.Next(4))
+            if (id < n1)
             {
-                case 0:
-                    x = 0;
-                    y = rand.Next(gl_Height);
-                    break;
+                x = rand.Next(gl_Width);
+                y = gl_Height;
 
-                case 1:
-                    x = gl_Width;
-                    y = rand.Next(gl_Height);
-                    break;
+                dx = dy = 0;
 
-                case 2:
-                    x = rand.Next(gl_Width);
-                    y = 0;
-                    break;
+                cnt = 333 + rand.Next(666);
+                size = rand.Next(234) + 50;
 
-                case 3:
-                    x = rand.Next(gl_Width);
-                    y = gl_Height;
-                    break;
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                a = 0;
+                A = 0.45f + myUtils.randFloat(rand) * 0.5f;
+                dA = 0.001f + myUtils.randFloat(rand) * 0.005f;
+
+                R = G = B = 0.33f + myUtils.randFloat(rand) * 0.66f;
+
+                A = 1;
+
+                y -= (1.0f - R) * 300;
             }
+            else if (id < n1 + n2)
+            {
+                x = rand.Next(gl_Width);
+                y = gl_Height + 100;
 
-            rad = 0;
-            dRad = myUtils.randFloatClamped(rand, 0.25f) * (rand.Next(4) + 2);
+                dx = 0;
+                dy = -1 * myUtils.randFloat(rand, 0.2f) * 3;
 
-            A = 0.25f + myUtils.randFloat(rand) * 0.5f;
-            colorPicker.getColorRand(ref R, ref G, ref B);
+                size = size = rand.Next(111) + 25;
+
+                a = 1.0f;
+                colorPicker.getColorRand(ref R, ref G, ref B);
+            }
 
             return;
         }
@@ -150,13 +133,37 @@ namespace my
 
         protected override void Move()
         {
-            rad += dRad;
+            x += dx;
+            y += dy;
 
-            if (rad > maxRad)
+            if (id < n1)
             {
-                A -= dA;
+                if (dA > 0)
+                {
+                    a += dA;
+                }
+                else
+                {
+                    if (--cnt < 0)
+                        a += dA;
+                }
 
-                if (A < 0)
+                if (a >= A && dA > 0)
+                {
+                    dA *= -1;
+                }
+
+                if (a < 0)
+                {
+                    generateNew();
+                }
+
+                return;
+            }
+
+            if (id < n1 + n2)
+            {
+                if (y < -size)
                     generateNew();
             }
 
@@ -167,8 +174,25 @@ namespace my
 
         protected override void Show()
         {
-            myPrimitive._EllipseInst.setInstanceCoords(x, y, rad, 0);
-            myPrimitive._EllipseInst.setInstanceColor(R, G, B, A);
+            float size2x = size * 2;
+
+            if (id < n1)
+            {
+                myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                myPrimitive._EllipseInst.setInstanceColor(R, G, B, a);
+            }
+            else if (id < n1 + n2)
+            {
+                myPrimitive._EllipseInst.setInstanceCoords(x, y, size2x, angle);
+                myPrimitive._EllipseInst.setInstanceColor(R, G, B, a);
+            }
+
+/*
+            myPrimitive._RectangleInst.setInstanceCoords(x - size, y - size, size2x, size2x);
+            myPrimitive._RectangleInst.setInstanceColor(R, G, B, A);
+            myPrimitive._RectangleInst.setInstanceAngle(angle);
+*/
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -211,7 +235,10 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1360;
+                        if (i >= n1)
+                            break;
+
+                        var obj = list[i] as myObj_1370;
 
                         obj.Show();
                         obj.Move();
@@ -227,11 +254,38 @@ namespace my
                     // Tell the fragment shader to do nothing with the existing instance opacity:
                     inst.SetColorA(0);
                     inst.Draw(false);
+
+                    if (Count > n1)
+                    {
+                        inst.ResetBuffer();
+
+                        for (int i = n1; i != Count; i++)
+                        {
+                            if (i >= n1 + n2)
+                                break;
+
+                            var obj = list[i] as myObj_1370;
+
+                            obj.Show();
+                            obj.Move();
+                        }
+
+                        if (doFillShapes)
+                        {
+                            // Tell the fragment shader to multiply existing instance opacity by 0.5:
+                            inst.SetColorA(-0.99f);
+                            inst.Draw(true);
+                        }
+
+                        // Tell the fragment shader to do nothing with the existing instance opacity:
+                        inst.SetColorA(0);
+                        inst.Draw(false);
+                    }
                 }
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_1360());
+                    list.Add(new myObj_1370());
                 }
 
                 stopwatch.WaitAndRestart();
