@@ -254,6 +254,7 @@ public class ScreenSaver
             my.myObj_1370.Type,     // ...
             my.myObj_1380.Type,     // ...
             my.myObj_1390.Type,     // ...
+            my.myObj_1400.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -266,7 +267,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : false, my.myObj_1390.Type);
+                                                    doUseCustomType : !false, my.myObj_1400.Type);
         return;
     }
 
