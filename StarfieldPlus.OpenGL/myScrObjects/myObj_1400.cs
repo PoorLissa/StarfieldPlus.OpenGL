@@ -23,7 +23,7 @@ namespace my
 
         private static int N = 0, nActive = 0, shape = 0, baseSize = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, sinPi3 = 0, lineWidth = 1;
+        private static float dimAlpha = 0.01f, sinPi3 = 0, lineWidth = 1;
 
         private static myScreenGradient grad = null;
 
@@ -59,6 +59,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = false;
+            doFillShapes = true;
 
             // Grid size: Only even numbers work somehow
             baseSize = (rand.Next(77) + 5) * 2;
@@ -94,7 +95,7 @@ namespace my
 
         protected override void generateNew()
         {
-            // Aligh to hex grid
+            // Align to hex grid
             {
                 x = rand.Next(gl_Width  + 100);
                 y = rand.Next(gl_Height + 200);
@@ -110,14 +111,10 @@ namespace my
                 }
             }
 
+            A = 1;
             size = 1;
             dSize = 0.25f + myUtils.randFloat(rand) * 0.25f;
             lifeCounter = 100;
-
-            A = 1;
-            //R = (float)rand.NextDouble();
-            //G = (float)rand.NextDouble();
-            //B = (float)rand.NextDouble();
 
             return;
         }
@@ -131,7 +128,7 @@ namespace my
 
             if (size > baseSize)
             {
-                generateNew();
+                size = baseSize;
             }
 
             return;
@@ -175,6 +172,11 @@ namespace my
                     myPrimitive._HexagonInst.setInstanceCoords(x, y, size2x, angle);
                     myPrimitive._HexagonInst.setInstanceColor(R, G, B, A);
                     break;
+            }
+
+            if (size >= baseSize)
+            {
+                generateNew();
             }
 
             return;
@@ -222,8 +224,8 @@ namespace my
                     {
                         var obj = list[i] as myObj_1400;
 
-                        obj.Show();
                         obj.Move();
+                        obj.Show();
                     }
 
                     if (doFillShapes)
@@ -256,10 +258,16 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, N, 0);
+            base.initShapes(shape, N*2, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+
+            // Make it antialized
+            glEnable(GL_LINE_SMOOTH);
+            glEnable(GL_POLYGON_SMOOTH);
+            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+            glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
             return;
         }
