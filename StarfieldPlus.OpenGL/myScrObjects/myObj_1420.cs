@@ -2,11 +2,11 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
-using System.Collections;
 
 
 /*
     - Depth focus test
+    - Reference: https://www.youtube.com/watch?v=R5jIoLnL_nE&ab_channel=JosuRelax
 */
 
 
@@ -43,8 +43,9 @@ namespace my
         private float size, A, R, G, B, depth = 0;
 
         private static int N = 0;
-        private static int dirMode = 0, focusMode = 0, focusCnt = 0;
-        private static bool doUseAmoebas = false;
+        private static int move2Mode = 0, dirMode = 0, focusMode = 0, focusCnt = 0;
+        private static int hugeChance = 0;
+        private static bool doUseAmoebas = false, doUseMediums = false;
         private static float dimAlpha = 0.05f, minDepth = 0, maxDepth = 0.03f, currentFocus = 0, targetFocus = 0, dFocus = 0, t = 0, dt = 0;
 
         private static List<myObj_1420> sortedList = null;
@@ -85,9 +86,15 @@ namespace my
         {
             doClearBuffer = true;
             doUseAmoebas = myUtils.randomChance(rand, 1, 2);
+            doUseMediums = myUtils.randomChance(rand, 1, 2);
 
-            dirMode = rand.Next(2);
-            focusMode = rand.Next(2);
+            move2Mode = rand.Next(2);       // If particles move straight or diagonally
+            dirMode = rand.Next(2);         // Top-down or left-right motion
+            focusMode = rand.Next(3);
+
+            hugeChance = myUtils.randomChance(rand, 1, 2)
+                ? 66
+                : 22 + rand.Next(44);
 
             t = 0;
             dt = 0.0001f;
@@ -112,10 +119,13 @@ namespace my
             string str = $"Obj = {Type}\n\n"                                    +
                             myUtils.strCountOf(sortedList.Count, N)             +
                             $"doUseAmoebas = {doUseAmoebas}\n"                  +
+                            $"doUseMediums = {doUseMediums}\n"                  +
                             $"dirMode = {dirMode}\n"                            +
+                            $"move2Mode = {move2Mode}\n"                        +
                             $"focusMode = {focusMode}\n"                        +
                             $"currentFocus = {myUtils.fStr(currentFocus, 5)}\n" +
                             $"dFocus = {_dFocus}\n"                             +
+                            $"hugeChance = {hugeChance}\n"                      +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -135,14 +145,42 @@ namespace my
         {
             depth = myUtils.randFloat(rand) * 0.03f;
 
-            size = myUtils.randomChance(rand, 1, 3)
-                ? rand.Next(66) + 5
-                : rand.Next(11) + 3;
+            // Pick size
+            {
+                if (myUtils.randomChance(rand, 1, hugeChance))
+                {
+                    // Huge
+                    size = rand.Next(266) + 133;
+                }
+                else if (doUseMediums && myUtils.randomChance(rand, 1, 3))
+                {
+                    // Medium
+                    size = rand.Next(99) + 30;
+                }
+                else if (myUtils.randomChance(rand, 1, 3))
+                {
+                    // Normal
+                    size = rand.Next(66) + 11;
+                }
+                else
+                {
+                    if (myUtils.randomChance(rand, 1, 3))
+                    {
+                        // Small
+                        size = rand.Next(11) + 3;
+                    }
+                    else
+                    {
+                        // Tiny
+                        size = rand.Next(5) + 3;
+                    }
+                }
+            }
 
             switch (dirMode)
             {
                 case 0:
-                    dx = myUtils.randFloatSigned(rand) * 0.33f;
+                    dx = move2Mode == 0 ? 0 : myUtils.randFloatSigned(rand) * 0.33f;
                     dy = myUtils.randFloat(rand, 0.1f) * 2;
 
                     x = rand.Next(gl_Width);
@@ -151,7 +189,7 @@ namespace my
 
                 case 1:
                     dx = myUtils.randFloat(rand, 0.1f) * 2;
-                    dy = myUtils.randFloatSigned(rand) * 0.33f;
+                    dy = move2Mode == 0 ? 0 : myUtils.randFloatSigned(rand) * 0.33f;
 
                     x = -(33 + size);
                     y = rand.Next(gl_Height);
@@ -159,11 +197,11 @@ namespace my
             }
 
             A = 0.25f + myUtils.randFloat(rand) * 0.175f;
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
+            colorPicker.getColorRand(ref R, ref G, ref B);
 
-            if (myUtils.randomChance(rand, 1, 66))
+            // Huge particles additional setup
+            if (size > 130)
             {
-                size = rand.Next(266) + 133;
                 A = 0.1f + myUtils.randFloat(rand) * 0.175f;
                 depth = -0.02f - myUtils.randFloat(rand) * 0.03f;
 
@@ -171,6 +209,18 @@ namespace my
                     y = -(33 + size);
                 else
                     x = -(33 + size);
+            }
+
+            // Brighten up small/tiny particles
+            if (size < 10)
+            {
+                do {
+
+                    R += 0.0001f;
+                    G += 0.0001f;
+                    B += 0.0001f;
+
+                } while (R + G + B < 2.33f);
             }
 
 /*
@@ -227,13 +277,15 @@ namespace my
             }
             else
             {
-                if (size < 100)
+                if (size < 130)
                 {
+                    // Tiny - Small - Normal - Medium
                     shader.SetColor(R, G, B, A);
                     shader.Draw(x, y, size, size, focus, off);
                 }
                 else 
                 {
+                    // Huge
                     shaderBig.SetColor(R, G, B, A);
                     shaderBig.Draw(x, y, size, size, focus, off);
                 }
@@ -287,7 +339,7 @@ namespace my
                     }
                 }
 
-                if (Count < N)
+                if (Count < N && myUtils.randomChance(rand, 1, 5))
                 {
                     sortedList.Add(new myObj_1420());
                 }
@@ -372,7 +424,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // Ink drop
+        // Ink drop amoebas
         private void getShader_001(ref string h, ref string m)
         {
             h = $@"
@@ -409,6 +461,7 @@ namespace my
     
                     float disturbedRadius = rad + (n - 0.5) * noiseAmount;
 
+                    // Apply depth focus effect
                     edgeSoftness = myDepth;
 
                     // Smooth edge using smoothstep
@@ -449,14 +502,11 @@ namespace my
             // dist = [0 .. 0.03]
             // focusDist = [-0.01 .. 0.04]
 
-            focusMode = 2;
-
             switch (focusMode)
             {
                 case 0:
                     {
                         currentFocus = (float)(Math.Abs(Math.Sin(t * 10) * 0.05f)) - 0.01f;
-                        //focusDist = 0.03f;
                     }
                     break;
 
