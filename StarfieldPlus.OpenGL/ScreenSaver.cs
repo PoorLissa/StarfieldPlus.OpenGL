@@ -77,6 +77,7 @@ public class ScreenSaver
     // - try bezier curves:             https://en.wikipedia.org/wiki/B%C3%A9zier_curve
     // - try neural cellular automata:  https://www.youtube.com/watch?v=3H79ZcBuw4M&ab_channel=EmergentGarden
     // - try Delaunay triangulation:    https://en.wikipedia.org/wiki/Delaunay_triangulation
+    // - try all of these:              https://www.youtube.com/watch?v=R5jIoLnL_nE&ab_channel=JosuRelax
     // - rand rects with the (avg) color of the underlying image; put larger pieces of real texture on a rare occasion
     // - several shapes at the same coordinates, but with different rotating angle (using alternative rotate mode)
     // - sort of a brick breaker game, without a paddle (just bouncing ball)
