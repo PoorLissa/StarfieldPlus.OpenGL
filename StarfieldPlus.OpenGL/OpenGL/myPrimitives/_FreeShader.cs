@@ -42,8 +42,9 @@ using System;
 public class myFreeShader : myPrimitive
 {
     private long tBegin;
-    private uint vbo = 0, ebo = 0, shaderProgram = 0;
     private float[] vertices = null;
+
+    protected uint vbo = 0, ebo = 0, shaderProgram = 0;
 
     // Uniform ids:
     private int u_Time, myPos, myColor;
