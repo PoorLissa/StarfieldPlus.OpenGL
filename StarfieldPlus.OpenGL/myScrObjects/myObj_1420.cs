@@ -12,6 +12,8 @@ using System.Collections;
 
 namespace my
 {
+    // ===================================================================================================================
+
     // Custom free shader class with additional uniform variable
     class myFreeShader_1420 : myFreeShader
     {
@@ -29,6 +31,7 @@ namespace my
         }
     }
 
+    // ===================================================================================================================
 
     public class myObj_1420 : myObject
     {
@@ -40,11 +43,14 @@ namespace my
         private float size, A, R, G, B, depth = 0;
 
         private static int N = 0;
-        private static float dimAlpha = 0.05f, focusDist = 0, t = 0, dt = 0;
+        private static int dirMode = 0, focusMode = 0, focusCnt = 0;
+        private static bool doUseAmoebas = false;
+        private static float dimAlpha = 0.05f, minDepth = 0, maxDepth = 0.03f, currentFocus = 0, targetFocus = 0, dFocus = 0, t = 0, dt = 0;
 
         private static List<myObj_1420> sortedList = null;
         private static myScreenGradient grad = null;
         private static myFreeShader_1420 shader = null;
+        private static myFreeShader_1420 shaderBig = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -78,9 +84,17 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
+            doUseAmoebas = myUtils.randomChance(rand, 1, 2);
+
+            dirMode = rand.Next(2);
+            focusMode = rand.Next(2);
 
             t = 0;
             dt = 0.0001f;
+
+            focusCnt = 10;
+            targetFocus = minDepth + myUtils.randFloat(rand) * maxDepth;
+            dFocus = 0.0001f + myUtils.randFloat(rand) * 0.001f;
 
             return;
         }
@@ -91,9 +105,17 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                           +
-                            myUtils.strCountOf(sortedList.Count, N)    +
-                            $"focusDist = {myUtils.fStr(focusDist)}\n" +
+            string _dFocus = focusMode > 0 ?
+                myUtils.fStr(Math.Abs(dFocus), 5)
+                : "n/a";
+
+            string str = $"Obj = {Type}\n\n"                                    +
+                            myUtils.strCountOf(sortedList.Count, N)             +
+                            $"doUseAmoebas = {doUseAmoebas}\n"                  +
+                            $"dirMode = {dirMode}\n"                            +
+                            $"focusMode = {focusMode}\n"                        +
+                            $"currentFocus = {myUtils.fStr(currentFocus, 5)}\n" +
+                            $"dFocus = {_dFocus}\n"                             +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -111,20 +133,45 @@ namespace my
 
         protected override void generateNew()
         {
-            dx = myUtils.randFloatSigned(rand) * 0.33f;
-            dy = myUtils.randFloat(rand, 0.1f) * 2;
-
             depth = myUtils.randFloat(rand) * 0.03f;
 
             size = myUtils.randomChance(rand, 1, 3)
                 ? rand.Next(66) + 5
                 : rand.Next(11) + 3;
 
-            x = rand.Next(gl_Width);
-            y = -(33 + size);
+            switch (dirMode)
+            {
+                case 0:
+                    dx = myUtils.randFloatSigned(rand) * 0.33f;
+                    dy = myUtils.randFloat(rand, 0.1f) * 2;
+
+                    x = rand.Next(gl_Width);
+                    y = -(33 + size);
+                    break;
+
+                case 1:
+                    dx = myUtils.randFloat(rand, 0.1f) * 2;
+                    dy = myUtils.randFloatSigned(rand) * 0.33f;
+
+                    x = -(33 + size);
+                    y = rand.Next(gl_Height);
+                    break;
+            }
 
             A = 0.25f + myUtils.randFloat(rand) * 0.175f;
             colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+            if (myUtils.randomChance(rand, 1, 66))
+            {
+                size = rand.Next(266) + 133;
+                A = 0.1f + myUtils.randFloat(rand) * 0.175f;
+                depth = -0.02f - myUtils.randFloat(rand) * 0.03f;
+
+                if (dirMode == 0)
+                    y = -(33 + size);
+                else
+                    x = -(33 + size);
+            }
 
 /*
             R = (float)rand.NextDouble();
@@ -141,9 +188,21 @@ namespace my
             x += dx;
             y += dy;
 
-            if (x < 0 || x > gl_Width || y > gl_Height + size)
+            switch (dirMode)
             {
-                generateNew();
+                case 0:
+                    {
+                        if (y > gl_Height + size)
+                            generateNew();
+                    }
+                    break;
+
+                case 1:
+                    {
+                        if (x > gl_Width + size)
+                            generateNew();
+                    }
+                    break;
             }
 
             return;
@@ -153,13 +212,32 @@ namespace my
 
         protected override void Show()
         {
-            float focusDepth = (float)Math.Abs(depth - focusDist);
+            float focus = (float)(Math.Abs(depth - currentFocus));
 
-            if (focusDepth < 0.001f)
-                focusDepth = 0.001f;
+            if (focus < 0.001f)
+                focus = 0.001f;
 
-            shader.SetColor(R, G, B, A);
-            shader.Draw(x, y, size, size, focusDepth, 5);
+            int off = (int)size;
+            off = off < 50 ? 50 : off;
+
+            if (doUseAmoebas == false)
+            {
+                shader.SetColor(R, G, B, A);
+                shader.Draw(x, y, size, size, focus, off);
+            }
+            else
+            {
+                if (size < 100)
+                {
+                    shader.SetColor(R, G, B, A);
+                    shader.Draw(x, y, size, size, focus, off);
+                }
+                else 
+                {
+                    shaderBig.SetColor(R, G, B, A);
+                    shaderBig.Draw(x, y, size, size, focus, off);
+                }
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -218,10 +296,7 @@ namespace my
                 t += dt;
                 cnt++;
 
-                // dist = [0 .. 0.03]
-                // focusDist = [-0.01 .. 0.04]
-                focusDist = (float)(Math.Abs(Math.Sin(t*10) * 0.05f)) - 0.01f;
-                //focusDist = 0.03f;
+                setFocus();
             }
 
             return;
@@ -249,8 +324,10 @@ namespace my
             string fHeader = "", fMain = "";
 
             getShader_000(ref fHeader, ref fMain);
-
             shader = new myFreeShader_1420(fHeader, fMain);
+
+            getShader_001(ref fHeader, ref fMain);
+            shaderBig = new myFreeShader_1420(fHeader, fMain);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -258,7 +335,7 @@ namespace my
         // Circular smooth spot
         private void getShader_000(ref string h, ref string m)
         {
-            h = $@"
+            var circle1 = $@"
                 uniform float myDepth;
                 float circle(vec2 uv, float rad)
                 {{
@@ -266,6 +343,76 @@ namespace my
                     if (len > 0)
                         return smoothstep(0.0, myDepth, len);
                     return 0;
+                }}
+            ";
+
+            var circle2 = $@"
+                uniform float myDepth;
+                float circle(vec2 uv, float rad)
+                {{
+                    float len = rad - length(uv);
+                    return 1.0 - smoothstep(0.0, myDepth, abs(len));
+                }}
+            ";
+
+            h = myUtils.randomChance(rand, 4, 5)
+                ? circle1
+                : circle2;
+
+            m = $@"
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
+
+                uv -= Pos.xy;
+                uv *= aspect;
+
+                float r = circle(uv, Pos.z);
+                result = vec4(myColor.xyz, r * myColor.w);
+            ";
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Ink drop
+        private void getShader_001(ref string h, ref string m)
+        {
+            h = $@"
+                uniform float myDepth;
+
+                float hash(vec2 p) {{
+                    return fract(sin(dot(p ,vec2(127.1, 311.7))) * 43758.5453);
+                }}
+
+                float noise(vec2 p) {{
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+    
+                    // 4 corners interpolation
+                    float a = hash(i);
+                    float b = hash(i + vec2(1.0, 0.0));
+                    float c = hash(i + vec2(0.0, 1.0));
+                    float d = hash(i + vec2(1.0, 1.0));
+
+                    vec2 u = f*f*(3.0-2.0*f); // smoothstep
+
+                    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+                }}
+
+                float circle(vec2 uv, float rad)
+                {{
+                    float edgeSoftness = 0.02;    // Smoothing factor for the edge
+                    float noiseAmount = 0.03;     // How much the edge is distorted
+
+                    float len = length(uv);
+    
+                    // Sample noise based on direction, time, etc.
+                    float n = noise(uv * 5.0 + uTime/2 + myDepth); // scale = detail, time = animation
+    
+                    float disturbedRadius = rad + (n - 0.5) * noiseAmount;
+
+                    edgeSoftness = myDepth;
+
+                    // Smooth edge using smoothstep
+                    return smoothstep(disturbedRadius, disturbedRadius - edgeSoftness, len);
                 }}
             ";
 
@@ -293,6 +440,91 @@ namespace my
                         ? 1
                         : 0;
             });
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private void setFocus()
+        {
+            // dist = [0 .. 0.03]
+            // focusDist = [-0.01 .. 0.04]
+
+            focusMode = 2;
+
+            switch (focusMode)
+            {
+                case 0:
+                    {
+                        currentFocus = (float)(Math.Abs(Math.Sin(t * 10) * 0.05f)) - 0.01f;
+                        //focusDist = 0.03f;
+                    }
+                    break;
+
+                case 1:
+                    {
+                        if (--focusCnt == 0)
+                        {
+                            focusCnt = 100 + rand.Next(666);
+
+                            targetFocus = minDepth + myUtils.randFloat(rand) * maxDepth;
+
+                            targetFocus = -0.03f + myUtils.randFloat(rand) * 0.07f;
+
+                            if (currentFocus > targetFocus)
+                            {
+                                dFocus = -1 * (float)Math.Abs(dFocus);
+                            }
+                            else
+                            {
+                                dFocus = +1 * (float)Math.Abs(dFocus);
+                            }
+                        }
+
+                        if (dFocus > 0 && currentFocus < targetFocus)
+                        {
+                            currentFocus += dFocus;
+                        }
+
+                        if (dFocus < 0 && currentFocus > targetFocus)
+                        {
+                            currentFocus += dFocus;
+                        }
+                    }
+                    break;
+
+                case 2:
+                    {
+                        if (focusCnt == 0)
+                        {
+                            focusCnt = 100 + rand.Next(123);
+
+                            if (currentFocus <= minDepth)
+                            {
+                                currentFocus = minDepth + 0.000001f;
+                                targetFocus = maxDepth;
+                                dFocus = +0.00025f;
+                            }
+                            else
+                            {
+                                currentFocus = maxDepth - 0.000001f;
+                                targetFocus = minDepth;
+                                dFocus = -0.00025f;
+                            }
+                        }
+
+                        if (currentFocus < maxDepth && currentFocus > minDepth)
+                        {
+                            currentFocus += dFocus;
+                        }
+                        else
+                        {
+                            focusCnt--;
+                        }
+                    }
+                    break;
+            }
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

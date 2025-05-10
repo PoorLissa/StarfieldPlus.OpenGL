@@ -213,9 +213,17 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public static string fStr(float f)
+        public static string fStr(float f, int decimalPlaces = 0)
         {
-            return f.ToString("0.000");
+            if (decimalPlaces == 0)
+            {
+                return f.ToString("0.000");
+            }
+            else
+            {
+                string format = "0." + new string('0', decimalPlaces);
+                return f.ToString(format);
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
