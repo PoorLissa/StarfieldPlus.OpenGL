@@ -420,18 +420,14 @@ namespace my
                     {
                         fixCoordinates(ref x, ref y);
 
-                        if (!true)
-                        {
-                            var pixel = _img.GetPixel(x, y);
+#if false
+                        var pixel = _img.GetPixel(x, y);
+                        R = pixel.R;
+                        G = pixel.G;
+                        B = pixel.B;
+#endif
 
-                            R = pixel.R;
-                            G = pixel.G;
-                            B = pixel.B;
-                        }
-                        else
-                        {
-                            getPixelFast(x, y, ref R, ref G, ref B, bmpData);
-                        }
+                        getPixelFast(x, y, ref R, ref G, ref B, bmpData);
                     }
                     break;
 

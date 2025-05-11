@@ -43,10 +43,11 @@ namespace my
         private float size, A, R, G, B, depth = 0;
 
         private static int N = 0;
-        private static int move2Mode = 0, dirMode = 0, focusMode = 0, focusCnt = 0;
-        private static int hugeChance = 0;
+        private static int move2Mode = 0, dirMode = 0, sizeMode = 0, focusMode = 0, focusCnt = 0, opacityMode = 0, colorMode = 0;
+        private static int hugeChance = 0, colorCnt = 0;
         private static bool doUseAmoebas = false, doUseMediums = false;
         private static float dimAlpha = 0.05f, minDepth = 0, maxDepth = 0.03f, currentFocus = 0, targetFocus = 0, dFocus = 0, t = 0, dt = 0;
+        private static float gl_R = -1, gl_G = -1, gl_B = -1;
 
         private static List<myObj_1420> sortedList = null;
         private static myScreenGradient grad = null;
@@ -89,9 +90,17 @@ namespace my
             doUseMediums = myUtils.randomChance(rand, 1, 2);
 
             move2Mode = rand.Next(2);       // If particles move straight or diagonally
-            dirMode = rand.Next(2);         // Top-down or left-right motion
-            focusMode = rand.Next(3);
-
+            dirMode = rand.Next(3);         // Top-down or left-right motion or free motion
+            opacityMode = rand.Next(3);
+            colorMode = myUtils.randomChance(rand, 2, 3)
+                ? 0
+                : 1;
+            sizeMode = myUtils.randomChance(rand, 6, 7)
+                ? 0
+                : 1;
+            focusMode = myUtils.randomChance(rand, 1, 2)
+                ? 1
+                : rand.Next(3);
             hugeChance = myUtils.randomChance(rand, 1, 2)
                 ? 66
                 : 22 + rand.Next(44);
@@ -121,7 +130,10 @@ namespace my
                             $"doUseAmoebas = {doUseAmoebas}\n"                  +
                             $"doUseMediums = {doUseMediums}\n"                  +
                             $"dirMode = {dirMode}\n"                            +
+                            $"sizeMode = {sizeMode}\n"                          +
                             $"move2Mode = {move2Mode}\n"                        +
+                            $"opacityMode = {opacityMode}\n"                    +
+                            $"colorMode = {colorMode}\n"                        +
                             $"focusMode = {focusMode}\n"                        +
                             $"currentFocus = {myUtils.fStr(currentFocus, 5)}\n" +
                             $"dFocus = {_dFocus}\n"                             +
@@ -194,10 +206,60 @@ namespace my
                     x = -(33 + size);
                     y = rand.Next(gl_Height);
                     break;
+
+                case 2:
+                    dx = myUtils.randFloatSigned(rand, 0.1f) * 1;
+                    dy = myUtils.randFloatSigned(rand, 0.1f) * 1;
+
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    break;
             }
 
-            A = 0.25f + myUtils.randFloat(rand) * 0.175f;
-            colorPicker.getColorRand(ref R, ref G, ref B);
+            switch (opacityMode)
+            {
+                case 0:
+                    A = 0.25f + myUtils.randFloat(rand) * 0.175f;
+                    break;
+
+                case 1:
+                    A = 0.5f + myUtils.randFloat(rand) * 0.5f;
+                    break;
+
+                case 2:
+                    A = 0.85f + myUtils.randFloat(rand) * 0.15f;
+                    break;
+            }
+
+            // In Size mode 1, show only huge particles
+            if (sizeMode == 1)
+            {
+                if (size < 130)
+                    A = 0.01f;
+            }
+
+            switch (colorMode)
+            {
+                // Generate color every time
+                case 0:
+                    colorPicker.getColorRand(ref R, ref G, ref B);
+                    break;
+
+                // Reuse the color, generate only sometimes
+                case 1:
+                    {
+                        if (gl_R < 0 || --colorCnt == 0)
+                        {
+                            colorCnt = rand.Next(100) + 123;
+                            colorPicker.getColorRand(ref gl_R, ref gl_G, ref gl_B);
+                        }
+
+                        R = gl_R + myUtils.randFloatSigned(rand) * 0.1f;
+                        G = gl_G + myUtils.randFloatSigned(rand) * 0.1f;
+                        B = gl_B + myUtils.randFloatSigned(rand) * 0.1f;
+                    }
+                    break;
+            }
 
             // Huge particles additional setup
             if (size > 130)
@@ -207,7 +269,8 @@ namespace my
 
                 if (dirMode == 0)
                     y = -(33 + size);
-                else
+
+                if (dirMode == 1)
                     x = -(33 + size);
             }
 
@@ -223,11 +286,6 @@ namespace my
                 } while (R + G + B < 2.33f);
             }
 
-/*
-            R = (float)rand.NextDouble();
-            G = 0.1f;
-            B = 0.1f;
-*/
             return;
         }
 
@@ -250,6 +308,16 @@ namespace my
                 case 1:
                     {
                         if (x > gl_Width + size)
+                            generateNew();
+                    }
+                    break;
+
+                case 2:
+                    {
+                        if (y < - size || y > gl_Height + size)
+                            generateNew();
+
+                        if (x < -size || x > gl_Width + size)
                             generateNew();
                     }
                     break;
@@ -387,6 +455,7 @@ namespace my
         // Circular smooth spot
         private void getShader_000(ref string h, ref string m)
         {
+            // Smooth circle
             var circle1 = $@"
                 uniform float myDepth;
                 float circle(vec2 uv, float rad)
@@ -398,7 +467,34 @@ namespace my
                 }}
             ";
 
+            // Smooth circle with added dynamic noise
             var circle2 = $@"
+                uniform float myDepth;
+                {myShaderHelpers.Generic.noiseFunc12_v1}
+                float circle(vec2 uv, float rad)
+                {{
+                    float len = rad - length(uv);
+                    if (len > 0)
+                        return smoothstep(0.0, myDepth, len) * (0.8 + noise12_v1(gl_FragCoord.xy * sin(uTime * 0.0001)) * 0.2);
+                    return 0;
+                }}
+            ";
+
+            // Smooth circle with added static noise
+            var circle3 = $@"
+                uniform float myDepth;
+                {myShaderHelpers.Generic.noiseFunc12_v1}
+                float circle(vec2 uv, float rad)
+                {{
+                    float len = rad - length(uv);
+                    if (len > 0)
+                        return smoothstep(0.0, myDepth, len) * (0.8 + noise12_v1(gl_FragCoord.xy) * 0.2);
+                    return 0;
+                }}
+            ";
+
+            // Ring
+            var circle4 = $@"
                 uniform float myDepth;
                 float circle(vec2 uv, float rad)
                 {{
@@ -407,9 +503,29 @@ namespace my
                 }}
             ";
 
-            h = myUtils.randomChance(rand, 4, 5)
-                ? circle1
-                : circle2;
+            switch (rand.Next(9))
+            {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    h = circle1;
+                    break;
+
+                case 4:
+                case 5:
+                    h = circle2;
+                    break;
+
+                case 6:
+                case 7:
+                    h = circle3;
+                    break;
+
+                case 8:
+                    h = circle4;
+                    break;
+            }
 
             m = $@"
                 vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
