@@ -44,7 +44,7 @@ namespace my
 
         private static int N = 0;
         private static int move2Mode = 0, dirMode = 0, sizeMode = 0, focusMode = 0, focusCnt = 0, focusCntMax = 0, opacityMode = 0, colorMode = 0;
-        private static int hugeChance = 0, colorCnt = 0;
+        private static int hugeChance = 0, colorCnt = 0, linearSpeed = 0;
         private static bool doUseAmoebas = false, doUseMediums = false;
         private static float dimAlpha = 0.05f, minDepth = 0, maxDepth = 0.03f, currentFocus = 0, targetFocus = 0, dFocus = 0, t = 0, dt = 0;
         private static float gl_R = -1, gl_G = -1, gl_B = -1;
@@ -94,6 +94,9 @@ namespace my
             opacityMode = rand.Next(3);
             focusCntMax = 100 + rand.Next(777);     // In focusMode 1, time between focus switches
 
+            linearSpeed = myUtils.randomChance(rand, 2, 3)
+                ? rand.Next(3) + 2
+                : rand.Next(12) + 2;
             colorMode = myUtils.randomChance(rand, 2, 3)
                 ? 0
                 : 1;
@@ -132,6 +135,7 @@ namespace my
                             $"doUseAmoebas = {doUseAmoebas}\n"                  +
                             $"doUseMediums = {doUseMediums}\n"                  +
                             $"dirMode = {dirMode}\n"                            +
+                            $"linearSpeed = {linearSpeed}\n"                    +
                             $"sizeMode = {sizeMode}\n"                          +
                             $"move2Mode = {move2Mode}\n"                        +
                             $"opacityMode = {opacityMode}\n"                    +
@@ -196,14 +200,14 @@ namespace my
             {
                 case 0:
                     dx = move2Mode == 0 ? 0 : myUtils.randFloatSigned(rand) * 0.33f;
-                    dy = myUtils.randFloat(rand, 0.1f) * 2;
+                    dy = myUtils.randFloat(rand, 0.1f) * linearSpeed;
 
                     x = rand.Next(gl_Width);
                     y = -(33 + size);
                     break;
 
                 case 1:
-                    dx = myUtils.randFloat(rand, 0.1f) * 2;
+                    dx = myUtils.randFloat(rand, 0.1f) * linearSpeed;
                     dy = move2Mode == 0 ? 0 : myUtils.randFloatSigned(rand) * 0.33f;
 
                     x = -(33 + size);
