@@ -43,7 +43,7 @@ namespace my
         private float size, A, R, G, B, depth = 0;
 
         private static int N = 0;
-        private static int move2Mode = 0, dirMode = 0, sizeMode = 0, focusMode = 0, focusCnt = 0, opacityMode = 0, colorMode = 0;
+        private static int move2Mode = 0, dirMode = 0, sizeMode = 0, focusMode = 0, focusCnt = 0, focusCntMax = 0, opacityMode = 0, colorMode = 0;
         private static int hugeChance = 0, colorCnt = 0;
         private static bool doUseAmoebas = false, doUseMediums = false;
         private static float dimAlpha = 0.05f, minDepth = 0, maxDepth = 0.03f, currentFocus = 0, targetFocus = 0, dFocus = 0, t = 0, dt = 0;
@@ -89,9 +89,11 @@ namespace my
             doUseAmoebas = myUtils.randomChance(rand, 1, 2);
             doUseMediums = myUtils.randomChance(rand, 1, 2);
 
-            move2Mode = rand.Next(2);       // If particles move straight or diagonally
-            dirMode = rand.Next(3);         // Top-down or left-right motion or free motion
+            move2Mode = rand.Next(2);               // If particles move straight or diagonally
+            dirMode = rand.Next(3);                 // Top-down or left-right motion or free motion
             opacityMode = rand.Next(3);
+            focusCntMax = 100 + rand.Next(777);     // In focusMode 1, time between focus switches
+
             colorMode = myUtils.randomChance(rand, 2, 3)
                 ? 0
                 : 1;
@@ -135,6 +137,7 @@ namespace my
                             $"opacityMode = {opacityMode}\n"                    +
                             $"colorMode = {colorMode}\n"                        +
                             $"focusMode = {focusMode}\n"                        +
+                            $"focusCntMax = {focusCntMax}\n"                    +
                             $"currentFocus = {myUtils.fStr(currentFocus, 5)}\n" +
                             $"dFocus = {_dFocus}\n"                             +
                             $"hugeChance = {hugeChance}\n"                      +
@@ -630,7 +633,7 @@ namespace my
                     {
                         if (--focusCnt == 0)
                         {
-                            focusCnt = 100 + rand.Next(666);
+                            focusCnt = 100 + rand.Next(focusCntMax);
 
                             targetFocus = minDepth + myUtils.randFloat(rand) * maxDepth;
 
