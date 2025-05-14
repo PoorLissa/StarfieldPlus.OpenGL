@@ -15,49 +15,45 @@ namespace my
     // ===================================================================================================================
 
     // Custom free shader class with additional uniform variable
-    class myFreeShader_1430 : myFreeShader
+    class myFreeShader_1440 : myFreeShader
     {
-        private int depth = -123;
+        private int myDepth = -123;
 
-        public myFreeShader_1430(string fHeader = "", string fMain = "") : base(fHeader, fMain)
+        public myFreeShader_1440(string fHeader = "", string fMain = "") : base(fHeader, fMain)
         {
-            depth = depth < 0 ? glGetUniformLocation(shaderProgram, "myDepth") : depth;
+            myDepth = myDepth < 0 ? glGetUniformLocation(shaderProgram, "myDepth") : myDepth;
         }
 
-        public void Draw(float x, float y, float w, float h, float Depth, int extraOffset = 0)
+        public void Draw(float x, float y, float w, float h, float depth, int extraOffset = 0)
         {
             glUseProgram(shaderProgram);
-            glUniform1f(depth, Depth);
+            glUniform1f(myDepth, depth);
             base.Draw(x, y, w, h, extraOffset);
         }
     }
 
     // ===================================================================================================================
 
-    public class myObj_1430 : myObject
+    public class myObj_1440 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1430);
+		public static System.Type Type => typeof(myObj_1440);
 
-        private float x, y, z, dx, dy, dz;
-        private float rad, alpha, dAlpha;
-        private float size, Size, A, R, G, B;
+        private float x, y, dx, dy;
+        private float size, A, R, G, B;
+        private float focus;
 
-        private static int N = 0;
-        private static int moveMode = 0, move2Mode = 0, dirMode = 0, sizeMode = 0, focusMode = 0, focusCntMax = 0, opacityMode = 0, colorMode = 0;
-        private static int hugeChance = 0, colorCnt = 0, linearSpeed = 0;
-        private static bool doUseMediums = false;
-        private static float dimAlpha = 0.05f, focus = 0, minDepth = 0, maxDepth = 0.03f, currentFocus = 0, dFocus = 0, t = 0, dt = 0;
-        private static float gl_R = -1, gl_G = -1, gl_B = -1;
+        private static int N = 0, mode = 0;
+        private static int linearSpeed = 0;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0;
 
-        private static List<myObj_1430> sortedList = null;
         private static myScreenGradient grad = null;
-        private static myFreeShader_1430 shader = null;
+        private static myFreeShader_1440 shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1430()
+        public myObj_1440()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -69,13 +65,13 @@ namespace my
         protected override void initGlobal()
         {
             colorPicker = new myColorPicker(gl_Width, gl_Height);
-            sortedList = new List<myObj_1430>();
+            list = new List<myObject>();
 
             // Global unmutable constants
             {
-                N = 1234;
+                mode = rand.Next(2);
 
-                currentFocus = 0.03f * 0.5f;
+                N = mode == 0 ? 123 : 33;
             }
 
             initLocal();
@@ -87,33 +83,13 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
-            doUseMediums = myUtils.randomChance(rand, 1, 2);
-
-            moveMode = rand.Next(2);
-            move2Mode = rand.Next(2);               // If particles move straight or diagonally
-            dirMode = rand.Next(3);                 // Top-down or left-right motion or free motion
-            opacityMode = rand.Next(3);
-            focusCntMax = 100 + rand.Next(777);     // In focusMode 1, time between focus switches
 
             linearSpeed = myUtils.randomChance(rand, 2, 3)
                 ? rand.Next(3) + 2
-                : rand.Next(12) + 2;
-            colorMode = myUtils.randomChance(rand, 2, 3)
-                ? 0
-                : 1;
-            sizeMode = myUtils.randomChance(rand, 6, 7)
-                ? 0
-                : 1;
-            focusMode = myUtils.randomChance(rand, 1, 2)
-                ? 1
-                : rand.Next(3);
-            hugeChance = myUtils.randomChance(rand, 1, 2)
-                ? 66
-                : 22 + rand.Next(44);
+                : rand.Next(5) + 2;
 
             t = 0;
             dt = 0.0001f;
-            dFocus = 0.0001f + myUtils.randFloat(rand) * 0.001f;
 
             return;
         }
@@ -124,24 +100,10 @@ namespace my
         {
             height = 600;
 
-            string _dFocus = focusMode > 0 ?
-                myUtils.fStr(Math.Abs(dFocus), 5)
-                : "n/a";
-
-            string str = $"Obj = {Type}\n\n"                        +
-                            myUtils.strCountOf(sortedList.Count, N) +
-                            $"doUseMediums = {doUseMediums}\n"      +
-                            $"dirMode = {dirMode}\n"                +
-                            $"linearSpeed = {linearSpeed}\n"        +
-                            $"sizeMode = {sizeMode}\n"              +
-                            $"moveMode = {moveMode}\n"              +
-                            $"move2Mode = {move2Mode}\n"            +
-                            $"opacityMode = {opacityMode}\n"        +
-                            $"colorMode = {colorMode}\n"            +
-                            $"focusMode = {focusMode}\n"            +
-                            $"focusCntMax = {focusCntMax}\n"        +
-                            $"dFocus = {_dFocus}\n"                 +
-                            $"hugeChance = {hugeChance}\n"          +
+            string str = $"Obj = {Type}\n\n"                    +
+                            myUtils.strCountOf(list.Count, N)   +
+                            $"mode = {mode}\n"                  +
+                            $"linearSpeed = {linearSpeed}\n"    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -159,14 +121,12 @@ namespace my
 
         protected override void generateNew()
         {
-            Size = 0;
-
             // Pick size
             {
-                if (myUtils.randomChance(rand, 1, 3))
+                if (myUtils.randomChance(rand, 10, 11))
                 {
                     // Normal
-                    size = rand.Next(66) + 11;
+                    size = rand.Next(333) + 111;
                 }
                 else
                 {
@@ -183,92 +143,22 @@ namespace my
                 }
             }
 
-            switch (dirMode)
+            dx = myUtils.randFloatSigned(rand, 0.1f) * linearSpeed;
+            dy = 0;
+            x = dx > 0 ? -size : gl_Width + size;
+
+            switch (mode)
             {
                 case 0:
-                    dx = move2Mode == 0 ? 0 : myUtils.randFloatSigned(rand) * 0.33f;
-                    dy = myUtils.randFloat(rand, 0.1f) * linearSpeed;
-
-                    x = rand.Next(gl_Width);
-                    y = -(33 + size);
-                    break;
-
-                case 1:
-                    dx = myUtils.randFloat(rand, 0.1f) * linearSpeed;
-                    dy = move2Mode == 0 ? 0 : myUtils.randFloatSigned(rand) * 0.33f;
-
-                    x = -(33 + size);
                     y = rand.Next(gl_Height);
                     break;
 
-                case 2:
-                    dx = myUtils.randFloatSigned(rand, 0.1f) * 1;
-                    dy = myUtils.randFloatSigned(rand, 0.1f) * 1;
-
-                    x = rand.Next(gl_Width);
-                    y = rand.Next(gl_Height);
-                    break;
-            }
-
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
-            dx = dy = 0;
-
-            dx = myUtils.randFloatSigned(rand, 0.1f) * 1;
-            dy = myUtils.randFloatSigned(rand, 0.1f) * 1;
-
-            z = myUtils.randFloat(rand);
-            dz = myUtils.randFloatSigned(rand, 0.1f) * 0.002f;
-
-            alpha = myUtils.randFloat(rand) * 321;
-            dAlpha = myUtils.randFloatClamped(rand, 0.1f) * 0.0025f;
-            rad = 10 + rand.Next(gl_x0);
-
-            switch (moveMode)
-            {
                 case 1:
-                    x = gl_x0 + rad * (float)Math.Sin(alpha);
-                    y = gl_y0 + rad * (float)Math.Cos(alpha);
+                    y = gl_y0;
                     break;
             }
 
-            switch (opacityMode)
-            {
-                case 0:
-                    A = 0.25f + myUtils.randFloat(rand) * 0.175f;
-                    break;
-
-                case 1:
-                    A = 0.5f + myUtils.randFloat(rand) * 0.5f;
-                    break;
-
-                case 2:
-                    A = 0.85f + myUtils.randFloat(rand) * 0.15f;
-                    break;
-            }
-
-            switch (colorMode)
-            {
-                // Generate color every time
-                case 0:
-                    colorPicker.getColorRand(ref R, ref G, ref B);
-                    break;
-
-                // Reuse the color, generate only sometimes
-                case 1:
-                    {
-                        if (gl_R < 0 || --colorCnt == 0)
-                        {
-                            colorCnt = rand.Next(100) + 123;
-                            colorPicker.getColorRand(ref gl_R, ref gl_G, ref gl_B);
-                        }
-
-                        R = gl_R + myUtils.randFloatSigned(rand) * 0.1f;
-                        G = gl_G + myUtils.randFloatSigned(rand) * 0.1f;
-                        B = gl_B + myUtils.randFloatSigned(rand) * 0.1f;
-                    }
-                    break;
-            }
+            colorPicker.getColorRand(ref R, ref G, ref B);
 
             // Brighten up small/tiny particles
             if (size < 10)
@@ -282,6 +172,14 @@ namespace my
                 } while (R + G + B < 2.33f);
             }
 
+            A = 0.1f + myUtils.randFloat(rand) * 0.5f;
+            focus = 0.01f + myUtils.randFloat(rand) * 0.01f;
+
+            if (myUtils.randomChance(rand, 1, 111))
+            {
+                focus = 0.01f + myUtils.randFloat(rand) * 0.3f;
+            }
+
             return;
         }
 
@@ -289,43 +187,14 @@ namespace my
 
         protected override void Move()
         {
-            z += dz;
+            x += dx;
+            y += dy;
 
-            if (z < 0 && dz < 0)
-                dz *= -1;
+            if (x < -size && dx < 0)
+                generateNew();
 
-            Size = 1.0f + size * z;
-
-            switch (moveMode)
-            {
-                case 0:
-                    {
-                        x += dx;
-                        y += dy;
-
-                        if (z > 100 && dz > 0)
-                            dz *= -1;
-
-                        if (y < -Size || y > gl_Height + Size)
-                            generateNew();
-
-                        if (x < -Size || x > gl_Width + Size)
-                            generateNew();
-                    }
-                    break;
-
-                case 1:
-                    {
-                        if (z > 10 && dz > 0)
-                            dz *= -1;
-
-                        x = gl_x0 + rad * (float)Math.Sin(alpha);
-                        y = gl_y0 + rad * (float)Math.Cos(alpha);
-
-                        alpha += dAlpha;
-                    }
-                    break;
-            }
+            if (x > gl_Width + size && dx > 0)
+                generateNew();
 
             return;
         }
@@ -334,26 +203,11 @@ namespace my
 
         protected override void Show()
         {
-            switch (moveMode)
-            {
-                case 0:
-                    focus = (float)(Math.Abs(z * 0.03f - currentFocus));
-                    break;
-
-                case 1:
-                    currentFocus = 0.1f;
-                    focus = (float)(Math.Abs(z * 0.03f - currentFocus));
-                    break;
-            }
-
-            if (focus < 0.001f)
-                focus = 0.001f;
-
-            int off = (int)Size;
+            int off = (int)size;
             off = off < 50 ? 50 : off;
 
             shader.SetColor(R, G, B, A);
-            shader.Draw(x, y, Size, Size, focus, off);
+            shader.Draw(x, y, size, size, focus, off);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -369,6 +223,8 @@ namespace my
 
             while (!Glfw.WindowShouldClose(window))
             {
+                int Count = list.Count;
+
                 processInput(window);
 
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -388,24 +244,20 @@ namespace my
                     }
                 }
 
-                SortParticles();
-
-                int Count = sortedList.Count;
-
                 // Render Frame
                 {
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = sortedList[i] as myObj_1430;
+                        var obj = list[i] as myObj_1440;
 
                         obj.Show();
                         obj.Move();
                     }
                 }
 
-                if (Count < N && myUtils.randomChance(rand, 1, 5))
+                if (Count < N && myUtils.randomChance(rand, 1, 50))
                 {
-                    sortedList.Add(new myObj_1430());
+                    list.Add(new myObj_1440());
                 }
 
                 stopwatch.WaitAndRestart();
@@ -438,7 +290,7 @@ namespace my
             string fHeader = "", fMain = "";
 
             getShader_000(ref fHeader, ref fMain);
-            shader = new myFreeShader_1430(fHeader, fMain);
+            shader = new myFreeShader_1440(fHeader, fMain);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -585,21 +437,6 @@ namespace my
                 float r = circle(uv, Pos.z);
                 result = vec4(myColor.xyz, r * myColor.w);
             ";
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Sort the list, so the particles are drawn in correct z-order
-        private void SortParticles()
-        {
-            sortedList.Sort(delegate (myObj_1430 obj1, myObj_1430 obj2)
-            {
-                return obj1.z < obj2.z
-                    ? -1
-                    : obj1.z > obj2.z
-                        ? 1
-                        : 0;
-            });
         }
 
         // ---------------------------------------------------------------------------------------------------------------

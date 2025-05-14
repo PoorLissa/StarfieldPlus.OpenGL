@@ -26,6 +26,7 @@ namespace my
 
         public void Draw(float x, float y, float w, float h, float Depth, int extraOffset = 0)
         {
+            glUseProgram(shaderProgram);
             glUniform1f(depth, Depth);
             base.Draw(x, y, w, h, extraOffset);
         }
@@ -67,9 +68,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            var m = myColorPicker.colorMode.COLORMAP;
-
-            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: m);
+            colorPicker = new myColorPicker(gl_Width, gl_Height);
             sortedList = new List<myObj_1420>();
 
             // Global unmutable constants
