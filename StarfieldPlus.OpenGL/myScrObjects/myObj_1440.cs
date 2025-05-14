@@ -123,7 +123,7 @@ namespace my
         {
             // Pick size
             {
-                if (myUtils.randomChance(rand, 10, 11))
+                if (myUtils.randomChance(rand, 2, 3))
                 {
                     // Normal
                     size = rand.Next(333) + 111;
