@@ -108,8 +108,6 @@ class myFreeShader_001 : myFreeShader
                 break;
         }
 
-        // header = circle4;
-
         main = $@"
                 vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
 

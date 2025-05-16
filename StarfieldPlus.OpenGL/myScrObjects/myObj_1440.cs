@@ -183,8 +183,7 @@ namespace my
 
         protected override void Show()
         {
-            int off = (int)size;
-            off = off < 50 ? 50 : off;
+            int off = 150 + (int)(size * 0.25f);
 
             shader.SetColor(R, G, B, A);
             shader.Draw(x, y, size, size, focus, off);

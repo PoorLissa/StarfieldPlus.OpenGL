@@ -327,8 +327,7 @@ namespace my
             if (focus < 0.001f)
                 focus = 0.001f;
 
-            int off = (int)Size;
-            off = off < 50 ? 50 : off;
+            int off = 150 + (int)(size * 0.25f);
 
             shader.SetColor(R, G, B, A);
             shader.Draw(x, y, Size, Size, focus, off);

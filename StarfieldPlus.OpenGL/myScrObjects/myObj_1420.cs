@@ -319,8 +319,7 @@ namespace my
             if (focus < 0.001f)
                 focus = 0.001f;
 
-            int off = (int)size;
-            off = off < 50 ? 50 : off;
+            int off = 150 + (int)(size * 0.25f);
 
             if (doUseAmoebas == false)
             {
