@@ -12,28 +12,6 @@ using System.Collections.Generic;
 
 namespace my
 {
-    // ===================================================================================================================
-
-    // Custom free shader class with additional uniform variable
-    class myFreeShader_1430 : myFreeShader
-    {
-        private int depth = -123;
-
-        public myFreeShader_1430(string fHeader = "", string fMain = "") : base(fHeader, fMain)
-        {
-            depth = depth < 0 ? glGetUniformLocation(shaderProgram, "myDepth") : depth;
-        }
-
-        public void Draw(float x, float y, float w, float h, float Depth, int extraOffset = 0)
-        {
-            glUseProgram(shaderProgram);
-            glUniform1f(depth, Depth);
-            base.Draw(x, y, w, h, extraOffset);
-        }
-    }
-
-    // ===================================================================================================================
-
     public class myObj_1430 : myObject
     {
         // Priority
@@ -53,7 +31,7 @@ namespace my
 
         private static List<myObj_1430> sortedList = null;
         private static myScreenGradient grad = null;
-        private static myFreeShader_1430 shader = null;
+        private static myFreeShader_001 shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -437,159 +415,13 @@ namespace my
         {
             string fHeader = "", fMain = "";
 
-            getShader_000(ref fHeader, ref fMain);
-            shader = new myFreeShader_1430(fHeader, fMain);
+            myFreeShader_001.getShader_000(ref fHeader, ref fMain);
+            shader = new myFreeShader_001(fHeader, fMain);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        // Circular smooth spot
-        private void getShader_000(ref string h, ref string m)
-        {
-            // Smooth circle
-            var circle1 = $@"
-                uniform float myDepth;
-                float circle(vec2 uv, float rad)
-                {{
-                    float len = rad - length(uv);
-                    if (len > 0)
-                        return smoothstep(0.0, myDepth, len);
-                    return 0;
-                }}
-            ";
-
-            // Smooth circle with added dynamic noise
-            var circle2 = $@"
-                uniform float myDepth;
-                {myShaderHelpers.Generic.noiseFunc12_v1}
-                float circle(vec2 uv, float rad)
-                {{
-                    float len = rad - length(uv);
-                    if (len > 0)
-                        return smoothstep(0.0, myDepth, len) * (0.8 + noise12_v1(gl_FragCoord.xy * sin(uTime * 0.0001)) * 0.2);
-                    return 0;
-                }}
-            ";
-
-            // Smooth circle with added static noise
-            var circle3 = $@"
-                uniform float myDepth;
-                {myShaderHelpers.Generic.noiseFunc12_v1}
-                float circle(vec2 uv, float rad)
-                {{
-                    float len = rad - length(uv);
-                    if (len > 0)
-                        return smoothstep(0.0, myDepth, len) * (0.8 + noise12_v1(gl_FragCoord.xy) * 0.2);
-                    return 0;
-                }}
-            ";
-
-            // Ring
-            var circle4 = $@"
-                uniform float myDepth;
-                float circle(vec2 uv, float rad)
-                {{
-                    float len = rad - length(uv);
-                    return 1.0 - smoothstep(0.0, myDepth, abs(len));
-                }}
-            ";
-
-            switch (rand.Next(9))
-            {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    h = circle1;
-                    break;
-
-                case 4:
-                case 5:
-                    h = circle2;
-                    break;
-
-                case 6:
-                case 7:
-                    h = circle3;
-                    break;
-
-                case 8:
-                    h = circle4;
-                    break;
-            }
-
-            m = $@"
-                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
-
-                uv -= Pos.xy;
-                uv *= aspect;
-
-                float r = circle(uv, Pos.z);
-                result = vec4(myColor.xyz, r * myColor.w);
-            ";
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Ink drop amoebas
-        private void getShader_001(ref string h, ref string m)
-        {
-            h = $@"
-                uniform float myDepth;
-
-                float hash(vec2 p) {{
-                    return fract(sin(dot(p ,vec2(127.1, 311.7))) * 43758.5453);
-                }}
-
-                float noise(vec2 p) {{
-                    vec2 i = floor(p);
-                    vec2 f = fract(p);
-    
-                    // 4 corners interpolation
-                    float a = hash(i);
-                    float b = hash(i + vec2(1.0, 0.0));
-                    float c = hash(i + vec2(0.0, 1.0));
-                    float d = hash(i + vec2(1.0, 1.0));
-
-                    vec2 u = f*f*(3.0-2.0*f); // smoothstep
-
-                    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-                }}
-
-                float circle(vec2 uv, float rad)
-                {{
-                    float edgeSoftness = 0.02;    // Smoothing factor for the edge
-                    float noiseAmount = 0.03;     // How much the edge is distorted
-
-                    float len = length(uv);
-    
-                    // Sample noise based on direction, time, etc.
-                    float n = noise(uv * 5.0 + uTime/2 + myDepth); // scale = detail, time = animation
-    
-                    float disturbedRadius = rad + (n - 0.5) * noiseAmount;
-
-                    // Apply depth focus effect
-                    edgeSoftness = myDepth;
-
-                    // Smooth edge using smoothstep
-                    return smoothstep(disturbedRadius, disturbedRadius - edgeSoftness, len);
-                }}
-            ";
-
-            m = $@"
-                vec2 uv = (gl_FragCoord.xy / iResolution.xy * 2.0 - 1.0);
-
-                uv -= Pos.xy;
-                uv *= aspect;
-
-                float r = circle(uv, Pos.z);
-                result = vec4(myColor.xyz, r * myColor.w);
-            ";
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------
-
-        // Sort the list, so the particles are drawn in correct z-order
+         // Sort the list, so the particles are drawn in correct z-order
         private void SortParticles()
         {
             sortedList.Sort(delegate (myObj_1430 obj1, myObj_1430 obj2)

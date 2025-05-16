@@ -250,6 +250,7 @@
     <Compile Include="myUtils\__myShaderHelpers.cs" />
     <Compile Include="myUtils\__myUtils.cs" />
     <Compile Include="myUtils\__winApi.cs" />
+    <Compile Include="OpenGL\myPrimitives.Ext\myFreeShader_001.cs" />
     <Compile Include="OpenGL\myPrimitives\_FreeShader.cs" />
     <Compile Include="OpenGL\myPrimitives\_FreeShader_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Hexagon_Instanced.cs" />
