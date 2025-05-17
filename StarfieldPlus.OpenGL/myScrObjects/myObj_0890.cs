@@ -76,8 +76,7 @@ namespace my
         {
             height = 600;
 
-            string nStr(int   n) { return n.ToString("N0");    }
-            //string fStr(float f) { return f.ToString("0.000"); }
+            string nStr(int n) { return n.ToString("N0"); }
 
             string str = $"Obj = {Type}\n\n"                           +
                             $"N = {nStr(list.Count)} of {nStr(N)}\n"   +
@@ -168,7 +167,6 @@ namespace my
             initShapes();
 
             clearScreenSetup(doClearBuffer, 0.1f);
-            glDrawBuffer(GL_FRONT_AND_BACK);
 
             if (doAllocateAtOnce)
             {

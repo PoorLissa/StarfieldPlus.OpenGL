@@ -47,10 +47,23 @@ namespace my
 
             // Global unmutable constants
             {
-                mode = rand.Next(2);
+                mode = rand.Next(3);
                 shaderNo = rand.Next(2);
 
-                N = mode == 0 ? 123 : 33;
+                switch (mode)
+                {
+                    case 0:
+                        N = 123;
+                        break;
+
+                    case 1:
+                        N = 33;
+                        break;
+
+                    case 2:
+                        N = 1234;
+                        break;
+                }
             }
 
             initLocal();
@@ -127,6 +140,14 @@ namespace my
             dy = 0;
             x = dx > 0 ? -size : gl_Width + size;
 
+            A = 0.1f + myUtils.randFloat(rand) * 0.5f;
+            focus = 0.01f + myUtils.randFloat(rand) * 0.01f;
+
+            if (myUtils.randomChance(rand, 1, 111))
+            {
+                focus = 0.01f + myUtils.randFloat(rand) * 0.3f;
+            }
+
             switch (mode)
             {
                 case 0:
@@ -135,6 +156,14 @@ namespace my
 
                 case 1:
                     y = gl_y0;
+                    break;
+
+                case 2:
+                    size = rand.Next(66) + 3;
+                    y = rand.Next(gl_Height);
+                    focus = (float)(Math.Abs(y - gl_y0)) / gl_y0;
+                    focus *= 0.05f;
+                    focus += 0.001f;
                     break;
             }
 
@@ -150,14 +179,6 @@ namespace my
                     B += 0.0001f;
 
                 } while (R + G + B < 2.33f);
-            }
-
-            A = 0.1f + myUtils.randFloat(rand) * 0.5f;
-            focus = 0.01f + myUtils.randFloat(rand) * 0.01f;
-
-            if (myUtils.randomChance(rand, 1, 111))
-            {
-                focus = 0.01f + myUtils.randFloat(rand) * 0.3f;
             }
 
             return;
@@ -234,7 +255,8 @@ namespace my
                     }
                 }
 
-                if (Count < N && myUtils.randomChance(rand, 1, 50))
+                //if (Count < N && myUtils.randomChance(rand, 1, 50))
+                if (Count < N)
                 {
                     list.Add(new myObj_1440());
                 }
