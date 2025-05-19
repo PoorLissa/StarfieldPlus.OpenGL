@@ -115,7 +115,7 @@ class myFreeShader_001 : myFreeShader
                 uv *= aspect;
 
                 float r = circle(uv, Pos.z);
-                result = vec4(myColor.xyz, r * myColor.w);
+                result = vec4(myColor.rgb, r * myColor.a);
             ";
     }
 
@@ -173,7 +173,7 @@ class myFreeShader_001 : myFreeShader
                 uv *= aspect;
 
                 float r = circle(uv, Pos.z);
-                result = vec4(myColor.xyz, r * myColor.w);
+                result = vec4(myColor.rgb, r * myColor.a);
             ";
     }
 

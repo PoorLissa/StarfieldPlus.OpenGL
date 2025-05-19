@@ -272,7 +272,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : false, my.myObj_0890.Type);
+                                                    doUseCustomType : !false, my.myObj_1420.Type);
         return;
     }
 
