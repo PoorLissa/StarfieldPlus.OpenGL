@@ -2,25 +2,27 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using Microsoft.Win32.SafeHandles;
 
 
 /*
-    - Depth focus test
+    - Depth focus test: falling snow
     - Reference: https://www.youtube.com/watch?v=R5jIoLnL_nE&ab_channel=JosuRelax
 */
 
 
 namespace my
 {
-    public class myObj_1440 : myObject
+    public class myObj_1450 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1440);
+		public static System.Type Type => typeof(myObj_1450);
 
+        private int cnt;
         private float x, y, dx, dy;
-        private float size, A, R, G, B;
-        private float focus;
+        private float size, dSize, A, R, G, B;
+        private float focus, dFocus;
 
         private static int N = 0, mode = 0, shaderNo = 0;
         private static int linearSpeed = 0;
@@ -31,7 +33,7 @@ namespace my
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1440()
+        public myObj_1450()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -47,23 +49,8 @@ namespace my
 
             // Global unmutable constants
             {
-                mode = rand.Next(3);
-                shaderNo = rand.Next(2);
-
-                switch (mode)
-                {
-                    case 0:
-                        N = 123;
-                        break;
-
-                    case 1:
-                        N = 33;
-                        break;
-
-                    case 2:
-                        N = 1234;
-                        break;
-                }
+                shaderNo = 0;
+                N = 3333;
             }
 
             initLocal();
@@ -115,71 +102,26 @@ namespace my
         protected override void generateNew()
         {
             // Pick size
-            {
-                if (myUtils.randomChance(rand, 2, 3))
-                {
-                    // Normal
-                    size = rand.Next(333) + 111;
-                }
-                else
-                {
-                    if (myUtils.randomChance(rand, 1, 3))
-                    {
-                        // Small
-                        size = rand.Next(11) + 3;
-                    }
-                    else
-                    {
-                        // Tiny
-                        size = rand.Next(5) + 3;
-                    }
-                }
-            }
+            size = rand.Next(5) + 3;
 
-            dx = myUtils.randFloatSigned(rand, 0.1f) * linearSpeed;
-            dy = 0;
-            x = dx > 0 ? -size : gl_Width + size;
+            cnt = 10 + rand.Next(999);
+
+            dx = 0;
+            x = rand.Next(gl_Width);
+            dy = myUtils.randFloatSigned(rand, 0.1f) * linearSpeed;
+            y = -size;
+
+            dSize = 0.05f + myUtils.randFloat(rand) * 0.1f;
+            dSize *= 0.1f;
+            dFocus = 0.00001f;
+            dFocus = 0;
 
             A = 0.1f + myUtils.randFloat(rand) * 0.5f;
-            focus = 0.01f + myUtils.randFloat(rand) * 0.01f;
+            focus = 0.0001f;
 
-            if (myUtils.randomChance(rand, 1, 111))
-            {
-                focus = 0.01f + myUtils.randFloat(rand) * 0.3f;
-            }
-
-            switch (mode)
-            {
-                case 0:
-                    y = rand.Next(gl_Height);
-                    break;
-
-                case 1:
-                    y = gl_y0;
-                    break;
-
-                case 2:
-                    size = rand.Next(66) + 3;
-                    y = rand.Next(gl_Height);
-                    focus = (float)(Math.Abs(y - gl_y0)) / gl_y0;
-                    focus *= 0.05f;
-                    focus += 0.001f;
-                    break;
-            }
+            focus = 0.001f + myUtils.randFloat(rand) * 0.01f;
 
             colorPicker.getColorRand(ref R, ref G, ref B);
-
-            // Brighten up small/tiny particles
-            if (size < 10)
-            {
-                do {
-
-                    R += 0.0001f;
-                    G += 0.0001f;
-                    B += 0.0001f;
-
-                } while (R + G + B < 2.33f);
-            }
 
             return;
         }
@@ -188,14 +130,35 @@ namespace my
 
         protected override void Move()
         {
+            size += dSize;
+            focus += dFocus;
+
             x += dx;
             y += dy;
 
-            if (x < -size && dx < 0)
-                generateNew();
+            if (--cnt > 0)
+            {
+                if (size > 20)
+                    dFocus = 0.0001f;
 
-            if (x > gl_Width + size && dx > 0)
-                generateNew();
+                if (myUtils.randomChance(rand, 1, 1234))
+                {
+                    A = 0.1f + myUtils.randFloat(rand) * 0.5f;
+                }
+
+                if (x < -size && dx < 0)
+                    generateNew();
+
+                if (x > gl_Width + size && dx > 0)
+                    generateNew();
+            }
+            else
+            {
+                A -= 0.001f;
+
+                if (A < 0)
+                    generateNew();
+            }
 
             return;
         }
@@ -248,16 +211,16 @@ namespace my
                 {
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1440;
+                        var obj = list[i] as myObj_1450;
 
                         obj.Show();
                         obj.Move();
                     }
                 }
 
-                if (Count < N && myUtils.randomChance(rand, 1, 50))
+                if (Count < N)
                 {
-                    list.Add(new myObj_1440());
+                    list.Add(new myObj_1450());
                 }
 
                 stopwatch.WaitAndRestart();
