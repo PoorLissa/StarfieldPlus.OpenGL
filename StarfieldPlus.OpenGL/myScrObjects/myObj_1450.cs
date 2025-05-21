@@ -24,9 +24,11 @@ namespace my
         private float size, dSize, A, R, G, B;
         private float focus, dFocus;
 
+        private static bool doChangeFocus = false;
         private static int N = 0, mode = 0, shaderNo = 0;
         private static int linearSpeed = 0;
-        private static float dimAlpha = 0.05f, t = 0, dt = 0;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0, maxFocus = 0.01f;
+        private static float currentFocus = 0, targetFocus = 0, dTargetFocus = 0;
 
         private static myScreenGradient grad = null;
         private static myFreeShader_001 shader = null;
@@ -51,6 +53,10 @@ namespace my
             {
                 shaderNo = 0;
                 N = 3333;
+
+                currentFocus = 0.01f;
+                targetFocus = 0;
+                dTargetFocus = 0;
             }
 
             initLocal();
@@ -61,7 +67,13 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 9, 10);
+            doChangeFocus = myUtils.randomChance(rand, 1, 2);
+
+            maxFocus *= (rand.Next(3)+1);                       // [0.01 .. 0.03]
+
+            if (doChangeFocus)
+                maxFocus = 0.03f;
 
             linearSpeed = myUtils.randomChance(rand, 2, 3)
                 ? rand.Next(3) + 2
@@ -79,11 +91,14 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                    +
-                            myUtils.strCountOf(list.Count, N)   +
-                            $"mode = {mode}\n"                  +
-                            $"shaderNo = {shaderNo}\n"          +
-                            $"linearSpeed = {linearSpeed}\n"    +
+            string str = $"Obj = {Type}\n\n"                         +
+                            myUtils.strCountOf(list.Count, N)        +
+                            $"doClearBuffer = {doClearBuffer}\n"     +
+                            $"doChangeFocus = {doChangeFocus}\n"     +
+                            $"mode = {mode}\n"                       +
+                            $"shaderNo = {shaderNo}\n"               +
+                            $"linearSpeed = {linearSpeed}\n"         +
+                            $"maxFocus = {myUtils.fStr(maxFocus)}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -119,7 +134,14 @@ namespace my
             A = 0.1f + myUtils.randFloat(rand) * 0.5f;
             focus = 0.0001f;
 
-            focus = 0.001f + myUtils.randFloat(rand) * 0.01f;
+            if (doClearBuffer)
+            {
+                focus = 0.001f + myUtils.randFloat(rand) * maxFocus;
+            }
+            else
+            {
+                focus = 0.002f + myUtils.randFloat(rand) * 0.01f;
+            }
 
             colorPicker.getColorRand(ref R, ref G, ref B);
 
@@ -169,8 +191,18 @@ namespace my
         {
             int off = 150 + (int)(size * 0.25f);
 
-            shader.SetColor(R, G, B, A);
-            shader.Draw(x, y, size, size, focus, off);
+            if (doChangeFocus)
+            {
+                float Focus = (float)(Math.Abs(currentFocus - focus));
+
+                shader.SetColor(R, G, B, A);
+                shader.Draw(x, y, size, size, Focus, off);
+            }
+            else
+            {
+                shader.SetColor(R, G, B, A);
+                shader.Draw(x, y, size, size, focus, off);
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -221,6 +253,23 @@ namespace my
                 if (Count < N)
                 {
                     list.Add(new myObj_1450());
+                }
+
+                if (doChangeFocus)
+                {
+                    if (dTargetFocus == 0 && myUtils.randomChance(rand, 1, 123))
+                    {
+                        targetFocus = myUtils.randFloat(rand) * maxFocus;
+                        dTargetFocus = (targetFocus - currentFocus) / (100 + rand.Next(222));
+                    }
+
+                    currentFocus += dTargetFocus;
+
+                    if (dTargetFocus < 0 && currentFocus < targetFocus)
+                        dTargetFocus = 0;
+
+                    if (dTargetFocus > 0 && currentFocus > targetFocus)
+                        dTargetFocus = 0;
                 }
 
                 stopwatch.WaitAndRestart();
