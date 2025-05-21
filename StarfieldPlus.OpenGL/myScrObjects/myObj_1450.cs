@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 
 /*
-    - Depth focus test: falling snow
+    - Depth focus test: falling 'snow'
     - Reference: https://www.youtube.com/watch?v=R5jIoLnL_nE&ab_channel=JosuRelax
 */
 

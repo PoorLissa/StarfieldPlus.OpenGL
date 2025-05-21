@@ -260,7 +260,7 @@ public class ScreenSaver
             my.myObj_1420.Type,     // Depth focus test 1
             my.myObj_1430.Type,     // Depth focus test 2
             my.myObj_1440.Type,     // Depth focus test 3
-            my.myObj_1450.Type,     // Depth focus test: falling snow
+            my.myObj_1450.Type,     // Depth focus test: falling 'snow'
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
