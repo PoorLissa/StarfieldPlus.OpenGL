@@ -160,7 +160,7 @@ namespace my
 
             if (--cnt > 0)
             {
-                if (size > 20)
+                if (size > 15)
                     dFocus = 0.0001f;
 
                 if (myUtils.randomChance(rand, 1, 1234))
