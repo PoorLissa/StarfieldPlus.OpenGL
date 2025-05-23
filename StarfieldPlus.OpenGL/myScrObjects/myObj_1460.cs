@@ -23,7 +23,7 @@ namespace my
 
         private myParticleTrail trail = null;
 
-        private static int N = 0, shape = 0, nTrail = 1;
+        private static int N = 0, shape = 0, nTrail = 1, mode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, theta = 0, t = 0, dt = 0.0001f;
         private static float sA = 0, sR = 0, sG = 0, sB = 0;
@@ -49,7 +49,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 333;
+                N = 333 + rand.Next(333);
 
                 shape = rand.Next(5);
             }
@@ -62,12 +62,14 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 99, 111);
+            doClearBuffer = myUtils.randomChance(rand, 10, 11);
 
             nTrail = 350;
             nTrail = 50 + rand.Next(300);
 
-            theta = 31;
+            mode = rand.Next(2);
+
+            theta = 30.2f + myUtils.randFloat(rand);
 
             do {
 
@@ -87,8 +89,11 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
+            string str = $"Obj = {Type}\n\n"                     +
+                            myUtils.strCountOf(list.Count, N)    +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"mode = {mode}\n"                   +
+                            $"theta = {myUtils.fStr(theta)}\n"   +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -106,7 +111,12 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width + 500);
+            int width = gl_Width + 500;
+
+            if (theta < 30.5f)
+                width += 500;
+
+            x = rand.Next(width);
             y = -10;
 
             dx = -0.50f;
@@ -115,7 +125,16 @@ namespace my
             float spd = (2 + rand.Next(4)) + myUtils.randFloat(rand);
 
             float Theta = theta;
-            //Theta += myUtils.randFloatSigned(rand) * 0.05f;
+
+            switch (mode)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    Theta += myUtils.randFloatSigned(rand) * 0.05f;
+                    break;
+            }
 
             dx = (float)Math.Sin(Theta) * spd;
             dy = (float)Math.Cos(Theta) * spd;
