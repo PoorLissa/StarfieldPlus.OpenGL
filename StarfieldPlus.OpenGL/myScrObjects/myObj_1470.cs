@@ -58,7 +58,7 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 5;
+                N = 5 + rand.Next(10);
 
                 nMax = 33;
                 rad = 25;
@@ -110,7 +110,7 @@ namespace my
             dx = myUtils.randFloatClamped(rand, 0.5f) * 3;
             dy = myUtils.randFloatClamped(rand, 0.5f) * 3;
 
-            size = 20;
+            size = 10 + rand.Next(13);
 
             A = 1;
             R = (float)rand.NextDouble();
