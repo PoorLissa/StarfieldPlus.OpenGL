@@ -16,6 +16,7 @@ namespace my
     {
         public float x, y;
         public float size;
+        public float angle;
     }
 
     public class myObj_1470 : myObject
@@ -29,7 +30,7 @@ namespace my
 
         private List<node_1470> _chldren = null;
 
-        private static int N = 0, shape = 0, nMax = 1;
+        private static int N = 0, shape = 0, mode = 0, colorMode = 0, tailInitMode = 0, sizeMode = 0, nMax = 1;
         private static bool doFillShapes = false;
         private static float rad = 1;
         private static float dimAlpha = 0.05f;
@@ -58,12 +59,35 @@ namespace my
             // Global unmutable constants
             {
                 N = rand.Next(10) + 10;
-                N = 5 + rand.Next(10);
 
-                nMax = 33;
+                mode = rand.Next(3);
+
+                switch (mode)
+                {
+                    case 0:
+                        N = 5 + rand.Next(10);
+                        nMax = 33;
+                        break;
+
+                    case 1:
+                        N = 3;
+                        nMax = 666;
+                        break;
+
+                    case 2:
+                        N = 13;
+                        nMax = 666;
+                        break;
+                }
+
                 rad = 25;
+                shape = rand.Next(5);
 
-                shape = rand.Next(3) + 2;
+                if (mode == 1 || mode == 2)
+                {
+                    if (myUtils.randomChance(rand, 1, 2))
+                        rad = 9 + rand.Next(15);
+                }
             }
 
             initLocal();
@@ -74,7 +98,11 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 11, 12);
+
+            colorMode = rand.Next(2);
+            tailInitMode = rand.Next(2);
+            sizeMode = rand.Next(2);
 
             return;
         }
@@ -85,8 +113,15 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
+            string str = $"Obj = {Type}\n\n"                     +
+                            myUtils.strCountOf(list.Count, N)    +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"nMax = {nMax}\n"                   +
+                            $"mode = {mode}\n"                   +
+                            $"colorMode = {colorMode}\n"         +
+                            $"tailInitMode = {tailInitMode}\n"   +
+                            $"sizeMode = {sizeMode}\n"           +
+                            $"rad = {rad}\n"                     +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -119,21 +154,57 @@ namespace my
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
-            R = G = B = 0.8f;
+            switch (colorMode)
+            {
+                case 0:
+                    R = G = B = 0.8f;
+                    break;
+
+                case 1:
+                    {
+                        do {
+                            R = myUtils.randFloat(rand);
+                            G = myUtils.randFloat(rand);
+                            B = myUtils.randFloat(rand);
+                        }
+                        while (R + G + B < 1);
+                    }
+                    break;
+            }
 
             if (_chldren == null)
             {
                 _chldren = new List<node_1470>();
 
+                float dSize = 0.1f + myUtils.randFloat(rand) * 0.5f;
+
                 for (int i = 1; i < nMax; i++)
                 {
                     var node = new node_1470();
 
-                    node.x = x + rad * i * 0.5f;
-                    node.y = y;
-                    //node.x = node.y = 0;
+                    switch (tailInitMode)
+                    {
+                        case 0:
+                            node.x = x + rad * i * 0.5f;
+                            node.y = y;
+                            break;
 
-                    node.size = size - i;
+                        case 1:
+                            node.x = x + myUtils.randFloat(rand) * rand.Next(23);
+                            node.y = y + myUtils.randFloat(rand) * rand.Next(23);
+                            break;
+                    }
+
+                    switch (sizeMode)
+                    {
+                        case 0:
+                            node.size = size - i;
+                            break;
+
+                        case 1:
+                            node.size = size - i * dSize;
+                            break;
+                    }
 
                     if (node.size < 2)
                         node.size = 2;
@@ -178,6 +249,8 @@ namespace my
             float x0 = x;
             float y0 = y;
 
+            int i = 0;
+
             foreach (var node in _chldren)
             {
                 float dX = x0 - node.x;
@@ -205,6 +278,14 @@ namespace my
 
                 x0 = node.x;
                 y0 = node.y;
+
+                node.angle = (float)theta;
+
+                if (i == 0)
+                {
+                    i++;
+                    angle = (float)theta;
+                }
             }
 
             return;
@@ -214,7 +295,7 @@ namespace my
 
         protected override void Show()
         {
-            void show(float x, float y, float size)
+            void show(float R, float G, float B, float x, float y, float size, float angle)
             {
                 float size2x = size * 2;
 
@@ -253,17 +334,25 @@ namespace my
                 }
             }
 
-            show(x, y, size);
+            show(R, G, B, x, y, size, angle);
 
             float x0 = x;
             float y0 = y;
 
+            float r = R, dR = (R - 0.1f) / _chldren.Count;
+            float g = G, dG = (G - 0.1f) / _chldren.Count;
+            float b = B, dB = (B - 0.1f) / _chldren.Count;
+
             foreach (var node in _chldren)
             {
-                show(node.x, node.y, node.size);
+                show(r, g, b, node.x, node.y, node.size, node.angle);
 
                 myPrimitive._LineInst.setInstanceCoords(x0, y0, node.x, node.y);
-                myPrimitive._LineInst.setInstanceColor(R, G, B, A);
+                myPrimitive._LineInst.setInstanceColor(r, g, b, A);
+
+                r -= dR;
+                g -= dG;
+                b -= dB;
 
                 x0 = node.x;
                 y0 = node.y;
@@ -296,14 +385,9 @@ namespace my
                 // Dim screen
                 {
                     if (doClearBuffer)
-                    {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -352,11 +436,15 @@ namespace my
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N * nMax, 0);
 
+            int lineWidth = 1 + rand.Next(2);
             myPrimitive.init_LineInst(N * nMax);
-            myPrimitive._LineInst.setLineWidth(1);
+            myPrimitive._LineInst.setLineWidth(lineWidth);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+
+            if (doClearBuffer == false)
+                grad.SetOpacity(0.05f);
 
             return;
         }
