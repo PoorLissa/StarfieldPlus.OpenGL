@@ -30,7 +30,7 @@ namespace my
 
         private List<node_1470> _chldren = null;
 
-        private static int N = 0, shape = 0, mode = 0, colorMode = 0, tailInitMode = 0, sizeMode = 0, nMax = 1;
+        private static int N = 0, shape = 0, mode = 0, moveMode = 0, colorMode = 0, tailInitMode = 0, sizeMode = 0, nMax = 1;
         private static bool doFillShapes = false;
         private static float rad = 1;
         private static float dimAlpha = 0.05f;
@@ -103,6 +103,7 @@ namespace my
             colorMode = rand.Next(2);
             tailInitMode = rand.Next(2);
             sizeMode = rand.Next(2);
+            moveMode = rand.Next(2);
 
             return;
         }
@@ -118,6 +119,7 @@ namespace my
                             $"doClearBuffer = {doClearBuffer}\n" +
                             $"nMax = {nMax}\n"                   +
                             $"mode = {mode}\n"                   +
+                            $"moveMode = {moveMode}\n"           +
                             $"colorMode = {colorMode}\n"         +
                             $"tailInitMode = {tailInitMode}\n"   +
                             $"sizeMode = {sizeMode}\n"           +
@@ -142,8 +144,26 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
-            dx = myUtils.randFloatClamped(rand, 0.5f) * 3;
-            dy = myUtils.randFloatClamped(rand, 0.5f) * 3;
+            switch (moveMode)
+            {
+                case 0:
+                    dx = myUtils.randFloatClamped(rand, 0.5f) * 3;
+                    dy = myUtils.randFloatClamped(rand, 0.5f) * 3;
+                    break;
+
+                case 1:
+                    {
+                        if (myUtils.randomChance(rand, 1, 2))
+                        {
+                            dx = myUtils.randFloatClamped(rand, 0.5f) * 3;
+                        }
+                        else
+                        {
+                            dy = myUtils.randFloatClamped(rand, 0.5f) * 3;
+                        }
+                    }
+                    break;
+            }
 
             size = 10 + rand.Next(13);
 
@@ -237,13 +257,44 @@ namespace my
             if (y > gl_Height)
                 dy -= dd;
 
-            if (x > 111 && x < gl_Width - 111 && y > 111 & y < gl_Height - 111)
+            switch (moveMode)
             {
-                if (myUtils.randomChance(rand, 1, 333))
-                    dx *= -1;
+                case 0:
+                    {
+                        if (x > 111 && x < gl_Width - 111 && y > 111 & y < gl_Height - 111)
+                        {
+                            if (myUtils.randomChance(rand, 1, 333))
+                                dx *= -1;
 
-                if (myUtils.randomChance(rand, 1, 333))
-                    dy *= -1;
+                            if (myUtils.randomChance(rand, 1, 333))
+                                dy *= -1;
+                        }
+                    }
+                    break;
+
+                case 1:
+                    {
+                        if (x > 111 && x < gl_Width - 111 && y > 111 & y < gl_Height - 111)
+                        {
+                            if (dx != 0)
+                            {
+                                if (myUtils.randomChance(rand, 1, 333))
+                                {
+                                    dx = 0;
+                                    dy = myUtils.randFloatClamped(rand, 0.5f) * 3;
+                                }
+                            }
+                            else
+                            {
+                                if (myUtils.randomChance(rand, 1, 333))
+                                {
+                                    dy = 0;
+                                    dx = myUtils.randFloatClamped(rand, 0.5f) * 3;
+                                }
+                            }
+                        }
+                    }
+                    break;
             }
 
             float x0 = x;
