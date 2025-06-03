@@ -34,7 +34,7 @@ class myFreeShader_001 : myFreeShader
     // Circular smooth spot
     public static void getShader_000(ref string header, ref string main)
     {
-        var rand = new Random(DateTime.Now.Millisecond);
+        var rand = new Random((int)DateTime.Now.Ticks);
 
         // Smooth circle
         var circle1 = $@"
