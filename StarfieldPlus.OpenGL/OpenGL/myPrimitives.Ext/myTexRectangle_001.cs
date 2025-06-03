@@ -14,6 +14,7 @@ class myTexRectangle_001 : myTexRectangle
 {
     private int loc_uTime = -123;
     private long tBegin;
+    public static string Mode;
 
     // ---------------------------------------------------------------------------------------------------------------
 
@@ -69,10 +70,11 @@ class myTexRectangle_001 : myTexRectangle
     public static void getShader_000(ref string fragHeader, ref string fragMain)
     {
         var rand = new Random((int)DateTime.Now.Ticks);
+        int mode = rand.Next(3);
 
         fragHeader = getStdHeader();
 
-        switch (rand.Next(3))
+        switch (mode)
         {
             case 0:
                 fragMain =
@@ -100,6 +102,8 @@ class myTexRectangle_001 : myTexRectangle
                         result = texture(myTexture, fragTxCoord + offset) * fragColor;";
                 break;
         }
+
+        Mode = $"000:{mode}";
 
         return;
     }
