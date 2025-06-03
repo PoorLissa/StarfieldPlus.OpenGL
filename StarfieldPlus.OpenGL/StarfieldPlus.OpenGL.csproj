@@ -121,6 +121,7 @@
     <Compile Include="myScrObjects\myObj_0992.cs" />
     <Compile Include="myScrObjects\myObj_1030.cs" />
     <Compile Include="myScrObjects\myObj_1021.cs" />
+    <Compile Include="myScrObjects\myObj_1480.cs" />
     <Compile Include="myScrObjects\myObj_1450.cs" />
     <Compile Include="myScrObjects\myObj_1440.cs" />
     <Compile Include="myScrObjects\myObj_1430.cs" />
@@ -254,6 +255,7 @@
     <Compile Include="myUtils\__myUtils.cs" />
     <Compile Include="myUtils\__winApi.cs" />
     <Compile Include="OpenGL\myPrimitives.Ext\myFreeShader_001.cs" />
+    <Compile Include="OpenGL\myPrimitives.Ext\myTexRectangle_001.cs" />
     <Compile Include="OpenGL\myPrimitives\_FreeShader.cs" />
     <Compile Include="OpenGL\myPrimitives\_FreeShader_Instanced.cs" />
     <Compile Include="OpenGL\myPrimitives\_Hexagon_Instanced.cs" />

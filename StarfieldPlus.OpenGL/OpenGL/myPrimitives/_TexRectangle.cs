@@ -15,7 +15,7 @@ public class myTexRectangle : myPrimitive
     // Vbo (Vertex Buffer Object) -- Manages memory buffer on the GPU
     // Ebo (Element Buffer Object) is a buffer that stores indices that are used to decide what vertices to draw (and in what order)
 
-    private static uint vbo = 0, ebo = 0, shaderProgram = 0;
+    protected static uint vbo = 0, ebo = 0, shaderProgram = 0;
     private static float[] vertices = null;
     private static float _angle = 0, dx = 0, dy = 0;
     private static int locationColor = 0, locationAngle = 0, locationCenter = 0, locationOpacity = 0, locationPart = 0;
@@ -38,12 +38,11 @@ public class myTexRectangle : myPrimitive
             shaderProgram = CreateShader(vertHead, vertMain, fragHead, fragMain);
             glUseProgram(shaderProgram);
 
-            locationColor = glGetUniformLocation(shaderProgram, "myColor");
-            locationAngle = glGetUniformLocation(shaderProgram, "myAngle");
-            locationCenter = glGetUniformLocation(shaderProgram, "myCenter");
+            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationOpacity = glGetUniformLocation(shaderProgram, "myOpacity");
-
-            locationPart = glGetUniformLocation(shaderProgram, "myPart");
+            locationPart    = glGetUniformLocation(shaderProgram, "myPart");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();
@@ -70,12 +69,11 @@ public class myTexRectangle : myPrimitive
             shaderProgram = CreateShader(vertHead, vertMain, fragHead, fragMain);
             glUseProgram(shaderProgram);
 
-            locationColor = glGetUniformLocation(shaderProgram, "myColor");
-            locationAngle = glGetUniformLocation(shaderProgram, "myAngle");
-            locationCenter = glGetUniformLocation(shaderProgram, "myCenter");
+            locationColor   = glGetUniformLocation(shaderProgram, "myColor");
+            locationAngle   = glGetUniformLocation(shaderProgram, "myAngle");
+            locationCenter  = glGetUniformLocation(shaderProgram, "myCenter");
             locationOpacity = glGetUniformLocation(shaderProgram, "myOpacity");
-
-            locationPart = glGetUniformLocation(shaderProgram, "myPart");
+            locationPart    = glGetUniformLocation(shaderProgram, "myPart");
 
             vbo = glGenBuffer();
             ebo = glGenBuffer();

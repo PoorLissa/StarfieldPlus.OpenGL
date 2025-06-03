@@ -263,6 +263,7 @@ public class ScreenSaver
             my.myObj_1450.Type,     // Depth focus test: falling 'snow'
             my.myObj_1460.Type,     // Depth focus test: falling 'snow'
             my.myObj_1470.Type,     // Procedural animation
+            my.myObj_1480.Type,     // 
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -275,7 +276,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : !false, my.myObj_1470.Type);
+                                                    doUseCustomType : !false, my.myObj_1480.Type);
         return;
     }
 
