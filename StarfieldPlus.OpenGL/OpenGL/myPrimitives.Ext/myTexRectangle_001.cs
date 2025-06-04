@@ -14,7 +14,7 @@ class myTexRectangle_001 : myTexRectangle
 {
     private int loc_uTime = -123;
     private long tBegin;
-    public static string Mode;
+    public static string Mode, ColorMode;
 
     // ---------------------------------------------------------------------------------------------------------------
 
@@ -70,40 +70,93 @@ class myTexRectangle_001 : myTexRectangle
     public static void getShader_000(ref string fragHeader, ref string fragMain)
     {
         var rand = new Random((int)DateTime.Now.Ticks);
-        int mode = rand.Next(3);
+        int mode = rand.Next(6);
+        int colorMode = rand.Next(2);
 
         fragHeader = getStdHeader();
+
+        fragMain = "float X = fragTxCoord.x;float Y = fragTxCoord.y;";
 
         switch (mode)
         {
             case 0:
-                fragMain =
+                fragMain +=
                     $@"
-                        float x = sin(fragTxCoord.y * 33 + uTime) * 0.01;
-                        vec2 offset = vec2(x, 0) * 0.3;
+                        float x = sin(Y * 33 + uTime) * 0.01;
+                        float y = 0;
+                        vec2 offset = vec2(x, y) * 0.3;
                         result = texture(myTexture, fragTxCoord + offset) * fragColor;";
                 break;
 
             case 1:
-                fragMain =
+                fragMain +=
                     $@"
-                        float x = sin(fragTxCoord.y * 33 + uTime) * 0.01;
-                        float y = cos(fragTxCoord.x * 33 + uTime) * 0.01;
+                        float x = sin(Y * 33 + uTime) * 0.01;
+                        float y = cos(X * 33 + uTime) * 0.01;
                         vec2 offset = vec2(x, y) * 0.3;
                         result = texture(myTexture, fragTxCoord + offset) * fragColor;";
                 break;
 
             case 2:
-                fragMain =
+                fragMain +=
                     $@"
-                        float x = sin(fragTxCoord.y * {11 + rand.Next(111)} + uTime) * 0.01;
-                        float y = cos(fragTxCoord.x * {11 + rand.Next(333)} + uTime) * 0.01;
+                        float x = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y = cos(X * {11 + rand.Next(333)} + uTime) * 0.01;
                         vec2 offset = vec2(x, y) * 0.3;
                         result = texture(myTexture, fragTxCoord + offset) * fragColor;";
                 break;
+
+            case 3:
+                fragMain +=
+                    $@"
+                        float x = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y = 0;
+                        vec2 offset = vec2(x, y) * 0.3;
+                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                break;
+
+            case 4:
+                fragMain +=
+                    $@"
+                        float x = 0;
+                        float y = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+                        vec2 offset = vec2(x, y) * 0.3;
+                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                break;
+
+            case 5:
+                fragMain +=
+                    $@"
+                        float x = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+                        vec2 offset = vec2(x, y) * 0.3;
+                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                break;
+
         }
 
         Mode = $"000:{mode}";
+        ColorMode = $"000:{colorMode}";
+
+        switch (colorMode)
+        {
+            case 0:
+                fragMain += "result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                break;
+            
+            case 1:
+                fragMain +=
+                    $@" vec2 off1 = vec2(x, y) * 0.1;
+                        vec2 off2 = vec2(x, y) * 0.3;
+                        vec2 off3 = vec2(x, y) * 0.5;
+
+                        float r = texture(myTexture, fragTxCoord + off1).r;
+                        float g = texture(myTexture, fragTxCoord + off2).g;
+                        float b = texture(myTexture, fragTxCoord + off3).b;
+
+                        result = vec4(r, g, b, 1);";
+                break;
+        }
 
         return;
     }

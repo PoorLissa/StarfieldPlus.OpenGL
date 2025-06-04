@@ -67,9 +67,10 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                             +
-                            myUtils.strCountOf(list.Count, N)            +
-                            $"shader.Mode = {myTexRectangle_001.Mode}\n" +
+            string str = $"Obj = {Type}\n\n"                                       +
+                            myUtils.strCountOf(list.Count, N)                      +
+                            $"shader.Mode = {myTexRectangle_001.Mode}\n"           +
+                            $"shader.ColorMode = {myTexRectangle_001.ColorMode}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
