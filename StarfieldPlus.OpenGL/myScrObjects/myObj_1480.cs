@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Full screen texture shader
 */
 
 
@@ -17,12 +17,10 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1480);
 
-        private bool isMoving;
-        private int dir;
-        private float x, y, x0, y0, xOld, yOld, tFactor, Rad;
+        private float x, y;
 
         private static int N = 0;
-        private static float dimAlpha = 0.05f, t = 0, dt = 0.01f, rad;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0.01f;
 
         private static myScreenGradient grad = null;
         private static myTexRectangle_001 tex = null;
@@ -88,19 +86,12 @@ namespace my
 
         protected override void generateNew()
         {
-            x = y = 0;
-
-            x0 = xOld = x;
-            y0 = yOld = y;
-
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Move()
         {
-            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------

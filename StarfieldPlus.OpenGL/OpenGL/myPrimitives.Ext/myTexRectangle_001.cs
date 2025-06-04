@@ -1,5 +1,6 @@
 ﻿using static OpenGL.GL;
 using System;
+using my;
 
 
 /*
@@ -69,8 +70,9 @@ class myTexRectangle_001 : myTexRectangle
     // Simple sine wave
     public static void getShader_000(ref string fragHeader, ref string fragMain)
     {
+        bool isReady = false;
         var rand = new Random((int)DateTime.Now.Ticks);
-        int mode = rand.Next(6);
+        int mode = rand.Next(7);
         int colorMode = rand.Next(2);
 
         fragHeader = getStdHeader();
@@ -133,20 +135,46 @@ class myTexRectangle_001 : myTexRectangle
                         result = texture(myTexture, fragTxCoord + offset) * fragColor;";
                 break;
 
+            // Only RGB offsets
+            case 6:
+                isReady = true;
+                fragMain +=
+                    $@"     
+                        float x1 = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y1 = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+
+                        float x2 = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y2 = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+
+                        float x3 = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y3 = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+
+                        vec2 off1 = vec2(x1, y1) * {myUtils.randFloatClamped(rand, 0.1f)};
+                        vec2 off2 = vec2(x2, y2) * {myUtils.randFloatClamped(rand, 0.1f)};
+                        vec2 off3 = vec2(x3, y3) * {myUtils.randFloatClamped(rand, 0.1f)};
+
+                        float r = texture(myTexture, fragTxCoord + off1).r;
+                        float g = texture(myTexture, fragTxCoord + off2).g;
+                        float b = texture(myTexture, fragTxCoord + off3).b;
+
+                        result = vec4(r, g, b, 1);";
+                break;
         }
 
         Mode = $"000:{mode}";
         ColorMode = $"000:{colorMode}";
 
-        switch (colorMode)
+        if (!isReady)
         {
-            case 0:
-                fragMain += "result = texture(myTexture, fragTxCoord + offset) * fragColor;";
-                break;
-            
-            case 1:
-                fragMain +=
-                    $@" vec2 off1 = vec2(x, y) * 0.1;
+            switch (colorMode)
+            {
+                case 0:
+                    fragMain += "result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                    break;
+
+                case 1:
+                    fragMain +=
+                        $@" vec2 off1 = vec2(x, y) * 0.1;
                         vec2 off2 = vec2(x, y) * 0.3;
                         vec2 off3 = vec2(x, y) * 0.5;
 
@@ -155,7 +183,8 @@ class myTexRectangle_001 : myTexRectangle
                         float b = texture(myTexture, fragTxCoord + off3).b;
 
                         result = vec4(r, g, b, 1);";
-                break;
+                    break;
+            }
         }
 
         return;
