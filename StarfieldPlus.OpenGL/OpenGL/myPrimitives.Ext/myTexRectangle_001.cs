@@ -75,9 +75,11 @@ class myTexRectangle_001 : myTexRectangle
         int mode = rand.Next(7);
         int colorMode = rand.Next(2);
 
-        fragHeader = getStdHeader();
+        Mode = $"000:{mode}";
+        ColorMode = $"000:{colorMode}";
 
-        fragMain = "float X = fragTxCoord.x;float Y = fragTxCoord.y;";
+        fragHeader = getStdHeader();
+        fragMain = "float X = fragTxCoord.x, Y = fragTxCoord.y;";
 
         switch (mode)
         {
@@ -138,6 +140,7 @@ class myTexRectangle_001 : myTexRectangle
             // Only RGB offsets
             case 6:
                 isReady = true;
+                ColorMode = $"000: n/a";
                 fragMain +=
                     $@"     
                         float x1 = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
@@ -160,9 +163,6 @@ class myTexRectangle_001 : myTexRectangle
                         result = vec4(r, g, b, 1);";
                 break;
         }
-
-        Mode = $"000:{mode}";
-        ColorMode = $"000:{colorMode}";
 
         if (!isReady)
         {
