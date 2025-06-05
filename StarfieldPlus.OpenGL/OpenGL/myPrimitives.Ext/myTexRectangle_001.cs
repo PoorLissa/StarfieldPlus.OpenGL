@@ -16,6 +16,7 @@ class myTexRectangle_001 : myTexRectangle
     private int loc_uTime = -123;
     private long tBegin;
     public static string Mode, ColorMode;
+    public static int gl_Width, gl_Height;
 
     // ---------------------------------------------------------------------------------------------------------------
 
@@ -58,11 +59,13 @@ class myTexRectangle_001 : myTexRectangle
 
     private static string getStdHeader()
     {
-        return @"out vec4 result;
+        return $@"out vec4 result;
                     in vec4 fragColor;
                     in vec2 fragTxCoord;
                     uniform float uTime;
-                    uniform sampler2D myTexture;";
+                    uniform sampler2D myTexture;
+                    {myShaderHelpers.Generic.noiseFunc12_v1}
+                    vec2 iResolution = vec2({gl_Width}, {gl_Height});";
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -79,7 +82,10 @@ class myTexRectangle_001 : myTexRectangle
         ColorMode = $"000:{colorMode}";
 
         fragHeader = getStdHeader();
-        fragMain = "float X = fragTxCoord.x, Y = fragTxCoord.y;";
+        fragMain = @"
+                    float X = fragTxCoord.x;
+                    float Y = fragTxCoord.y;
+                    vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5) / iResolution.y;";
 
         switch (mode)
         {
@@ -142,7 +148,7 @@ class myTexRectangle_001 : myTexRectangle
                 isReady = true;
                 ColorMode = $"000: n/a";
                 fragMain +=
-                    $@"     
+                    $@"
                         float x1 = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
                         float y1 = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
 
@@ -156,9 +162,11 @@ class myTexRectangle_001 : myTexRectangle
                         vec2 off2 = vec2(x2, y2) * {myUtils.randFloatClamped(rand, 0.1f)};
                         vec2 off3 = vec2(x3, y3) * {myUtils.randFloatClamped(rand, 0.1f)};
 
-                        float r = texture(myTexture, fragTxCoord + off1).r;
-                        float g = texture(myTexture, fragTxCoord + off2).g;
-                        float b = texture(myTexture, fragTxCoord + off3).b;
+                        float final = 0.85 + noise12_v1(gl_FragCoord.xy * uv * uTime * 0.01) * 0.15;
+
+                        float r = texture(myTexture, fragTxCoord + off1).r * final;
+                        float g = texture(myTexture, fragTxCoord + off2).g * final;
+                        float b = texture(myTexture, fragTxCoord + off3).b * final;
 
                         result = vec4(r, g, b, 1);";
                 break;
