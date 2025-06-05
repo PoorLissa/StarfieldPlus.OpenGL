@@ -15,8 +15,8 @@ class myTexRectangle_001 : myTexRectangle
 {
     private int loc_uTime = -123;
     private long tBegin;
+
     public static string Mode, ColorMode;
-    public static int gl_Width, gl_Height;
 
     // ---------------------------------------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ class myTexRectangle_001 : myTexRectangle
                     uniform float uTime;
                     uniform sampler2D myTexture;
                     {myShaderHelpers.Generic.noiseFunc12_v1}
-                    vec2 iResolution = vec2({gl_Width}, {gl_Height});";
+                    vec2 iResolution = vec2({Width}, {Height});";
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ class myTexRectangle_001 : myTexRectangle
     {
         bool isReady = false;
         var rand = new Random((int)DateTime.Now.Ticks);
-        int mode = rand.Next(7);
+        int mode = rand.Next(8);
         int colorMode = rand.Next(2);
 
         Mode = $"000:{mode}";
@@ -94,8 +94,7 @@ class myTexRectangle_001 : myTexRectangle
                     $@"
                         float x = sin(Y * 33 + uTime) * 0.01;
                         float y = 0;
-                        vec2 offset = vec2(x, y) * 0.3;
-                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                        vec2 offset = vec2(x, y) * 0.3;";
                 break;
 
             case 1:
@@ -103,8 +102,7 @@ class myTexRectangle_001 : myTexRectangle
                     $@"
                         float x = sin(Y * 33 + uTime) * 0.01;
                         float y = cos(X * 33 + uTime) * 0.01;
-                        vec2 offset = vec2(x, y) * 0.3;
-                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                        vec2 offset = vec2(x, y) * 0.3;";
                 break;
 
             case 2:
@@ -112,8 +110,7 @@ class myTexRectangle_001 : myTexRectangle
                     $@"
                         float x = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
                         float y = cos(X * {11 + rand.Next(333)} + uTime) * 0.01;
-                        vec2 offset = vec2(x, y) * 0.3;
-                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                        vec2 offset = vec2(x, y) * 0.3;";
                 break;
 
             case 3:
@@ -121,8 +118,7 @@ class myTexRectangle_001 : myTexRectangle
                     $@"
                         float x = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
                         float y = 0;
-                        vec2 offset = vec2(x, y) * 0.3;
-                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                        vec2 offset = vec2(x, y) * 0.3;";
                 break;
 
             case 4:
@@ -130,8 +126,7 @@ class myTexRectangle_001 : myTexRectangle
                     $@"
                         float x = 0;
                         float y = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
-                        vec2 offset = vec2(x, y) * 0.3;
-                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                        vec2 offset = vec2(x, y) * 0.3;";
                 break;
 
             case 5:
@@ -139,8 +134,7 @@ class myTexRectangle_001 : myTexRectangle
                     $@"
                         float x = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
                         float y = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
-                        vec2 offset = vec2(x, y) * 0.3;
-                        result = texture(myTexture, fragTxCoord + offset) * fragColor;";
+                        vec2 offset = vec2(x, y) * 0.3;";
                 break;
 
             // Only RGB offsets
@@ -170,8 +164,43 @@ class myTexRectangle_001 : myTexRectangle
 
                         result = vec4(r, g, b, 1);";
                 break;
+
+            // Only RGB offsets + circular mask
+            case 7:
+                isReady = true;
+                ColorMode = $"000: n/a";
+                fragMain +=
+                    $@"
+                        float x1 = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y1 = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+
+                        float x2 = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y2 = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+
+                        float x3 = sin(X * {11 + rand.Next(111)} + uTime) * 0.01;
+                        float y3 = sin(Y * {11 + rand.Next(111)} + uTime) * 0.01;
+
+                        vec2 off1 = vec2(x1, y1) * {myUtils.randFloatClamped(rand, 0.1f)};
+                        vec2 off2 = vec2(x2, y2) * {myUtils.randFloatClamped(rand, 0.1f)};
+                        vec2 off3 = vec2(x3, y3) * {myUtils.randFloatClamped(rand, 0.1f)};
+
+                        float final = 0.85 + noise12_v1(gl_FragCoord.xy * uv * uTime * 0.01) * 0.15;
+
+                        float r = texture(myTexture, fragTxCoord + off1).r * final;
+                        float g = texture(myTexture, fragTxCoord + off2).g * final;
+                        float b = texture(myTexture, fragTxCoord + off3).b * final;
+
+                        float len = length(uv * final) + sin(cos(uTime + X) * Y) * 0.2;
+                        float circ = 1.0 - smoothstep(0.1, 0.7, len);
+
+                        result = (circ < 0.1)
+                            ? texture(myTexture, fragTxCoord)
+                            : vec4(r, g, b, 1);";
+                break;
+
         }
 
+        // Apply color shift mode
         if (!isReady)
         {
             switch (colorMode)

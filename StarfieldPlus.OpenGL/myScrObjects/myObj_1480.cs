@@ -54,7 +54,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 1, 2);
+            doClearBuffer = myUtils.randomChance(rand, 10, 11);
 
             return;
         }
@@ -166,8 +166,6 @@ namespace my
             myPrimitive.init_ScrDimmer();
 
             string fHeader = "", fMain = "";
-            myTexRectangle_001.gl_Width = gl_Width;
-            myTexRectangle_001.gl_Height = gl_Height;
             myTexRectangle_001.getShader_000(ref fHeader, ref fMain);
             tex = new myTexRectangle_001(colorPicker.getImg(), fHeader, fMain);
 
