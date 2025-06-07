@@ -75,7 +75,7 @@ class myTexRectangle_001 : myTexRectangle
     {
         bool isReady = false;
         var rand = new Random((int)DateTime.Now.Ticks);
-        int mode = rand.Next(9);
+        int mode = rand.Next(10);
         int colorMode = rand.Next(2);
 
         Mode = $"000:{mode}";
@@ -210,6 +210,25 @@ class myTexRectangle_001 : myTexRectangle
                         y = ((B * G)) * 0.03 * cos(uTime);
 
                         vec2 offset = vec2(x, y) * 0.3;";
+                break;
+
+            case 9:
+                isReady = true;
+                fragMain +=
+                    $@"
+                        float R = texture(myTexture, fragTxCoord).r + sin(uTime/2) * 0.3;
+                        float G = texture(myTexture, fragTxCoord).g + sin(uTime/3) * 0.3;
+                        float B = texture(myTexture, fragTxCoord).b + sin(uTime/4) * 0.3;
+
+                        float tR = abs(sin(uTime * {myUtils.randFloatClamped(rand, 0.1f)/2}));
+                        float tG = abs(sin(uTime * {myUtils.randFloatClamped(rand, 0.1f)/2}));
+                        float tB = abs(sin(uTime * {myUtils.randFloatClamped(rand, 0.1f)/2}));
+
+                        R = smoothstep(tR, 1, R);
+                        G = smoothstep(tG, 1, G);
+                        B = smoothstep(tB, 1, B);
+
+                        result = texture(myTexture, fragTxCoord) * vec4(R, G, B, 1);";
                 break;
 
         }
