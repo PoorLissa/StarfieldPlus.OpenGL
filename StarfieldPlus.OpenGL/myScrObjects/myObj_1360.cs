@@ -251,6 +251,9 @@ namespace my
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
+            glEnable(GL_LINE_SMOOTH);
+            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
             return;
         }
 
