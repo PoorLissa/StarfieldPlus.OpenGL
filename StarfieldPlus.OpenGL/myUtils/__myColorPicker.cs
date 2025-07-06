@@ -69,31 +69,40 @@ namespace my
                 }
             }
 
-            switch (_mode)
+            try
             {
-                // Use Desktop Snapshot
-                case colorMode.SNAPSHOT:
-                    getSnapshot(Width, Height);
-                    break;
+                switch (_mode)
+                {
+                    // Use Desktop Snapshot
+                    case colorMode.SNAPSHOT:
+                        getSnapshot(Width, Height);
+                        break;
 
-                // Use External Picture
-                case colorMode.IMAGE:
-                    getCustomPicture(Width, Height);
-                    break;
+                    // Use External Picture
+                    case colorMode.IMAGE:
+                        getCustomPicture(Width, Height);
+                        break;
 
-                // Use Custom Made Texture
-                case colorMode.TEXTURE:
-                    buildTexture(Width, Height);
-                    break;
+                    // Use Custom Made Texture
+                    case colorMode.TEXTURE:
+                        buildTexture(Width, Height);
+                        break;
 
-                case colorMode.COLORMAP:
-                    buildColorMap();
-                    break;
+                    case colorMode.COLORMAP:
+                        buildColorMap();
+                        break;
 
-                // Use Custom Color
-                default:
-                    break;
+                    // Use Custom Color
+                    default:
+                        break;
+                }
             }
+            catch (System.Exception ex)
+            {
+                myObject.Log($"Scr: myColorPicker in mode {_mode} exception: {ex.Message}");
+            }
+
+            return;
         }
 
         // -------------------------------------------------------------------------
@@ -763,11 +772,14 @@ namespace my
                 }
                 else
                 {
-                    throw new Exception("");
+                    myObject.Log($"Scr: getCustomPicture exception: image is null");
+                    throw new Exception("image is null");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                myObject.Log($"Scr: getCustomPicture exception: {ex.Message} \nTrying to get a snapshot...");
+
                 _img = null;
                 _g = null;
                 _mode = 0;
