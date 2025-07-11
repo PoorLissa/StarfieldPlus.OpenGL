@@ -2,38 +2,37 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 
 /*
-    - Depth focus test: falling debris
+    - 
 */
 
 
 namespace my
 {
-    public class myObj_1460 : myObject
+    public class myObj_1490 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1460);
+		public static System.Type Type => typeof(myObj_1490);
 
+        private int dir, dirAngle, cnt;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, a, r, g, b, angle = 0;
+        private float size, A, R, G, B, angle = 0;
+
+        private static int N = 0, shape = 0, nTrail = 300;
+        private static bool doFillShapes = false;
+        private static float dimAlpha = 0.05f, skewFactor = 1.0f;
 
         private myParticleTrail trail = null;
-
-        private static int N = 0, shape = 0, nTrail = 1, mode = 0;
-        private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, theta = 0, t = 0, dt = 0.0001f;
-        private static float sA = 0, sR = 0, sG = 0, sB = 0;
 
         private static myScreenGradient grad = null;
         private static myFreeShader_001 shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1460()
+        public myObj_1490()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -49,9 +48,12 @@ namespace my
 
             // Global unmutable constants
             {
-                N = 333 + rand.Next(333);
-
+                N = rand.Next(33) + 200;
                 shape = rand.Next(5);
+
+                skewFactor = myUtils.randomChance(rand, 1, 2)
+                    ? 1.0f
+                    : myUtils.randFloatClamped(rand, 0.1f);
             }
 
             initLocal();
@@ -62,25 +64,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 10, 11);
-
-            nTrail = 350;
-            nTrail = 50 + rand.Next(300);
-
-            mode = rand.Next(2);
-
-            theta = 30.2f + myUtils.randFloat(rand);
-
-            do {
-
-                sR = myUtils.randFloat(rand);
-                sG = myUtils.randFloat(rand);
-                sB = myUtils.randFloat(rand);
-
-            }
-            while (sR + sG + sB < 1);
-
-            return;
+            doClearBuffer = true;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -89,11 +73,9 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                     +
-                            myUtils.strCountOf(list.Count, N)    +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"mode = {mode}\n"                   +
-                            $"theta = {myUtils.fStr(theta)}\n"   +
+            string str = $"Obj = {Type}\n\n"                             +
+                            myUtils.strCountOf(list.Count, N)            +
+                            $"skewFactor = {myUtils.fStr(skewFactor)}\n" + 
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -111,52 +93,27 @@ namespace my
 
         protected override void generateNew()
         {
-            int width = gl_Width + 500;
+            x = rand.Next(gl_Width);
+            y = rand.Next(gl_Height);
 
-            if (theta < 30.5f)
-                width += 500;
+            A = 0.25f + myUtils.randFloat(rand) * 0.75f;
+            size = 10 * A;
 
-            x = rand.Next(width);
-            y = -10;
+            colorPicker.getColor(x, y, ref R, ref G, ref B);
 
-            dx = -0.50f;
-            dy = +1.5f;
+            dir = 0;
+            dirAngle = 0;
 
-            float spd = (2 + rand.Next(4)) + myUtils.randFloat(rand);
-
-            float Theta = theta;
-
-            switch (mode)
+            switch (dir)
             {
                 case 0:
-                    break;
-
-                case 1:
-                    Theta += myUtils.randFloatSigned(rand) * 0.05f;
+                    y = -10;
+                    dx = 0;
+                    dy = myUtils.randFloat(rand, 0.2f) * (rand.Next(4) + 1);
                     break;
             }
 
-            dx = (float)Math.Sin(Theta) * spd;
-            dy = (float)Math.Cos(Theta) * spd;
-
-            size = 2;
-
-            A = 0.5f + myUtils.randFloat(rand) * 0.5f;
-            //colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            R = 0.75f;
-            G = 0.75f;
-            B = 0.75f;
-
-            r = sR + (float)Math.Sin(x/gl_Width) * 0.5f;
-
-            r = (float)Math.Sin(x / gl_Width);
-
-            g = sG;
-            b = sB;
-            a = A;
-
-            // Initialize Trail
+            // Initialize trail
             {
                 if (trail == null)
                 {
@@ -167,7 +124,12 @@ namespace my
                     trail.reset(x, y);
                 }
 
-                trail?.updateDa(A * 0.75f);
+                trail?.updateDa(A);
+            }
+
+            if (shape == 1)
+            {
+                angle = (float)(Math.PI * 45);
             }
 
             return;
@@ -180,15 +142,42 @@ namespace my
             x += dx;
             y += dy;
 
-            trail.update(x, y);
+            int probStraight = 100;
+            int probAngle = 33;
 
-            //if (x < 0 || x > gl_Width || y < 0 || y > gl_Height)
-            if (y > gl_Height)
+            if (dirAngle == 0)
             {
-                a -= 0.005f;
+                if (--cnt < 0 && myUtils.randomChance(rand, 1, probStraight))
+                {
+                    dirAngle = 1;
+                    cnt = 25;
 
-                if (a < 0)
-                    generateNew();
+                    dx = myUtils.randomChance(rand, 1, 2)
+                        ? +dy * skewFactor
+                        : -dy * skewFactor;
+                }
+            }
+            else
+            {
+                if ((--cnt < 0 && myUtils.randomChance(rand, 1, probAngle)) || cnt < -25)
+                {
+                    dirAngle = 0;
+                    dx = 0;
+                    cnt = 100;
+                }
+            }
+
+            switch (dir)
+            {
+                case 0:
+                    if (y > gl_Height)
+                    {
+                        A -= 0.002f;
+
+                        if (A < 0)
+                            generateNew();
+                    }
+                    break;
             }
 
             return;
@@ -199,8 +188,14 @@ namespace my
         protected override void Show()
         {
             float size2x = size * 2;
+            float size3x = size * 3;
 
-            trail.Show(r, g, b, a);
+            trail?.update(x, y);
+            trail?.Show(R, G, B, A);
+
+            int off = 150 + (int)(size * 0.25f);
+            shader.SetColor(R, G, B, A);
+            shader.Draw(x, y, size3x, size3x, 0.02f, off);
 
             switch (shape)
             {
@@ -213,7 +208,7 @@ namespace my
 
                 // Instanced triangles
                 case 1:
-                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
+                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size, angle);
                     myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -278,18 +273,14 @@ namespace my
                     inst.ResetBuffer();
                     myPrimitive._LineInst.ResetBuffer();
 
-                    shader.SetColor(0.75f, 0.23f, 0.66f, 0.25f);
-                    shader.Draw(gl_Width, -111, 2345, 2345, 0.75f, 500);
-
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1460;
+                        var obj = list[i] as myObj_1490;
 
                         obj.Show();
                         obj.Move();
                     }
 
-                    myPrimitive._LineInst.setLineWidth(3);
                     myPrimitive._LineInst.Draw();
 
                     if (doFillShapes)
@@ -304,29 +295,13 @@ namespace my
                     inst.Draw(false);
                 }
 
-                if (Count < N && myUtils.randomChance(rand, 1, 5))
+                if (Count < N)
                 {
-                    list.Add(new myObj_1460());
+                    list.Add(new myObj_1490());
                 }
 
                 stopwatch.WaitAndRestart();
                 cnt++;
-
-                if (myUtils.randomChance(rand, 1, 1111))
-                {
-                    do
-                    {
-
-                        sR = myUtils.randFloat(rand);
-                        sG = myUtils.randFloat(rand);
-                        sB = myUtils.randFloat(rand);
-
-                    }
-                    while (sR + sG + sB < 1);
-                }
-
-                //theta += (float)Math.Sin(t) * 0.01f;
-                t += dt;
             }
 
             return;
@@ -339,12 +314,14 @@ namespace my
             myPrimitive.init_ScrDimmer();
             base.initShapes(shape, N, 0);
 
-            myPrimitive.init_LineInst(N * nTrail);
-
-            getShader();
-
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+
+            myPrimitive.init_LineInst(N * nTrail);
+            myPrimitive._LineInst.setLineWidth(3);
+            myPrimitive._LineInst.setAntialized(true);
+
+            getShader();
 
             return;
         }
@@ -356,21 +333,11 @@ namespace my
         {
             string fHeader = "", fMain = "";
 
-            switch (rand.Next(2))
-            {
-                case 0:
-                    myFreeShader_001.getShader_000(ref fHeader, ref fMain);
-                    break;
-
-                case 1:
-                    myFreeShader_001.getShader_001(ref fHeader, ref fMain);
-                    break;
-            }
+            myFreeShader_001.getShader_000(ref fHeader, ref fMain, 0);
 
             shader = new myFreeShader_001(fHeader, fMain);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
-
     }
 };

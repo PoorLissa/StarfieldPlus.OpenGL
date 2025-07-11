@@ -32,7 +32,7 @@ class myFreeShader_001 : myFreeShader
     // ---------------------------------------------------------------------------------------------------------------
 
     // Circular smooth spot
-    public static void getShader_000(ref string header, ref string main)
+    public static void getShader_000(ref string header, ref string main, int shaderNo = -1)
     {
         var rand = new Random((int)DateTime.Now.Ticks);
 
@@ -84,28 +84,52 @@ class myFreeShader_001 : myFreeShader
                 }}
             ";
 
-        switch (rand.Next(9))
+        if (shaderNo >= 0)
         {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-                header = circle1;
-                break;
+            switch (shaderNo)
+            {
+                case 0:
+                    header = circle1;
+                    break;
 
-            case 4:
-            case 5:
-                header = circle2;
-                break;
+                case 1:
+                    header = circle2;
+                    break;
 
-            case 6:
-            case 7:
-                header = circle3;
-                break;
+                case 2:
+                    header = circle3;
+                    break;
 
-            case 8:
-                header = circle4;
-                break;
+                case 3:
+                    header = circle4;
+                    break;
+            }
+        }
+        else
+        {
+            switch (rand.Next(9))
+            {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    header = circle1;
+                    break;
+
+                case 4:
+                case 5:
+                    header = circle2;
+                    break;
+
+                case 6:
+                case 7:
+                    header = circle3;
+                    break;
+
+                case 8:
+                    header = circle4;
+                    break;
+            }
         }
 
         main = $@"
