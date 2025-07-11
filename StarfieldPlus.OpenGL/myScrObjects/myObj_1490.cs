@@ -152,9 +152,14 @@ namespace my
                     dirAngle = 1;
                     cnt = 25;
 
-                    dx = myUtils.randomChance(rand, 1, 2)
-                        ? +dy * skewFactor
-                        : -dy * skewFactor;
+                    var sign = myUtils.randomSign(rand);
+
+                    dx = sign * dy * skewFactor;
+
+                    if (shape == 1)
+                    {
+                        angle += sign * skewFactor;
+                    }
                 }
             }
             else
@@ -164,6 +169,11 @@ namespace my
                     dirAngle = 0;
                     dx = 0;
                     cnt = 100;
+
+                    if (shape == 1)
+                    {
+                        angle = (float)(Math.PI * 45);
+                    }
                 }
             }
 
