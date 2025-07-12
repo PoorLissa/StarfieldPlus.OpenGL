@@ -21,7 +21,7 @@ namespace my
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, nTrail = 300;
+        private static int N = 0, shape = 0, nTrail = 300, mode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, skewFactor = 1.0f;
 
@@ -65,6 +65,10 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
+
+            // 1-4: const skewFactor;
+            // 5-6: skewFactor is random each time
+            mode = rand.Next(6);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -75,7 +79,8 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                             +
                             myUtils.strCountOf(list.Count, N)            +
-                            $"skewFactor = {myUtils.fStr(skewFactor)}\n" + 
+                            $"mode = {mode}\n"                           +
+                            $"skewFactor = {myUtils.fStr(skewFactor)}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -152,8 +157,24 @@ namespace my
                     dirAngle = 1;
                     cnt = 25;
 
-                    //
                     var sign = myUtils.randomSign(rand);
+
+                    switch (mode)
+                    {
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+
+                        case 4:
+                            skewFactor = myUtils.randFloatClamped(rand, 0.1f) * 1;
+                            break;
+
+                        case 5:
+                            skewFactor = myUtils.randFloatClamped(rand, 0.1f) * 2;
+                            break;
+                    }
 
                     dx = sign * dy * skewFactor;
 
