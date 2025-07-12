@@ -59,8 +59,8 @@ namespace my
         protected static myStopwatch stopwatch = null;
 
         protected static BgrDrawMode bgrDrawMode = BgrDrawMode.NEVER;
-        protected static float       bgrOpacity = 0.01f;
-        protected static float       bgrR = 0.0f, bgrG = 0.0f, bgrB = 0.0f;
+        protected static float bgrOpacity = 0.01f;
+        protected static float bgrR = 0.0f, bgrG = 0.0f, bgrB = 0.0f;
 
         protected static bool doClearBuffer = true;
 
@@ -279,9 +279,9 @@ namespace my
 
                 // Main Procedure
                 {
-                    Log("Scr: Process");
+                    Log($"Scr: Process, gl_State = {Program.gl_State}");
                     Process(openGL_Window);
-                    Log("Scr: PostProcess");
+                    Log($"Scr: PostProcess");
                     PostProcess(openGL_Window);
                 }
 
@@ -348,7 +348,7 @@ namespace my
         private void makeTopmost(GLFW.Window window)
         {
             // Make the process window topmost, as the TaskScheduler might run it in a background
-            if (Program.gl_State == Program.STATE.TASK_SCHEDULER)
+            if (Program.gl_State == Program.STATE.TASK_SCHEDULER || Program.gl_State == Program.STATE.MANAGED_MAIN)
             {
 #pragma warning disable
                 if (window != IntPtr.Zero)
