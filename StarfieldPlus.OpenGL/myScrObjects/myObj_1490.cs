@@ -48,7 +48,21 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(33) + 200;
+                switch (rand.Next(3))
+                {
+                    case 0:
+                        N = 200 + rand.Next(111);
+                        break;
+
+                    case 1:
+                        N = 200 + rand.Next(222);
+                        break;
+
+                    case 2:
+                        N = 200 + rand.Next(333);
+                        break;
+                }
+
                 shape = rand.Next(5);
 
                 skewFactor = myUtils.randomChance(rand, 1, 2)
