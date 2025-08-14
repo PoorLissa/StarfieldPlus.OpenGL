@@ -5,37 +5,44 @@ using System.Collections.Generic;
 
 
 /*
-    - Down-and-sideways gliders (basic)
+    - Down-and-sideways rhomsbus gliders (basic)
 */
 
 
 namespace my
 {
-    public class myObj_1490 : myObject
+    public class myObj_1510 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1490);
+		public static System.Type Type => typeof(myObj_1510);
 
-        private int dir, dirAngle, cnt;
+        private int dir, dirAngle, cnt, backCnt, step;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
+        private myObj_1510 _parent = null;
+        private myParticleTrail trail = null;
 
         private static int N = 0, shape = 0, nTrail = 300, mode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, skewFactor = 1.0f;
-
-        private myParticleTrail trail = null;
 
         private static myScreenGradient grad = null;
         private static myFreeShader_001 shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1490()
+        public myObj_1510()
         {
             if (id != uint.MaxValue)
+            {
+                if (id % 2 != 0)
+                {
+                    _parent = list[(int)(id - 1)] as myObj_1510;
+                }
+
                 generateNew();
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -80,9 +87,7 @@ namespace my
         {
             doClearBuffer = true;
 
-            // 1-4: const skewFactor;
-            // 5-6: skewFactor is random each time
-            mode = rand.Next(6);
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -91,10 +96,8 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                             +
-                            myUtils.strCountOf(list.Count, N)            +
-                            $"mode = {mode}\n"                           +
-                            $"skewFactor = {myUtils.fStr(skewFactor)}\n" +
+            string str = $"Obj = {Type}\n\n"                  +
+                            myUtils.strCountOf(list.Count, N) +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -112,24 +115,50 @@ namespace my
 
         protected override void generateNew()
         {
-            x = rand.Next(gl_Width);
-            y = rand.Next(gl_Height);
-
-            A = 0.25f + myUtils.randFloat(rand) * 0.75f;
-            size = 10 * A;
-
-            colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-            dir = 0;
-            dirAngle = 0;
-
-            switch (dir)
+            if (_parent == null)
             {
-                case 0:
-                    y = -10;
-                    dx = 0;
-                    dy = myUtils.randFloat(rand, 0.2f) * (rand.Next(4) + 1);
-                    break;
+                x = rand.Next(gl_Width);
+                y = rand.Next(gl_Height);
+
+                A = 0.25f + myUtils.randFloat(rand) * 0.75f;
+                size = 10 * A;
+
+                colorPicker.getColor(x, y, ref R, ref G, ref B);
+
+                dir = 0;
+                dirAngle = 0;
+                backCnt = 0;
+                step = 0;
+
+                switch (dir)
+                {
+                    case 0:
+                        y = -10;
+                        dx = 0;
+                        dy = myUtils.randFloat(rand, 0.2f) * (rand.Next(4) + 1);
+                        break;
+                }
+
+                if (shape == 1)
+                {
+                    angle = (float)(Math.PI * 45);
+                }
+            }
+            else
+            {
+                x = _parent.x;
+                y = _parent.y;
+                dx = _parent.dx;
+                dy = _parent.dy;
+                size = _parent.size;
+                A = _parent.A;
+                R = _parent.R;
+                G = _parent.G;
+                B = _parent.B;
+                dir = _parent.dir;
+                dirAngle = _parent.dirAngle;
+                angle = _parent.angle;
+                cnt = _parent.cnt;
             }
 
             // Initialize trail
@@ -146,11 +175,6 @@ namespace my
                 trail?.updateDa(A);
             }
 
-            if (shape == 1)
-            {
-                angle = (float)(Math.PI * 45);
-            }
-
             return;
         }
 
@@ -164,66 +188,106 @@ namespace my
             int probStraight = 100;
             int probAngle = 33;
 
-            if (dirAngle == 0)
+            if (_parent == null)
             {
-                if (--cnt < 0 && myUtils.randomChance(rand, 1, probStraight))
+                if (dirAngle == 0)
                 {
-                    dirAngle = 1;
-                    cnt = 25;
-
-                    var sign = myUtils.randomSign(rand);
-
-                    switch (mode)
+                    if (--cnt < 0 && myUtils.randomChance(rand, 1, probStraight))
                     {
-                        case 0:
-                        case 1:
-                        case 2:
-                        case 3:
-                            break;
+                        dirAngle = 1;
+                        cnt = 25;
+                        step++;
 
-                        case 4:
-                            skewFactor = myUtils.randFloatClamped(rand, 0.1f) * 1;
-                            break;
+                        var sign = step == 1
+                            ? +1
+                            : -1;
 
-                        case 5:
-                            skewFactor = myUtils.randFloatClamped(rand, 0.1f) * 2;
-                            break;
+                        switch (mode)
+                        {
+                            case 0:
+                            case 1:
+                            case 2:
+                            case 3:
+                                break;
+
+                            case 4:
+                                skewFactor = myUtils.randFloatClamped(rand, 0.1f) * 1;
+                                break;
+
+                            case 5:
+                                skewFactor = myUtils.randFloatClamped(rand, 0.1f) * 2;
+                                break;
+                        }
+
+                        dx = sign * dy * skewFactor;
+
+                        if (shape == 1)
+                        {
+                            angle += sign * skewFactor;
+                        }
                     }
-
-                    dx = sign * dy * skewFactor;
-
-                    if (shape == 1)
+                }
+                else
+                {
+                    if (step == 1)
                     {
-                        angle += sign * skewFactor;
+                        backCnt++;
+
+                        if ((--cnt < 0 && myUtils.randomChance(rand, 1, probAngle)) || cnt < -25)
+                        {
+                            dirAngle = 0;
+                            dx = 0;
+                            cnt = 100;
+                            step++;
+
+                            if (shape == 1)
+                            {
+                                angle = (float)(Math.PI * 45);
+                            }
+                        }
                     }
+                    
+                    if (step == 3)
+                    {
+                        if (--backCnt == 0)
+                        {
+                            dirAngle = 0;
+                            dx = 0;
+                            cnt = 100;
+                            step = 0;
+
+                            if (shape == 1)
+                            {
+                                angle = (float)(Math.PI * 45);
+                            }
+                        }
+                    }
+                }
+
+                switch (dir)
+                {
+                    case 0:
+                        if (y > gl_Height)
+                        {
+                            A -= 0.002f;
+
+                            if (A < 0)
+                            {
+                                generateNew();
+                                (list[(int)(id + 1)] as myObj_1510).generateNew();
+                            }
+                        }
+                        break;
                 }
             }
             else
             {
-                if ((--cnt < 0 && myUtils.randomChance(rand, 1, probAngle)) || cnt < -25)
-                {
-                    dirAngle = 0;
-                    dx = 0;
-                    cnt = 100;
-
-                    if (shape == 1)
-                    {
-                        angle = (float)(Math.PI * 45);
-                    }
-                }
-            }
-
-            switch (dir)
-            {
-                case 0:
-                    if (y > gl_Height)
-                    {
-                        A -= 0.002f;
-
-                        if (A < 0)
-                            generateNew();
-                    }
-                    break;
+                dirAngle = _parent.dirAngle;
+                y = _parent.y;
+                dx = _parent.dx * -1;
+                dy = _parent.dy;
+                angle = _parent.angle;
+                A = _parent.A;
             }
 
             return;
@@ -321,7 +385,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1490;
+                        var obj = list[i] as myObj_1510;
 
                         obj.Show();
                         obj.Move();
@@ -343,7 +407,8 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_1490());
+                    list.Add(new myObj_1510());
+                    list.Add(new myObj_1510());
                 }
 
                 stopwatch.WaitAndRestart();
