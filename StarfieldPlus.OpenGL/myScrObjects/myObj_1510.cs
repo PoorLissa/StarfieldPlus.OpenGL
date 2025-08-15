@@ -2,6 +2,7 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 
 /*
@@ -15,7 +16,7 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1510);
+        public static System.Type Type => typeof(myObj_1510);
 
         private int dir, dirAngle, cnt, backCnt, step;
         private float x, y, dx, dy;
@@ -69,6 +70,10 @@ namespace my
                         N = 200 + rand.Next(333);
                         break;
                 }
+
+                // Make sure we have even number of particles, because they are added in pairs
+                if (N % 2 == 1)
+                    N++;
 
                 shape = rand.Next(5);
 
@@ -246,7 +251,7 @@ namespace my
                             }
                         }
                     }
-                    
+
                     if (step == 3)
                     {
                         if (--backCnt == 0)
