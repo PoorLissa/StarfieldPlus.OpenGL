@@ -2,44 +2,43 @@
 using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 
 
 /*
-    - Down-and-sideways rhomsbus gliders (basic)
+    - 
 */
 
 
 namespace my
 {
-    public class myObj_1510 : myObject
+    public class myObj_1520 : myObject
     {
         // Priority
         public static int Priority => 10;
-        public static System.Type Type => typeof(myObj_1510);
+		public static System.Type Type => typeof(myObj_1520);
 
-        private int dir, dirAngle, cnt, backCnt, step;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
-        private myObj_1510 _parent = null;
-        private myParticleTrail trail = null;
+        private float size, A, R, G, B, angle = 0, phase = 0;
 
-        private static int N = 0, shape = 0, nTrail = 300, mode = 0;
+        private static int N = 0, shape = 0, nTrail = 300, mode = 0, dir = 0;
         private static bool doFillShapes = false;
-        private static float dimAlpha = 0.05f, skewFactor = 1.0f;
+        private static float dimAlpha = 0.05f, t = 0, dt = 0;
+        private myObj_1520 _parent = null;
+
+        private myParticleTrail trail = null;
 
         private static myScreenGradient grad = null;
         private static myFreeShader_001 shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1510()
+        public myObj_1520()
         {
             if (id != uint.MaxValue)
             {
                 if (id % 2 != 0)
                 {
-                    _parent = list[(int)(id - 1)] as myObj_1510;
+                    _parent = list[(int)(id - 1)] as myObj_1520;
                 }
 
                 generateNew();
@@ -71,14 +70,12 @@ namespace my
                         break;
                 }
 
-                // Make sure we have even number of particles, because they are added in pairs
                 N += N % 2;
 
                 shape = rand.Next(5);
 
-                skewFactor = myUtils.randomChance(rand, 1, 2)
-                    ? 1.0f
-                    : myUtils.randFloatClamped(rand, 0.1f);
+                t = 0;
+                dt = 0.001f;
             }
 
             initLocal();
@@ -125,21 +122,18 @@ namespace my
                 y = rand.Next(gl_Height);
 
                 A = 0.25f + myUtils.randFloat(rand) * 0.75f;
-                size = 10 * A;
+                size = 9 * A;
+                phase = 1.0f + myUtils.randFloat(rand) * 0.1f;
+                //phase = 1.0f;
 
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
-
-                dir = 0;
-                dirAngle = 0;
-                backCnt = 0;
-                step = 0;
 
                 switch (dir)
                 {
                     case 0:
-                        y = -10;
+                        y = 10;
                         dx = 0;
-                        dy = myUtils.randFloat(rand, 0.2f) * (rand.Next(4) + 1);
+                        dy = myUtils.randFloat(rand, 0.5f) + (rand.Next(3) + 1);
                         break;
                 }
 
@@ -159,10 +153,8 @@ namespace my
                 R = _parent.R;
                 G = _parent.G;
                 B = _parent.B;
-                dir = _parent.dir;
-                dirAngle = _parent.dirAngle;
                 angle = _parent.angle;
-                cnt = _parent.cnt;
+                phase = _parent.phase;
             }
 
             // Initialize trail
@@ -189,109 +181,26 @@ namespace my
             x += dx;
             y += dy;
 
-            int probStraight = 10;
-            int probAngle = 33;
-
-            if (_parent == null)
+            if (_parent != null)
             {
-                if (dirAngle == 0)
-                {
-                    if (--cnt < 0 && myUtils.randomChance(rand, 1, probStraight))
-                    {
-                        dirAngle = 1;
-                        cnt = 25;
-                        step++;
-
-                        var sign = step == 1
-                            ? +1
-                            : -1;
-
-                        switch (mode)
-                        {
-                            case 0:
-                            case 1:
-                            case 2:
-                            case 3:
-                                break;
-
-                            case 4:
-                                skewFactor = myUtils.randFloatClamped(rand, 0.1f) * 1;
-                                break;
-
-                            case 5:
-                                skewFactor = myUtils.randFloatClamped(rand, 0.1f) * 2;
-                                break;
-                        }
-
-                        dx = sign * dy * skewFactor;
-
-                        if (shape == 1)
-                        {
-                            angle += sign * skewFactor;
-                        }
-                    }
-                }
-                else
-                {
-                    if (step == 1)
-                    {
-                        backCnt++;
-
-                        if ((--cnt < 0 && myUtils.randomChance(rand, 1, probAngle)) || cnt < -25)
-                        {
-                            dirAngle = 0;
-                            dx = 0;
-                            cnt = 100;
-                            step++;
-
-                            if (shape == 1)
-                            {
-                                angle = (float)(Math.PI * 45);
-                            }
-                        }
-                    }
-
-                    if (step == 3)
-                    {
-                        if (--backCnt == 0)
-                        {
-                            dirAngle = 0;
-                            dx = 0;
-                            cnt = 100;
-                            step = 0;
-
-                            if (shape == 1)
-                            {
-                                angle = (float)(Math.PI * 45);
-                            }
-                        }
-                    }
-                }
-
-                switch (dir)
-                {
-                    case 0:
-                        if (y > gl_Height)
-                        {
-                            A -= 0.002f;
-
-                            if (A < 0)
-                            {
-                                generateNew();
-                                (list[(int)(id + 1)] as myObj_1510).generateNew();
-                            }
-                        }
-                        break;
-                }
+                dx = +(float)Math.Sin(t * 100 * phase) * 1;
             }
             else
             {
-                dirAngle = _parent.dirAngle;
-                y = _parent.y;
-                dx = _parent.dx * -1;
-                dy = _parent.dy;
-                angle = _parent.angle;
-                A = _parent.A;
+                dx = -(float)Math.Sin(t * 100 * phase) * 1;
+            }
+
+            switch (dir)
+            {
+                case 0:
+                    if (y > gl_Height)
+                    {
+                        A -= 0.002f;
+
+                        if (A < 0)
+                            generateNew();
+                    }
+                    break;
             }
 
             return;
@@ -322,7 +231,7 @@ namespace my
 
                 // Instanced triangles
                 case 1:
-                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size, angle);
+                    myPrimitive._TriangleInst.setInstanceCoords(x, y, size2x, angle);
                     myPrimitive._TriangleInst.setInstanceColor(R, G, B, A);
                     break;
 
@@ -389,7 +298,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1510;
+                        var obj = list[i] as myObj_1520;
 
                         obj.Show();
                         obj.Move();
@@ -411,12 +320,13 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_1510());
-                    list.Add(new myObj_1510());
+                    list.Add(new myObj_1520());
+                    list.Add(new myObj_1520());
                 }
 
                 stopwatch.WaitAndRestart();
                 cnt++;
+                t += dt;
             }
 
             return;

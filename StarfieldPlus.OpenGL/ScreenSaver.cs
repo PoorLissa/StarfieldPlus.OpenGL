@@ -266,6 +266,7 @@ public class ScreenSaver
             my.myObj_1480.Type,     // Full screen texture shader
             my.myObj_1490.Type,     // Down-and-sideways gliders (basic)
             my.myObj_1510.Type,     // Down-and-sideways rhombus gliders (basic)
+            my.myObj_1520.Type,     // Down-and-sideways double spiraling gliders (basic)
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -278,7 +279,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : true, my.myObj_1510.Type);
+                                                    doUseCustomType : true, my.myObj_1520.Type);
         return;
     }
 
