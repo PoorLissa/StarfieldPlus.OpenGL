@@ -14,7 +14,7 @@ namespace my
     public class myObj_1520 : myObject
     {
         // Priority
-        public static int Priority => 999910;
+        public static int Priority => 9910;
 		public static System.Type Type => typeof(myObj_1520);
 
         private float x, y, dx, dy;
