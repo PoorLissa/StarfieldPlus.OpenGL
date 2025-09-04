@@ -14,13 +14,13 @@ namespace my
     public class myObj_1520 : myObject
     {
         // Priority
-        public static int Priority => 9910;
+        public static int Priority => 910;
 		public static System.Type Type => typeof(myObj_1520);
 
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0, phase = 0;
 
-        private static int N = 0, shape = 0, nTrail = 300, mode = 0, dir = 0;
+        private static int N = 0, shape = 0, nTrail = 300, mode = 0, dir = 0, dist = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, t = 0, dt = 0;
         private myObj_1520 _parent = null;
@@ -74,6 +74,10 @@ namespace my
 
                 shape = rand.Next(5);
 
+                dist = myUtils.randomChance(rand, 1, 11)
+                    ? rand.Next(234)
+                    : 0;
+
                 t = 0;
                 dt = 0.001f;
             }
@@ -97,8 +101,9 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
+            string str = $"Obj = {Type}\n\n"                    +
+                            myUtils.strCountOf(list.Count, N)   +
+                            $"dist = {dist}\n"                  + 
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -155,6 +160,10 @@ namespace my
                 B = _parent.B;
                 angle = _parent.angle;
                 phase = _parent.phase;
+
+                x += (dist % 2) == 0
+                    ? dist
+                    : rand.Next(dist);
             }
 
             // Initialize trail
