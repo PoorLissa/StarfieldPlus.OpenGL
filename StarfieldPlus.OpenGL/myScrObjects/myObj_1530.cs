@@ -41,7 +41,23 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 15;
+                switch (rand.Next(3))
+                {
+                    case 0:
+                        size = 25;
+                        N = rand.Next(10) + 15;
+                        break;
+
+                    case 1:
+                        size = 15;
+                        N = rand.Next(10) + 35;
+                        break;
+
+                    case 2:
+                        size = 5;
+                        N = rand.Next(10) + 75;
+                        break;
+                }
             }
 
             initLocal();
@@ -52,9 +68,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 1, 2);
-
-            return;
+            doClearBuffer = false;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -63,8 +77,9 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                  +
-                            myUtils.strCountOf(list.Count, N) +
+            string str = $"Obj = {Type}\n\n"                    +
+                            myUtils.strCountOf(list.Count, N)   +
+                            $"size = {size}\n"                  +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
