@@ -90,6 +90,10 @@ public class ScreenSaver
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
+    // Voronoi Diagram:
+    // https://ru.wikipedia.org/wiki/Диаграмма_Вороного
+    // https://habr.com/ru/articles/309252/
+
     // -------------------------------------------------------------------------------------------------------------------
 
     public void selectObject()

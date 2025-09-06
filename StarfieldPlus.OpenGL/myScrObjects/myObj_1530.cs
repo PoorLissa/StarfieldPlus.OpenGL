@@ -19,7 +19,7 @@ namespace my
 
         private int x, y, xTarget, yTarget, lifeCnt;
 
-        private static int N = 0, size = 50;
+        private static int N = 0, size = 25;
 
         static myTexRectangle tex = null;
 
@@ -41,7 +41,7 @@ namespace my
 
             // Global unmutable constants
             {
-                N = rand.Next(10) + 10;
+                N = rand.Next(10) + 15;
             }
 
             initLocal();
