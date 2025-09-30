@@ -19,7 +19,7 @@ namespace my
 
         private int x, y, xTarget, yTarget, lifeCnt;
 
-        private static int N = 0, size = 25, gap = 1, mode = 0;
+        private static int N = 0, size = 25, gap = 1, mode = 0, maxDist = 0;
 
         static myTexRectangle tex = null;
 
@@ -73,6 +73,7 @@ namespace my
             doClearBuffer = false;
 
             mode = rand.Next(4);
+            maxDist = rand.Next(2) + 2;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -86,6 +87,7 @@ namespace my
                             $"mode = {mode}\n"                  +
                             $"size = {size}\n"                  +
                             $"gap = {gap}\n"                    +
+                            $"maxDist = {maxDist}\n"            +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -109,8 +111,8 @@ namespace my
             x -= x % (size + gap);
             y -= y % (size + gap);
 
-            xTarget = x + myUtils.randomSign(rand) * rand.Next(size * 3);
-            yTarget = y + myUtils.randomSign(rand) * rand.Next(size * 3);
+            xTarget = x + myUtils.randomSign(rand) * rand.Next(size * maxDist);
+            yTarget = y + myUtils.randomSign(rand) * rand.Next(size * maxDist);
 
             xTarget -= xTarget % (size + gap);
             yTarget -= yTarget % (size + gap);
@@ -126,15 +128,15 @@ namespace my
             switch (mode)
             {
                 case 0:
-                    xTarget = x;
-                    break;
-
                 case 1:
-                    yTarget = y;
                     break;
 
                 case 2:
+                    xTarget = x;
+                    break;
+
                 case 3:
+                    yTarget = y;
                     break;
             }
 
