@@ -271,6 +271,7 @@ public class ScreenSaver
             my.myObj_1490.Type,     // Down-and-sideways gliders (basic)
             my.myObj_1510.Type,     // Down-and-sideways rhombus gliders (basic)
             my.myObj_1520.Type,     // Down-and-sideways double spiraling gliders (basic)
+            my.myObj_1530.Type,     // Grid-based 'blur' on a texture
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good

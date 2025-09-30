@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - 
+    - Grid-based 'blur' on a texture
 */
 
 
@@ -19,7 +19,7 @@ namespace my
 
         private int x, y, xTarget, yTarget, lifeCnt;
 
-        private static int N = 0, size = 25;
+        private static int N = 0, size = 25, gap = 1, mode = 0;
 
         static myTexRectangle tex = null;
 
@@ -41,21 +41,23 @@ namespace my
 
             // Global unmutable constants
             {
+                gap = rand.Next(3) + 1;
+
                 switch (rand.Next(3))
                 {
                     case 0:
-                        size = 25;
+                        size = 20 + rand.Next(5);
                         N = rand.Next(10) + 15;
                         break;
 
                     case 1:
-                        size = 15;
-                        N = rand.Next(10) + 35;
+                        size = 10 + rand.Next(10);
+                        N = rand.Next(20) + 35;
                         break;
 
                     case 2:
-                        size = 5;
-                        N = rand.Next(10) + 75;
+                        size = 5 + rand.Next(5);
+                        N = rand.Next(30) + 75;
                         break;
                 }
             }
@@ -69,6 +71,8 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = false;
+
+            mode = rand.Next(4);
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -79,7 +83,9 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                    +
                             myUtils.strCountOf(list.Count, N)   +
+                            $"mode = {mode}\n"                  +
                             $"size = {size}\n"                  +
+                            $"gap = {gap}\n"                    +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -97,8 +103,6 @@ namespace my
 
         protected override void generateNew()
         {
-            int gap = 3;
-
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
@@ -111,7 +115,28 @@ namespace my
             xTarget -= xTarget % (size + gap);
             yTarget -= yTarget % (size + gap);
 
+            if (xTarget < 0 || xTarget > gl_Width)
+                xTarget = x;
+
+            if (yTarget < 0 || yTarget > gl_Height)
+                yTarget = y;
+
             lifeCnt = 10 + rand.Next(11);
+
+            switch (mode)
+            {
+                case 0:
+                    xTarget = x;
+                    break;
+
+                case 1:
+                    yTarget = y;
+                    break;
+
+                case 2:
+                case 3:
+                    break;
+            }
 
             return;
         }
@@ -120,7 +145,7 @@ namespace my
 
         protected override void Move()
         {
-            if (--lifeCnt == 0)
+            if (--lifeCnt <= 0)
             {
                 generateNew();
             }
