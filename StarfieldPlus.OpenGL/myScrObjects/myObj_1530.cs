@@ -111,8 +111,8 @@ namespace my
             x -= x % (size + gap);
             y -= y % (size + gap);
 
-            xTarget = x + myUtils.randomSign(rand) * rand.Next(size * maxDist);
-            yTarget = y + myUtils.randomSign(rand) * rand.Next(size * maxDist);
+            xTarget = x + myUtils.randomSign(rand) * rand.Next((size + gap) * maxDist);
+            yTarget = y + myUtils.randomSign(rand) * rand.Next((size + gap) * maxDist);
 
             xTarget -= xTarget % (size + gap);
             yTarget -= yTarget % (size + gap);
