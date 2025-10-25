@@ -87,6 +87,7 @@ public class ScreenSaver
     // - Hexagon grid with a pseudo 3d effect
     // - Beam of particles directed at a black hole (or just massive) object, and is able to escape its gravitation, but is scattered around
     // - A wave of hexagons that moves across the screen, and where the new hex appears, it stars growing until all the screen is covered in solid color
+    // - Invisible static dots + one moving point. The moving point builds connections to invisible dots while it travels around
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
