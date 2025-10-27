@@ -87,7 +87,6 @@ public class ScreenSaver
     // - Hexagon grid with a pseudo 3d effect
     // - Beam of particles directed at a black hole (or just massive) object, and is able to escape its gravitation, but is scattered around
     // - A wave of hexagons that moves across the screen, and where the new hex appears, it stars growing until all the screen is covered in solid color
-    // - Invisible static dots + one moving point. The moving point builds connections to invisible dots while it travels around
 
     // https://en.wikipedia.org/wiki/Langton%27s_ant
 
@@ -273,6 +272,7 @@ public class ScreenSaver
             my.myObj_1510.Type,     // Down-and-sideways rhombus gliders (basic)
             my.myObj_1520.Type,     // Down-and-sideways double spiraling gliders (basic)
             my.myObj_1530.Type,     // Grid-based 'blur' on a texture
+            my.myObj_1540.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -285,7 +285,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : false, my.myObj_1530.Type);
+                                                    doUseCustomType : true, my.myObj_1540.Type);
         return;
     }
 
