@@ -17,12 +17,12 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1540);
 
-        private int cnt = 0;
+        private int cnt, cnt2;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
         private static int N = 0, n = 0, shape = 0, colorMode = 0;
-        private static bool doFillShapes = false;
+        private static bool doFillShapes = false, doDestroy = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
@@ -61,6 +61,7 @@ namespace my
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
             doClearBuffer = true;
+            doDestroy = myUtils.randomBool(rand);
 
             colorMode = rand.Next(2);
 
@@ -76,6 +77,7 @@ namespace my
             string str = $"Obj = {Type}\n\n"                    +
                             myUtils.strCountOf(list.Count, N)   +
                             $"colorMode = {colorMode}\n"        +
+                            $"doDestroy = {doDestroy}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -115,11 +117,15 @@ namespace my
 
                 dx = dy = 0;
 
+                dx = (0.1f + myUtils.randFloat(rand)) * myUtils.randomSign(rand);
+                dy = (0.1f + myUtils.randFloat(rand)) * myUtils.randomSign(rand);
+
                 size = 1;
 
                 A = 0.25f;
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
                 cnt = 333 + rand.Next(999);
+                cnt2 = 0;
             }
 
             return;
@@ -152,6 +158,12 @@ namespace my
                 {
                     generateNew();
                 }
+
+                if (doDestroy && cnt2 > 33)
+                {
+                    generateNew();
+                }
+
             }
 
             return;
@@ -188,10 +200,10 @@ namespace my
                                 myPrimitive._LineInst.setInstanceColor(other.R, other.G, other.B, 0.05f);
                                 break;
                         }
+
+                        other.cnt2++;
                     }
                 }
-
-                //if (--cnt < 50) cnt = 333;
             }
 
             float size2x = size * 2;
