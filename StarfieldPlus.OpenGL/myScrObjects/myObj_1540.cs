@@ -15,14 +15,14 @@ namespace my
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1540);
+        public static System.Type Type => typeof(myObj_1540);
 
         private int cnt, cnt2;
         private float x, y, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
         private static int N = 0, n = 0, shape = 0, colorMode = 0;
-        private static bool doFillShapes = false, doDestroy = false;
+        private static bool doFillShapes = false, doDestroy = false, doDraw2ndLayer = false;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
@@ -45,8 +45,15 @@ namespace my
 
             // Global unmutable constants
             {
+                doDraw2ndLayer = myUtils.randomBool(rand);
+
                 n = 11;
                 N = 25000;
+
+                if (doDraw2ndLayer)
+                {
+                    N = 5000;
+                }
 
                 shape = rand.Next(5);
             }
@@ -74,10 +81,11 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                    +
-                            myUtils.strCountOf(list.Count, N)   +
-                            $"colorMode = {colorMode}\n"        +
-                            $"doDestroy = {doDestroy}\n"        +
+            string str = $"Obj = {Type}\n\n"                       +
+                            myUtils.strCountOf(list.Count, N)      +
+                            $"colorMode = {colorMode}\n"           +
+                            $"doDestroy = {doDestroy}\n"           +
+                            $"doDraw2ndLayer = {doDraw2ndLayer}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -122,7 +130,7 @@ namespace my
 
                 size = 1;
 
-                A = 0.25f;
+                A = 0.15f + myUtils.randFloat(rand) * 0.1f;
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
                 cnt = 333 + rand.Next(999);
                 cnt2 = 0;
@@ -202,6 +210,25 @@ namespace my
                         }
 
                         other.cnt2++;
+
+                        if (doDraw2ndLayer)
+                        {
+                            for (int j = n; j < Count; j++)
+                            {
+                                var oth = list[j] as myObj_1540;
+
+                                dx = other.x - oth.x;
+                                dy = other.y - oth.y;
+
+                                dist = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                                if (dist < 50)
+                                {
+                                    myPrimitive._LineInst.setInstanceCoords(other.x, other.y, oth.x, oth.y);
+                                    myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
+                                }
+                            }
+                        }
                     }
                 }
             }
