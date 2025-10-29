@@ -3,11 +3,11 @@ using static OpenGL.GL;
 using System;
 using System.Collections.Generic;
 
+#pragma warning disable 0162
 
 /*
     - Lines 3: Patchwork / Micro Schematics
 */
-
 
 namespace my
 {

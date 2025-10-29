@@ -462,7 +462,9 @@ namespace my
 
             if (false)
             {
+#pragma warning disable 0162
                 Glfw.SwapInterval(0);
+#pragma warning restore 0162
             }
 
             while (!Glfw.WindowShouldClose(window))

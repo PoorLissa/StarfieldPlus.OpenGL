@@ -11,6 +11,7 @@ using System.Collections.Generic;
 
 namespace my
 {
+#pragma warning disable 0162
     public class myObj_1540 : myObject
     {
         // Priority
@@ -26,6 +27,7 @@ namespace my
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
+        private static myFreeShader_001 shader = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
@@ -234,6 +236,7 @@ namespace my
             }
 
             float size2x = size * 2;
+            float size4x = size * 4;
 
             switch (shape)
             {
@@ -269,6 +272,10 @@ namespace my
                     break;
             }
 
+            int off = 150 + (int)(size * 0.25f);
+            shader.SetColor(R, G, B, A * 0.25f);
+            shader.Draw(x, y, size4x, size4x, 0.02f, off);
+
             return;
         }
 
@@ -281,13 +288,10 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
-/*
             if (false)
-            {
                 while (list.Count < N)
                     list.Add(new myObj_1540());
-            }
-*/
+
             stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
 
             while (!Glfw.WindowShouldClose(window))
@@ -364,9 +368,25 @@ namespace my
 
             myPrimitive.init_LineInst(n * 10000);
 
+            getShader();
+
             return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
+
+        // General shader selector
+        private void getShader()
+        {
+            string fHeader = "", fMain = "";
+
+            myFreeShader_001.getShader_000(ref fHeader, ref fMain, 0);
+
+            shader = new myFreeShader_001(fHeader, fMain);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+
     }
+#pragma warning restore 0162
 };
