@@ -20,10 +20,11 @@ namespace my
 
         private int cnt, cnt2;
         private float x, y, dx, dy;
-        private float size, A, R, G, B, angle = 0;
+        private float size, sizeBlur, A, R, G, B, angle = 0;
 
         private static int N = 0, n = 0, shape = 0, colorMode = 0;
-        private static bool doFillShapes = false, doDestroy = false, doDraw2ndLayer = false;
+        private static bool doFillShapes = false, doDestroy = false, doDraw2ndLayer = false, doUse_dBlur = false;
+        private static float dBlur = 0;
         private static float dimAlpha = 0.05f;
 
         private static myScreenGradient grad = null;
@@ -48,13 +49,16 @@ namespace my
             // Global unmutable constants
             {
                 doDraw2ndLayer = myUtils.randomBool(rand);
+                doUse_dBlur = myUtils.randomChance(rand, 1, 3);
 
                 n = 11;
                 N = 25000;
+                dBlur = 0.5f;
 
                 if (doDraw2ndLayer)
                 {
                     N = 5000;
+                    dBlur = 0.9f;
                 }
 
                 shape = rand.Next(5);
@@ -88,6 +92,7 @@ namespace my
                             $"colorMode = {colorMode}\n"           +
                             $"doDestroy = {doDestroy}\n"           +
                             $"doDraw2ndLayer = {doDraw2ndLayer}\n" +
+                            $"doUse_dBlur = {doUse_dBlur}\n"       +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -118,6 +123,7 @@ namespace my
                 A = 1;
                 R = G = B = 1;
                 size = 3;
+                sizeBlur = size + 0.01f;
                 cnt = 50 + rand.Next(111); // used a a dist
             }
             else
@@ -131,6 +137,7 @@ namespace my
                 dy = (0.1f + myUtils.randFloat(rand)) * myUtils.randomSign(rand);
 
                 size = 1;
+                sizeBlur = 0;
 
                 A = 0.15f + myUtils.randFloat(rand) * 0.1f;
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -212,6 +219,10 @@ namespace my
                         }
 
                         other.cnt2++;
+                        other.sizeBlur += dBlur;
+
+                        if (other.sizeBlur > 133)
+                            other.sizeBlur = 133;
 
                         if (doDraw2ndLayer)
                         {
@@ -236,7 +247,6 @@ namespace my
             }
 
             float size2x = size * 2;
-            float size4x = size * 4;
 
             switch (shape)
             {
@@ -272,9 +282,25 @@ namespace my
                     break;
             }
 
-            int off = 150 + (int)(size * 0.25f);
-            shader.SetColor(R, G, B, A * 0.25f);
-            shader.Draw(x, y, size4x, size4x, 0.02f, off);
+            if (id < n)
+            {
+                float size4x = size * 4;
+
+                int off = 150 + (int)(size * 0.25f);
+                shader.SetColor(R, G, B, A * 0.25f);
+                shader.Draw(x, y, size4x, size4x, 0.02f, off);
+            }
+            else
+            {
+                if (doUse_dBlur && sizeBlur > 1.0f)
+                {
+                    int off = 150 + (int)(sizeBlur * 0.25f);
+                    shader.SetColor(R, G, B, A * 0.25f);
+                    shader.Draw(x, y, sizeBlur, sizeBlur, 0.02f, off);
+
+                    sizeBlur -= 0.1f;
+                }
+            }
 
             return;
         }
