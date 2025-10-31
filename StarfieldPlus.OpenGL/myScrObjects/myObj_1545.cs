@@ -127,7 +127,7 @@ namespace my
         private float A, R, G, B;
 
         private static int N = 0, n = 0, colorMode = 0;
-        private static int cellSize = 100;
+        private static int cellSize = 100, maxDist_2ndLayer = 1;
         private static bool doDestroy = false;
         private static float dimAlpha = 0.05f;
 
@@ -155,9 +155,29 @@ namespace my
             // Global unmutable constants
             {
                 n = 11;
-                N = 5000;
-                N = 300000;
-                N = 10000;
+
+                switch (rand.Next(3))
+                {
+                    case 0:
+                        N = 500;
+                        maxDist_2ndLayer = 10 + rand.Next(300);
+                        break;
+
+                    case 1:
+                        N = 1000;
+                        maxDist_2ndLayer = 20 + rand.Next(150);
+                        break;
+
+                    case 2:
+                        N = 5000;
+                        maxDist_2ndLayer = 30 + rand.Next(100);
+                        break;
+
+                    case 3:
+                        N = 10000;
+                        maxDist_2ndLayer = 50 + rand.Next(20);
+                        break;
+                }
             }
 
             initLocal();
@@ -182,11 +202,12 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                       +
-                            myUtils.strCountOf(list.Count, N)      +
-                            $"doClearBuffer = {doClearBuffer}\n"   +
-                            $"colorMode = {colorMode}\n"           +
-                            $"doDestroy = {doDestroy}\n"           +
+            string str = $"Obj = {Type}\n\n"                           +
+                            myUtils.strCountOf(list.Count, N)          +
+                            $"doClearBuffer = {doClearBuffer}\n"       +
+                            $"colorMode = {colorMode}\n"               +
+                            $"doDestroy = {doDestroy}\n"               +
+                            $"maxDist_2ndLayer = {maxDist_2ndLayer}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -217,6 +238,7 @@ namespace my
                 A = 1;
                 R = G = B = 1;
                 cnt = 50 + rand.Next(111); // used a a dist
+                cnt = 200 + rand.Next(50);
             }
             else
             {
@@ -284,16 +306,14 @@ namespace my
         {
             if (item.id >= n)
             {
-                int maxDist = 25;
-
                 float dx, dy, dist2;
 
-                int rayDist = maxDist / cellManager._cellSize;
+                int rayDist = maxDist_2ndLayer / cellManager._cellSize;
 
                 int min = -rayDist - 1;
                 int max = +rayDist + 2;
 
-                int cnt2 = maxDist * maxDist;
+                int cnt2 = maxDist_2ndLayer * maxDist_2ndLayer;
 
                 for (int i = min; i < max; i++)
                 {
@@ -318,8 +338,7 @@ namespace my
                                     // Other particle is within reach of the first one
                                     if (dist2 < cnt2)
                                     {
-                                        myPrimitive._LineInst.setInstanceCoords(other.Value.x, other.Value.y, item.x, item.y);
-                                        myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
+                                        myPrimitive._LineInst.autoDraw(other.Value.x, other.Value.y, item.x, item.y, 1, 1, 1, 0.05f);
                                     }
                                 }
                             }
@@ -333,8 +352,6 @@ namespace my
 
         protected override void Show()
         {
-#if true
-
             if (id < n)
             {
                 float dx, dy, dist2;
@@ -367,13 +384,11 @@ namespace my
                                     dist2 = dx * dx + dy * dy;
 
                                     // Other particle is within reach of the first one
+                                    //if (dist2 < cnt2 && dist2 > cnt2/2)
                                     if (dist2 < cnt2)
                                     {
-                                        myPrimitive._LineInst.setInstanceCoords(x, y, other.Value.x, other.Value.y);
-
-                                        myPrimitive._LineInst.setInstanceColor(1, 0, 0, 0.1f);
-
-/*
+                                        myPrimitive._LineInst.autoDraw(x, y, other.Value.x, other.Value.y, 1, 0, 0, 0.05f);
+#if false
                                         switch (colorMode)
                                         {
                                             case 0:
@@ -381,10 +396,10 @@ namespace my
                                                 break;
 
                                             case 1:
-                                                myPrimitive._LineInst.setInstanceColor(other.Value.R, other.Value.G, other.Value.B, 0.05f);
+                                                myPrimitive._LineInst.autoDraw(x, y, other.Value.x, other.Value.y, other.Value.R, other.Value.G, other.Value.B, 0.05f);
                                                 break;
                                         }
-*/
+#endif
                                         Show_2(other.Value);
                                     }
                                 }
@@ -394,56 +409,6 @@ namespace my
                 }
             }
 
-#else
-            if (id < n)
-            {
-                int Count = list.Count;
-
-                for (int i = n; i < Count; i++)
-                {
-                    var other = list[i] as myObj_1545;
-
-                    float dx = x - other.x;
-                    float dy = y - other.y;
-
-                    float dist = (float)Math.Sqrt(dx * dx + dy * dy);
-
-                    if (dist < cnt)
-                    {
-                        myPrimitive._LineInst.setInstanceCoords(x, y, other.x, other.y);
-
-                        switch (colorMode)
-                        {
-                            case 0:
-                                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
-                                break;
-
-                            case 1:
-                                myPrimitive._LineInst.setInstanceColor(other.R, other.G, other.B, 0.05f);
-                                break;
-                        }
-
-                        other.lifeCnt--;
-
-                        for (int j = n; j < Count; j++)
-                        {
-                            var oth = list[j] as myObj_1545;
-
-                            dx = other.x - oth.x;
-                            dy = other.y - oth.y;
-
-                            dist = (float)Math.Sqrt(dx * dx + dy * dy);
-
-                            if (dist < 50)
-                            {
-                                myPrimitive._LineInst.setInstanceCoords(other.x, other.y, oth.x, oth.y);
-                                myPrimitive._LineInst.setInstanceColor(1, 1, 1, 0.05f);
-                            }
-                        }
-                    }
-                }
-            }
-#endif
             return;
         }
 
@@ -456,7 +421,7 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
-            if (!false)
+            if (false)
                 while (list.Count < N)
                     list.Add(new myObj_1545());
 
@@ -521,7 +486,7 @@ namespace my
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
 
-            myPrimitive.init_LineInst(n * 10000);
+            myPrimitive.init_LineInst(n * 20000);
 
             return;
         }

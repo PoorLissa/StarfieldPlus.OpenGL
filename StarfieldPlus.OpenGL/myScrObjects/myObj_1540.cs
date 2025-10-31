@@ -23,7 +23,7 @@ namespace my
         private float size, sizeBlur, A, R, G, B, angle = 0;
 
         private static int N = 0, n = 0, shape = 0, colorMode = 0;
-        private static bool doFillShapes = false, doDestroy = false, doDraw2ndLayer = false, doUse_dBlur = false;
+        private static bool doFillShapes = false, doDestroy = false, doDraw2ndLayer = false, doUse_dBlur = false, doAllocate = false;
         private static float dBlur = 0;
         private static float dimAlpha = 0.05f;
 
@@ -73,7 +73,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
-            doClearBuffer = false;
+            doClearBuffer = true;
             doDestroy = myUtils.randomBool(rand);
 
             colorMode = rand.Next(2);
@@ -246,8 +246,6 @@ namespace my
                 }
             }
 
-            return;
-
             float size2x = size * 2;
 
             switch (shape)
@@ -316,7 +314,7 @@ namespace my
 
             clearScreenSetup(doClearBuffer, 0.1f);
 
-            if (false)
+            if (doAllocate)
                 while (list.Count < N)
                     list.Add(new myObj_1540());
 
