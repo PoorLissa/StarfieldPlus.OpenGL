@@ -126,10 +126,10 @@ namespace my
         private float x, y, dx, dy;
         private float A, R, G, B;
 
-        private static int N = 0, n = 0, colorMode = 0;
+        private static int N = 0, n = 0, colorMode = 0, colorModeMain = 0;
         private static int cellSize = 100, maxDist_2ndLayer = 1;
         private static bool doDestroy = false;
-        private static float dimAlpha = 0.05f;
+        private static float dimAlpha = 0.05f, spdSmall = 0;
 
         private static myScreenGradient grad = null;
         private static myCellManager<myObj_1545> cellManager = null;
@@ -192,6 +192,9 @@ namespace my
             doDestroy = myUtils.randomBool(rand);
 
             colorMode = rand.Next(2);
+            colorModeMain = rand.Next(2);
+
+            spdSmall = myUtils.randFloat(rand) * (rand.Next(3) + 1);
 
             return;
         }
@@ -206,8 +209,10 @@ namespace my
                             myUtils.strCountOf(list.Count, N)          +
                             $"doClearBuffer = {doClearBuffer}\n"       +
                             $"colorMode = {colorMode}\n"               +
+                            $"colorModeMain = {colorModeMain}\n"       +
                             $"doDestroy = {doDestroy}\n"               +
                             $"maxDist_2ndLayer = {maxDist_2ndLayer}\n" +
+                            $"spdSmall = {myUtils.fStr(spdSmall)}\n"   +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -236,21 +241,60 @@ namespace my
                 dy = (0.5f + myUtils.randFloat(rand) * spd) * myUtils.randomSign(rand);
 
                 A = 1;
-                R = G = B = 1;
                 cnt = 50 + rand.Next(111); // used a a dist
                 cnt = 200 + rand.Next(50);
+
+                switch (colorModeMain)
+                {
+                    case 0:
+                        {
+                            if (id == 0)
+                            {
+                                do
+                                {
+                                    R = myUtils.randFloat(rand);
+                                    G = myUtils.randFloat(rand);
+                                    B = myUtils.randFloat(rand);
+                                }
+                                while (R + G + B < 1);
+                            }
+                            else
+                            {
+                                R = (list[0] as myObj_1545).R;
+                                G = (list[0] as myObj_1545).G;
+                                B = (list[0] as myObj_1545).B;
+                            }
+                        }
+                        break;
+
+                    case 1:
+                        {
+                            do
+                            {
+                                R = myUtils.randFloat(rand);
+                                G = myUtils.randFloat(rand);
+                                B = myUtils.randFloat(rand);
+                            }
+                            while (R + G + B < 1);
+                        }
+                        break;
+                }
             }
             else
             {
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Height);
 
-                dx = dy = 0;
-
                 dx = (0.1f + myUtils.randFloat(rand)) * myUtils.randomSign(rand);
                 dy = (0.1f + myUtils.randFloat(rand)) * myUtils.randomSign(rand);
 
+                dx *= spdSmall;
+                dy *= spdSmall;
+
                 A = 0.15f + myUtils.randFloat(rand) * 0.1f;
+
+if (spdSmall < 0.2f) A = 0.075f;
+
                 colorPicker.getColor(x, y, ref R, ref G, ref B);
                 cnt = 333 + rand.Next(999);
                 lifeCnt = 33;
@@ -387,7 +431,7 @@ namespace my
                                     //if (dist2 < cnt2 && dist2 > cnt2/2)
                                     if (dist2 < cnt2)
                                     {
-                                        myPrimitive._LineInst.autoDraw(x, y, other.Value.x, other.Value.y, 1, 0, 0, 0.05f);
+                                        myPrimitive._LineInst.autoDraw(x, y, other.Value.x, other.Value.y, R, G, B, 0.05f);
 #if false
                                         switch (colorMode)
                                         {
