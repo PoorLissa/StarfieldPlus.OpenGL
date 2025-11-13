@@ -482,16 +482,9 @@ if (spdSmall < 0.2f) A = 0.075f;
                 Glfw.PollEvents();
 
                 // Dim screen
+                if (doClearBuffer == false)
                 {
-                    if (doClearBuffer)
-                    {
-                        glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -529,6 +522,7 @@ if (spdSmall < 0.2f) A = 0.075f;
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+            grad.SetOpacity(dimAlpha);
 
             myPrimitive.init_LineInst(n * 20000);
 
