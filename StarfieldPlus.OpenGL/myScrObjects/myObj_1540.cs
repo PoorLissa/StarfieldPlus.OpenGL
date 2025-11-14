@@ -124,7 +124,7 @@ namespace my
                 R = G = B = 1;
                 size = 3;
                 sizeBlur = size + 0.01f;
-                cnt = 50 + rand.Next(111); // used a a dist
+                cnt = 50 + rand.Next(111); // used as a dist
             }
             else
             {

@@ -241,7 +241,7 @@ namespace my
                 dy = (0.5f + myUtils.randFloat(rand) * spd) * myUtils.randomSign(rand);
 
                 A = 1;
-                cnt = 50 + rand.Next(111); // used a a dist
+                cnt = 50 + rand.Next(111); // used as a dist
                 cnt = 200 + rand.Next(50);
 
                 switch (colorModeMain)
