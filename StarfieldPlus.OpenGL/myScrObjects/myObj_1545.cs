@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 
 /*
-    - Invisible static dots + one moving point. The moving point builds connections to invisible dots while it travels around
+    -
 */
 
 

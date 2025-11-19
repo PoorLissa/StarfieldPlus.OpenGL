@@ -273,6 +273,7 @@ public class ScreenSaver
             my.myObj_1520.Type,     // Down-and-sideways double spiraling gliders (basic)
             my.myObj_1530.Type,     // Grid-based 'blur' on a texture
             my.myObj_1540.Type,     // ...
+            my.myObj_1545.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
@@ -285,7 +286,7 @@ public class ScreenSaver
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : true, my.myObj_1545.Type);
+                                                    doUseCustomType : true, my.myObj_1550.Type);
         return;
     }
 
