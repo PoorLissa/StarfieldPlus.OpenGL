@@ -25,10 +25,10 @@ namespace my
         private float x, y, dx, dy;
         private float size, angle;
         private float A, R, G, B, dA;
-        private bool isChanged;
+        private bool isChanged, isAlive;
 
-        private static int N = 0, n = 0, shape = 0, colorMode = 0, colorModeMain = 0, mainMotionMode = 0;
-        private static int cellSize = 100, maxDist_2ndLayer = 1;
+        private static int N = 0, n = 0, shape = 0, colorMode = 0, colorModeMain = 0, mainMotionMode = 0, actorStartMode = 0;
+        private static int cellSize = 100, interactMode = 0;
         private static bool doDestroy = false;
         private static float dimAlpha = 0.05f, spdSmall = 0;
 
@@ -56,34 +56,11 @@ namespace my
             // Global unmutable constants
             {
                 n = 11;
+                N = 111111;
+                shape = rand.Next(5);
 
-                switch (rand.Next(3))
-                {
-                    case 0:
-                        N = 500;
-                        maxDist_2ndLayer = 10 + rand.Next(300);
-                        break;
-
-                    case 1:
-                        N = 1000;
-                        maxDist_2ndLayer = 20 + rand.Next(150);
-                        break;
-
-                    case 2:
-                        N = 5000;
-                        maxDist_2ndLayer = 30 + rand.Next(100);
-                        break;
-
-                    case 3:
-                        N = 10000;
-                        maxDist_2ndLayer = 50 + rand.Next(20);
-                        break;
-                }
+                actorStartMode = rand.Next(3);
             }
-
-            N = 100000;
-
-            shape = rand.Next(5);
 
             initLocal();
         }
@@ -111,16 +88,16 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n"                           +
-                            $"n = {n}\n"                               +
-                            myUtils.strCountOf(list.Count, N)          +
-                            $"doClearBuffer = {doClearBuffer}\n"       +
-                            $"mainMotionMode = {mainMotionMode}\n"     +
-                            $"colorMode = {colorMode}\n"               +
-                            $"colorModeMain = {colorModeMain}\n"       +
-                            $"doDestroy = {doDestroy}\n"               +
-                            $"maxDist_2ndLayer = {maxDist_2ndLayer}\n" +
-                            $"spdSmall = {myUtils.fStr(spdSmall)}\n"   +
+            string str = $"Obj = {Type}\n\n" +
+                            $"n = {n}\n" +
+                            myUtils.strCountOf(list.Count, N) +
+                            $"doClearBuffer = {doClearBuffer}\n" +
+                            $"mainMotionMode = {mainMotionMode}\n" +
+                            $"colorMode = {colorMode}\n" +
+                            $"colorModeMain = {colorModeMain}\n" +
+                            $"doDestroy = {doDestroy}\n" +
+                            $"spdSmall = {myUtils.fStr(spdSmall)}\n" +
+                            $"actorStartMode = {actorStartMode}\n" +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -140,8 +117,23 @@ namespace my
         {
             if (id < n)
             {
-                x = gl_x0;
-                y = gl_y0;
+                switch (actorStartMode)
+                {
+                    case 0:
+                        x = gl_x0;
+                        y = gl_y0;
+                        break;
+
+                    case 1:
+                        x = rand.Next(gl_Width);
+                        y = rand.Next(gl_Height);
+                        break;
+
+                    case 2:
+                        x = gl_x0 + rand.Next(400) * myUtils.randomSign(rand);
+                        y = gl_y0 + rand.Next(300) * myUtils.randomSign(rand);
+                        break;
+                }
 
                 float spd = 1.5f;
 
@@ -172,10 +164,8 @@ namespace my
                 x = rand.Next(gl_Width);
                 y = rand.Next(gl_Height);
 
-                float minSpd = 0.5f;
-
-                dx = (minSpd + myUtils.randFloat(rand)) * myUtils.randomSign(rand);
-                dy = (minSpd + myUtils.randFloat(rand)) * myUtils.randomSign(rand);
+                dx = (myUtils.randFloat(rand)) * myUtils.randomSign(rand);
+                dy = (myUtils.randFloat(rand)) * myUtils.randomSign(rand);
 
                 dx *= spdSmall;
                 dy *= spdSmall;
@@ -188,6 +178,7 @@ namespace my
                 lifeCnt = 33;
 
                 isChanged = false;
+                isAlive = true;
             }
 
             cellId = cellManager.Move(x, y, id, cellId, this);
@@ -265,7 +256,6 @@ namespace my
                             {
                                 foreach (var other in cellManager._dic[cell].items)
                                 {
-                                    // Prevent drawing the same line more than once
                                     if (other.Value.id >= n)
                                     {
                                         dx = x - other.Value.x;
@@ -277,23 +267,61 @@ namespace my
                                         // Other particle is within reach of the first one
                                         if (dist2 < cnt2)
                                         {
+                                            interactMode = 0;
+
+                                            float slowFactor = 0.98f;
+                                            slowFactor = 1.001f;
+
+                                            // Give the other iparticle the color of its parent
+                                            other.Value.R = (R + other.Value.R) * 0.5f;
+                                            other.Value.G = (G + other.Value.G) * 0.5f;
+                                            other.Value.B = (B + other.Value.B) * 0.5f;
+
+                                            // Slower/fasten the other particle
+                                            other.Value.dx *= slowFactor;
+                                            other.Value.dy *= slowFactor;
+
+                                            switch (interactMode)
+                                            {
+                                                case 0:
+                                                    {
+                                                        if (other.Value.A == 0.1f)
+                                                        {
+                                                            other.Value.A = 0.75f * myUtils.randFloat(rand);
+                                                        }
+
+                                                        if (other.Value.isChanged == false)
+                                                        {
+                                                            other.Value.isChanged = true;
+                                                            other.Value.dx *= -1;
+                                                            other.Value.dy *= -1;
+
+/*
+                                                            float alpha = myUtils.randFloat(rand) + rand.Next(321);
+                                                            other.Value.x = x + (float)(cnt * Math.Sin(alpha));
+                                                            other.Value.y = y + (float)(cnt * Math.Cos(alpha));
+
+                                                            other.Value.dx = (float)Math.Sin(alpha) * 0.5f;
+                                                            other.Value.dy = (float)Math.Cos(alpha) * 0.5f;
+*/
+                                                        }
+
+                                                        other.Value.size += 0.01f;
+                                                        other.Value.angle += 0.001f;
+                                                    }
+                                                    break;
+                                            }
+
+                                            continue;
+
+                                            //other.Value.isAlive = false; continue;
+
                                             //other.Value.A = 0.75f * myUtils.randFloat(rand);
 
                                             if (other.Value.A == 0.1f)
                                             {
                                                 other.Value.A = 0.75f * myUtils.randFloat(rand);
                                             }
-
-                                            other.Value.R = (R + other.Value.R) * 0.5f;
-                                            other.Value.G = (G + other.Value.G) * 0.5f;
-                                            other.Value.B = (B + other.Value.B) * 0.5f;
-
-                                            float slowFactor = 0.99f;
-
-                                            slowFactor = 1.001f;
-
-                                            other.Value.dx *= slowFactor;
-                                            other.Value.dy *= slowFactor;
 
                                             if (other.Value.isChanged == false)
                                             {
@@ -304,16 +332,15 @@ namespace my
 
                                                 {
                                                     float alpha = myUtils.randFloat(rand) + rand.Next(321);
-                                                    other.Value.x = x + (float)(cnt * Math.Sin(alpha));
-                                                    other.Value.y = y + (float)(cnt * Math.Cos(alpha));
+                                                    //other.Value.x = x + (float)(cnt * Math.Sin(alpha));
+                                                    //other.Value.y = y + (float)(cnt * Math.Cos(alpha));
 
-                                                    other.Value.dx = (float)Math.Sin(alpha) * 1;
-                                                    other.Value.dy = (float)Math.Cos(alpha) * 1;
-
+                                                    //other.Value.dx = (float)Math.Sin(alpha) * 0.5f;
+                                                    //other.Value.dy = (float)Math.Cos(alpha) * 0.5f;
                                                 }
                                             }
 
-                                            other.Value.size += 0.02f;
+                                            other.Value.size += 0.01f;
                                             other.Value.angle += 0.001f;
 
                                             //other.Value.dA = 0.001f;
@@ -343,6 +370,11 @@ namespace my
                 }
 
                 if (doDestroy && lifeCnt == 0)
+                {
+                    generateNew();
+                }
+
+                if (isAlive == false)
                 {
                     generateNew();
                 }
