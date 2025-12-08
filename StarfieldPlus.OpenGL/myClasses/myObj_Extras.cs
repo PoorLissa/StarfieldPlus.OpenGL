@@ -47,7 +47,7 @@ namespace my
         // Return random object from the pool of registered classes, adjusted for each Type's priority
         public static my.myObject GetRandomObject(bool doUsePriority, bool doUseCustomType, Type t)
         {
-            Type typeToReturn;
+            var typeToReturn = t;
 
             if (doUseCustomType && t != null)
             {
@@ -56,7 +56,18 @@ namespace my
             else
             {
                 int objId = 0;
-                var rand = new Random(Guid.NewGuid().GetHashCode());
+
+                // Fully random seed
+                long seed = Guid.NewGuid().GetHashCode();
+
+                if (seed % 2 == 0)
+                {
+                    // Predictable seed, which changes every hour;
+                    // This way, we can have the same object repeating itself during one hour period
+                    seed = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / (60 * 60);
+                }
+
+                var rand = new Random((int)seed);
 
                 if (doUsePriority)
                 {
