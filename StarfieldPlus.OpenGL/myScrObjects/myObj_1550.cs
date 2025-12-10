@@ -21,16 +21,17 @@ namespace my
         public static int Priority => 10;
         public static System.Type Type => typeof(myObj_1550);
 
-        private int cnt, lifeCnt, cellId = -1000;
+        private int cnt, lifeCnt, cellId = -1000, interactCnt;
         private float x, y, dx, dy;
         private float size, angle;
         private float A, R, G, B, dA;
-        private bool isChanged, isAlive;
+        private bool isAlive;
 
         private static int N = 0, n = 0, shape = 0, colorMode = 0, colorModeMain = 0, mainMotionMode = 0, actorStartMode = 0;
         private static int cellSize = 100, interactMode = 0;
-        private static bool doDestroy = false;
-        private static float dimAlpha = 0.05f, spdSmall = 0;
+        private static bool doDestroy = false, doUseInteractCnt = false;
+        private static float dimAlpha = 0.05f, spdSmall = 0, rR = 0, gG = 0, bB = 0;
+        private static float minA = 0;
 
         private static myScreenGradient grad = null;
         private static myCellManager<myObj_1550> cellManager = null;
@@ -72,12 +73,20 @@ namespace my
         {
             doClearBuffer = true;
             doDestroy = myUtils.randomBool(rand);
+            doUseInteractCnt = myUtils.randomBool(rand);
 
-            colorMode = rand.Next(2);
-            colorModeMain = rand.Next(2);
+            colorMode = rand.Next(4);
+            colorModeMain = rand.Next(3);
             mainMotionMode = rand.Next(2);
 
             spdSmall = myUtils.randFloat(rand) * (rand.Next(3) + 1);
+
+            rR = myUtils.randFloat(rand);
+            gG = myUtils.randFloat(rand);
+            bB = myUtils.randFloat(rand);
+
+            // Min opacity of background particles
+            minA = myUtils.randFloat(rand) * 0.1f;
 
             return;
         }
@@ -88,16 +97,17 @@ namespace my
         {
             height = 600;
 
-            string str = $"Obj = {Type}\n\n" +
-                            $"n = {n}\n" +
-                            myUtils.strCountOf(list.Count, N) +
-                            $"doClearBuffer = {doClearBuffer}\n" +
-                            $"mainMotionMode = {mainMotionMode}\n" +
-                            $"colorMode = {colorMode}\n" +
-                            $"colorModeMain = {colorModeMain}\n" +
-                            $"doDestroy = {doDestroy}\n" +
-                            $"spdSmall = {myUtils.fStr(spdSmall)}\n" +
-                            $"actorStartMode = {actorStartMode}\n" +
+            string str = $"Obj = {Type}\n\n"                           +
+                            $"n = {n}\n"                               +
+                            myUtils.strCountOf(list.Count, N)          +
+                            $"doClearBuffer = {doClearBuffer}\n"       +
+                            $"mainMotionMode = {mainMotionMode}\n"     +
+                            $"colorMode = {colorMode}\n"               +
+                            $"colorModeMain = {colorModeMain}\n"       +
+                            $"doDestroy = {doDestroy}\n"               +
+                            $"doUseInteractCnt = {doUseInteractCnt}\n" +
+                            $"spdSmall = {myUtils.fStr(spdSmall)}\n"   +
+                            $"actorStartMode = {actorStartMode}\n"     +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -170,14 +180,32 @@ namespace my
                 dx *= spdSmall;
                 dy *= spdSmall;
 
-                A = 0.1f;
+                A = minA;
                 dA = 0.005f;
-                R = G = B = 1;
+
+                switch (colorModeMain)
+                {
+                    case 0:
+                        R = G = B = 1;
+                        break;
+
+                    case 1:
+                        R = myUtils.randFloat(rand);
+                        G = myUtils.randFloat(rand);
+                        B = myUtils.randFloat(rand);
+                        break;
+
+                    case 2:
+                        R = rR;
+                        G = gG;
+                        B = bB;
+                        break;
+                }
 
                 cnt = 333 + rand.Next(999);
                 lifeCnt = 33;
+                interactCnt = 0;
 
-                isChanged = false;
                 isAlive = true;
             }
 
@@ -235,7 +263,7 @@ namespace my
 
                 // Use cell manager
                 {
-                    float dx, dy, dist2;
+                    float dX, dY, distSq;
 
                     int rayDist = cnt / cellManager._cellSize;
 
@@ -258,56 +286,92 @@ namespace my
                                 {
                                     if (other.Value.id >= n)
                                     {
-                                        dx = x - other.Value.x;
-                                        dy = y - other.Value.y;
+                                        dX = x - other.Value.x;
+                                        dY = y - other.Value.y;
 
-                                        dist2 = dx * dx + dy * dy;
-                                        //dist2 = dx * dx + dy * dy + rand.Next(111) * myUtils.randomSign(rand);
+                                        distSq = dX * dX + dY * dY;
 
                                         // Other particle is within reach of the first one
-                                        if (dist2 < cnt2)
+                                        if (distSq < cnt2)
                                         {
+                                            other.Value.interactCnt++;
+
+                                            // Give the other particle the color of its parent (or smth else)
+                                            switch (colorMode)
+                                            {
+                                                case 0:
+                                                    other.Value.R = (R + other.Value.R) * 0.5f;
+                                                    other.Value.G = (G + other.Value.G) * 0.5f;
+                                                    other.Value.B = (B + other.Value.B) * 0.5f;
+                                                    break;
+
+                                                case 1:
+                                                    other.Value.R = 0.05f * R + 0.95f * other.Value.R;
+                                                    other.Value.G = 0.05f * G + 0.95f * other.Value.G;
+                                                    other.Value.B = 0.05f * B + 0.95f * other.Value.B;
+                                                    break;
+
+                                                case 2:
+                                                    other.Value.R += 0.01f;
+                                                    other.Value.G += 0.01f;
+                                                    other.Value.B += 0.01f;
+                                                    break;
+
+                                                case 3:
+                                                    other.Value.R -= 0.1f;
+                                                    other.Value.G -= 0.1f;
+                                                    other.Value.B -= 0.1f;
+                                                    break;
+                                            }
+#if false
+                                            if (doUseInteractCnt)
+                                            {
+                                                if (other.Value.interactCnt > 3)
+                                                    continue;
+                                            }
+#endif
                                             interactMode = 0;
 
                                             float slowFactor = 0.98f;
-                                            slowFactor = 1.001f;
-
-                                            // Give the other iparticle the color of its parent
-                                            other.Value.R = (R + other.Value.R) * 0.5f;
-                                            other.Value.G = (G + other.Value.G) * 0.5f;
-                                            other.Value.B = (B + other.Value.B) * 0.5f;
+                                            //slowFactor = 1.001f;
 
                                             // Slower/fasten the other particle
-                                            other.Value.dx *= slowFactor;
-                                            other.Value.dy *= slowFactor;
+                                            if (false)
+                                            {
+                                                other.Value.dx *= slowFactor;
+                                                other.Value.dy *= slowFactor;
+                                            }
 
                                             switch (interactMode)
                                             {
                                                 case 0:
                                                     {
-                                                        if (other.Value.A == 0.1f)
+                                                        if (other.Value.A <= minA)
                                                         {
-                                                            other.Value.A = 0.75f * myUtils.randFloat(rand);
+                                                            other.Value.A = (float)(distSq / cnt2);
                                                         }
 
-                                                        if (other.Value.isChanged == false)
+                                                        other.Value.dx -= dX * 0.001f;
+                                                        other.Value.dy -= dY * 0.001f;
+
+                                                        other.Value.x -= dX * 0.05f;
+                                                        other.Value.y -= dY * 0.05f;
+
+                                                        if (other.Value.interactCnt == 1)
                                                         {
-                                                            other.Value.isChanged = true;
                                                             other.Value.dx *= -1;
                                                             other.Value.dy *= -1;
-
-/*
-                                                            float alpha = myUtils.randFloat(rand) + rand.Next(321);
-                                                            other.Value.x = x + (float)(cnt * Math.Sin(alpha));
-                                                            other.Value.y = y + (float)(cnt * Math.Cos(alpha));
-
-                                                            other.Value.dx = (float)Math.Sin(alpha) * 0.5f;
-                                                            other.Value.dy = (float)Math.Cos(alpha) * 0.5f;
-*/
                                                         }
 
                                                         other.Value.size += 0.01f;
                                                         other.Value.angle += 0.001f;
+                                                    }
+                                                    break;
+
+                                                case 1:
+                                                    {
+                                                        other.Value.dx = dX;
+                                                        other.Value.dy = dY;
                                                     }
                                                     break;
                                             }
@@ -318,15 +382,13 @@ namespace my
 
                                             //other.Value.A = 0.75f * myUtils.randFloat(rand);
 
-                                            if (other.Value.A == 0.1f)
+                                            if (other.Value.A <= minA)
                                             {
                                                 other.Value.A = 0.75f * myUtils.randFloat(rand);
                                             }
 
-                                            if (other.Value.isChanged == false)
+                                            if (other.Value.interactCnt == 1)
                                             {
-                                                other.Value.isChanged = true;
-
                                                 other.Value.dx *= -1;
                                                 other.Value.dy *= -1;
 
@@ -361,7 +423,7 @@ namespace my
             }
             else
             {
-                if (A > 0.1f)
+                if (A > minA)
                     A -= dA;
 
                 if (--cnt == 0)
@@ -389,9 +451,9 @@ namespace my
 
         protected override void Show()
         {
-            {
-                float size2x = size * 2;
+            float size2x = size * 2;
 
+            {
                 switch (shape)
                 {
                     // Instanced squares
@@ -498,7 +560,7 @@ namespace my
         private void initShapes()
         {
             myPrimitive.init_ScrDimmer();
-            base.initShapes(shape, N, 0);
+            base.initShapes(shape, N * 3, 0);
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
