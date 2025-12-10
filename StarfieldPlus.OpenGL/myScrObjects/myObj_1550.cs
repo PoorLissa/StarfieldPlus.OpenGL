@@ -81,6 +81,8 @@ namespace my
 
             spdSmall = myUtils.randFloat(rand) * (rand.Next(3) + 1);
 
+            interactMode = rand.Next(2);
+
             rR = myUtils.randFloat(rand);
             gG = myUtils.randFloat(rand);
             bB = myUtils.randFloat(rand);
@@ -105,6 +107,7 @@ namespace my
                             $"colorMode = {colorMode}\n"               +
                             $"colorModeMain = {colorModeMain}\n"       +
                             $"doDestroy = {doDestroy}\n"               +
+                            $"interactMode = {interactMode}\n"         +
                             $"doUseInteractCnt = {doUseInteractCnt}\n" +
                             $"spdSmall = {myUtils.fStr(spdSmall)}\n"   +
                             $"actorStartMode = {actorStartMode}\n"     +
@@ -330,8 +333,6 @@ namespace my
                                                     continue;
                                             }
 #endif
-                                            interactMode = 0;
-
                                             float slowFactor = 0.98f;
                                             //slowFactor = 1.001f;
 
@@ -370,49 +371,49 @@ namespace my
 
                                                 case 1:
                                                     {
-                                                        other.Value.dx = dX;
-                                                        other.Value.dy = dY;
+                                                        if (other.Value.A <= minA)
+                                                        {
+                                                            other.Value.A = 0.75f * myUtils.randFloat(rand);
+                                                        }
+
+                                                        if (other.Value.interactCnt == 1)
+                                                        {
+                                                            other.Value.dA = 0.001f;
+                                                            other.Value.dx *= -1;
+                                                            other.Value.dy *= -1;
+                                                        }
+
+                                                        other.Value.size += 0.01f;
+                                                        other.Value.angle += 0.001f;
+                                                    }
+                                                    break;
+
+                                                // Still test
+                                                case 2:
+                                                    {
+                                                        if (other.Value.A <= minA)
+                                                        {
+                                                            other.Value.A = 0.75f * myUtils.randFloat(rand);
+                                                        }
+
+                                                        slowFactor = 0.9f;
+                                                        //slowFactor = 1.001f;
+
+                                                        if (other.Value.interactCnt == 1)
+                                                        {
+                                                            other.Value.x += dX / 10;
+                                                            other.Value.y += dY / 10;
+                                                        }
+
+                                                        // Slower/fasten the other particle
+                                                        other.Value.dx *= slowFactor;
+                                                        other.Value.dy *= slowFactor;
+
+                                                        other.Value.x += dX / 1000;
+                                                        other.Value.y += dY / 1000;
                                                     }
                                                     break;
                                             }
-
-                                            continue;
-
-                                            //other.Value.isAlive = false; continue;
-
-                                            //other.Value.A = 0.75f * myUtils.randFloat(rand);
-
-                                            if (other.Value.A <= minA)
-                                            {
-                                                other.Value.A = 0.75f * myUtils.randFloat(rand);
-                                            }
-
-                                            if (other.Value.interactCnt == 1)
-                                            {
-                                                other.Value.dx *= -1;
-                                                other.Value.dy *= -1;
-
-                                                {
-                                                    float alpha = myUtils.randFloat(rand) + rand.Next(321);
-                                                    //other.Value.x = x + (float)(cnt * Math.Sin(alpha));
-                                                    //other.Value.y = y + (float)(cnt * Math.Cos(alpha));
-
-                                                    //other.Value.dx = (float)Math.Sin(alpha) * 0.5f;
-                                                    //other.Value.dy = (float)Math.Cos(alpha) * 0.5f;
-                                                }
-                                            }
-
-                                            other.Value.size += 0.01f;
-                                            other.Value.angle += 0.001f;
-
-                                            //other.Value.dA = 0.001f;
-                                        }
-                                        else
-                                        {
-                                            /*
-                                            other.Value.R = 1;
-                                            other.Value.G = 1;
-                                            other.Value.B = 1;*/
                                         }
                                     }
                                 }
