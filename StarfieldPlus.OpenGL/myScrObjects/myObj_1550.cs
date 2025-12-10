@@ -32,6 +32,7 @@ namespace my
         private static bool doDestroy = false, doUseInteractCnt = false;
         private static float dimAlpha = 0.05f, spdSmall = 0, rR = 0, gG = 0, bB = 0;
         private static float minA = 0;
+        private static float param_f = 0;
 
         private static myScreenGradient grad = null;
         private static myCellManager<myObj_1550> cellManager = null;
@@ -49,7 +50,7 @@ namespace my
         // One-time global initialization
         protected override void initGlobal()
         {
-            colorPicker = new myColorPicker(gl_Width, gl_Height);
+            colorPicker = new myColorPicker(gl_Width, gl_Height, mode: myColorPicker.colorMode.SNAPSHOT_OR_IMAGE);
             list = new List<myObject>();
 
             cellManager = new myCellManager<myObj_1550>(50, 0, gl_Width, gl_Height);
@@ -81,7 +82,16 @@ namespace my
 
             spdSmall = myUtils.randFloat(rand) * (rand.Next(3) + 1);
 
-            interactMode = rand.Next(2);
+            interactMode = rand.Next(3);
+
+            switch (interactMode)
+            {
+                case 3:
+                    param_f = myUtils.randomBool(rand)
+                        ? 1.0f
+                        : 0.75f + myUtils.randFloat(rand) * 0.25f;
+                    break;
+            }
 
             rR = myUtils.randFloat(rand);
             gG = myUtils.randFloat(rand);
@@ -388,7 +398,6 @@ namespace my
                                                     }
                                                     break;
 
-                                                // Still test
                                                 case 2:
                                                     {
                                                         if (other.Value.A <= minA)
@@ -396,9 +405,15 @@ namespace my
                                                             other.Value.A = 0.75f * myUtils.randFloat(rand);
                                                         }
 
-                                                        slowFactor = 0.9f;
-                                                        //slowFactor = 1.001f;
+                                                        slowFactor = param_f;
 
+                                                        other.Value.dx = (other.Value.dx * slowFactor + dx) / 2;
+                                                        other.Value.dy = (other.Value.dy * slowFactor + dy) / 2;
+                                                    }
+                                                    break;
+
+                                                case 3:
+                                                    {
                                                         if (other.Value.interactCnt == 1)
                                                         {
                                                             other.Value.x += dX / 10;
