@@ -33,6 +33,8 @@ namespace my
         private static float dimAlpha = 0.05f, spdSmall = 0, rR = 0, gG = 0, bB = 0;
         private static float minA = 0;
         private static float param_f = 0;
+        private static float t = 0, dt = 0.001f;
+        private static int[] targetPos = null;
 
         private static myScreenGradient grad = null;
         private static myCellManager<myObj_1550> cellManager = null;
@@ -62,6 +64,8 @@ namespace my
                 shape = rand.Next(5);
 
                 actorStartMode = rand.Next(3);
+
+                targetPos = new int[n * 2];
             }
 
             initLocal();
@@ -78,7 +82,7 @@ namespace my
 
             colorMode = rand.Next(4);
             colorModeMain = rand.Next(3);
-            mainMotionMode = rand.Next(2);
+            mainMotionMode = rand.Next(3);
 
             spdSmall = myUtils.randFloat(rand) * (rand.Next(3) + 1);
 
@@ -177,6 +181,7 @@ namespace my
                 dy = (0.5f + myUtils.randFloat(rand) * spd) * myUtils.randomSign(rand);
 
                 A = 0.5f;
+                lifeCnt = 100 + rand.Next(1111);
                 cnt = 50 + rand.Next(111); // used as a dist
                 cnt = 200 + rand.Next(50);
 
@@ -191,6 +196,14 @@ namespace my
                 while (R + G + B < 1);
 
                 size = 2;
+
+                if (mainMotionMode == 2)
+                {
+                    x = rand.Next(gl_Width);
+                    y = rand.Next(gl_Height);
+                    dx = dy = 0;
+                    actorStartMode = 0;
+                }
             }
             else
             {
@@ -285,6 +298,31 @@ namespace my
                                 dy -= dd;
                         }
                         break;
+
+                    case 2:
+                        {
+                            if (--lifeCnt == 0)
+                            {
+                                lifeCnt = 100 + rand.Next(1111);
+
+                                targetPos[2*id + 0] = rand.Next(gl_Width);
+                                targetPos[2*id + 1] = rand.Next(gl_Height);
+
+                                int t = 250 + rand.Next(333);
+
+                                dx = (targetPos[2*id + 0] - x) / t;
+                                dy = (targetPos[2*id + 1] - y) / t;
+
+                                lifeCnt += t;
+                            }
+
+                            if (dx != 0 && Math.Abs(targetPos[2*id + 0] - x) < 5)
+                                dx = 0;
+
+                            if (dy != 0 && Math.Abs(targetPos[2*id + 1] - y) < 5)
+                                dy = 0;
+                        }
+                        break;
                 }
 
                 // Use cell manager
@@ -316,6 +354,10 @@ namespace my
                                         dY = y - other.Value.y;
 
                                         distSq = dX * dX + dY * dY;
+
+                                        distSq += (float)(Math.Sin(t + distSq + dX) + Math.Cos(t + distSq + dY)) * 5500;
+
+                                        //distSq += (float)(Math.Sin(Math.Sin(t) * dX + id) * Math.Cos(x) + Math.Cos(Math.Sin(t) * dY - id)) * (float)(Math.Sin(x * y + t) * 5500);
 
                                         // Other particle is within reach of the first one
                                         if (distSq < cnt2)
@@ -444,6 +486,27 @@ namespace my
 
                                                         other.Value.x += dX / 1000;
                                                         other.Value.y += dY / 1000;
+                                                    }
+                                                    break;
+
+                                                // test?..
+                                                case 4:
+                                                    {
+                                                        if (other.Value.A <= minA)
+                                                        {
+                                                            other.Value.A = 0.75f * myUtils.randFloat(rand);
+                                                        }
+
+                                                        if (other.Value.interactCnt == 1)
+                                                        {
+                                                            //other.Value.x = x - 4 * dX / 5;
+                                                            //other.Value.y = y - 4 * dY / 5;
+                                                        }
+
+                                                        other.Value.x -= dX / 50;
+                                                        other.Value.y -= dY / 50;
+
+
                                                     }
                                                     break;
                                             }
@@ -584,6 +647,7 @@ namespace my
 
                 stopwatch.WaitAndRestart();
                 cnt++;
+                t += dt;
             }
 
             return;
