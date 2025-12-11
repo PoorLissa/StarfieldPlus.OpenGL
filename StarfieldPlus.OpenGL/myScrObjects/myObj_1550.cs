@@ -98,7 +98,20 @@ namespace my
             bB = myUtils.randFloat(rand);
 
             // Min opacity of background particles
-            minA = myUtils.randFloat(rand) * 0.1f;
+            switch (rand.Next(3))
+            {
+                case 0:
+                    minA = 0.1f;
+                    break;
+
+                case 1:
+                    minA = 0.05f + myUtils.randFloat(rand) * 0.05f;
+                    break;
+
+                case 2:
+                    minA = myUtils.randFloat(rand) * 0.1f;
+                    break;
+            }
 
             return;
         }
@@ -381,6 +394,12 @@ namespace my
 
                                                 case 1:
                                                     {
+                                                        slowFactor = 1.001f;
+
+                                                        // Slower/fasten the other particle
+                                                        other.Value.dx *= slowFactor;
+                                                        other.Value.dy *= slowFactor;
+
                                                         if (other.Value.A <= minA)
                                                         {
                                                             other.Value.A = 0.75f * myUtils.randFloat(rand);
@@ -388,7 +407,6 @@ namespace my
 
                                                         if (other.Value.interactCnt == 1)
                                                         {
-                                                            other.Value.dA = 0.001f;
                                                             other.Value.dx *= -1;
                                                             other.Value.dy *= -1;
                                                         }
