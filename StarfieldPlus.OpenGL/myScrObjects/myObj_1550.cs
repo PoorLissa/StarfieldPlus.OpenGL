@@ -355,8 +355,7 @@ namespace my
 
                                         distSq = dX * dX + dY * dY;
 
-                                        distSq += (float)(Math.Sin(t + distSq + dX) + Math.Cos(t + distSq + dY)) * 5500;
-
+                                        //distSq += (float)(Math.Sin(t + distSq + dX) + Math.Cos(t + distSq + dY)) * 5500;
                                         //distSq += (float)(Math.Sin(Math.Sin(t) * dX + id) * Math.Cos(x) + Math.Cos(Math.Sin(t) * dY - id)) * (float)(Math.Sin(x * y + t) * 5500);
 
                                         // Other particle is within reach of the first one
@@ -466,7 +465,6 @@ namespace my
                                                         }
 
                                                         slowFactor = param_f;
-
                                                         other.Value.dx = (other.Value.dx * slowFactor + dx) / 2;
                                                         other.Value.dy = (other.Value.dy * slowFactor + dy) / 2;
                                                     }
