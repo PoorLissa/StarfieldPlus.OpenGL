@@ -21,7 +21,7 @@ namespace my
         private float size, sizeFactor, sizeFactorZ, A, R, G, B;
         private float theta = 0, dTheta = 0;
 
-        private static int N = 0, shape = 0;
+        private static int N = 0, shape = 0, moveMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -72,6 +72,7 @@ namespace my
         private void initLocal()
         {
             doClearBuffer = true;
+            moveMode = rand.Next(4);
 
             return;
         }
@@ -84,6 +85,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"moveMode = {moveMode}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -126,15 +128,30 @@ namespace my
 
         protected override void Move()
         {
-            //y += (float)Math.Cos(theta) * 0.01f;
+            switch (moveMode)
+            {
+                case 0:
+                    break;
 
-            //theta += dTheta;
+                case 1:
+                    theta += dTheta;
+                    break;
+
+                case 2:
+                    y += (float)Math.Cos(theta) * 0.01f;
+                    break;
+
+                case 3:
+                    theta += dTheta;
+                    y += (float)Math.Cos(theta) * 0.01f;
+                    break;
+            }
 
             z += dz;
 
-            if (z > 10)
+            if (z > 20)
             {
-                A -= 0.1f;
+                A -= 0.005f;
 
                 if (A < 0)
                     generateNew();
@@ -222,7 +239,7 @@ namespace my
                 float y2 = screenVertices[edges[i + 3]];
 
                 myPrimitive._LineInst.setInstanceCoords(x1, y1, x2, y2);
-                myPrimitive._LineInst.setInstanceColor(R, G, B, 0.25f);
+                myPrimitive._LineInst.setInstanceColor(R, G, B, A * 0.5f);
             }
 
 /*
