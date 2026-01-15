@@ -18,7 +18,7 @@ namespace my
 		public static System.Type Type => typeof(myObj_1560);
 
         private float x, y, z, dz;
-        private float size, sizeFactor, A, R, G, B;
+        private float size, sizeFactor, sizeFactorZ, A, R, G, B;
         private float theta = 0, dTheta = 0;
 
         private static int N = 0, shape = 0;
@@ -58,7 +58,7 @@ namespace my
                     -0.5f, +0.5f, -0.5f
                 };
 
-                N = 133;
+                N = 33;
                 shape = rand.Next(5);
                 shape = 2;
             }
@@ -108,6 +108,7 @@ namespace my
 
             size = 4;
             sizeFactor = 0.1f + myUtils.randFloat(rand) * 0.5f;
+            sizeFactorZ = 2.0f + myUtils.randFloat(rand) * 5.0f;
 
             A = 1;
             R = 0.25f;
@@ -127,7 +128,7 @@ namespace my
         {
             //y += (float)Math.Cos(theta) * 0.01f;
 
-            theta += dTheta;
+            //theta += dTheta;
 
             z += dz;
 
@@ -165,7 +166,7 @@ namespace my
                 {
                     x0 *= sizeFactor;
                     y0 *= sizeFactor;
-                    z0 *= sizeFactor;
+                    z0 *= sizeFactor * sizeFactorZ;
                 }
 
                 // Apply rotation
