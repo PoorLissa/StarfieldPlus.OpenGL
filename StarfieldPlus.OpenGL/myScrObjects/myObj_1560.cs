@@ -19,7 +19,8 @@ namespace my
 
         private float x, y, z, dz;
         private float size, sizeFactor, sizeFactorZ, A, R, G, B;
-        private float theta = 0, dTheta = 0;
+        private float theta1 = 0, dTheta1 = 0;
+        private float theta2 = 0, dTheta2 = 0;
 
         private static int N = 0, shape = 0, moveMode = 0;
         private static bool doFillShapes = false;
@@ -112,6 +113,10 @@ namespace my
             sizeFactor = 0.1f + myUtils.randFloat(rand) * 0.5f;
             sizeFactorZ = 2.0f + myUtils.randFloat(rand) * 5.0f;
 
+            //x = y = 0;
+            //sizeFactor = 1;
+            //sizeFactorZ = 1;
+
             A = 1;
             R = 0.25f;
             G = 0.85f;
@@ -119,7 +124,12 @@ namespace my
 
             colorPicker.getColor(x, y, ref R, ref G, ref B);
 
-            dTheta = 0.001f + myUtils.randFloat(rand) * 0.02f;
+            theta1 = 0;
+            theta2 = 0;
+
+            dTheta1 = 0.001f + myUtils.randFloat(rand) * 0.02f;
+            dTheta2 = 0.001f + myUtils.randFloat(rand) * 0.02f;
+            dTheta2 *= 0.1f;
 
             return;
         }
@@ -134,16 +144,18 @@ namespace my
                     break;
 
                 case 1:
-                    theta += dTheta;
+                    theta1 += dTheta1;
+                    theta2 += dTheta2;
                     break;
 
                 case 2:
-                    y += (float)Math.Cos(theta) * 0.01f;
+                    y += (float)Math.Cos(theta1) * 0.01f;
                     break;
 
                 case 3:
-                    theta += dTheta;
-                    y += (float)Math.Cos(theta) * 0.01f;
+                    theta1 += dTheta1;
+                    theta2 += dTheta2;
+                    y += (float)Math.Cos(theta1) * 0.01f;
                     break;
             }
 
@@ -166,8 +178,11 @@ namespace my
         {
             // https://www.youtube.com/watch?v=qjWkNZ0SXfo
 
-            float sin = (float)Math.Sin(theta);
-            float cos = (float)Math.Cos(theta);
+            float sin1 = (float)Math.Sin(theta1);
+            float cos1 = (float)Math.Cos(theta1);
+
+            float sin2 = (float)Math.Sin(theta2);
+            float cos2 = (float)Math.Cos(theta2);
 
             float[] screenVertices = new float[16];
             int j = 0;
@@ -187,9 +202,22 @@ namespace my
                 }
 
                 // Apply rotation
-                float x1 = x0 * cos - z0 * sin;
+                float x1 = x0 * cos1 - z0 * sin1;
                 float y1 = y0;
-                float z1 = x0 * sin + z0 * cos;
+                float z1 = x0 * sin1 + z0 * cos1;
+
+                if (true)
+                {
+                    float x11 = x1 * cos2 - y1 * sin2;
+                    float y11 = x1 * sin2 + y1 * cos2;
+                    float z11 = z1;
+
+                    x1 = x11;
+                    y1 = y11;
+                    z1 = z11;
+                }
+
+
 
                 // ?
                 if (true)
@@ -334,7 +362,6 @@ namespace my
 
                 stopwatch.WaitAndRestart();
                 cnt++;
-                theta += dTheta;
             }
 
             return;
