@@ -127,6 +127,7 @@
     <Compile Include="myScrObjects\myObj_1430.cs" />
     <Compile Include="myScrObjects\myObj_1550.cs" />
     <Compile Include="myScrObjects\myObj_1545.cs" />
+    <Compile Include="myScrObjects\myObj_1570.cs" />
     <Compile Include="myScrObjects\myObj_9999_test_002c.cs" />
     <Compile Include="myScrObjects\myObj_9999_test_003.cs" />
     <Compile Include="myScrObjects\myObj_0541.cs" />
