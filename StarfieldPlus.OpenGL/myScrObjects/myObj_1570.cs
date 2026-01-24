@@ -17,6 +17,7 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1570);
 
+        private int cnt;
         private float x, y, z, dz;
         private float size, sizeFactor, sizeFactorZ, A, R, G, B;
         private float theta1 = 0, dTheta1 = 0;
@@ -111,6 +112,9 @@ namespace my
                 sizeFactor = 10;
                 sizeFactorZ = 1;
                 z = 20;
+
+                cnt = 1000;
+                size = 66;
             }
             else
             {
@@ -126,9 +130,8 @@ namespace my
                 dAngle = 0.01f;
 
                 rad = 20;
+                size = 15;
             }
-
-            size = 4;
 
             A = 1;
             R = 0.25f;
@@ -151,14 +154,18 @@ namespace my
 
         protected override void Move()
         {
-            theta1 += dTheta1;
-            theta2 += dTheta2;
-
-            if (id > 0)
+            if (id == 0)
             {
+                theta1 += dTheta1;
+                theta2 += dTheta2 * 0.01f;
+            }
+            else
+            {
+                theta1 += dTheta1;
+                theta2 += dTheta2;
                 angle += dAngle;
 
-                x =  0 + rad * (float)Math.Sin(angle);
+                x = 0 + rad * (float)Math.Sin(angle);
                 z = 30 + rad * (float)Math.Cos(angle);
             }
 
