@@ -17,7 +17,7 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1570);
 
-        private int cnt;
+        private int cnt, yFactor;
         private float x, y, z, dz;
         private float size, sizeFactor, sizeFactorZ, A, R, G, B;
         private float theta1 = 0, dTheta1 = 0;
@@ -129,8 +129,10 @@ namespace my
                 angle = myUtils.randFloat(rand) * 123;
                 dAngle = 0.01f;
 
-                rad = 20;
+                rad = 17 + rand.Next(7);
                 size = 15;
+
+                yFactor = rand.Next(7);
             }
 
             A = 1;
@@ -167,6 +169,7 @@ namespace my
 
                 x = 0 + rad * (float)Math.Sin(angle);
                 z = 30 + rad * (float)Math.Cos(angle);
+                y = 0 + yFactor * (float)Math.Sin(angle);
             }
 
             return;
