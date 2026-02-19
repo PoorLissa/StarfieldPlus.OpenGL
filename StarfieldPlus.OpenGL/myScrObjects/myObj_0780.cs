@@ -1,6 +1,7 @@
 ﻿using GLFW;
 using static OpenGL.GL;
 using System.Collections.Generic;
+using System;
 
 
 /*
@@ -21,8 +22,9 @@ namespace my
         private float size, A, R, G, B, angle = 0, dAngle;
 
         private static int N = 0, shape = 0, dirMode = 0, maxSize = 0, gridStepX = 33, gridStepY = 33;
-        private static bool doFillShapes = false, doRotate = false, doUseGrid = false;
-        private static float maxSpeed = 1;
+        private static bool doFillShapes = false, doRotate = false, doUseGrid = false, getColorMode = false;
+        private static float maxSpeed = 1, t = 0, dt = 0;
+        private static float rFactor = 0, gFactor = 0, bFactor = 0;
 
         private static myScreenGradient grad = null;
 
@@ -67,6 +69,7 @@ namespace my
             doFillShapes = myUtils.randomChance(rand, 1, 3);
             doRotate = myUtils.randomChance(rand, 1, 2);
             doUseGrid = myUtils.randomChance(rand, 1, 2);
+            getColorMode = myUtils.randomChance(rand, 1, 2);
 
             maxSpeed = myUtils.randFloat(rand, 0.1f) * (myUtils.randomChance(rand, 4, 5)  ? 0.5f : 1.0f);
             maxSize = 3 + rand.Next(11);
@@ -74,6 +77,11 @@ namespace my
             dirMode = rand.Next(7);
 
             renderDelay = 0;
+            dt = 0.001f;
+
+            rFactor = myUtils.randFloat(rand) * rand.Next(27);
+            gFactor = myUtils.randFloat(rand) * rand.Next(27);
+            bFactor = myUtils.randFloat(rand) * rand.Next(27);
 
             if (myUtils.randomChance(rand, 1, 3))
             {
@@ -139,11 +147,17 @@ namespace my
             x = rand.Next(gl_Width);
             y = rand.Next(gl_Height);
 
+            if (getColorMode == true)
+                colorPicker.getColorSafe(x, y, ref R, ref G, ref B);
+
             if (doUseGrid)
             {
                 x -= x % gridStepX;
                 y -= y % gridStepY;
             }
+
+            if (getColorMode == false)
+                colorPicker.getColorSafe(x, y, ref R, ref G, ref B);
 
             switch (dirMode)
             {
@@ -155,6 +169,16 @@ namespace my
                 case 1:
                     dx = 0;
                     dy = myUtils.randFloatSigned(rand, 0.1f) * maxSpeed;
+                    break;
+
+                case 2:
+                    dx = maxSpeed * (float)Math.Sin(rFactor * R + gFactor * G + bFactor * B);
+                    dy = maxSpeed * (float)Math.Cos(rFactor * R + gFactor * G + bFactor * B);
+                    break;
+
+                case 3:
+                    dx = maxSpeed * (float)Math.Sin(rFactor * R + gFactor * G + bFactor * B + t);
+                    dy = maxSpeed * (float)Math.Cos(rFactor * R + gFactor * G + bFactor * B - t);
                     break;
 
                 default:
@@ -172,7 +196,6 @@ namespace my
                 : 0;
 
             A = myUtils.randFloat(rand) * 0.85f;
-            colorPicker.getColorSafe(x, y, ref R, ref G, ref B);
 
             cnt = 111 + rand.Next(333);
 
@@ -353,6 +376,7 @@ namespace my
 #endif
                 cnt++;
                 System.Threading.Thread.Sleep(renderDelay);
+                t += dt;
             }
 
             return;
