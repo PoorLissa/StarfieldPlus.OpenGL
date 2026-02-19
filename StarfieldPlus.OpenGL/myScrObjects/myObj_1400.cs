@@ -63,7 +63,7 @@ namespace my
 
             // Grid size: Only even numbers work somehow
             baseSize = (rand.Next(77) + 5) * 2;
-            //baseSize = 100;
+            //baseSize = 150;
 
             nActive = 20;
 
@@ -189,7 +189,7 @@ namespace my
             uint cnt = 0;
             initShapes();
 
-            clearScreenSetup(doClearBuffer, 0.1f, true);
+            clearScreenSetup(doClearBuffer, 0.1f, false);
 
             stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
 
