@@ -11,25 +11,24 @@ using System.Collections.Generic;
 
 namespace my
 {
-    public class myObj_1390 : myObject
+    public class myObj_1391 : myObject
     {
         // Priority
         public static int Priority => 10;
-		public static System.Type Type => typeof(myObj_1390);
+		public static System.Type Type => typeof(myObj_1391);
 
         private float x, y, y0, h, dx, dy;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, rad = 0, curvMode = 0;
+        private static int N = 0, shape = 0, rad = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, t = 0, dt = 0, r0 = 0, g0 = 0, b0 = 0;
-        private static float maxSize = 5;
 
         private static myScreenGradient grad = null;
 
         // ---------------------------------------------------------------------------------------------------------------
 
-        public myObj_1390()
+        public myObj_1391()
         {
             if (id != uint.MaxValue)
                 generateNew();
@@ -47,16 +46,7 @@ namespace my
             {
                 N = 200;
 
-                do
-                {
-                    shape = rand.Next(5);
-                }
-                while (shape == 1);
-
-                maxSize = gl_Width / N / 2 - 2;
-                maxSize = 5;
-
-                curvMode = rand.Next(13);
+                shape = 2;
 
                 myUtils.getRandomColor(rand, ref r0, ref b0, ref g0, 0.33f);
             }
@@ -69,12 +59,13 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 17, 19);
+            doClearBuffer = myUtils.randomChance(rand, 1, 2);
+            doClearBuffer = true;
             doFillShapes = true;
 
             rad = 75;
 
-            dt = 0.005f + myUtils.randFloat(rand) * 0.01f;
+            dt = 0.005f;
 
             return;
         }
@@ -87,7 +78,6 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
-                            $"curvMode = {curvMode}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
             return str;
@@ -111,33 +101,9 @@ namespace my
             dx = dy = 0;
 
             // Global curvature
-            switch (curvMode)
-            {
-                case 0:
-                    y0 = gl_y0;
-                    break;
+            y0 = gl_y0 + (float)Math.Cos(x * 0.001) * 100;
 
-                case 1: case 2: case 3: case 4:
-                case 5: case 6: case 7: case 8:
-                    y0 = gl_y0 + (float)Math.Cos(x * 0.001) * 100;
-                    break;
-
-                case 9:
-                    y0 = gl_y0 + (float)Math.Cos(x * 0.001 + 0.01 * h) * 100;
-                    break;
-
-                case 10:
-                    y0 = gl_y0 + (float)Math.Cos(x * 0.001 + myUtils.randFloat(rand) * 0.25) * 123;
-                    break;
-
-                case 11:
-                    y0 = gl_y0 + (float)Math.Cos(x * 0.001 * Math.Sin(h * 0.01)) * 100;
-                    break;
-
-                case 12:
-                    y0 = gl_y0 + (float)Math.Cos(x * 0.001 * Math.Sin(33 * h / x)) * 100;
-                    break;
-            }
+            size = 4;
 
             A = 0.85f;
             R = r0;
@@ -154,12 +120,20 @@ namespace my
         protected override void Move()
         {
             h = (float)(rad * Math.Sin(x + t));
+
+            //size = 2 + 5 * h/rad;
+            size = 3 + 3 * h / rad;
+            size = 4 + (float)Math.Sin(x + t + Math.PI / 2) * 4;
+
+            return;
         }
 
         // ---------------------------------------------------------------------------------------------------------------
 
         protected override void Show()
         {
+            float size2x = size * 2;
+
             float y1 = 0, y2 = 0, r = R, g = G, b = B;
 
             for (int i = 0; i < 2; i++)
@@ -168,19 +142,28 @@ namespace my
                 {
                     case 0:
                         y = y1 = y0 + h;
-                        size = maxSize + (float)Math.Sin(x + t + Math.PI / 2) * 3;
                         break;
 
                     case 1:
-                        y = y2 = y0 - h;
-                        size = maxSize + (float)Math.Sin(x + t - Math.PI / 2) * 3;
+                        y = y2 = y0 + h;
                         r *= 0.9f;
                         g *= 0.9f;
                         b *= 0.9f;
                         break;
                 }
 
-                float size2x = size * 2;
+                switch(i)
+                {
+                    case 0:
+                        size = 5 + (float)Math.Sin(x + t + Math.PI / 2) * 4;
+                        break;
+
+                    case 1:
+                        size = 5 + (float)Math.Sin(x + t - Math.PI / 2) * 4;
+                        break;
+                }
+
+                size2x = size * 2;
 
                 switch (shape)
                 {
@@ -212,7 +195,7 @@ namespace my
             }
 
             myPrimitive._LineInst.setInstanceCoords(x, y1, x, y2);
-            myPrimitive._LineInst.setInstanceColor(1, 1, 1, (float)Math.Abs(h)/rad);
+            myPrimitive._LineInst.setInstanceColor(1, 1, 1, h/rad);
 
             return;
         }
@@ -228,7 +211,7 @@ namespace my
 
             while (list.Count < N)
             {
-                list.Add(new myObj_1390());
+                list.Add(new myObj_1391());
             }
 
             stopwatch = new StarfieldPlus.OpenGL.myUtils.myStopwatch(true);
@@ -263,7 +246,7 @@ namespace my
 
                     for (int i = 0; i != Count; i++)
                     {
-                        var obj = list[i] as myObj_1390;
+                        var obj = list[i] as myObj_1391;
 
                         obj.Show();
                         obj.Move();
@@ -285,7 +268,7 @@ namespace my
 
                 if (Count < N)
                 {
-                    list.Add(new myObj_1390());
+                    list.Add(new myObj_1391());
                 }
 
                 stopwatch.WaitAndRestart();
