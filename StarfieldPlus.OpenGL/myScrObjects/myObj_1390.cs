@@ -17,13 +17,14 @@ namespace my
         public static int Priority => 10;
 		public static System.Type Type => typeof(myObj_1390);
 
-        private float x, y, y0, h, dx, dy;
+        private float x, y, y0, h;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, rad = 0, curvMode = 0;
+        private static int N = 0, shape = 0, rad = 0, curvMode = 0, moveMode = 0;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f, t = 0, dt = 0, r0 = 0, g0 = 0, b0 = 0;
         private static float maxSize = 5;
+        private static float rFactor = 0, gFactor = 0, bFactor = 0;
 
         private static myScreenGradient grad = null;
 
@@ -57,6 +58,11 @@ namespace my
                 maxSize = 5;
 
                 curvMode = rand.Next(13);
+                moveMode = rand.Next(5);
+
+                rFactor = 0.5f + myUtils.randFloat(rand) * 2;
+                gFactor = 0.5f + myUtils.randFloat(rand) * 2;
+                bFactor = 0.5f + myUtils.randFloat(rand) * 2;
 
                 myUtils.getRandomColor(rand, ref r0, ref b0, ref g0, 0.33f);
             }
@@ -69,7 +75,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 17, 19);
+            doClearBuffer = myUtils.randomChance(rand, 100, 101);
             doFillShapes = true;
 
             rad = 75;
@@ -87,6 +93,7 @@ namespace my
 
             string str = $"Obj = {Type}\n\n"                  +
                             myUtils.strCountOf(list.Count, N) +
+                            $"moveMode = {moveMode}\n"        +
                             $"curvMode = {curvMode}\n"        +
                             $"file: {colorPicker.GetFileName()}"
                 ;
@@ -107,8 +114,6 @@ namespace my
         {
             x = id * (gl_Width / N);
             h = rad * (float)Math.Sin(x);
-
-            dx = dy = 0;
 
             // Global curvature
             switch (curvMode)
@@ -141,7 +146,7 @@ namespace my
 
             A = 0.85f;
             R = r0;
-            G = g0 + 0.001f * id;
+            G = g0 + 0.0025f * id;
             B = b0;
 
             //colorPicker.getColor(x, y, ref R, ref G, ref B);
@@ -153,7 +158,16 @@ namespace my
 
         protected override void Move()
         {
-            h = (float)(rad * Math.Sin(x + t));
+            switch (moveMode)
+            {
+                case 0:
+                    h = (float)(rad * Math.Sin(x + t)) + (float)Math.Sin(id) * 11;
+                    break;
+
+                default:
+                    h = (float)(rad * Math.Sin(x + t));
+                    break;
+            }
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -174,9 +188,9 @@ namespace my
                     case 1:
                         y = y2 = y0 - h;
                         size = maxSize + (float)Math.Sin(x + t - Math.PI / 2) * 3;
-                        r *= 0.9f;
-                        g *= 0.9f;
-                        b *= 0.9f;
+                        r *= rFactor;
+                        g *= gFactor;
+                        b *= bFactor;
                         break;
                 }
 
