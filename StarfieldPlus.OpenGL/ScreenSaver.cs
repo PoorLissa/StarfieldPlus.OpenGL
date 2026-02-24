@@ -288,9 +288,12 @@ public class ScreenSaver
             my.myObj_Prioritizer.RegisterClass(t);
         }
 
+        bool doUsePriority = true;
+        bool douseCustomType = true;
+
         // Randomly pick one single object
-        _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : true,
-                                                    doUseCustomType : !true, my.myObj_1390.Type);
+        _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : doUsePriority,
+                                                    doUseCustomType : douseCustomType, my.myObj_1390.Type);
         return;
     }
 
