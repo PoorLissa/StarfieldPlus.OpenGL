@@ -289,7 +289,7 @@ public class ScreenSaver
         }
 
         bool doUsePriority = true;
-        bool douseCustomType = true;
+        bool douseCustomType = false;
 
         // Randomly pick one single object
         _obj = my.myObj_Prioritizer.GetRandomObject(doUsePriority   : doUsePriority,
