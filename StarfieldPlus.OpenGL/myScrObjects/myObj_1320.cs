@@ -245,6 +245,7 @@ namespace my
                     }
 
                     Draw(Size - 1, R0, G0, B0, a, yy);
+                    continue;
                 }
 
                 if (i == 1)
