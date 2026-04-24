@@ -279,6 +279,7 @@ public class ScreenSaver
             my.myObj_1560.Type,     // 3d try 1
             my.myObj_1570.Type,     // 3d try 2
             my.myObj_1580.Type,     // ...
+            my.myObj_1590.Type,     // ...
 
             my.myObj_9999_test_002c.Type,
             my.myObj_9998.Type,     // Test rotating shape, unfinished yet good
