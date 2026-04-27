@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 
 /*
-    - Empty object. Use as a template to create new objects
+    - Particles moving in circles wit suddens stops
 */
 
 
@@ -21,7 +21,7 @@ namespace my
         private float x, y, x0, y0, rad, t, dt;
         private float size, A, R, G, B, angle = 0;
 
-        private static int N = 0, shape = 0, moveMode = 0;
+        private static int N = 0, shape = 0, moveMode = 0, angleMode = 1;
         private static bool doFillShapes = false;
         private static float dimAlpha = 0.05f;
 
@@ -60,8 +60,8 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
+            doFillShapes = myUtils.randomChance(rand, 1, 2);
             doClearBuffer = myUtils.randomChance(rand, 1, 2);
-            doClearBuffer = true;
 
             return;
         }
@@ -135,12 +135,22 @@ namespace my
 
         protected override void Move()
         {
+            switch (angleMode)
+            {
+                case 0:
+                    angle = t;
+                    break;
+
+                case 1:
+                    angle += dt;
+                    break;
+            }
+
             if (cnt > 0)
             {
                 x = x0 + (float)Math.Sin(t) * rad;
                 y = y0 + (float)Math.Cos(t) * rad;
                 t += dt;
-                angle = t;
             }
             else
             {
@@ -148,7 +158,7 @@ namespace my
                 {
                     if (dCnt < 0)
                     {
-                        cnt = -10 - rand.Next(23);
+                        cnt = -10 - rand.Next(99);
                     }
                     else
                     {
@@ -231,14 +241,9 @@ namespace my
                 // Dim screen
                 {
                     if (doClearBuffer)
-                    {
                         glClear(GL_COLOR_BUFFER_BIT);
-                        grad.Draw();
-                    }
-                    else
-                    {
-                        dimScreen(dimAlpha);
-                    }
+
+                    grad.Draw();
                 }
 
                 // Render Frame
@@ -256,7 +261,7 @@ namespace my
                     if (doFillShapes)
                     {
                         // Tell the fragment shader to multiply existing instance opacity by 0.5:
-                        inst.SetColorA(-0.5f);
+                        inst.SetColorA(-0.25f);
                         inst.Draw(true);
                     }
 
@@ -286,6 +291,9 @@ namespace my
 
             grad = new myScreenGradient();
             grad.SetRandomColors(rand, 0.2f);
+
+            if (doClearBuffer == false)
+                grad.SetOpacity(0.5f);
 
             return;
         }
