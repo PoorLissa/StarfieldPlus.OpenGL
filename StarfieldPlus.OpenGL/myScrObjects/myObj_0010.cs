@@ -43,8 +43,6 @@ namespace my
 
             moveMode = rand.Next(3);
 
-            moveMode = 3;
-
             doClearBuffer = myUtils.randomBool(rand);
             doFillShapes = myUtils.randomBool(rand);
             doConnect = myUtils.randomBool(rand);
@@ -113,6 +111,19 @@ namespace my
             }
 
             renderDelay = rand.Next(11) + 1;
+
+/*
+            doConnect = false;
+            moveMode = 3;
+            doUseGravityAnomaly = false;
+            renderDelay = 0;
+            N = 1000000;
+            maxSize = 3;
+            shapeType = 0;
+            rotationMode = 2;
+            doClearBuffer = true;
+            doFillShapes = false;
+*/
 
             initLocal();
         }
@@ -404,6 +415,10 @@ namespace my
                 glDrawBuffer(GL_FRONT_AND_BACK);
                 glDrawBuffer(GL_BACK);
             }
+
+            // Allocate all particles at once
+            while (false && list.Count < N)
+                list.Add(new myObj_0010());
 
             while (!Glfw.WindowShouldClose(window))
             {
