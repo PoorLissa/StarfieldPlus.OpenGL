@@ -59,8 +59,7 @@ namespace my
         // One-time local initialization
         private void initLocal()
         {
-            doClearBuffer = myUtils.randomChance(rand, 1, 5);
-            doClearBuffer = true;
+            doClearBuffer = myUtils.randomChance(rand, 3, 5);
 
             sizeMode = rand.Next(2);
             drawMode = rand.Next(12);
@@ -77,9 +76,7 @@ namespace my
             slowFactor = 0.1f + myUtils.randFloat(rand) * 0.9f;
 
             step = 5 + rand.Next(16);
-            renderDelay = 20 - step;
-
-            renderDelay += 1;
+            renderDelay = 20 - step + 1;
 
             return;
         }
