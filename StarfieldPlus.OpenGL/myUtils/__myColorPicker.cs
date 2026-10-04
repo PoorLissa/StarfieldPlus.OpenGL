@@ -69,37 +69,61 @@ namespace my
                 }
             }
 
-            try
+            // Here we can fail at getting an image;
+            // So we need to implement some retry logic, falling back to a snapshot and then to an even simpler method if all else fails
+
+            int retryCount = 0;
+            bool ok = false;
+
+            do
             {
-                switch (_mode)
+                try
                 {
-                    // Use Desktop Snapshot
-                    case colorMode.SNAPSHOT:
-                        getSnapshot(Width, Height);
-                        break;
+                    switch (_mode)
+                    {
+                        // Use Desktop Snapshot
+                        case colorMode.SNAPSHOT:
+                            ok = getSnapshot(Width, Height);
+                            break;
 
-                    // Use External Picture
-                    case colorMode.IMAGE:
-                        getCustomPicture(Width, Height);
-                        break;
+                        // Use External Picture
+                        case colorMode.IMAGE:
+                            ok = getCustomPicture(Width, Height);
+                            break;
 
-                    // Use Custom Made Texture
-                    case colorMode.TEXTURE:
-                        buildTexture(Width, Height);
-                        break;
+                        // Use Custom Made Texture
+                        case colorMode.TEXTURE:
+                            ok = buildTexture(Width, Height);
+                            break;
 
-                    case colorMode.COLORMAP:
-                        buildColorMap();
-                        break;
+                        case colorMode.COLORMAP:
+                            ok = buildColorMap();
+                            break;
 
-                    // Use Custom Color
-                    default:
-                        break;
+                        // Use Custom Color
+                        default:
+                            ok = true;
+                            break;
+                    }
                 }
+                catch (Exception ex)
+                {
+                    myObject.Log($"Scr: myColorPicker in mode {_mode} caused an exception while trying to obtain an image (retry #{retryCount}): {ex.Message}");
+
+                    // Try next mode if we failed to get an image
+                    _mode++;
+                }
+
+                retryCount++;
             }
-            catch (System.Exception ex)
+            while (ok == false && retryCount < 3);
+
+            // This should not happen, but if we've failed, display a message here
+            if (ok == false)
             {
-                myObject.Log($"Scr: myColorPicker in mode {_mode} exception: {ex.Message}");
+                myObject.Log($"Scr: myColorPicker failed to obtain an image in mode {_mode} after {retryCount} retries.");
+                MessageBox.Show($"myColorPicker failed to obtain an image in mode {_mode} after {retryCount} retries.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new Exception($"myColorPicker failed to obtain an image in mode {_mode} after {retryCount} retries.");
             }
 
             return;
@@ -640,21 +664,15 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        // Take a snapshot of a current desktop
-        private void getSnapshot(int Width, int Height)
+        // Take a snapshot of the current desktop
+        private bool getSnapshot(int Width, int Height)
         {
-            int pos = 0;
-
             try
             {
                 if (_img == null)
                 {
-                    pos = 1;
-
                     _img = new Bitmap(Width, Height);
                     initReader();
-
-                    pos = 2;
 
                     if (_g != null)
                     {
@@ -662,44 +680,37 @@ namespace my
                         _g = null;
                     }
 
-                    pos = 3;
-
                     _g = Graphics.FromImage(_img);
 
-                    pos = 4;
-
+                    // Here we crash when the monitor is turned off
                     _g.CopyFromScreen(Point.Empty, Point.Empty, new Size(Width, Height));
-
-                    pos = 5;
-
                     _f = "[ Desktop Snapshot ]";
-
-                    pos = 6;
                 }
             }
             catch (Exception ex)
             {
-                myObject.Log($"Scr: System.Exception in getSnapshot(): pos = {pos} : {ex.Message}\n\n{ex.StackTrace}");
-
-#if false
-                var player = new SoundPlayer(@"c:\Windows\Media\Windows Hardware Fail.wav");
-                player.Play();
-#endif
+                myObject.Log($"Scr: System.Exception in getSnapshot(): {ex.Message}\n\n{ex.StackTrace}");
                 var time = DateTime.Now.ToString();
-                MessageBox.Show($"{ex.Message}\r\n{ex.StackTrace}", $"myColorPicker {time}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                //MessageBox.Show($"{ex.Message}\r\n{ex.StackTrace}", $"myColorPicker {time}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+                _img = null;
+                _g = null;
+                _f = "";
+
+                throw ex;
             }
 
-            return;
+            return _img != null;
         }
 
         // -------------------------------------------------------------------------
 
-        private void getCustomPicture(int Width, int Height)
+        private bool getCustomPicture(int Width, int Height)
         {
             try
             {
                 string image = _fileName;
-                var list = new System.Collections.Generic.List<string>();
+                var list = new List<string>();
 
                 // Custom paths to look for images;
                 ini_file_base _ini = new ini_file_base();
@@ -782,11 +793,12 @@ namespace my
 
                 _img = null;
                 _g = null;
-                _mode = 0;
-                getSnapshot(Width, Height);
+                _f = "";
+
+                throw ex;
             }
 
-            return;
+            return _img != null;
         }
 
         // -------------------------------------------------------------------------
@@ -1092,7 +1104,7 @@ namespace my
 
         // -------------------------------------------------------------------------
 
-        private void buildTexture(int Width, int Height)
+        private bool buildTexture(int Width, int Height)
         {
             int r = 0, g = 0, b = 0;
 
@@ -1133,7 +1145,9 @@ namespace my
                     break;
             }
 
-            return;
+            _f = "[ Random Texture ]";
+
+            return _img != null;
         }
 
         // -------------------------------------------------------------------------
@@ -1252,7 +1266,7 @@ namespace my
         // -------------------------------------------------------------------------
 
         // Populate color map with colors
-        private void buildColorMap()
+        private bool buildColorMap()
         {
             _colorMap = new Dictionary<int, (int, int, int)>();
 
@@ -1273,7 +1287,9 @@ namespace my
                 _colorMap.Add(i, (R, G, B));
             }
 
-            return;
+            _f = "[ Random Color Map ]";
+
+            return true;
         }
 
         // -------------------------------------------------------------------------

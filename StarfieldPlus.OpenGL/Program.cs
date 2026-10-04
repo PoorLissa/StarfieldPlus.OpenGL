@@ -75,7 +75,7 @@ namespace StarfieldPlus.OpenGL
                             mainProc();
                             break;
 
-                        // EXTENDED: '/m' means, the screensaver is started via external manager (which is the case with Windows 10)
+                        // EXTENDED: '/m' means, the screensaver is started via external manager (which is the case with Windows 10/11)
                         // In this case, we'll want to:
                         // - idle the screensaver when the monitor turns off
                         // - put the system to sleep manually when the sleep timer expires

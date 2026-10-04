@@ -83,13 +83,15 @@ namespace my
                             System.IO.File.Create(filePath).Close();
 
                         // Get access privileges to the file
+#if false
                         FileSecurity security = System.IO.File.GetAccessControl(filePath);
                         security.AddAccessRule(new FileSystemAccessRule("Everyone", FileSystemRights.Write, AccessControlType.Allow));
                         System.IO.File.SetAccessControl(filePath, security);
+#endif
                     }
                     catch (System.Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Log Exception", MessageBoxButtons.OK);
+                        MessageBox.Show(ex.Message, "Log Initial Access Exception", MessageBoxButtons.OK);
                     }
                 }
 
@@ -177,10 +179,12 @@ namespace my
 #endif
             }
 
-            // Watch the Monitor Off timeout (Windows 10 related issue)
+            // Watch the Monitor Off timeout;
+            // This is done when the app is run in the managed mode (via custom manager in Win10, Win11);
             if (Program.gl_State == Program.STATE.MANAGED_MAIN)
             {
-                if (++_sysStateCnt == 100)
+                // Check the system state every 1000 frames (to avoid excessive CPU usage)
+                if (++_sysStateCnt == 123)
                 {
                     _sysStateCnt = 0;
 
@@ -190,6 +194,7 @@ namespace my
                     {
                         Program.gl_State = Program.STATE.MANAGED_MONITOR_OFF;
                         Glfw.SetWindowShouldClose(window, true);
+                        Log($"Scr: ProcessInput detected {Program.gl_State} after running for {_monitorOffTime} seconds -- commanding to switch to PostProces Mode");
                         return;
                     }
                 }
@@ -279,8 +284,10 @@ namespace my
 
                 // Main Procedure
                 {
-                    Log($"Scr: Process, gl_State = {Program.gl_State}");
+                    Log($"Scr: Process, gl_State = {Program.gl_State}, _monitorOffTime = {_monitorOffTime}, _systemSleepTime = {_systemSleepTime}");
+
                     Process(openGL_Window);
+
                     Log($"Scr: PostProcess");
                     PostProcess(openGL_Window);
                 }
@@ -394,6 +401,10 @@ namespace my
                 // This state should be active until we've received the user's input or the second timeout expires (whichever comes first)
                 case Program.STATE.MANAGED_MONITOR_OFF:
                     {
+                        // Windows 11 note:
+                        // I changed the manager, so it does not restart the scr unless the user presses a key or moves the mouse after the scr run has ended;
+                        // So for now let's live without this postprocessing: let's let it just close the scr now
+#if false
                         Glfw.SetWindowShouldClose(window, false);
 
                         // Turn the screen off
@@ -417,7 +428,7 @@ namespace my
                             Glfw.PollEvents();
                             System.Threading.Thread.Sleep(66);
 
-                            // Periodically check the time elapsed 
+                            // Periodically check the time elapsed
                             if (++sleepCnt == 50)
                             {
                                 // Set the next state and break out of this loop
@@ -430,6 +441,7 @@ namespace my
                                 sleepCnt = 0;
                             }
                         }
+#endif
                     }
                     break;
             }
