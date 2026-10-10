@@ -67,7 +67,7 @@ namespace my
             doFillShapes = myUtils.randomChance(rand, 4, 5);
 
             dirMode = rand.Next(3);
-            moveMode = rand.Next(2);
+            moveMode = rand.Next(4);
             dtMode = rand.Next(5);
         }
 
@@ -218,6 +218,14 @@ namespace my
 
                     case 1:
                         rad = Rad + (float)Math.Sin(tRad) * 10;
+                        break;
+
+                    case 2:
+                        rad = Rad + (float)Math.Sin(tRad * 25) * rad * 0.05f;
+                        break;
+
+                    case 3:
+                        rad = Rad + (float)Math.Sin(tRad * 325) * rad * 0.01f;
                         break;
                 }
             }
